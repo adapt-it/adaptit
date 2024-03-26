@@ -9349,29 +9349,29 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* savePos = iteratorPos;
 	bool bHalt;
-	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
+	CSourcePhrase* pPrevSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
 
 	bool bHalted_at_bt_mkr = FALSE;
     // BEW addition 02Jan06: collecting ignores footnotes, endnotes & cross references of
-    // any kind, so we must check if pLastSrcPhrase (which is where the collection is to be
+    // any kind, so we must check if pPrevSrcPhrase (which is where the collection is to be
     // stored) actually has either kind of TextType value. If so, we must advance
-    // pLastSrcPhrase until it points to the first CSourcePhrase instance beyond the
+    // pPrevSrcPhrase until it points to the first CSourcePhrase instance beyond the
     // footnote, endnote or cross reference. In the case of a selection, this potentially
     // might not be possible (if the user selects only footnote text for instance), so we
     // must allow for such a possibility.
-	if (pLastSrcPhrase->m_curTextType == footnote ||
-		pLastSrcPhrase->m_curTextType == crossReference)
+	if (pPrevSrcPhrase->m_curTextType == footnote ||
+		pPrevSrcPhrase->m_curTextType == crossReference)
 	{
 		// we need to skip this material
 		while (iteratorPos != NULL)
 		{
 			savePos = iteratorPos; // needed for next loop after this one
-			pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
+			pPrevSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
 			iteratorPos = iteratorPos->GetNext();
-			if (pLastSrcPhrase->m_curTextType == footnote ||
-				pLastSrcPhrase->m_curTextType == crossReference)
+			if (pPrevSrcPhrase->m_curTextType == footnote ||
+				pPrevSrcPhrase->m_curTextType == crossReference)
 			{
-				pLastSrcPhrase = NULL;
+				pPrevSrcPhrase = NULL;
 				continue; // skip it, try next one
 			}
 			else
@@ -9380,7 +9380,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 				break;
 			}
 		}
-		if (pLastSrcPhrase == NULL)
+		if (pPrevSrcPhrase == NULL)
 		{
             // we got to the end of the list without finding one which was not a footnote,
             // endnote or free translation, so don't do any collection, just remove the
@@ -9392,11 +9392,11 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
     // do the loop, halting each collection at appropriate (unfiltered) SF markers (such as
     // the start of the next verse if no other marker was encountered beforehand) and store
     // the resulting collection at the starting place for this particular part of the
-    // collection (ie. at pLastSrcPhrase instance).
+    // collection (ie. at pPrevSrcPhrase instance).
 	// BEW changed 02Jan06 to have the code ignore instances with TextType of footnote or
 	// crossReference
 	bHalted_at_bt_mkr = FALSE;
-	iteratorPos = savePos; // restore position for the pLastSrcPhrase instance,
+	iteratorPos = savePos; // restore position for the pPrevSrcPhrase instance,
 						   // which is to start the loop
 	while (iteratorPos != NULL)
 	{
@@ -9408,7 +9408,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 			pSrcPhrase->m_curTextType == crossReference)
 			continue;
 
-		if (pSrcPhrase == pLastSrcPhrase)
+		if (pSrcPhrase == pPrevSrcPhrase)
 		{
 			// we are just starting the next section, so don't try to halt,
 			// just start collecting
@@ -9419,7 +9419,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 		}
 		else
 		{
-            // pSrcPhrase has advanced beyond the anchor instance, pLastSrcPhrase, so we
+            // pSrcPhrase has advanced beyond the anchor instance, pPrevSrcPhrase, so we
             // must check for halt condition as we do the collecting
 			if (pSrcPhrase->m_markers.IsEmpty()&&
 				pSrcPhrase->GetFreeTrans().IsEmpty() &&
@@ -9464,10 +9464,10 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 				if (bHalt)
 				{
 					// do the insertion
-					InsertCollectedBacktranslation(pLastSrcPhrase, strCollect);
+					InsertCollectedBacktranslation(pPrevSrcPhrase, strCollect);
 
 					// prepare for collection in the next document section
-					pLastSrcPhrase = pSrcPhrase;
+					pPrevSrcPhrase = pSrcPhrase;
 					strCollect.Empty();
 
                     // collect this one's content before iterating, because
@@ -9516,12 +9516,12 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 					}
 				}
 			} // end block for non-empty m_markers
-		} // end block for pSrcPhrase advanced past pLastSrcPhrase
+		} // end block for pSrcPhrase advanced past pPrevSrcPhrase
 	} // end while loop
 
 	// do the final insertion
-	wxASSERT(pLastSrcPhrase);
-	InsertCollectedBacktranslation(pLastSrcPhrase, strCollect);
+	wxASSERT(pPrevSrcPhrase);
+	InsertCollectedBacktranslation(pPrevSrcPhrase, strCollect);
 
 	// remove the selection, if there is one
 b:	if (bSelectionExists)
@@ -9701,7 +9701,7 @@ bool CFreeTrans::GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
 /// \remarks
 ///    Where the halt happens is also where the collection starts for the next
 ///    subsection, and the caller maintains a pointer to an earlier sourcephrase
-///    (pLastSrcPhrase) which is where the just-finished collected backtranslation text
+///    (pPrevSrcPhrase) which is where the just-finished collected backtranslation text
 ///    is to be stored filtered in its m_collectedBackTrans member.
 ///
 ///

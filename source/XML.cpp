@@ -121,7 +121,7 @@ CSourcePhrase* gpEmbeddedSrcPhrase;
 int	gnDocVersion;
 
 // whm 27Jan2024 added
-CSourcePhrase* gpLastSrcPhrase = NULL;
+CSourcePhrase* gpPreviousSrcPhrase = NULL;
 
 // BEW 1Jun10, added this global for storing the kbVersion number from the xml file for a
 // CKB which is being loaded from LoadKB() or LoadGlossingKB()
@@ -4671,7 +4671,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			// whm 27Jan2024 I assume there is no need to have an if (gnDocVersion == 5)
 			// block here nor a call of FromDocVersion4ToDocVersionCurrent() passing in
 			// the gpEmbeddedSrcPhrase here. I don't think it would work since the 
-			// gpLastSrcPhrase is NOT an embedded source phrase and doesn't point to
+			// gpPreviousSrcPhrase is NOT an embedded source phrase and doesn't point to
 			// any source phrase word in the m_pSavedWords source phrase list of merged
 			// word SPs.
 			gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
@@ -4702,7 +4702,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				// so we must check and only append ones that persist
 				gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
 
-				gpLastSrcPhrase = gpSrcPhrase; // whm 27Jan2024 added
+				gpPreviousSrcPhrase = gpSrcPhrase; // whm 27Jan2024 added
 
 			}
             // whm 6Apr2020 modified to use new doc creation logging routine
@@ -4785,22 +4785,22 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 	wxString strModifiers = pSrcPhrase->m_markers;
 	wxString strModifiersCopy = strModifiers; // need a copy for the second call below
 				// if transferring to the last instance in m_pSavedWords of a merger
-	CSourcePhrase* pLastSrcPhrase = NULL;
+	CSourcePhrase* pLastSP = NULL;
 	// whm 27Jan2024 CAUTION. The pos_pList node being assigned by the pList->GetLast() call 
 	// below will be the very LAST node in the passed-in pList and NOT the previous 
-	// node in the pList as we've customarily used the label pLastSrcPhrase!
-	// I am assuming that BEW intended this to be the case for sending a "pLastSrcPhrase"
-	// into the TransferEndMarkers() function below in which pLastSrcPhrase at that call 
+	// node in the pList as we've customarily used the label pLastSP!
+	// I am assuming that BEW intended this to be the case for sending a "pLastSP"
+	// into the TransferEndMarkers() function below in which pLastSP at that call 
 	// will be the "final" source phrase in pList (which I assum would be m_pSavedWords list).
-	// The comment within the if (!pLastSrcPhrase->m_pSavedWords->IsEmpty() && bSomethingTransferred)
+	// The comment within the if (!pLastSP->m_pSavedWords->IsEmpty() && bSomethingTransferred)
 	// TRUE block below the TransferEndMarkers() call suggests what's happening: 
 	//    "this CSourcePhrase instance is a merger, so also transfer to its last
 	//		saved instance in the m_pSavedWords list."
 	// For transferring the m_filteredInfo to the previous source phrase, I've added a
-	// gpLastSrcPhrase to the global space of XML.cpp, and I'll use it to keep tract of
+	// gpPreviousSrcPhrase to the global space of XML.cpp, and I'll use it to keep tract of
 	// the "previous" gpSrcPhrase that was created for the doc bing input, calling it
-	// gpLastSrcPhrase to keep it distince from the pLastSrcPhrase in this XML.cpp source
-	// file. This gpLastSrcPhrase is what I'll use to transfer the filtered info properly 
+	// gpPreviousSrcPhrase to keep it distince from the pLastSP in this XML.cpp source
+	// file. This gpPreviousSrcPhrase is what I'll use to transfer the filtered info properly 
 	// to the previous source phrase that was created by these xml input routines. 
 	SPList::Node* pos_pList = pList->GetLast();
 
@@ -4835,9 +4835,9 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 		// will end with an asterisk
 		bDeleteOrphan = FALSE;
 		bDeleteWhenDone = FALSE;
-		pLastSrcPhrase = pos_pList->GetData();
+		pLastSP = pos_pList->GetData();
 		bSomethingTransferred = TransferEndMarkers(pSrcPhrase, strModifiers, 
-												pLastSrcPhrase, bDeleteWhenDone);
+			pLastSP, bDeleteWhenDone);
 		if (bDeleteWhenDone)
 		{
 			bDeleteOrphan = TRUE;
@@ -4859,11 +4859,11 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// first CSourcePhrase
 
 			// if we did it at the parent level, then do it on last of the sublist's instances
-			if (!pLastSrcPhrase->m_pSavedWords->IsEmpty() && bSomethingTransferred)
+			if (!pLastSP->m_pSavedWords->IsEmpty() && bSomethingTransferred)
 			{
 				// this CSourcePhrase instance is a merger, so also transfer to its last
 				// saved instance in the m_pSavedWords list, use the copied string
-				SPList::Node* pos_pSavedWords = pLastSrcPhrase->m_pSavedWords->GetLast();
+				SPList::Node* pos_pSavedWords = pLastSP->m_pSavedWords->GetLast();
 				wxASSERT(pos_pSavedWords != NULL);
 				CSourcePhrase* pLastInSublist = pos_pSavedWords->GetData();
 				wxASSERT(pLastInSublist != NULL);	
@@ -4919,18 +4919,18 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// whm 27Jan2024 modified the location where filtered info is stored in this
 			// else block. 
 			// Doc version 10 and later now stores filtered info in a PREVIOUS source 
-			// phrase (gpLastSrcPhrase here) rather than in the current pSrcPhrase. 
+			// phrase (gpPreviousSrcPhrase here) rather than in the current pSrcPhrase. 
 			// Therefore, filtered info being transferred from the m_markers member of a 
-			// doc version 4 document, should go into the gpLastSrcPhrase's m_filteredInfo
+			// doc version 4 document, should go into the gpPreviousSrcPhrase's m_filteredInfo
 			// member, rather than the m_filteredInfo member of the current pSrcPhrase.
 			// Note: I've also created a new separate FromDocVersion5ToDocVersionCurrent() 
 			// functioin to transfer filtered info from the doc 5's m_filteredInfo of the 
 			// current pSrcPhrase to the m_filteredInfo member of the LAST source phrase
-			// - gpLastSrcPhrase.
+			// - gpPreviousSrcPhrase.
 			// I've modified the code block below to do the transfer for doc version 4
 			// to the current doc version 10+. See the separate function created this date
 			// called FromDocVersion5ToDocVersionCurrent() for newer docs needing their
-			// filtered info transferred to their gpLastSrcPhrase->m_filteredInfo member.
+			// filtered info transferred to their gpPreviousSrcPhrase->m_filteredInfo member.
 			// 
             // [BEW] extract all the wrapped filtered info into its own string, deal
             // separately with free translations, notes, and collected back
@@ -4961,10 +4961,10 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 				// to the m_freeTrans member
 				// 
 				// whm 27Jan2024 modified. The SetFreeTrans() method call below should be
-				// done to store filtered \free material on gpLastSrcPhrase now rather than
+				// done to store filtered \free material on gpPreviousSrcPhrase now rather than
 				// on pSrcPhrase.
-				if (gpLastSrcPhrase != NULL)
-					gpLastSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
+				if (gpPreviousSrcPhrase != NULL)
+					gpPreviousSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
 			}
 			if (!strNote.IsEmpty())
 			{
@@ -4972,12 +4972,12 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 				// to the m_note member
 				// 
 				// whm 27Jan2024 modified. The SetNote() method call below should be
-				// done to store filtered \note material on gpLastSrcPhrase now rather than
+				// done to store filtered \note material on gpPreviousSrcPhrase now rather than
 				// on pSrcPhrase. Ditto for the m_bHasNote = TRUE
-				if (gpLastSrcPhrase != NULL)
+				if (gpPreviousSrcPhrase != NULL)
 				{
-					gpLastSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
-					gpLastSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
+					gpPreviousSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
+					gpPreviousSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
 				}
 			}
 			if (!strCollectedBackTrans.IsEmpty())
@@ -4986,18 +4986,18 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 				// to the m_collectedBackTrans member
 				// 
 				// whm 27Jan2024 modified. The SetCollectedBackTrans() method call below should 
-				// be done to store filtered \bt... material on gpLastSrcPhrase now rather than
+				// be done to store filtered \bt... material on gpPreviousSrcPhrase now rather than
 				// on pSrcPhrase.
-				if (gpLastSrcPhrase != NULL)
-					gpLastSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+				if (gpPreviousSrcPhrase != NULL)
+					gpPreviousSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
 			}
 			// transfer filteredInfo returned string to m_filteredInfo member (& it may
 			// be an empty string)
 			// 
 			// whm 27Jan2024 modified. The SetFilteredInfo() method call below should be
-			// done to store remaining filtered material on gpLastSrcPhrase now rather than
+			// done to store remaining filtered material on gpPreviousSrcPhrase now rather than
 			// on pSrcPhrase.
-			gpLastSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
+			gpPreviousSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
 			// END OF FILTERED INFO PROCESSING
 
 			// update m_markers to have whatever remains of strModifiers (it could be
@@ -5027,10 +5027,10 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 
 // whm 27Jan2024 added. This function is mainly used to transfer any filtered information
 // from Doc Version 5 files - which stored it in the pSrcPhrase->m_filteredInfo of the CURRENT
-// pSrcPhrase - transferring it to the LAST SOURCE PHRASE gpLastSrcPhrase->m_filteredInfo member 
+// pSrcPhrase - transferring it to the LAST SOURCE PHRASE gpPreviousSrcPhrase->m_filteredInfo member 
 // for Doc version 10+. 
 // Older Doc version 4 files being opened in the current AI version (Doc v 10) will have
-// their filtered information transferred to gpLastSrcPhrase by alterations I've made this date
+// their filtered information transferred to gpPreviousSrcPhrase by alterations I've made this date
 // also to the FromDocVersion4ToDocVersionCurrent() function.
 // Note: This function should only be called AFTER the FromDocVersion4ToDocVersionCurrent()
 // function. When that is the case this function can assume that doc 4 to 5 transers have
@@ -5050,13 +5050,13 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 // not???
 void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 {
-	if (pSrcPhrase != NULL && gpLastSrcPhrase != NULL)
+	if (pSrcPhrase != NULL && gpPreviousSrcPhrase != NULL)
 	{
 		// whm 27Jan2024 comment:
 		// Note: The purpose of this FromDocVersion5ToDocVersionCurrent() 
 		// functioin is to transfer filtered info from a doc 5's m_filteredInfo 
 		// of the current pSrcPhrase's m_filteredInof member, to the m_filteredInfo 
-		// member of the LAST/PREVIOUS source phrase - gpLastSrcPhrase here in XML.cpp.
+		// member of the LAST/PREVIOUS source phrase - gpPreviousSrcPhrase here in XML.cpp.
 		// I've modified the code block below to do the transfer for doc version 5
 		// to the current doc version 10+.
 		// 
@@ -5090,9 +5090,9 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 			// to the m_freeTrans member
 			// 
 			// whm 27Jan2024 modified. The SetFreeTrans() method call below should be
-			// done to store filtered \free material on gpLastSrcPhrase now rather than
+			// done to store filtered \free material on gpPreviousSrcPhrase now rather than
 			// on pSrcPhrase.
-			gpLastSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
+			gpPreviousSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
 		}
 		if (!strNote.IsEmpty())
 		{
@@ -5100,10 +5100,10 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 			// to the m_note member
 			// 
 			// whm 27Jan2024 modified. The SetNote() method call below should be
-			// done to store filtered \note material on gpLastSrcPhrase now rather than
+			// done to store filtered \note material on gpPreviousSrcPhrase now rather than
 			// on pSrcPhrase. Ditto for the m_bHasNote = TRUE
-			gpLastSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
-			gpLastSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
+			gpPreviousSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
+			gpPreviousSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
 		}
 		if (!strCollectedBackTrans.IsEmpty())
 		{
@@ -5111,17 +5111,17 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 			// to the m_collectedBackTrans member
 			// 
 			// whm 27Jan2024 modified. The SetCollectedBackTrans() method call below should 
-			// be done to store filtered \bt... material on gpLastSrcPhrase now rather than
+			// be done to store filtered \bt... material on gpPreviousSrcPhrase now rather than
 			// on pSrcPhrase.
-			gpLastSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+			gpPreviousSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
 		}
 		// [BEW] transfer filteredInfo returned string to m_filteredInfo member (& it may
 		// be an empty string)
 		// 
 		// whm 27Jan2024 modified. The SetFilteredInfo() method call below should be
-		// done to store remaining filtered material on gpLastSrcPhrase now rather than
+		// done to store remaining filtered material on gpPreviousSrcPhrase now rather than
 		// on pSrcPhrase.
-		gpLastSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
+		gpPreviousSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
 
 		// [BEW] update m_markers to have whatever remains of strModifiers (it could be
 		// nothing), after extracting and storing inline binding or nonbinding
@@ -5529,7 +5529,7 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 // can test for orphaned pSrcPhrase following the one it's data should be on - in order to
 // move endmarkers to it and other data members if possible and delete the orphan)
 // markers is a copy of the m_markers member from which transfers are to be done
-// pLastSrcPhrase is the current last CSourcePhrase instance that was completed in the xml
+// pLastSP is the current last CSourcePhrase instance that was completed in the xml
 // parse, (not the current one yet to be saved from which markers param was copied); the
 // list for the transfer could be the m_pSourcePhrases list, a tempory copy of that list
 // during sync scrolling activity, or the m_pSavedWords list in a parent CSourcePhrase
@@ -5540,7 +5540,7 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 // filtered data is transferred in the caller)
 // BEW 2Dec10 prevent deletion of orphans if m_precPunct contains [ or m_follPunct contains ]
 bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers, 
-						CSourcePhrase* pLastSrcPhrase, bool& bDeleteWhenDone)
+						CSourcePhrase* pLastSP, bool& bDeleteWhenDone)
 {
 	bool bTransferred = FALSE;
 	markers.Trim(FALSE); // trim at left, but should never be necessary
@@ -5591,12 +5591,12 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 					// block is almost certainly never going to be entered -- but two
 					// consecutive footnotes in a legacy PngOnly SFM set could cause it to
 					// happen)
-					wxString currentEndMkrs = pLastSrcPhrase->GetEndMarkers();
+					wxString currentEndMkrs = pLastSP->GetEndMarkers();
 					if (currentEndMkrs.IsEmpty())
 						currentEndMkrs = marker;
 					else
 						currentEndMkrs += _T(" ") + marker;
-					pLastSrcPhrase->SetEndMarkers(currentEndMkrs);
+					pLastSP->SetEndMarkers(currentEndMkrs);
 					bTransferred = TRUE;
 				}
 				else
@@ -5612,7 +5612,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						|| marker.Find(_T("\\fe")) != wxNOT_FOUND
 						|| marker.Find(_T("\\x")) != wxNOT_FOUND)
 					{
-						pLastSrcPhrase->AddEndMarker(marker);
+						pLastSP->AddEndMarker(marker);
 						bTransferred = TRUE;
 
 						// we may have transferred from an orphaned CSourcePhrase (the
@@ -5626,7 +5626,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						if (pSrcPhrase->m_key.IsEmpty())
 						{
 							// it's an orphan, any punctuation in m_precPunct belongs
-							// instead in pLastSrcPhrase's m_follOuterPunct member,
+							// instead in pLastSP's m_follOuterPunct member,
 							// because this orphan only gets created in docV4 if there is
 							// punctuation following \f* or \fe* or \x*, and punctuation
 							// after any of those, is, by definition, outer punctuation
@@ -5642,16 +5642,16 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 								{
 									wxString puncts = pSrcPhrase->m_precPunct;
 									// update the two members the user sees
-									pLastSrcPhrase->m_srcPhrase += puncts;
-									pLastSrcPhrase->m_targetStr += puncts;
+									pLastSP->m_srcPhrase += puncts;
+									pLastSP->m_targetStr += puncts;
 									// update the storage
-									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									if (pLastSP->GetFollowingOuterPunct().IsEmpty())
 									{
-										pLastSrcPhrase->SetFollowingOuterPunct(puncts);
+										pLastSP->SetFollowingOuterPunct(puncts);
 									}
 									else
 									{
-										pLastSrcPhrase->AddFollOuterPuncts(puncts);
+										pLastSP->AddFollOuterPuncts(puncts);
 									}
 								}
 								bDeleteWhenDone = TRUE;
@@ -5661,7 +5661,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 					else if (gpApp->m_inlineNonbindingEndMarkers.Find(marker) != wxNOT_FOUND)
 					{
 						// it's one of \fig* \wj* \qt* \tl* or \sls*; these don't come nested
-						pLastSrcPhrase->SetInlineNonbindingEndMarkers(marker); 
+						pLastSP->SetInlineNonbindingEndMarkers(marker);
 						bTransferred = TRUE;
 
 						// we may have transferred from an orphaned CSourcePhrase (the
@@ -5675,7 +5675,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						if (pSrcPhrase->m_key.IsEmpty())
 						{
 							// it's an orphan, any punctuation in m_precPunct belongs
-							// instead in pLastSrcPhrase's m_follPunct member
+							// instead in pLastSP's m_follPunct member
 							// BEW 2Dec10 prevent deletion of orphans if m_precPunct
 							// contains [ or m_follPunct contains ]
 							if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
@@ -5688,16 +5688,16 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 								{
 									wxString puncts = pSrcPhrase->m_precPunct;
 									// update the two members the user sees
-									pLastSrcPhrase->m_srcPhrase += puncts;
-									pLastSrcPhrase->m_targetStr += puncts;
+									pLastSP->m_srcPhrase += puncts;
+									pLastSP->m_targetStr += puncts;
 									// update the storage
-									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									if (pLastSP->m_follPunct.IsEmpty())
 									{
-										pLastSrcPhrase->m_follPunct = puncts;
+										pLastSP->m_follPunct = puncts;
 									}
 									else
 									{
-										pLastSrcPhrase->m_follPunct += puncts;
+										pLastSP->m_follPunct += puncts;
 									}
 								}
 								bDeleteWhenDone = TRUE;
@@ -5711,7 +5711,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						// formatting endmarkers, they go into m_inlineBindingEndMarkers,
 						// and they can be nested - so use an Append... function, not a
 						// Set... one
-						pLastSrcPhrase->AppendToInlineBindingEndMarkers(marker); 
+						pLastSP->AppendToInlineBindingEndMarkers(marker);
 						bTransferred = TRUE;
 
 						// we may have transferred from an orphaned CSourcePhrase (the
@@ -5725,7 +5725,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						if (pSrcPhrase->m_key.IsEmpty())
 						{
 							// it's an orphan, any punctuation in m_precPunct belongs
-							// instead in pLastSrcPhrase's m_follPunct member, if the
+							// instead in pLastSP's m_follPunct member, if the
 							// latter is empty; if not empty, put it instead in
 							// m_follOuterPunct member
 							// BEW 2Dec10 prevent deletion of orphans if m_precPunct
@@ -5740,7 +5740,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 								if (!pSrcPhrase->m_precPunct.IsEmpty())
 								{
 									wxString puncts = pSrcPhrase->m_precPunct;
-									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									if (pLastSP->m_follPunct.IsEmpty())
 									{
 										follPuncts = puncts;
 									}
@@ -5757,9 +5757,9 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 								if (!pSrcPhrase->m_follPunct.IsEmpty())
 								{
 									wxString puncts = pSrcPhrase->m_follPunct;
-									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									if (pLastSP->m_follPunct.IsEmpty())
 									{
-										//pLastSrcPhrase->m_follPunct = puncts;
+										//pLastSP->m_follPunct = puncts;
 										follPuncts += _T(' ');
 										follPuncts += puncts;
 									}
@@ -5773,33 +5773,33 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 								if (!follPuncts.IsEmpty())
 								{
 									// update the two members the user sees
-									pLastSrcPhrase->m_srcPhrase += follPuncts;
-									pLastSrcPhrase->m_targetStr += follPuncts;
+									pLastSP->m_srcPhrase += follPuncts;
+									pLastSP->m_targetStr += follPuncts;
 									// update the storage
-									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									if (pLastSP->m_follPunct.IsEmpty())
 									{
-										pLastSrcPhrase->m_follPunct = follPuncts;
+										pLastSP->m_follPunct = follPuncts;
 									}
 									else
 									{
-										pLastSrcPhrase->m_follPunct += follPuncts;
+										pLastSP->m_follPunct += follPuncts;
 									}
 								}
 								if (!follOuterPuncts.IsEmpty())
 								{
 									// update the two members the user sees
-									pLastSrcPhrase->m_srcPhrase += follOuterPuncts;
-									pLastSrcPhrase->m_targetStr += follOuterPuncts;
+									pLastSP->m_srcPhrase += follOuterPuncts;
+									pLastSP->m_targetStr += follOuterPuncts;
 									// update the storage
-									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									if (pLastSP->GetFollowingOuterPunct().IsEmpty())
 									{
-										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+										pLastSP->SetFollowingOuterPunct(follOuterPuncts);
 									}
 									else
 									{
-										wxString oldpuncts = pLastSrcPhrase->GetFollowingOuterPunct();
+										wxString oldpuncts = pLastSP->GetFollowingOuterPunct();
 										follOuterPuncts = oldpuncts + follOuterPuncts;
-										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+										pLastSP->SetFollowingOuterPunct(follOuterPuncts);
 									}
 								}
 								bDeleteWhenDone = TRUE;

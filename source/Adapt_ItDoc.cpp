@@ -416,8 +416,6 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	// unavailble for usfm ordering during usfm filtering operations.
 	m_bUsfmStructEnabled = TRUE; 
 
-	m_pLastSrcPhrase = NULL; // whm 15Mar2024 added.
-
 	// whm 24Dec2019 moved the following initialization here from Adapt_ItDoc.h
 	// using _T('°') to represent the degree character \u00B0 causes a compiler warning 
 	// "warning C4066: characters beyond first in wide-character constant ignored", so
@@ -3900,9 +3898,9 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 			// but only when needed, and remove it when done. It's needed if the very last
 			// CSourcePhrase instance has a non-empty m_endMarkers member.
 			posLast = gpApp->m_pSourcePhrases->GetLast();
-			CSourcePhrase* pLastSrcPhrase = posLast->GetData();
-			wxASSERT(pLastSrcPhrase != NULL);
-			if (!pLastSrcPhrase->GetEndMarkers().IsEmpty())
+			CSourcePhrase* pLastSP = posLast->GetData();
+			wxASSERT(pLastSP != NULL);
+			if (!pLastSP->GetEndMarkers().IsEmpty())
 			{
 				// we need a dummy one at the end
 				bDummySrcPhraseAdded = TRUE;
@@ -9594,6 +9592,19 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		m_bCurrentlyFiltering = FALSE;
 	}
 
+	// whm 20Mar2024 added. If unfiltering, set the m_bCurrentlyUnfiltering boolean
+	// so that TokenizeText() can properly point pPrevSrcPhrase to its beginning 
+	// value.
+	if (bUnfilteringRequired)
+	{
+		m_bCurrentlyUnfiltering = TRUE;
+	}
+	else
+	{
+		m_bCurrentlyUnfiltering = FALSE;
+	}
+
+
 	// in the block below we determine which SFM set's map to use, and determine what the full list
 	// of filter markers is (the changed ones will be in m_FilterStatusMap); we need the map so we
 	// can look up USFMAnalysis struct instances
@@ -9611,7 +9622,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// complicated and therefore error-prone.
 	SPList::Node* pos_pList;
 	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pLastSrcPhrase = NULL;
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 19Mar2024 renamed pLastSrcPhrase to pPrevSrcPhrase
 	int nFound = -1;
 	// whm 3Jan2024 note: offset is now only used in the if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty()) block much later below
 	int offset = 0; 
@@ -9789,10 +9800,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				// [BEW] The block above does this: (1) saveNextPos is where inserts happen before it
 				// (2) pSrcPhrase was obtained before pos_pList moved move one past saveNextPos location
 				// (3) there's not much need for prevPos, but we calculate it since it's used
-				//     for setting pLastSrcPhrase at appox line 7802 (now deprecated), and approx 
+				//     for setting pPrevSrcPhrase at appox line 7802 (now deprecated), and approx 
 				//     line 8480 for dealing with a merger
 				//}
-	#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) && !defined(NOLOGS)
 				wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
 				if (!filteredInfo.IsEmpty())
 				{
@@ -9804,11 +9815,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 				}
-				if (pSrcPhrase->m_nSequNumber >= 6)
+#endif
+#if defined (_DEBUG)				
+				if (pSrcPhrase->m_nSequNumber == 6)
 				{
 					int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 				}
-	#endif
+#endif
 				curSequNum = pSrcPhrase->m_nSequNumber;
 				bDidSomeUnfiltering = FALSE;
 
@@ -9930,16 +9943,83 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// Setup for unfiltering and do so
 						bDidSomeUnfiltering = TRUE; // used for updating navText on original pSrcPhrase when done
 						bWeUnfilteredSomething = TRUE; // used for reseting initial conditions in inner loop
+
+						m_bCurrentlyUnfiltering = TRUE; // whm 20Mar2024 added
+
 						pSublist->Clear(); // clear list in preparation for Tokenizing
 					
 						wxString extractedStr = RemoveAnyFilterBracketsFromString(wholeMkrWithFilterBrackets); // we'll tokenize LHSide
-
-						// tokenize the substring (using this we get its inline marker handling for free)
 						extractedStr.Trim(FALSE); // remove any initial space
 						extractedStr.Trim(TRUE); // remove any final space
 						wxASSERT(extractedStr[0] == gSFescapechar);
 
+						// whm 20Mar2024 added. We need to also extract any swept up markers that were prefixed directly to
+						// the front the marker-being-unfiltered, and prefix any that are present to the extractedStr. The swept
+						// up markers might be something like "\\c 11\r\n" that were swept up before a \ms marker at the time
+						// the \ms marker was filtered. When the \ms marker is unfiltered, the old code above extracts everything  
+						// in the  pSrcPhrase's filtered info, finds the marker-being-unfiltered (\ms) and extracts it along with 
+						// its associated text, and removes its filter brackets. Any and all material prefixed to the filtered 
+						// marker - including other still-filtered material plus the swept up markers associated with the current
+						// marker-being-filtered - all of it is saved in the preStr variable above. This preStr variable, however, 
+						// may have one or more still filtered items within it that were stored as filtered info previously. Any 
+						// still-filtered items will occur BEFORE the swept up material prefixing the current marker-being-unfiltered. 
+						// So, in preStr, we need to separate any filtered material that's to remain filtered from any swept up 
+						// material that belongs to, and needs to be kept with the marker-being-unfiltered. In the process we
+						// leave any to-remain-filtered-material intact within preStr (of course, they could also have their own
+						// swept up markers prefixed to the them). The filtered stuff remaining in preStr will then be stored later
+						// back in the same pSrcPhrase where they were. 
+						// What follows then, is code to separate and extract the swept up markers, if they exist, from the right 
+						// end of the preStr string, and store any filtered stuff that should remain back in preStr.
+						// First see if there is any "\\~FILTER*" end marker left within the preStr.
+						int posEndFilterBracket = preStr.Find(_T("\\~FILTER*"));
+						if (!preStr.IsEmpty() && posEndFilterBracket == wxNOT_FOUND)
+						{
+							// The preStr string has content, but there is no ending filter bracket in preStr, so we can 
+							// assume that its content is wholly swept up markers that belong to the marker-being-unfiltered.
+							extractedStr = preStr + extractedStr;
+							preStr.Empty();
+						}
+						else if (!preStr.IsEmpty() && posEndFilterBracket != wxNOT_FOUND)
+						{
+							// The string is not empty, and it contains bracketed filtered material. We need to
+							// separate out the swept up stuff, if any, after the final filter end-bracket, and
+							// prefix the swept up stuff to the extractedStr, and leave the other filtered material
+							// in preStr for later re-storage.
+							wxString sweptUpStuff; sweptUpStuff.Empty();
+							wxChar ch;
+							int preStrLen = preStr.Length();
+							for (int i = preStrLen - 1; i >= 0; i--) // scan from back end towards front end
+							{
+								ch = preStr.GetChar(i);
+								if (ch != _T('*'))
+									sweptUpStuff += wxString(preStr.GetChar(i));
+								else
+									break;
+							}
+							extractedStr = sweptUpStuff + extractedStr;
+							preStr = preStr.Mid(0, preStrLen - sweptUpStuff.Length());
+						}
+
+						// tokenize the substring (using this we get its inline marker handling for free)
+						// whm 22Mar2024 added. If the marker-being-unfiltered is \x the extractedStr will
+						// have "\\x " at the beginning of its string. If the \x marker is indeed the marker
+						// being unfiltered we want to set the Doc's m_bIsWithinCrossRef_X_Span flag to TRUE
+						// before the TokenizeTextString() call below, and then set that same flag to FALSE
+						// after the TokenizeTextString call. This will inform the TokenizeText() function
+						// that gets called by TokenizeTextString() that it is parsing the an \x ...\x* span
+						// and if so TokenizeText() should save any embedded \xt marker as a regular cross-ref
+						// marker in the m_markers member, rather than as a stand-alone \xt begin marker which
+						// gets stored within the m_inlineNonbindingMArkers member.
+						if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+						{
+							m_bIsWithinCrossRef_X_Span = TRUE;
+						}
 						int count = pView->TokenizeTextString(pSublist, extractedStr, pSrcPhrase->m_nSequNumber);
+						if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+						{
+							m_bIsWithinCrossRef_X_Span = FALSE;
+						}
+
 						bool bIsContentlessMarker = FALSE;
 
 						// pSublist now has the tokenized unfiltered data
@@ -10102,13 +10182,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								// [BEW comment] call AnalyseMarker() and set the flags 
 								// etc correctly, taking context into account, for this 
-								// we need the pLastSrcPhrase pointer - but it is okay if 
+								// we need the pPrevSrcPhrase pointer - but it is okay if 
 								// it is NULL/
 								// (Note: pSP_SubList is still in the temporary list pSublist,
-								// while pLastSrcPhrase is in the m_pSourcePhrases main
+								// while pPrevSrcPhrase is in the m_pSourcePhrases main
 								// list of the document.)
 								pSP_SubList->m_curTextType = verse; // assume verse unless AnalyseMarker changes it
-								pSP_SubList->m_bSpecialText = AnalyseMarker(pSP_SubList, pLastSrcPhrase, pBufStart, mkrLen, pSfm);
+								pSP_SubList->m_bSpecialText = AnalyseMarker(pSP_SubList, pPrevSrcPhrase, pBufStart, mkrLen, pSfm);
 
 								// [BEW comment] we have to handle the possibility that pSP_SubList 
 								// might have a contentless marker, or actually something not 
@@ -10342,25 +10422,27 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// Therefore we need to scan source phrases bypassing any/all that
 						// have their m_bNullSourcePhrase flag TRUE until that flag becomes
 						// FALSE, or we reach the end source phrse of the document.
-						CSourcePhrase* ptempSP; 
+						CSourcePhrase* pInsertSP; 
+						insertPos = GetFollowingNonPlaceholderInsertPosition(saveNextPos, pInsertSP);
+						/*
 						insertPos = saveNextPos->GetNext();
 						while (insertPos != NULL && insertPos->GetData()->m_bNullSourcePhrase == TRUE)
 						{
-							ptempSP = insertPos->GetData();
+							pInsertSP = insertPos->GetData();
 							insertPos = insertPos->GetNext();
 						}
-
+						*/
 #if defined(_DEBUG)
 						// whm 31Oct2023 Debug block for inspection of source phrases at insertPos
 						if (insertPos != NULL)
 						{
-							CSourcePhrase* ptempSP = insertPos->GetData();
+							CSourcePhrase* pInsertSP = insertPos->GetData();
 							// For debugging and inspecting the 
-							if (ptempSP)
+							if (pInsertSP)
 							{
-								int sn = ptempSP->m_nSequNumber;
+								int sn = pInsertSP->m_nSequNumber;
 								sn = sn;
-								wxString tempKey = ptempSP->m_key;
+								wxString tempKey = pInsertSP->m_key;
 								tempKey = tempKey;
 							}
 						}
@@ -10382,12 +10464,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// whm 31Oct2023 Debug block for inspection of source phrases at insertPos
 							if (insertPos != NULL)
 							{
-								CSourcePhrase* ptempSP = (CSourcePhrase*)insertPos->GetData();
-								if (ptempSP != NULL)
+								CSourcePhrase* pInsertSP = (CSourcePhrase*)insertPos->GetData();
+								if (pInsertSP != NULL)
 								{
-									int sn = ptempSP->m_nSequNumber;
+									int sn = pInsertSP->m_nSequNumber;
 									sn = sn;
-									wxString tempKey = ptempSP->m_key;
+									wxString tempKey = pInsertSP->m_key;
 									tempKey = tempKey;
 								}
 							}
@@ -10732,11 +10814,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// has no longer got any filtered info, and if that is the case, remove it from the
 			// document
 			SPList::Node* posLast = pList->GetLast();
-			CSourcePhrase* pLastSrcPhrase = posLast->GetData();
-			if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->GetFilteredInfo().IsEmpty())
+			CSourcePhrase* pLastSP = posLast->GetData();
+			if (pLastSP->m_key.IsEmpty() && pLastSP->GetFilteredInfo().IsEmpty())
 			{
 				// it needs to be deleted
-				gpApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase); // delete it and its partner pile
+				gpApp->GetDocument()->DeleteSingleSrcPhrase(pLastSP); // delete it and its partner pile
 				pList->DeleteNode(posLast);
 			}
 		}
@@ -10827,7 +10909,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		bool bMarkerInNonbindingSet = FALSE;
 #if defined (_DEBUG)
 		{
-			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 31)
+			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 43)
 			{
 				int halt_here = 1;
 				wxUnusedVar(halt_here);
@@ -11310,7 +11392,7 @@ g:				bIsUnknownMkr = FALSE;
 				pos_pList = pos_pList->GetPrevious();
 				pSrcPhr = (CSourcePhrase*)pos_pList->GetData(); // avoids compiler warning
 				wxASSERT(pSrcPhr != NULL);
-				
+
 				// The scanning loop for the matching endmarker commences
 				// note: execution breaks out when a halt location is determined
 				// or at end of document
@@ -11348,7 +11430,7 @@ g:				bIsUnknownMkr = FALSE;
 									// bSearchInNonbindingEndMkrs, which is default FALSE
 									// doing the search in m_markers content, but here it is TRUE
 					{
-//						wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkrBeingFiltered.c_str());
+						// wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkrBeingFiltered.c_str());
 						// whm 31Oct2023 correction. The following line gets pSrcPhr assigned to 
 						// the following source phrase at pos_partialList with the result that the source
 						// phrase pSrcPhr that gets appended to the pSubList below is NOT the
@@ -11363,7 +11445,7 @@ g:				bIsUnknownMkr = FALSE;
 					}
 					else if (pSrcPhraseNext != NULL)
 					{
-						
+
 						// No match found, so check criteria for forcing a halt,
 						// if no cause is found then continue iterating loop
 						if (IsEndingSrcPhrase(gpApp->gCurrentSfmSet, pSrcPhraseNext, existingFilteredInfo)) // whm 24Oct2023 added 3rd parameter
@@ -11539,7 +11621,7 @@ g:				bIsUnknownMkr = FALSE;
 				int posWholeMkr = (int)strFilteredStuff.Find(wholeMkrBeingFiltered);
 				// First get the swept up stuff before the wholeMkrBeingFiltered since we'll keep it outside
 				// the filter begin marker \~FILTER
-				wxString sweptUpStr = wxEmptyString; 
+				wxString sweptUpStr = wxEmptyString;
 				if (posWholeMkr != wxNOT_FOUND)
 				{
 					// Separate any swept up preceding material from the strFilteredStuff that's going to 
@@ -11660,63 +11742,40 @@ g:				bIsUnknownMkr = FALSE;
 				// string strFilteredStuffToCarryForward, has to be handled here too (it
 				// could, of course, be an empty string)
 				// 
-				// whm 2Feb2024 added. Filtered material is now being stored on a previous SP.
+				// whm 19Mar2024 added. Filtered material is now being stored on a previous SP.
 				// Here we need to ensure that the pPrevSrcPhrase is not a placeholder source 
 				// phrase, especially one that is at the end of a retranslation.
-				// If it is a placeholder, we need to iterate back to a previous source phrase
-				// that is not a placeholder. This is similar to what was necessary when
-				// unfiltering a filtered marker and text that was stored on a source phrase
-				// that was followed by one or more placeholders and we iterated to following
-				// source phrase until we came to a non-placeholder source phrase and inserted
-				// the marker and its text's sublist there.
-				// There is a parallel block later below to iterate past placeholder source 
-				// phrases in the block where bIsMarkerInNonbindingSet is FALSE.
+				// If it is a placeholder, we need to iterate to a previous source phrase
+				// that is not a placeholder. This is also what is done within TokenizeText().
+				// For unfiltering a filtered marker the process is reversed, so that filtered
+				// material that was stored on a particular source phrase that is followed by 
+				// one or more placeholders, unfiltering the tokenized sublist of source phrases
+				// properly requires that we advance over any placeholder source phrases that
+				// follow it until we came to a non-placeholder source phrase and there we can
+				// insert the marker-being-unfiltered's sublist of tokenized source phrases 
+				// there.
+				// Note: There is a parallel block later below to iterate past placeholder 
+				// source phrases in the block where bIsMarkerInNonbindingSet is FALSE.
 				CSourcePhrase* pPrevSrcPhrase = NULL;
-				CSourcePhrase* ptempSP;
-				if (prevPos != NULL)
+				if (prevPos != NULL && prevPos->GetPrevious() != NULL)
 				{
-					ptempSP = prevPos->GetData();
-					if (ptempSP->m_bNullSourcePhrase != TRUE)
-					{
-						pPrevSrcPhrase = prevPos->GetData();
-					}
-					else
-					{
-						while (prevPos != NULL && prevPos->GetData()->m_bNullSourcePhrase == TRUE)
-						{
-							ptempSP = prevPos->GetData();
-							prevPos = prevPos->GetPrevious();
-						}
-						if (prevPos != NULL)
-						{
-							pPrevSrcPhrase = prevPos->GetData();
-						}
-						else
-						{
-							// prevPos is NULL meaning that we are at the very beginning of the document.
-							// This shouldn't ordinarily happen with usfm scripture text since it
-							// would have an \id line with at least a 3-letter scripture book code.
-							// However, we need to do something reasonable in this case. Probably best
-							// would be to set prevPos to the following source phrase and dump the
-							// filtered marker there.
-							prevPos = prevPos->GetNext();
-							pPrevSrcPhrase = prevPos->GetData();
-						}
-					}
-
+					pPrevSrcPhrase = prevPos->GetData();
+					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); //, pList);
 				}
-				if (prevPos == NULL)
+				if (pPrevSrcPhrase == NULL && prevPos != NULL)
 				{
-					// prevPos is NULL meaning that we are at the very beginning of the document.
-					// This shouldn't ordinarily happen with usfm scripture text since it
-					// would have an \id line with at least a 3-letter scripture book code.
-					// However, we need to do something reasonable in this case. Probably best
-					// would be to set prevPos to the following source phrase and dump the
-					// filtered marker there.
+					// The pPrevSrcPhrase determined above is NULL meaning that we are at 
+					// the very beginning of the document. This shouldn't ordinarily happen 
+					// with usfm scripture text since such text would have an \id line with 
+					// at least a 3-letter scripture book code at te beginning of the document.
+					// However, we need to do something reasonable this situation were ever to
+					// occur. Probably best would be to set prevPos to the following source 
+					// phrase, get pPrevSrcPhrase at that position, and dump the filtered
+					// information there.
 					prevPos = prevPos->GetNext();
 					pPrevSrcPhrase = prevPos->GetData();
+					wxASSERT(pPrevSrcPhrase != NULL);
 				}
-				wxASSERT(pPrevSrcPhrase != NULL);
 
 				// whm Note: The parallel section outside the if (bMarkerInNonbindingSet)
 				// farther below has code to prepend markers into m_markers, but this is
@@ -12622,69 +12681,44 @@ g:				bIsUnknownMkr = FALSE;
 				CSourcePhrase* pFollSrcPhase = NULL;
 				if (follPos != NULL)
 					pFollSrcPhase = follPos->GetData();
-				// whm 2Feb2024 added. Here we need to ensure that the pPrevSrcPhrase
-				// is not a placeholder source phrase that is at the end of a retranslation.
-				// If it is a placeholder, we need to iterate back to a previous source phrase
-				// that is not a placeholder. This is similar to what was necessary when
-				// unfiltering a filtered marker and text that was stored on a source phrase
-				// that was followed by one or more placeholders and we iterated to following
-				// source phrase until we came to a non-placeholder source phrase and inserted
-				// the marker and its text's sublist there.
-				// There is a parallel block earlier above to iterate past placeholder source 
-				// phrases in the block where bIsMarkerInNonbindingSet is TRUE.
+
+				// whm 19Mar2024 added. Filtered material is now being stored on a previous SP.
+				// Here we need to ensure that the pPrevSrcPhrase is not a placeholder source 
+				// phrase, especially one that is at the end of a retranslation.
+				// If it is a placeholder, we need to iterate to a previous source phrase
+				// that is not a placeholder. This is also what is done within TokenizeText().
+				// For unfiltering a filtered marker the process is reversed, so that filtered
+				// material that was stored on a particular source phrase that is followed by 
+				// one or more placeholders, unfiltering the tokenized sublist of source phrases
+				// properly requires that we advance over any placeholder source phrases that
+				// follow it until we came to a non-placeholder source phrase and there we can
+				// insert the marker-being-unfiltered's sublist of tokenized source phrases 
+				// there.
+				// Note: There is a parallel block later below to iterate past placeholder 
+				// source phrases in the block where bIsMarkerInNonbindingSet is FALSE.
 				CSourcePhrase* pPrevSrcPhrase = NULL;
-				CSourcePhrase* ptempSP;
-				if (prevPos != NULL)
+				if (prevPos != NULL && prevPos->GetPrevious() != NULL)
 				{
-					ptempSP = prevPos->GetData();
-					if (ptempSP->m_bNullSourcePhrase != TRUE)
-					{
-						pPrevSrcPhrase = prevPos->GetData();
-					}
-					else
-					{
-						while (prevPos != NULL && prevPos->GetData()->m_bNullSourcePhrase == TRUE)
-						{
-							ptempSP = prevPos->GetData();
-							prevPos = prevPos->GetPrevious();
-						}
-						if (prevPos != NULL)
-						{
-							pPrevSrcPhrase = prevPos->GetData();
-						}
-						else
-						{
-							// prevPos is NULL meaning that we are at the very beginning of the document.
-							// Thsi shouldn't ordinarily happen with usfm scripture text since it
-							// would have an \id line with at least a 3-letter scripture book code.
-							// However, we need to do something reasonable in this case. Probably best
-							// would be to set prevPos to the following source phrase and dump the
-							// filtered marker there.
-							prevPos = prevPos->GetNext();
-							pPrevSrcPhrase = prevPos->GetData();
-						}
-					}
+					pPrevSrcPhrase = prevPos->GetData();
+					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
 				}
-				if (prevPos == NULL)
+				if (pPrevSrcPhrase == NULL && prevPos != NULL)
 				{
-					// prevPos is NULL meaning that we are at the very beginning of the document.
-					// This shouldn't ordinarily happen with usfm scripture text since it
-					// would have an \id line with at least a 3-letter scripture book code.
-					// However, we need to do something reasonable in this case. Probably best
-					// would be to set prevPos to the following source phrase and dump the
-					// filtered marker there.
+					// The pPrevSrcPhrase determined above is NULL meaning that we are at 
+					// the very beginning of the document. This shouldn't ordinarily happen 
+					// with usfm scripture text since such text would have an \id line with 
+					// at least a 3-letter scripture book code at te beginning of the document.
+					// However, we need to do something reasonable this situation were ever to
+					// occur. Probably best would be to set prevPos to the following source 
+					// phrase, get pPrevSrcPhrase at that position, and dump the filtered
+					// information there.
 					prevPos = prevPos->GetNext();
 					pPrevSrcPhrase = prevPos->GetData();
+					wxASSERT(pPrevSrcPhrase != NULL);
 				}
-				wxASSERT(pPrevSrcPhrase != NULL);
 
 				// fill its m_markers with the material it needs to store,
 				// in the correct order
-				// whm 4Mar2024 removed tempStr code below; it only results in duplication
-				// of the pPrevSrcPhrase0>m_markers material.
-				//tempStr = pPrevSrcPhrase->m_markers; // hold this stuff temporarily,
-								// as we must later add it to the end of everything else
-				//tempStr.Trim(FALSE); // this is easier than the above line
 
 				// whm 4Feb2024 NOTE. The storage of m_markers from preStr in the
 				// pPrevSrcPhrase location can result in loss of ordering information,
@@ -12723,34 +12757,21 @@ g:				bIsUnknownMkr = FALSE;
 				// not want to store such swept up material in m_markers where it just looses all
 				// ordering information. Therefore, we should remove the swept up stuff from the
 				// preStr below before storing preStr into m_markers.
-				// TODO: I'm commenting out the next line until tests show that we need to
+				// I'm commenting out the next line until tests show that we need to
 				// just remove swept up stuff from preStr. When filtering the \s1 marker
 				// preStr was "\\c 1\r\n" which was equivalent to the swept up part, but what
 				// about when there is other bracketed filtered stuff within preStr???
 				// Also when testing this by filtering \s1 in the Hezekiah doc, it was clear that
 				// the RebuildSourceText() call above wasn't producing a correct string
-				// TODO
 				//pPrevSrcPhrase->m_markers = preStr; // any previously assumulated
-															// filtered info, or markers
-				// whm 8Feb2024 Determine if the adjustment to m_markers below and
-				// addition of tempStr is still necessary. No it only results in duplication
-				// of pPrevSrcPhrase's m_markers. So I've commented the block below that adds
-				// tempStr to pPrevSrcPhrase->m_markers.
-				// 
+														// filtered info, or markers
+
 				// BEW 22Sep10 added next 3 lines
 				pPrevSrcPhrase->m_markers.Trim();
 				pPrevSrcPhrase->m_markers += _T(" "); //ensure an intervening space
 				pPrevSrcPhrase->m_markers += remainderStr;
 				pPrevSrcPhrase->m_markers.Trim(FALSE); // delete contents
 													// if only spaces are present
-				// whm 4Mar2024 removed the block below that adds tempStr to pPrevSrcPhrase->m_markers 
-				//if (!tempStr.IsEmpty())
-				//{
-				//	pPrevSrcPhrase->m_markers.Trim();
-				//	pPrevSrcPhrase->m_markers += _T(" "); //ensure an intervening space
-				//	// append whatever was originally on this srcPhrase::m_markers member
-				//	pPrevSrcPhrase->m_markers += tempStr;
-				//}
 
 				// insert any already filtered stuff we needed to carry forward before the newly
 				// filtered material (because if it was unfiltered, it would appear in the
@@ -12934,7 +12955,7 @@ g:				bIsUnknownMkr = FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE when we want the caller to copy the pLastSrcPhrase->m_curTextType value to the
+/// \return		TRUE when we want the caller to copy the pPrevSrcPhrase->m_curTextType value to the
 ///				global enum, gPreviousTextType; otherwise we return FALSE to suppress that global
 ///				from being changed by whatever marker has just been parsed (and the caller will
 ///				reset the global to default TextType verse when an endmarker is encountered).
@@ -12983,7 +13004,7 @@ bool CAdapt_ItDoc::IsPreviousTextTypeWanted(wxChar* pChar, USFMAnalysis* pAnalys
 		// function was first built; so added: || *(pChar + 1) == _T('+')
 		// So i tests: either its none type, or there is a + character after the 
 		// backslash (i.e. nested, and nested markers DO NOT change the textType
-		// - the outer type applies, so propagate from pLastSrcPhrase
+		// - the outer type applies, so propagate from pPrevSrcPhrase
 		if (pAnalysis->inLine && (pAnalysis->textType == none || *(pChar + 1) == _T('+')) )
 		{
 			return TRUE;
@@ -14112,7 +14133,7 @@ bool CAdapt_ItDoc::CannotBeClosingQuote(wxChar* ptr, wxChar* pPunctStart)
 // to change, whether \f* \x* \fe* \ef* or \ex*. When TRUE is returned, the typeChangingEndMkr will
 // tell us which code block to use in the caller to effect the closing off of the span, etc.
 // When FALSE is returned, the return typeChangingEndMkr as wxEmptyString - to act as a flag
-bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pLastSrcPhrase, wxString& typeChangingEndMkr)
+bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pPrevSrcPhrase, wxString& typeChangingEndMkr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -14124,7 +14145,7 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pLastSrcPhrase, wx
 		// two marker synonyms for ending a footnote, \fe or \F
 		wxString fnoteEnd1 = _T("\\fe");
 		wxString fnoteEnd2 = _T("\\F");
-		wxString endmarkers = pLastSrcPhrase->GetEndMarkers();
+		wxString endmarkers = pPrevSrcPhrase->GetEndMarkers();
 		if (endmarkers.IsEmpty())
 			return FALSE;
 		if (endmarkers.Find(fnoteEnd1) != wxNOT_FOUND)
@@ -14154,18 +14175,18 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pLastSrcPhrase, wx
 		// should be TRUE. Do not change the value of m_bIsWithinUnfilteredInlineSpan within this present function, but only
 		// in the function's caller IsTextTypeChangingEndMarker() when this function returns TRUE for bool bIsChanger
 
-		wxString endmarkers = pLastSrcPhrase->GetEndMarkers();
+		wxString endmarkers = pPrevSrcPhrase->GetEndMarkers();
 		wxString lastMkr = wxEmptyString; // init  -- BEW deprecate after refactor
 
 		// BEW 9Jan23 add support for endMkr being one of the pApp->m_RedEndMarkers set, 
-		// pLastSrcPhrase is what was passed in, when the pLastSrcPhrase is the one which
+		// pPrevSrcPhrase is what was passed in, when the pPrevSrcPhrase is the one which
 		// ends one of the five spans, it's m_endMarkers member should have the relevant
 		// endmarker (even if not final in m_endMarkers)
 		int offset = wxNOT_FOUND; // init
 		wxString augEndMkr;
 		if (endmarkers.IsEmpty())
 		{
-			// Can't possibly be the pLastSrcPhrase which ends the span
+			// Can't possibly be the pPrevSrcPhrase which ends the span
 			return FALSE;
 		}
 		else
@@ -14186,7 +14207,7 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pLastSrcPhrase, wx
 			offset = pApp->m_EmbeddedIgnoreEndMarkers.Find(augEndMkr);
 			if (offset >= 0)
 			{
-				// Control is within a span, and so it's not a pLastSrcPhrase for closing the span
+				// Control is within a span, and so it's not a pPrevSrcPhrase for closing the span
 				return FALSE;
 			}
 			// Now deal with each possible span. Footnotes are common, so handle first
@@ -14194,49 +14215,49 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pLastSrcPhrase, wx
 			offset = endmarkers.Find(fnoteEnd);
 			if (offset >= 0)
 			{
-				// We found \f* within endmarkers, so this pLastSrcPhrase finishes the footnote span
+				// We found \f* within endmarkers, so this pPrevSrcPhrase finishes the footnote span
 				typeChangingEndMkr = fnoteEnd;
 				return TRUE;
 			}
 			offset = endmarkers.Find(crossRefEnd);
 			if (offset >= 0)
 			{
-				// We found \x* within endmarkers, so this pLastSrcPhrase finishes the cross-ref span
+				// We found \x* within endmarkers, so this pPrevSrcPhrase finishes the cross-ref span
 				typeChangingEndMkr = crossRefEnd;
 				return TRUE;
 			}
 			offset = endmarkers.Find(endnoteEnd);
 			if (offset >= 0)
 			{
-				// We found \fe* within endmarkers, so this pLastSrcPhrase finishes the end note span
+				// We found \fe* within endmarkers, so this pPrevSrcPhrase finishes the end note span
 				typeChangingEndMkr = endnoteEnd;
 				return TRUE;
 			}
 			offset = endmarkers.Find(extfnoteEnd);
 			if (offset >= 0)
 			{
-				// We found \ef* within endmarkers, so this pLastSrcPhrase finishes the external study note span
+				// We found \ef* within endmarkers, so this pPrevSrcPhrase finishes the external study note span
 				typeChangingEndMkr = extfnoteEnd;
 				return TRUE;
 			}
 			offset = endmarkers.Find(extcrossRefEnd);
 			if (offset >= 0)
 			{
-				// We found \ex* within endmarkers, so this pLastSrcPhrase finishes the extended study note span
+				// We found \ex* within endmarkers, so this pPrevSrcPhrase finishes the extended study note span
 				typeChangingEndMkr = extcrossRefEnd;
 				return TRUE;
 			}
 			offset = endmarkers.Find(figEnd); // whm 23Feb2024 added to return TRUE for \fig*
 			if (offset >= 0)
 			{
-				// We found \ex* within endmarkers, so this pLastSrcPhrase finishes the extended study note span
+				// We found \ex* within endmarkers, so this pPrevSrcPhrase finishes the extended study note span
 				typeChangingEndMkr = figEnd; // whm 23Feb2024 added to return TRUE for \jmp* too.
 				return TRUE;
 			}
 			offset = endmarkers.Find(jmpEnd);
 			if (offset >= 0)
 			{
-				// We found \ex* within endmarkers, so this pLastSrcPhrase finishes the extended study note span
+				// We found \ex* within endmarkers, so this pPrevSrcPhrase finishes the extended study note span
 				typeChangingEndMkr = jmpEnd;
 				return TRUE;
 			}
@@ -20895,15 +20916,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	// if we don't advance ptr by at least one wxChar, then the infinite loop happens. So I'll try saving a asterisk in m_key and
 	// m_srcPhrase, and return itemLen = 1,  and ptr advanced by 1. If no subsequent content is added in the caller, an 
 	// isolated asterisk will be seen but carry no meaning, it would be in the GUI as a pSrcPhrase, & prevent an app infinite loop
-	// 
-	// whm 15Mar2024 added. The incoming parameter pSrcPhrase can be null when ParsePostWordPunctsAndEndMkrs() is called
-	// and the pSrcPhrase that is passed is actually the Doc's pLastSrcPhrase within TokenizetText() when the marker being 
-	// processed is to be filtered (line 47996). There is now a Doc member m_pSrcPhrase that gets set before certain
-	// operations such as OnEditSourceText() in order to provide TotkenizeText() with access to the pLastSrcPhrase of the 
-	// main document. If the incoming pSrcPhrase is NULL we substitute that Doc member m_LastSrcPhrase in its place. If 
-	// pSrcPhrase is still empty, then we don't bother continuing, but just return the ptr.
-	if (pSrcPhrase == NULL)
-		pSrcPhrase = m_pLastSrcPhrase;
+
 	if (pSrcPhrase == NULL)
 		return ptr;
 
@@ -21629,7 +21642,16 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 	SPList* pL = pNewSrcPhrasesList;
 	wxASSERT(pL);
-	CSourcePhrase* pLastSrcPhrase = gpPrecSrcPhrase; // the one immediately preceding sublist
+	// whm 20Mar2024 Note: There are two calls of DoMarkerHousekeeping() in the View's
+	// OnEditSourceText() method. At the first call there the globals gpPrecSrcPhrase
+	// and gpFollSrcPhrase are set because the incoming pNewSrcPhrasesList is just a 
+	// subset of source phrases and those two globals are designed for that sublist
+	// situation. However, at the second call of DoMarkerHousekeeping() the App's 
+	// whole list of source phrases is passed in the pNewSrcPhrasesList parameter, and
+	// for that scenario, the two globals must be set to NULL. Setting them to NULL was
+	// done at this date within OnEditSourceText() just before the second call of
+	// DoMarkerHousekeeping. 
+	CSourcePhrase* pPrevSrcPhrase = gpPrecSrcPhrase; // the one immediately preceding sublist
 													 // (it could be null)
 	CSourcePhrase* pFollowing = gpFollSrcPhrase; // first, following the sublist (could be null)
 	CSourcePhrase* pSrcPhrase = 0; // the current one, used in our iterations
@@ -21684,7 +21706,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 	SPList::Node* pos_pL = pL->GetFirst();
 	bool bInvalidLast = FALSE;
-	if (pLastSrcPhrase == NULL) // MFC had == 0
+	if (pPrevSrcPhrase == NULL) // MFC had == 0
 		bInvalidLast = TRUE; // only possible if user edited source text at the very
 							 // first sourcephrase in the doc iterate over each
 							 // sourcephrase instance in the sublist
@@ -21888,14 +21910,14 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					// which defaults to verse and not special text in the absence of a
 					// marker to specify otherwise
 					pSrcPhrase->m_bFirstOfType = FALSE;
-					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the
+					pSrcPhrase->m_curTextType = pPrevSrcPhrase->m_curTextType; // propagate the
 																	// earlier instance's type
 					// whm 3Sep2023 commented out the m_inform.Empty() call below, otherwise 
 					// "fn end" gets removed from above.
 					//pSrcPhrase->m_inform.Empty();
 					pSrcPhrase->m_chapterVerse.Empty();
 					// propagate the previous value
-					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+					pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText;
 				}
 			}
 		} // end of TRUE block for test: if (mkrBuffer.IsEmpty())
@@ -21906,7 +21928,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 			if (bInvalidLast)
 			{
 				// we are at the very beginning of the document
-				pLastSrcPhrase = NULL; // ensure it's NULL
+				pPrevSrcPhrase = NULL; // ensure it's NULL
 				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid preceding one
 				pSrcPhrase->m_bSpecialText = bSpecialText; // assume this value, the marker
 														   // may later change it
@@ -21916,7 +21938,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 			else
 			{
 				// we are not at the beginning of the document
-				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate previous, as default
+				pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText; // propagate previous, as default
 
 				x:	
 				if (!mkrBuffer.IsEmpty())
@@ -22139,7 +22161,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 									// will use the pUsfmAnalysis obtained above, which will
 									// be obtained from the non-nested equivalent marker, so
 									// no other change is needed here
-									pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+									pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pPrevSrcPhrase,
 										(wxChar*)ptr, itemLen, pUsfmAnalysis);
 
 									// advance pointer past the marker
@@ -22271,7 +22293,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 							// will use the pUsfmAnalysis obtained above, which will
 							// be obtained from the non-nested equivalent marker, so
 							// no other change is needed here
-							pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+							pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pPrevSrcPhrase,
 								(wxChar*)ptrINB, itemLen, pUsfmAnalysis);
 
 							// advance pointer past the marker
@@ -22297,8 +22319,8 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 			} // end of else block of if (bInvalidLast)
 		} // end of else block for test: if (mkrBuffer.IsEmpty())
 
-		// make this one be the "last" one for next time through
-		pLastSrcPhrase = pSrcPhrase;
+		// make this one be the "previous" one for next time through
+		pPrevSrcPhrase = pSrcPhrase;
 		finalType = pSrcPhrase->m_curTextType; // keep this updated continuously, to be used
 											   // below
 		gbSpecialText = pSrcPhrase->m_bSpecialText; // the value to be propagated at end of
@@ -22852,7 +22874,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 /// \return		the value of the m_bSpecialText member of pSrcPhrase
 /// \param		pSrcPhrase		<- a pointer to the source phrase instance on
 ///									which this marker will be stored
-/// \param		pLastSrcPhrase	<- a pointer to the source phrase immediately preceding
+/// \param		pPrevSrcPhrase	<- a pointer to the source phrase immediately preceding
 ///									the current pSrcPhrase one (may be null)
 /// \param		pChar			-> pChar points to the marker itself (ie. the marker's
 ///									backslash)
@@ -22886,13 +22908,13 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 /// whm 26-28Feb2024 revised to set certain properties and return TRUE for the attribute
 /// markers \jmp and \xt as well as for \fig. 
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
+bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pPrevSrcPhrase,
 									wxChar* pBeginMkr, int mkrLen, USFMAnalysis* pUsfmAnalysis)
 	// BEW ammended 21May05 to improve handling of endmarkers and suppressing their display
 	// in navigation text area of main window
 {
 	CSourcePhrase* pThis = pSrcPhrase;
-	CSourcePhrase* pLast = pLastSrcPhrase;
+	CSourcePhrase* pLast = pPrevSrcPhrase;
 	wxString str(pBeginMkr, mkrLen);// need this to get access to wxString's overloaded operators
 							// (some people define huge standard format markers, so we need
 							// a dynamic string)
@@ -35397,7 +35419,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 // value is greater than zero (thereby ensuring a previous pSourcePhrase exists), calculates
 // what the previous pSrcPhrase is, and returns it. Returns NULL if there was error or no
 // space to get a previous one. Later on 13Dec22, became clear that I don't need this. TokenizeText's
-// propagation code always has available the current pSrcPhrase, and the previous one, pLastSrcPhrase,
+// propagation code always has available the current pSrcPhrase, and the previous one, pPrevSrcPhrase,
 // so I'll comment this function out. It may be useful later some time.
 /*
 CSourcePhrase* CAdapt_ItDoc::GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase)
@@ -35430,6 +35452,88 @@ CSourcePhrase* CAdapt_ItDoc::GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase)
 	return pSP;
 }
 */
+
+// whm 18Mar2024 added the following function for getting a suitable previous SP to store filtered info. This
+// function looks backwards in the gpApp->m_pSourcePhrases to find a non-NULL and non-placeholder source phrase 
+// and returns that source phrase pointer if it exists. If no suitable source phrase is found it returns the 
+// incoming pPrevSrcPhrase unchanged. If the incoming pPrevSrcPhrase was not a placeholder source phrase, it is
+// returned unchanged. If the incoming pPrevSrcPhrase is NULL that means that we're at the beginning of the 
+// document and the returned value would also be NULL.
+// This function is used mainly within TokenizeText(), but also has some application within the 
+// ReconstituteAfterFilteringChange() function, and possibly elsewhere such as within DoMarkerHousekeeping().
+CSourcePhrase* CAdapt_ItDoc::GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase) //, SPList* pList)
+{
+	if (pPrevSrcPhrase == NULL)
+		return NULL;
+	if (!pPrevSrcPhrase->m_bNullSourcePhrase)
+	{
+		// The incoming pPrevSrcPhrase is not a placeholder, so just return it to the caller.
+		return pPrevSrcPhrase;
+	}
+	//int nSequNum = pPrevSrcPhrase->m_nSequNumber;
+	SPList::Node* pos_pList;
+	// whm 19Mar2024 modified. For situations where TokenizeText() is called to tokenize a sub-string, 
+	// such as when it is called from the first call in OnEditSourceText(), the pList is not suitable 
+	// for determining a position by calling pList->Item(nSequNum) because pList may well be an empty 
+	// list and in any case, the position returned from a pList->Item(nSequNum) will not be accurate 
+	// for use in getting a previous non-placeholder pPrevSrcPhrase to return to the caller.
+	// Therefore, we set the pos_pList here to its value based on the App's m_pSourcePhrases list.
+	pos_pList = gpApp->m_pSourcePhrases->Find(pPrevSrcPhrase);
+	CSourcePhrase* pLastSP = NULL;
+	pos_pList->GetPrevious();
+	pLastSP = pos_pList->GetData();
+	while (pLastSP != NULL && pLastSP->m_bNullSourcePhrase && pLastSP->m_nSequNumber >= 0)
+	{
+		pos_pList->GetPrevious();
+		pLastSP = pos_pList->GetData();
+	}
+	if (pLastSP != NULL)
+	{
+		pPrevSrcPhrase = pLastSP;
+	}
+	return pPrevSrcPhrase;
+}
+
+// whm 18Mar2024 added the following function for getting a suitable following pList potition to insert a newly 
+// tokenized filtered string's sublist of source phrases. This function looks at following SPs in the pList to 
+// find a non-NULL and non-placeholder source phrase and returns that source phrase's position if it exists. 
+// This function is used mainly within the bUnfilteringRequired block of the ReconstituteAfterFilteringChange() 
+// function, and possibly elsewhere.
+SPList::Node* CAdapt_ItDoc::GetFollowingNonPlaceholderInsertPosition(SPList::Node* insertPos, CSourcePhrase*& pInsertSP)
+{
+	SPList::Node* pInsPos;
+	wxASSERT(insertPos != NULL);
+	pInsPos = insertPos->GetNext();
+	while (pInsPos != NULL && pInsPos->GetData()->m_bNullSourcePhrase == TRUE)
+	{
+		pInsertSP = pInsPos->GetData();
+		pInsPos = pInsPos->GetNext();
+	}
+	if (pInsPos == NULL)
+		return insertPos;
+	else
+		return pInsPos;
+
+	/*
+	if (pFollSrcPhrase == NULL);
+		return NULL;
+	int nSequNum = pFollSrcPhrase->m_nSequNumber;
+	SPList::Node* pos_pList = pList->Item(nSequNum); // get the position where the last srcphrase is
+	CSourcePhrase* pFollSP = NULL;
+	pos_pList->GetNext();
+	pFollSP = pos_pList->GetData();
+	while (pFollSP != NULL && pFollSP->m_bNullSourcePhrase && pFollSP->m_nSequNumber >= 0)
+	{
+		pos_pList->GetNext();
+		pFollSP = pos_pList->GetData();
+	}
+	if (pFollSP != NULL)
+	{
+		pFollSrcPhrase = pFollSP;
+	}
+	return pFollSrcPhrase;
+	*/
+}
 
 // BEW 13Dec22 get the last one in m_markers, as this sets the TextType
 // BEW 8Jun23, uninitialised  wxfirst; causes garbage when first = reversedMkrs.GetChar(0);
@@ -37497,7 +37601,7 @@ bool CAdapt_ItDoc::WordBeginsHere(wxChar chFirst, wxString spacelessPuncts)
 
 // BEW 13Jun23 created, for use in refactored TokenizeText() to prevent markers like \f or inline ones
 // from being wrongly put into tokBuffer, thereby removing them from the propagation mechanism using
-// pLastSrcPhrase for the values which need to change - colour, textType, etc
+// pPrevSrcPhrase for the values which need to change - colour, textType, etc
 bool CAdapt_ItDoc::IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEnd)
 {
 	if (pChar > (pEnd - 3))
@@ -42539,8 +42643,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// This current pSrcPhrase might be the last in such a span. If it is, ptr will be
 				// pointing at, say, \f*; or if there is a nested endmarker, to something like \fq*\f*
 				// The colour / TextType propagation code following ParseWord(), when the next pSrcPhrase
-				// looks for relevant endMkr/endMkrs here, by interrogating pLastSrcPhrase, it needs to find them.
-				// If not stored, IsTextTypeChangingEndMarker(pLastSrcPhrase) will return FALSE, and that in turn
+				// looks for relevant endMkr/endMkrs here, by interrogating pPrevSrcPhrase, it needs to find them.
+				// If not stored, IsTextTypeChangingEndMarker(pPrevSrcPhrase) will return FALSE, and that in turn
 				// will keep the red colour persisting (for perhaps hundreds os subsequent inspired text words).
 				// Check for relevant endMkrs - grab them, and if a inline one is last, like \f*, store them;
 				// we do it here because immediately following puncts will have been collected already
@@ -45909,7 +46013,7 @@ parenth:
 /// CSourcePhrase instance.
 /// BEW 30Sep19 several changes to fix code logic, and add functionality to hide USFM3
 /// attributes metadata (the stuff from bar to matching endmarker) on the member
-/// m_punctsPattern of pLastSrcPhrase, and set its m_bUnused boolean to TRUE. (Both these
+/// m_punctsPattern of pPrevSrcPhrase, and set its m_bUnused boolean to TRUE. (Both these
 /// members have been unused for years, so using them now saves a bump of the docVersion)
 ///
 /// whm 24Oct2023 modifications to remove calls to IsAFilteringSFM(pUsfmAnalysis) as
@@ -45917,6 +46021,9 @@ parenth:
 /// More reliable is examining the contents of the gCurrentFilterMarkers string.
 /// whm 17Jan2024 more radical refactoring of TokenizeText() especially its handling
 /// of empty content markers.
+/// whm 20Mar2024 more modifications for the proper setting of pPrevSrcPhrase when
+/// TokenizeText() is called in the OnEditSourceText() method and when called by the
+/// ReconstituteAfterFilteringChange() during unfiltering.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
 	int nTextLength, bool bTokenizingTargetText)
@@ -46095,21 +46202,46 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	wxString temp;		// small working buffer in which to build a string
 	tokBuffer.Empty();
 	int	 sequNumber = nStartingSequNum - 1;
-	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)NULL; // initially there isn't one
-	// whm 16Mar2024 added for special case when TokenizeText() is called during the OnEditSourceText()
-	// routine. OnEditSoruceText() calls TokenizeText() to properly create source phrases for the edited
-	// text. In rare cases, the user might have edited a mis-spelled marker and the resulting edited marker
-	// may be one that should be filtered. If the span of text that was selected to be edited happens to
-	// have the edited marker at the beginning of the selected span, the TokenizeText() call made by the
-	// OnEditSourceText() will not have a non-NULL pLastSrcPhrase on which to store the filtered information.
-	// To remedy this within OnEditSourcePhrase() assigns the gpLastSrcPhrase to a new pointer value on the
-	// Doc named m_pLastSrcPhrase, which is ordinarily NULL except for this special circumstance where 
-	// TokenizeText() is called from within the OnEditSourceText() function. Here we check if the Doc's
-	// m_pLastSrcPhrase is NOT NULL, and if so we assign its pointer to the pLastSrcPhrase we're creating
-	// here, so that pLastSrcPhrase here will start with a valid pointer for storeing filtered information.
-	if (m_pLastSrcPhrase != NULL)
+	// whm 19Mar2024 renamed pLastSrcPhrase to pPrevSrcPhrase for better clarity.
+	CSourcePhrase* pPrevSrcPhrase = (CSourcePhrase*)NULL; // initially there isn't one
+	SPList::Node* pPrev_SPposition = NULL;
+	if (gpApp->m_pSourcePhrases->GetCount() > 0 && sequNumber >= 0)
 	{
-		pLastSrcPhrase = m_pLastSrcPhrase;
+		// The App is holding at least one source phrase instance within its m_pSourcePhrases
+		// list, and so now at the start of TokenizeText() we know that it is being called on 
+		// a substring of text, such as when TokenizeText() is being called from the
+		// OnEditSourceText() function.
+		// In such cases we can determine a pPrevSrcPhrase instance from the App's source phrases
+		// list here at the beginning of TokenizeText(), so that if the rBuffer string passed 
+		// now into TokenizeText() is entirely filtered, no sublist of source phrases will be 
+		// returned and pList will have zero source phrase elements when it returns.
+		// To make it possible for code later within TokenizeText() to be able to save any
+		// filtered information on a pPrevSrcPhrase that results from the processing of the 
+		// substring. 
+		// 
+		// whm 20Mar2024 modified. To accurately set pPrevSrcPhrase here we need to know 
+		// whether we are currently unfiltering or not, because for when TokenizeText() is
+		// called to tokenize a text string being unfiltered, it gets inserted AFTER the 
+		// source phrase where the filtered information was being stored. Hence, the sequNumber
+		// that was set above to nStartingSequNum - 1, for unfiltering we need to find the 
+		// pPrev_SPPosition for sequNumber + 1 here to point back to the current pSrcPhrase
+		// (without changing the value of sequNumber itself).
+		// I've added a Doc member m_bCurrentlyUnfiltering that was set in 
+		// ReconstituteAfterFilteringChange() before it called TokenizeTextString and 
+		// TokenizeText()
+		if (m_bCurrentlyUnfiltering)
+			pPrev_SPposition = gpApp->m_pSourcePhrases->Item(sequNumber + 1);
+		else
+			pPrev_SPposition = gpApp->m_pSourcePhrases->Item(sequNumber);
+
+		if (pPrev_SPposition != NULL)
+		{
+			// The value of pPrevSrcPhrase here will persist only until the first pSrcPhrase
+			// is created below at which time pPrevSrcPhrase will then be reassigned by
+			// the pPrevSrcPhrase = pSrcPhrase assignment that occurs at the time pSrcPhrase
+			// is appended to the pList at the pList->Append(pSrcPhrase) call(s) further below.
+			pPrevSrcPhrase = pPrev_SPposition->GetData();
+		}
 	}
 
 	//bool bHitMarker; // set but not used
@@ -46217,7 +46349,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
-			if (pLastSrcPhrase == NULL)
+			if (pPrevSrcPhrase == NULL)
 			{
 				wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= [%s] , m_inform= [%s]"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_inform.c_str());
@@ -46300,12 +46432,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxChar chNext = *(ptr + 3);
 			bool bIsWhite;
 			bIsWhite = IsWhiteSpace(&chNext);
-			if (bIsWhite && pLastSrcPhrase != NULL)
+			if (bIsWhite && pPrevSrcPhrase != NULL)
 			{
-				pLastSrcPhrase->m_follPunct += _T(">>");
+				pPrevSrcPhrase->m_follPunct += _T(">>");
 				// add the >> to m_srcPhrase as well, then
 				// skip over the space followed by >>
-				pLastSrcPhrase->m_srcPhrase += _T(">>");
+				pPrevSrcPhrase->m_srcPhrase += _T(">>");
 				itemLen += 3;
 				ptr += 3;
 				// force creation of a new pSrcPhase
@@ -46606,7 +46738,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// to the doc list, pList
 				pList->Append(pSrcPhrase);
 				// make this one become the 'last one' of the next iteration
-				pLastSrcPhrase = pSrcPhrase;
+				pPrevSrcPhrase = pSrcPhrase;
 #if defined (_DEBUG) && !defined(NOLOGS)
 				wxLogDebug(_T("TokText: line %d, sequNum = %d , m_srcPhrase= [%s] , chapter:verse = [%s], iterating by continue"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_chapterVerse.c_str());
@@ -46671,9 +46803,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					{
 						// there are endmarkers which belong on the previous instance, so
 						// transfer them
-						if (pLastSrcPhrase != NULL)
+						if (pPrevSrcPhrase != NULL)
 						{
-							pLastSrcPhrase->SetEndMarkers(pSrcPhrase->GetEndMarkers());
+							pPrevSrcPhrase->SetEndMarkers(pSrcPhrase->GetEndMarkers());
 						}
 					}
 				}
@@ -46683,9 +46815,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			{
 				// we default to always turning off a free translation section at the end
 				// of the document if it hasn't been done already
-				if (pLastSrcPhrase != NULL)
+				if (pPrevSrcPhrase != NULL)
 				{
-					pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+					pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
 				}
 			}
 			// delete only if there is nothing in m_precPunct
@@ -46901,11 +47033,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// for the  current empty marker.
 						
 					// whm 12Jan2024 added. There is code in TokenizeText() after the ParseWord() call 
-					// that has an if (pLastSrcPhrase != NULL) which runs for over 400 lines and attempts 
-					// to  correctly propagate type changes, etc. It depends on an updated pLastSrcPhrase
-					// pointer, so we must update pLastSrcPhrase here before creating a new pSrcPhrase
+					// that has an if (pPrevSrcPhrase != NULL) which runs for over 400 lines and attempts 
+					// to  correctly propagate type changes, etc. It depends on an updated pPrevSrcPhrase
+					// pointer, so we must update pPrevSrcPhrase here before creating a new pSrcPhrase
 					// below.
-					pLastSrcPhrase = pSrcPhrase;
+					pPrevSrcPhrase = pSrcPhrase;
 
 					// Create a new pSrcPhrase for this empty marker on the heap which can be appended
 					// to pList
@@ -47205,12 +47337,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString temp = wxEmptyString;
 								temp = GetFilteredItemBracketed(ptr, itemLen);
 								// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
-								// to the pLastSrcPhrase and not pSrcPhrase.
+								// to the pPrevSrcPhrase and not pSrcPhrase.
 								//pSrcPhrase->AddToFilteredInfo(temp);
-								// whm 16Mar2024 need to protect pLastSrcPhrase here from NULL, and handle any strCacheDelayedFilteredContent
-								// here as is now done elsewhere during filtering, so the pLastSrcPhrase->AddToFilteredInfo(temp) is now replaced
+								// whm 16Mar2024 need to protect pPrevSrcPhrase here from NULL, and handle any strCacheDelayedFilteredContent
+								// here as is now done elsewhere during filtering, so the pPrevSrcPhrase->AddToFilteredInfo(temp) is now replaced
 								// with the code below markers by exclamation lines.
-								//pLastSrcPhrase->AddToFilteredInfo(temp);
+								//pPrevSrcPhrase->AddToFilteredInfo(temp);
 								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 								strCacheDelayedFilteredContent = temp; // temp is local and can now die
 								bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
@@ -47222,14 +47354,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// has its content now, there is no point in delaying storage till the next
 								// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
 								// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
-								// pLastSrcPhrase, it should then work better if later the beginMkr is removed from
+								// pPrevSrcPhrase, it should then work better if later the beginMkr is removed from
 								// the gCurrentFilterMarkers list.
 								// 
-								// whm 16Mar2024 clarification re BEW's comment above. Within TokenizeText() the pLastSrcPhrase
+								// whm 16Mar2024 clarification re BEW's comment above. Within TokenizeText() the pPrevSrcPhrase
 								// is now interpreted to mean the "last" source phrase that was processed by TokenizeText()'s
 								// outer while (ptr < pEnd) loop!
-								if (pLastSrcPhrase != NULL)
+								if (pPrevSrcPhrase != NULL)
 								{
+									// whm 18Mar2024 added for getting a suitable non-placeholder SP to store filtered info
+									pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
+
 									if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 									{
 										// There is swept up material to prefix to the bracketed filtered marker
@@ -47239,14 +47374,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										// \c n, \v n \p and other empty markers that are contained in the variable:
 										// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
 										// Here we prefix that swept up material to strCacheDelayedFilteredContent
-										// before the pLastSrcPhrase->AddToFilteredInto() call below.
+										// before the pPrevSrcPhrase->AddToFilteredInto() call below.
 										strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered + strCacheDelayedFilteredContent;
 										// We now reset the variables
 										sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
 										bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
 									}
 									//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-									pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+									pPrevSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 								}
 								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 								ptr += itemLen;
@@ -47259,7 +47394,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								itemLen = ParseWhiteSpace(ptr);
 								// whm 20Jan2024 added storage of word break char after removal of filtered marker.
 								// We add the word break to the pSrcPhrase, which is this current one, the one
-								// that is after the pLastSrcPhrase where the storage of the filtered marker was 
+								// that is after the pPrevSrcPhrase where the storage of the filtered marker was 
 								// stored.
 								if (itemLen > 0)
 								{
@@ -47900,9 +48035,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// free translation to the rest of the document if we come to where no
 						// free translations were assigned in another project's adaptations
 						// which we are inputting
-						if (pLastSrcPhrase)
+						if (pPrevSrcPhrase)
 						{
-							pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+							pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
 						}
 					}
 					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
@@ -48110,10 +48245,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// has its content now, there is no point in delaying storage till the next
 									// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
 									// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
-									// pLastSrcPhrase, it should then work better if later the beginMkr is removed from
+									// pPrevSrcPhrase, it should then work better if later the beginMkr is removed from
 									// the gCurrentFilterMarkers list
-									if (pLastSrcPhrase != NULL)
+									if (pPrevSrcPhrase != NULL)
 									{
+										// whm 18Mar2024 added for getting a suitable non-placeholder SP to store filtered info
+										pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
+
 										if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 										{
 											// There is swept up material to prefix to the bracketed filtered marker
@@ -48123,7 +48261,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// \c n, \v n \p and other empty markers that are contained in the variable:
 											// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
 											// Here we prefix that swept up material to strCacheDelayedFilteredContent
-											// before the pLastSrcPhrase->AddToFilteredInto() call below.
+											// before the pPrevSrcPhrase->AddToFilteredInto() call below.
 											strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered
 												+ strCacheDelayedFilteredContent;
 											// We now reset the variables
@@ -48131,7 +48269,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
 										}
 										//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-										pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+										pPrevSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 									}
 									// ptr has to be updated by itemLen characters added; wholeMkr got
 									// removed along with its content; and will be stored to m_filteredInfo
@@ -48157,9 +48295,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 									// whm 21Feb2024 added. Call ParsePostWordPunctsAndEndMkrs() function here to deal with
 									// any puncts that immediately follow the filtered info that really should be stored on
-									// pLastSrcPhrase. Note that we pass pLastSrcPhrase here into the function - the function
-									// now internally protects from pLastSrcPhrase being NULL.
-									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pLastSrcPhrase, itemLen, spacelessPuncts);
+									// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function - the function
+									// now internally protects from pPrevSrcPhrase being NULL.
+									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
 
 									// We don't know  what lies beyond the endmarker, but it's handled further down.
 									// if after some whitespace there is a backslash, then continue; to iterate the loop.
@@ -48233,7 +48371,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									}
 									else if (bIsFreeTransOrNoteOrBackTrans)
 									{
-										// whm 27Jan2024 TODO: Should the following call's 4th param be pLastSrcPhrase???
+										// whm 27Jan2024 TODO: Should the following call's 4th param be pPrevSrcPhrase???
 										// TODO:
 										SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
 										wxString aTempStr(ptr, itemLen);
@@ -48297,10 +48435,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										// been wrapped with \~FILTER and \~FILTER*; there is no need to
 										// use a delimiting space between the filter markers
 										// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
-										// to the pLastSrcPhrase and not pSrcPhrase.
+										// to the pPrevSrcPhrase and not pSrcPhrase.
 										//pSrcPhrase->AddToFilteredInfo(temp);
-										if (pLastSrcPhrase != NULL)
-											pLastSrcPhrase->AddToFilteredInfo(temp);
+										// whm 18Mar2024 Within target text there are no placeholders so there
+										// is no need to call GetPreviousNonPlaceholderSrcPhrase() here
+										if (pPrevSrcPhrase != NULL)
+											pPrevSrcPhrase->AddToFilteredInfo(temp);
 									}
 									if (wholeMkr == _T("\\note"))
 									{
@@ -48319,9 +48459,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 												bFreeTranslationIsCurrent = TRUE; // turn on this flag to
 													// inform parser in subsequent iterations that a new
 													// one is current
-												if (pLastSrcPhrase != NULL && pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+												if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
 												{
-													pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+													pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																							// previous section
 												}
 
@@ -48333,9 +48473,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											{
 												// we are throwing this section away, so turn off the flag
 												bFreeTranslationIsCurrent = FALSE;
-												if (pLastSrcPhrase != NULL && pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+												if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
 												{
-													pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+													pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																							// previous section
 												}
 											}
@@ -49319,7 +49459,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								// set sequNum for previous CSourcePhrase instance
-								pLayout->m_nSequNum_LastSrcPhrase = pSrcPhrase->m_nSequNumber - 1;
+								pLayout->m_nSequNum_PrevSrcPhrase = pSrcPhrase->m_nSequNumber - 1;
 								// BEW 29Sep22, if pSrcPhrase is a just-created one, then it will
 								// have no presence in m_pSourcePhrases nor a pile ptr in the pile list.
 								// So while the above line generates a sequNum value, trying to get that
@@ -49327,23 +49467,23 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 							else
 							{
-								pLayout->m_nSequNum_LastSrcPhrase = 0; // safe, if the document exists
+								pLayout->m_nSequNum_PrevSrcPhrase = 0; // safe, if the document exists
 							}
 							wxString strApproxLocation;
 							//int badMkrLength = wholeEndMkr.Len();
-							CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
+							CPile* pPile = this->GetPile(pLayout->m_nSequNum_PrevSrcPhrase);
 							if (pPile != NULL)
 							{
 								// BEW 29Sep22 - can't do this block if pPile was returned NULL, but there
 								// is likely a data error, or parsing error, that caused entry to the above
 								// code, that needs to be sorted out
-								CSourcePhrase* pLastSrcPhrase = pPile->GetSrcPhrase();
+								CSourcePhrase* pPrevSP = pPile->GetSrcPhrase();
 								previousLocation = pSrcPhrase->m_nSequNumber;
-								// whm 16Mar2024 added protection against pLastSrcPhrase being NULL
-								if (pLastSrcPhrase != NULL)
+								// whm 16Mar2024 added protection against pPrevSP being NULL
+								if (pPrevSP != NULL)
 								{
-									strPrevKey = pLastSrcPhrase->m_key;
-									strPrevAdaption = pLastSrcPhrase->m_adaption;
+									strPrevKey = pPrevSP->m_key;
+									strPrevAdaption = pPrevSP->m_adaption;
 								}
 							}
 							// BEW15Dec22 try to provide an approximate src string for the error - 30 chars either side
@@ -49593,10 +49733,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
-						if (pLastSrcPhrase != NULL)
+						if (pPrevSrcPhrase != NULL)
 						{
-							int sequNumLast = pLastSrcPhrase->m_nSequNumber;
-							wxString lastKey = pLastSrcPhrase->m_key;
+							int sequNumLast = pPrevSrcPhrase->m_nSequNumber;
+							wxString lastKey = pPrevSrcPhrase->m_key;
 							wxLogDebug(_T("TokenizeText line %d,  sequNumLast %d,  lastKey: %s"), __LINE__, sequNumLast, lastKey.c_str());
 
 							//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
@@ -49630,10 +49770,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						if (pLastSrcPhrase != NULL)
+						if (pPrevSrcPhrase != NULL)
 						{
-							int sequNumLast = pLastSrcPhrase->m_nSequNumber;
-							wxString lastKey = pLastSrcPhrase->m_key;
+							int sequNumLast = pPrevSrcPhrase->m_nSequNumber;
+							wxString lastKey = pPrevSrcPhrase->m_key;
 							wxLogDebug(_T("TokenizeText line %d,  sequNumLast %d, bIsToBeFiltered= %d,  lastKey: %s"), 
 								__LINE__, sequNumLast, (int)bIsToBeFiltered, lastKey.c_str());
 
@@ -49690,7 +49830,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// data following the beginMkr, for hiding in pSrcPhrase's m_punctsPattern member
 								offset = -1;
 								offset = pApp->m_inlineNonbindingMarkers.Find(myAugWholeMkr);
-								if (offset >= 0)
+								if (offset >= 0 && !m_bIsWithinCrossRef_X_Span)
 								{
 									// It's one of the small set of non-binding inline mkrs
 									wxString inlineNonbindingMkrs;
@@ -50325,10 +50465,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// has its content now, there is no point in delaying storage till the next
 							// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
 							// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
-							// pLastSrcPhrase, it should then work better if later the beginMkr is removed from
+							// pPrevSrcPhrase, it should then work better if later the beginMkr is removed from
 							// the gCurrentFilterMarkers list
-							if (pLastSrcPhrase != NULL)
+							if (pPrevSrcPhrase != NULL)
 							{
+								// whm 18Mar2024 added for getting a suitable non-placeholder SP to store filtered info
+								pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
+
 								if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 								{
 									// There is swept up material to prefix to the bracketed filtered marker
@@ -50338,14 +50481,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// \c n, \v n \p and other empty markers that are contained in the variable:
 									// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
 									// Here we prefix that swept up material to strCacheDelayedFilteredContent
-									// before the pLastSrcPhrase->AddToFilteredInto() call below.
+									// before the pPrevSrcPhrase->AddToFilteredInto() call below.
 									strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered + strCacheDelayedFilteredContent;
 									// We now reset the variables
 									sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
 									bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
 								}
 								//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-								pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+								pPrevSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 							}
 							// ptr has to be updated by itemLen characters added; wholeMkr got
 							// removed along with its content; and will be stored to m_filteredInfo
@@ -50357,9 +50500,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 							// whm 21Feb2024 added. Call ParsePostWordPunctsAndEndMkrs() function here to deal with
 							// any puncts that immediately follow the filtered info that really should be stored on
-							// pLastSrcPhrase. Note that we pass pLastSrcPhrase here into the function, and internally
-							// ParsePostWordPunctsAndEndMkrs() has protection against pLastSrcPhrase being NULL.
-							ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pLastSrcPhrase, itemLen, spacelessPuncts);
+							// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function, and internally
+							// ParsePostWordPunctsAndEndMkrs() has protection against pPrevSrcPhrase being NULL.
+							ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
 
 							// We don't know  what lies beyond the endmarker, but it's handled further down.
 							// if after some whitespace there is a backslash, then continue; to iterate the loop.
@@ -50454,7 +50597,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 							else if (bIsFreeTransOrNoteOrBackTrans)
 							{
-								// whm 27Jan2024 TODO: Should the following call's 4th param be pLastSrcPhrase???
+								// whm 27Jan2024 TODO: Should the following call's 4th param be pPrevSrcPhrase???
 								// TODO:
 								SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
 								wxString aTempStr(ptr, itemLen);
@@ -50520,11 +50663,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// been wrapped with \~FILTER and \~FILTER*; there is no need to
 								// use a delimiting space between the filter markers
 								// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
-								// to the pLastSrcPhrase and not pSrcPhrase.
+								// to the pPrevSrcPhrase and not pSrcPhrase.
 								//pSrcPhrase->AddToFilteredInfo(temp);
-								// whm 16Mar2024 added protection against pLastSrcPhrase being NULL
-								if (pLastSrcPhrase != NULL)
-									pLastSrcPhrase->AddToFilteredInfo(temp);
+								// whm 16Mar2024 added protection against pPrevSrcPhrase being NULL
+								// whm 18Mar2024 Within target text there are no placeholders so there
+								// is no need to call GetPreviousNonPlaceholderSrcPhrase() here
+								if (pPrevSrcPhrase != NULL)
+									pPrevSrcPhrase->AddToFilteredInfo(temp);
 							}
 							if (wholeMkr == _T("\\note"))
 							{
@@ -50543,9 +50688,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										bFreeTranslationIsCurrent = TRUE; // turn on this flag to
 											// inform parser in subsequent iterations that a new
 											// one is current
-										if (pLastSrcPhrase != NULL && pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+										if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
 										{
-											pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+											pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																					// previous section
 										}
 
@@ -50557,9 +50702,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									{
 										// we are throwing this section away, so turn off the flag
 										bFreeTranslationIsCurrent = FALSE;
-										if (pLastSrcPhrase != NULL && pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+										if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
 										{
-											pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+											pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																					// previous section
 										}
 									}
@@ -50879,7 +51024,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// Gotta append it to the m_pSourcePhrases list, else it will get lost from the doc
 				pList->Append(pSrcPhrase);
 				// make this one become the 'last one' of the next iteration
-				pLastSrcPhrase = pSrcPhrase;
+				pPrevSrcPhrase = pSrcPhrase;
 			}
 			// Back in the outer loop, if two continues requested, this one will
 			// force a new pSrcPhrase, and handle any following beginMkr, etc
@@ -51315,8 +51460,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 
 			// BEW 31May23 How propagation works. Hopefully these comments will make the functionality intelligible.
-			// 1. it looks back, not forward, so looks at values in pLastSrcPhrase (if it is not NULL)
-			// 2. It copies pLastSrcPhrase->m_bSpecialText value, and pLastSrcPhrase->m_curTextType to the current pSrcPhrase
+			// 1. it looks back, not forward, so looks at values in pPrevSrcPhrase (if it is not NULL)
+			// 2. It copies pPrevSrcPhrase->m_bSpecialText value, and pPrevSrcPhrase->m_curTextType to the current pSrcPhrase
 			//    when propagating the settings forward unchanged to the current pSrcPhrase
 			// 3. Sometimes instead of copying, it changes the textType (to verse textType, after certain endMkrs)
 			// 4. The propagation code makes use of pApp's various fast access strings, for decision making. For example,
@@ -51324,9 +51469,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//    any endMkr from this set would be "inline" but we store them in pSrcPhrase->m_endMarkers neveretheless,
 			//    but although in the m_RedEndMarkers fast-access set, we do not allow these to change the textType nor m_bSpecialText value
 			// 5. Today, I made a new function:  wxString GetLastEndMarker(wxString endMkrs), which grabs the last in 
-			//    pLastSrcPhrase->m_endMarkers, for choice-making - it's the last which determines what the propagation values should be.
+			//    pPrevSrcPhrase->m_endMarkers, for choice-making - it's the last which determines what the propagation values should be.
 			// 6. What endMkrs change the textType and m_bSpecialText value? Ones like \f* or \x* These cause a boolean to
-			//    become TRUE, which (on pLastSrcPhrase) sets that as the last in the span, and then the next pSrcPhrase will be 'verse'
+			//    become TRUE, which (on pPrevSrcPhrase) sets that as the last in the span, and then the next pSrcPhrase will be 'verse'
 			// 7. The Doc class tracks the inline span, e.g. between \f and \f*, using a boolean member: m_bIsWithinUnfilteredInlineSpan
 
 			bool bTextTypeChanges = FALSE;
@@ -51494,8 +51639,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pSrcPhrase->m_bFirstOfType = TRUE; // TextType has changed
 
 								// And make the last a boundary, and turn off first of type to make sure it's off there
-								//pLastSrcPhrase->m_bBoundary = TRUE;
-								//pLastSrcPhrase->m_bFirstOfType = FALSE;
+								//pPrevSrcPhrase->m_bBoundary = TRUE;
+								//pPrevSrcPhrase->m_bFirstOfType = FALSE;
 								pSrcPhrase->m_bBoundary = TRUE;
 								pSrcPhrase->m_bFirstOfType = FALSE;
 
@@ -51519,10 +51664,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//len += 1; // not relevant here
 							//return len; // not appropriate here in TokenizeText()
 						}
-						// No need to store the \fig* or \jmp* end marker in the pLastSrcPhrase as was done in the
+						// No need to store the \fig* or \jmp* end marker in the pPrevSrcPhrase as was done in the
 						// following code block. We can verify that the end marker exists in the App's
 						// m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* ")
-						// and if so, then go ahead and set the pSrcPhrase, pLastSrcPhrase and other assignments
+						// and if so, then go ahead and set the pSrcPhrase, pPrevSrcPhrase and other assignments
 						// within the else block below since we are at the end of the attribute marker span.
 
 					}
@@ -51530,13 +51675,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					/* // whm 31Oct2023 The code in this section is now not needed or parts have been copied above with
 					// modifications.
 
-					// Since this is a span, pLastSrcPhrase will exist; but it's not relevant to propagation changing
-					wxString strInlineNonBindingEndMkr = pLastSrcPhrase->GetInlineNonbindingEndMarkers();
+					// Since this is a span, pPrevSrcPhrase will exist; but it's not relevant to propagation changing
+					wxString strInlineNonBindingEndMkr = pPrevSrcPhrase->GetInlineNonbindingEndMarkers();
 					if (strInlineNonBindingEndMkr.IsEmpty())
 					{
 						// no change in propagation
-						//pLastSrcPhrase->m_bSpecialText = TRUE;
-						pLastSrcPhrase->m_curTextType = noType;
+						//pPrevSrcPhrase->m_bSpecialText = TRUE;
+						pPrevSrcPhrase->m_curTextType = noType;
 					}
 					else
 					{
@@ -51559,8 +51704,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							pSrcPhrase->m_bFirstOfType = TRUE; // TextType has changed
 
 							// And make the last a boundary, and turn off first of type to make sure it's off there
-							pLastSrcPhrase->m_bBoundary = TRUE;
-							pLastSrcPhrase->m_bFirstOfType = FALSE;
+							pPrevSrcPhrase->m_bBoundary = TRUE;
+							pPrevSrcPhrase->m_bFirstOfType = FALSE;
 
 							// And clear the boolean which declares we are parsing within a \fig ... \fig* span
 							m_bIsInInlineNonbindingSpan = FALSE;
@@ -51723,8 +51868,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 #endif
-							// whm 16Mar2024 Note: AnalyseMarker's second param pLastSrcPhrase is protected internally against being NULL
-							pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pBufStart, length, pUsfmAnalysis);
+							// whm 16Mar2024 Note: AnalyseMarker's second param pPrevSrcPhrase is protected internally against being NULL
+							pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pPrevSrcPhrase, pBufStart, length, pUsfmAnalysis);
 						}
 						else
 						{
@@ -51817,7 +51962,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			else
 			{
 
-				// BEW 3Nov22, the legacy propagation code...  This will use pSrcPhrase and pLastSrcPhrase
+				// BEW 3Nov22, the legacy propagation code...  This will use pSrcPhrase and pPrevSrcPhrase
 				// implement the decisions regarding propagation made above...
 				bool bTextTypeChangeBlockEntered = FALSE;
 #if defined (_DEBUG) && !defined(NOLOGS)
@@ -51829,7 +51974,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 #endif
-				if (pLastSrcPhrase != NULL)
+				if (pPrevSrcPhrase != NULL)
 				{
 //					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
@@ -51846,7 +51991,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					else
 					{
 #if defined (_DEBUG) && !defined(NOLOGS)
-						wxLogDebug(_T("TokText() Calling IsTextTypeChangingEndMarker(pLastSrcPhrase), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
+						wxLogDebug(_T("TokText() Calling IsTextTypeChangingEndMarker(pPrevSrcPhrase), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
 							__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
 						if (pSrcPhrase->m_nSequNumber >= 1)
 						{
@@ -51856,9 +52001,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString typeChangingEndMkr;
 						typeChangingEndMkr = wxEmptyString; // init
 						bool bIsChanger;
-						bIsChanger = IsTextTypeChangingEndMarker(pLastSrcPhrase, typeChangingEndMkr); // BEW 14Dec22, use
-								// pLastSrcPhrase because internally fast access strings are tested, and
-								// it pLastSrcPhrase has things like \f* \fe* \x* or \ex*, then
+						bIsChanger = IsTextTypeChangingEndMarker(pPrevSrcPhrase, typeChangingEndMkr); // BEW 14Dec22, use
+								// pPrevSrcPhrase because internally fast access strings are tested, and
+								// it pPrevSrcPhrase has things like \f* \fe* \x* or \ex*, then
 								// fast access strings are tested, and if the relevant endMkr is found
 								// TRUE will be returned, and m_bIsWithinUnfilteredInlineSpan cleared to FALSE
 
@@ -51895,13 +52040,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// or to a \r reference, like "\\r (Luk 2:1-7)" followed by whitespace character, or
 								// others of the (large) red beginMarkers fast-access set. We've no processing block yet 
 								// for dealing with these possibilities. Do it here.
-								// And since we need to check pLastSrcPhrase, don't do anything here if sequNum is 0,
-								// because when that is the current pSrcPhrase, pLastSrcPhrase is NULL. Note,
+								// And since we need to check pPrevSrcPhrase, don't do anything here if sequNum is 0,
+								// because when that is the current pSrcPhrase, pPrevSrcPhrase is NULL. Note,
 								// we are here dealing with beginMkrs, which start off a colour change from blue to red. 
 								int offset; offset = wxNOT_FOUND; // init
 								offset = offset; // avoid gcc warning set but not used warning
 								wxString bareMkr;
-								if (pLastSrcPhrase != NULL)
+								if (pPrevSrcPhrase != NULL)
 								{
 									// On the current pSrcPhrase instance, changing special to FALSE, or not special to 
 									// special = TRUE, is governed by what's in pSrcPhrase's m_markers - and in particular
@@ -51924,9 +52069,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										wxASSERT(!wholeMkr.IsEmpty() && wholeMkr.GetChar(0) == gSFescapechar);
 										wholeMkrLen = wholeMkr.Length();
 
-										if (pLastSrcPhrase->m_bSpecialText == FALSE)
+										if (pPrevSrcPhrase->m_bSpecialText == FALSE)
 										{
-											// pLastSrcPhrase has blue text, textType verse				
+											// pPrevSrcPhrase has blue text, textType verse				
 											bareMkr = wholeMkr.Mid(1); // remove initial backslash
 											USFMAnalysis* pUsfmAnalysis;
 											pUsfmAnalysis = LookupSFM(bareMkr);
@@ -51951,11 +52096,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 												//pFirstChar = &chFirst;
 												const wxChar* pFirstChar = wholeMkr.GetData();
 												wxChar* pBufStart = (wxChar*)pFirstChar;
-												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
+												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pPrevSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
 												// Does the text type of 'special text' value change? If so set bTextTypeChanges to TRUE
 												// (not sure if this test is necessary, but probably worth doing until found otherwise)
-												if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
-													(pLastSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
+												if ((pPrevSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
+													(pPrevSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
 												{
 													bTextTypeChanges = TRUE;
 												}
@@ -51968,24 +52113,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// in m_markers: "\\ch 1 \n\\ms " where the last marker is \ms and AnalyseMarker() above
 											// correctly assigned pSrcPhrase->m_curTextType to sectionHead. However, the test below
 											// detects that m_markers has a \ch marker within it and the test as is will incorrectly
-											// change the pSrcPhrase->m_curTextType from sectionHead to pLastSrcPhrase->m_curTextType
+											// change the pSrcPhrase->m_curTextType from sectionHead to pPrevSrcPhrase->m_curTextType
 											// which was noType which we don't want here. The test below needs to be modified or removed
 											// altogether. I can change the test below to determine whether the current wholeMkr that is
 											// being examined (\ms) comes after the \ch marker, and refrain from propagating the
-											// pLastSrcPhrase->m_curTextType value over to pSrcPhrase.
+											// pPrevSrcPhrase->m_curTextType value over to pSrcPhrase.
 											// The wholeMkr was determined by calling GetLastBeginMkr(pSrcPhrase->m_markers) within this
-											// scope above, so we can use that variable to only propagate the values from pLastSrcPhrase
+											// scope above, so we can use that variable to only propagate the values from pPrevSrcPhrase
 											// if the wholeMkr is located does not come after the \ch marker.
 											int posLastBeginMkr = pSrcPhrase->m_markers.Find(wholeMkr);
 											int posChMkr = pSrcPhrase->m_markers.Find(_T("\\c"));
 											//if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_markers.Find(_T("\\c")) != wxNOT_FOUND
-											//	&& pLastSrcPhrase->m_bSpecialText)
+											//	&& pPrevSrcPhrase->m_bSpecialText)
 											if (!pSrcPhrase->m_markers.IsEmpty() && posChMkr != wxNOT_FOUND && !(posLastBeginMkr > posChMkr)
-												&& pLastSrcPhrase->m_bSpecialText)
+												&& pPrevSrcPhrase->m_bSpecialText)
 											{
 												// Don't let a \c marker stop propagation of previous special text and textType other than verse
-												pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
-												pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+												pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText;
+												pSrcPhrase->m_curTextType = pPrevSrcPhrase->m_curTextType;
 											}
 											else
 											{
@@ -51996,11 +52141,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 												if (pUsfmAnalysis != NULL)
 												{
 													// The beginMkr is a known marker in the m_RedBeginMarkers set
-													pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
+													pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pPrevSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
 													// Does the text type of 'special text' value change? If so set bTextTypeChanges to TRUE
 													// (not sure if this test is necessary, but probably worth doing until found otherwise)
-													if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
-														(pLastSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
+													if ((pPrevSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
+														(pPrevSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
 													{
 														bTextTypeChanges = TRUE;
 													}
@@ -52018,7 +52163,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// in its m_inlineNonbindingMarkers, and (if it only has one word to the left of the bar)
 									// is will also have an end marker (\jmp*, \fig* etc) in its m_inlineNonbindingEndMarkers 
 									// member. In this case we want its m_bSpecialText to stay TRUE, its m_cruTextType to stay 
-									// noType, and if either differs from those value in pLastSrcPhrase, we want to set 
+									// noType, and if either differs from those value in pPrevSrcPhrase, we want to set 
 									// bTextTypeChanges to TRUE.
 									else if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
 									{
@@ -52030,21 +52175,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										// check if last sourcephrase is m_bSpecialText FALSE OR the last sourcephrase is 
 										// m_curTextType other than noType, and if either is the case, we set bTextTypeChanges
 										// to TRUE.
-										if (!pLastSrcPhrase->m_bSpecialText || !pLastSrcPhrase->m_curTextType == noType)
+										if (!pPrevSrcPhrase->m_bSpecialText || !pPrevSrcPhrase->m_curTextType == noType)
 										{
 											bTextTypeChanges = TRUE;
 										}
 									}
 									else
 									{
-										// When pSrcPhrase->m_markers is empty, the pLastSrcPhrase values must propagate,
+										// When pSrcPhrase->m_markers is empty, the pPrevSrcPhrase values must propagate,
 										// whether blue or red
-										pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
-										pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+										pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText;
+										pSrcPhrase->m_curTextType = pPrevSrcPhrase->m_curTextType;
 
 									} // of the else block for test: if (!pSrcPhrase->m_markers.IsEmpty())
 
-								} //  end of TRUE block for test: if (pLastSrcPhrase != NULL)
+								} //  end of TRUE block for test: if (pPrevSrcPhrase != NULL)
 
 							} // end of else block for test: if (!(pSrcPhrase->GetFilteredInfo()).IsEmpty())
 						} // end of TRUE block for test: if (bIsChanger == FALSE)
@@ -52092,7 +52237,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// the text type, so internally test for + after backslash and if exists
 							// then return FALSE
 							bEnded_f_fe_x_span = TRUE; // <<-- the only place it is set TRUE
-							// propagation from pLastSrcPhrase to pSrcPhrase is required here, because
+							// propagation from pPrevSrcPhrase to pSrcPhrase is required here, because
 							// this one's TextType isn't changed
 
 							// BEW 3Feb23, m_markers may have \io1 marker when intro material is being processed.
@@ -52114,8 +52259,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 							if (bSkipRedPropagation == FALSE)
 							{
-								pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
-								pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+								pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText;
+								pSrcPhrase->m_curTextType = pPrevSrcPhrase->m_curTextType;
 								bSetFromLastSPhr = TRUE;
 							}
 #if defined (_DEBUG) && !defined(NOLOGS)
@@ -52154,22 +52299,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								bEndedffexspanUsedToChangedTextType = TRUE;
 							}
 
-							//							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , after bEnded_f_fe_x_span used "),
-							//								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+							//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , after bEnded_f_fe_x_span used "),
+							//		__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-														// Finally, we have to do one task which in the legacy parser was done in
-														// AnalyseMarker(). If \f* is stored on pSrcPhrase, then we have to set
-														// the flag m_bFootnoteEnd to TRUE (so that CPile::DrawNavTextInfoAndIcons(
-														// wxDC* pDC) can add the "end fn" text to pSrcPhrase->m_inform, for
-														// display in the nav text area of the view) -- note, \fe in m_endMarkers
-														// can only be the PNG SFM 1998 footnote endmarker, not USFM endnote
-														// beginmarker) likewise \F must be from the same 1998 set if found there
-														//
-														// BEW 3Mar15, refactored to have the "end fn" entered into the m_inform
-														// member of this pSrcPhrase here, rather than by DrawNavTextInfoAndIcons()
-														// because if the nav text is wiped and a doc redraw is not done (it can
-														// happen) then the "end fn" disappears. Marking the end of the footnote
-														// was requested by Wolfgang Stradner in 12 March 2009.
+							// Finally, we have to do one task which in the legacy parser was done in
+							// AnalyseMarker(). If \f* is stored on pSrcPhrase, then we have to set
+							// the flag m_bFootnoteEnd to TRUE (so that CPile::DrawNavTextInfoAndIcons(
+							// wxDC* pDC) can add the "end fn" text to pSrcPhrase->m_inform, for
+							// display in the nav text area of the view) -- note, \fe in m_endMarkers
+							// can only be the PNG SFM 1998 footnote endmarker, not USFM endnote
+							// beginmarker) likewise \F must be from the same 1998 set if found there
+							//
+							// BEW 3Mar15, refactored to have the "end fn" entered into the m_inform
+							// member of this pSrcPhrase here, rather than by DrawNavTextInfoAndIcons()
+							// because if the nav text is wiped and a doc redraw is not done (it can
+							// happen) then the "end fn" disappears. Marking the end of the footnote
+							// was requested by Wolfgang Stradner in 12 March 2009.
 
 #if defined (_DEBUG) && !defined(NOLOGS)
 							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d  BEFORE \"end fn\" Block, bIsChanger = %d"),
@@ -52182,22 +52327,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// BEW 24Dec22 any punctuation chars following a \f* should be TextType verse
 							// that is, blue colour (or whatever is the current setting for verse text); so
 							// check for puncts after \f*, and have them coloured same as verse enum
-							bIsFootnoteEnd = (pLastSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ? TRUE : FALSE;
+							bIsFootnoteEnd = (pPrevSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ? TRUE : FALSE;
 
 							if (bIsFootnoteEnd ||
-								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\ef*")) != wxNOT_FOUND) ||
-								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\fe*")) != wxNOT_FOUND) ||
-								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\x*")) != wxNOT_FOUND) ||
-								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\ex*")) != wxNOT_FOUND))
+								(pPrevSrcPhrase->GetEndMarkers().Find(_T("\\ef*")) != wxNOT_FOUND) ||
+								(pPrevSrcPhrase->GetEndMarkers().Find(_T("\\fe*")) != wxNOT_FOUND) ||
+								(pPrevSrcPhrase->GetEndMarkers().Find(_T("\\x*")) != wxNOT_FOUND) ||
+								(pPrevSrcPhrase->GetEndMarkers().Find(_T("\\ex*")) != wxNOT_FOUND))
 							{
 								if (bIsFootnoteEnd)
 								{
 
-									pLastSrcPhrase->m_bFootnoteEnd = TRUE;
+									pPrevSrcPhrase->m_bFootnoteEnd = TRUE;
 									// Note: it's localizable if somebody wants to bother
-									pLastSrcPhrase->m_inform = _("end fn"); // there won't be anything else in m_inform
+									pPrevSrcPhrase->m_inform = _("end fn"); // there won't be anything else in m_inform
 																		// at the end of the footnote, so no need to append
-									pLastSrcPhrase->m_bBoundary = TRUE;
+									pPrevSrcPhrase->m_bBoundary = TRUE;
 
 									m_bIsWithinUnfilteredInlineSpan = FALSE;
 									pSrcPhrase->m_bFirstOfType = TRUE;
@@ -52217,41 +52362,41 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								else
 								{
 									// Handle the other four possibilities
-									if (pLastSrcPhrase->GetEndMarkers().Find(_T("\\ef*")) != wxNOT_FOUND)
+									if (pPrevSrcPhrase->GetEndMarkers().Find(_T("\\ef*")) != wxNOT_FOUND)
 									{
-										pLastSrcPhrase->m_inform = _("end note");
-										pLastSrcPhrase->m_bBoundary = TRUE;
+										pPrevSrcPhrase->m_inform = _("end note");
+										pPrevSrcPhrase->m_bBoundary = TRUE;
 										m_bIsWithinUnfilteredInlineSpan = FALSE;
 										pSrcPhrase->m_bFirstOfType = TRUE;
 										pSrcPhrase->m_curTextType = verse;
 										pSrcPhrase->m_bSpecialText = FALSE;
 										bSetFromLastSPhr = TRUE;
 									}
-									else if (pLastSrcPhrase->GetEndMarkers().Find(_T("\\fe*")) != wxNOT_FOUND)
+									else if (pPrevSrcPhrase->GetEndMarkers().Find(_T("\\fe*")) != wxNOT_FOUND)
 									{
-										pLastSrcPhrase->m_bFootnoteEnd = TRUE;
-										pLastSrcPhrase->m_inform = _("end endnote");
-										pLastSrcPhrase->m_bBoundary = TRUE;
+										pPrevSrcPhrase->m_bFootnoteEnd = TRUE;
+										pPrevSrcPhrase->m_inform = _("end endnote");
+										pPrevSrcPhrase->m_bBoundary = TRUE;
 										m_bIsWithinUnfilteredInlineSpan = FALSE;
 										pSrcPhrase->m_bFirstOfType = TRUE;
 										pSrcPhrase->m_curTextType = verse;
 										pSrcPhrase->m_bSpecialText = FALSE;
 										bSetFromLastSPhr = TRUE;
 									}
-									else if (pLastSrcPhrase->GetEndMarkers().Find(_T("\\x*")) != wxNOT_FOUND)
+									else if (pPrevSrcPhrase->GetEndMarkers().Find(_T("\\x*")) != wxNOT_FOUND)
 									{
-										pLastSrcPhrase->m_inform = _("end crossReference");
-										pLastSrcPhrase->m_bBoundary = TRUE;
+										pPrevSrcPhrase->m_inform = _("end crossReference");
+										pPrevSrcPhrase->m_bBoundary = TRUE;
 										m_bIsWithinUnfilteredInlineSpan = FALSE;
 										pSrcPhrase->m_bFirstOfType = TRUE;
 										pSrcPhrase->m_curTextType = verse;
 										pSrcPhrase->m_bSpecialText = FALSE;
 										bSetFromLastSPhr = TRUE;
 									}
-									else if (pLastSrcPhrase->GetEndMarkers().Find(_T("\\ex*")) != wxNOT_FOUND)
+									else if (pPrevSrcPhrase->GetEndMarkers().Find(_T("\\ex*")) != wxNOT_FOUND)
 									{
-										pLastSrcPhrase->m_inform = _("end ext xref note");
-										pLastSrcPhrase->m_bBoundary = TRUE;
+										pPrevSrcPhrase->m_inform = _("end ext xref note");
+										pPrevSrcPhrase->m_bBoundary = TRUE;
 										m_bIsWithinUnfilteredInlineSpan = FALSE;
 										pSrcPhrase->m_bFirstOfType = TRUE;
 										pSrcPhrase->m_curTextType = verse;
@@ -52264,15 +52409,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						  // if ( (bIsChanger && !typeChangingEndMkr.IsEmpty()) || bIsFootnoteEnd)
 						else
 						{
-							// don't propagate values from pLastSrcPhrase if the TRUE block for
+							// don't propagate values from pPrevSrcPhrase if the TRUE block for
 							// bTextTypeChanges was entered - when that block is entered, a new
 							// TextType and possibly a change of m_bSpecialText value is commencing
 							// and we don't want the new values wiped out here by overwriting with
-							// those from pLastSrcPhrase
+							// those from pPrevSrcPhrase
 							if (bTextTypeChangeBlockEntered && !bSetFromLastSPhr)
 							{
-								pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
-								pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+								pSrcPhrase->m_bSpecialText = pPrevSrcPhrase->m_bSpecialText;
+								pSrcPhrase->m_curTextType = pPrevSrcPhrase->m_curTextType;
 							}
 #if defined (_DEBUG) && !defined(NOLOGS)
 							wxString atPtr = wxString(ptr, 16);
@@ -52291,7 +52436,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"),
 					//	__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-				} // end of TRUE block (4 tabs) for test: if (pLastSrcPhrase != NULL) -- correct
+				} // end of TRUE block (4 tabs) for test: if (pPrevSrcPhrase != NULL) -- correct
 
 			} // end of else block for test: if (pSrcPhrase->m_bFootnote == TRUE)
 
@@ -52392,7 +52537,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// of the buffer - unlikely, but we can't rule it out. So keep this stuff.
 			//
 			// If endmarkers are at the end of the buffer, code further up will have put them
-			// into the m_endMarkers member of pLastSrcPhrase, and any punctuation following
+			// into the m_endMarkers member of pPrevSrcPhrase, and any punctuation following
 			// that would be in the m_precPunt member of pSrcPhrase, but if the buffer end has
 			// been reached, m_key in pSrcPhrase will be empty. So, providing m_precPunct is
 			// empty, pSrcPhrase is not a valid CSourcePhrase instance. We need to check and
@@ -52472,17 +52617,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					{
 						// we default to always turning off a free translation section at the end
 						// of the document if it hasn't been done already
-						if (pLastSrcPhrase != NULL)
+						if (pPrevSrcPhrase != NULL)
 						{
-							if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+							if (pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
 							{
-								pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+								pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
 
 								// BEW 11Oct10, and for ~ fixedspace support, set the same flag in
 								// the last child instance
-								if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
+								if (IsFixedSpaceSymbolWithin(pPrevSrcPhrase))
 								{
-									pos_pSavedWords = pLastSrcPhrase->m_pSavedWords->GetLast();
+									pos_pSavedWords = pPrevSrcPhrase->m_pSavedWords->GetLast();
 									pWord2 = pos_pSavedWords->GetData();
 									pWord2->m_bEndFreeTrans = TRUE;
 								}
@@ -52564,12 +52709,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 
 		// make this one be the "last" one for next time through
-		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
+		pPrevSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 		//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 #if defined (_DEBUG) && !defined(NOLOGS)
 		{
 			ptrPointsAt = wxString(ptr, 15);
-			wxLogDebug(_T("%s::%s(), line %d :@@@ ** pLastSrcPhrase now set **: sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+			wxLogDebug(_T("%s::%s(), line %d :@@@ ** pPrevSrcPhrase now set **: sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
 				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 3)
 			{

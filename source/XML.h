@@ -362,7 +362,7 @@ void FromDocVersion4ToDocVersionCurrent( SPList* pList, CSourcePhrase*& pSrcPhra
 
 // whm 27Jan2024 added. 
 // convert from doc version 5's m_filteredInfo being stored on the current pSrcPhrase
-// to pLastSrcPhrase where m_filteredInfo is now stored - always on a prior source
+// to pPrevSrcPhrase where m_filteredInfo is now stored - always on a prior source
 // phrase from the location the filtered info was taken in the input text.
 // See definition for details.
 void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
@@ -388,7 +388,7 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 // m_markers string for docVersion 4 CSourcePhrase instances, to CSourcePhrase instances as
 // in docVersion 5.
 bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers, 
-						CSourcePhrase* pLastSrcPhrase, bool& bDeleteWhenDone);
+						CSourcePhrase* pLastSP, bool& bDeleteWhenDone);
 
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
 // use this function within FromDocVersion5ToDocVersion4()to transfer endmarkers from the

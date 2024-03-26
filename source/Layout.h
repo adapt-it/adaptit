@@ -198,7 +198,7 @@ public:
 	// occurs because ParseWord() failed to parse it into the previous CSourcePhrase
 	wxString m_strUnparsedEndMkr_ForPlacement; // set from TokenizeText() when dealing
 			// with the next CSourcePhrase instance, and an unexpected endmkr is at ptr
-	int m_nSequNum_LastSrcPhrase; // so I can compute its pLastSrcPhrase pointer
+	int m_nSequNum_PrevSrcPhrase; // so I can compute its pPrevSrcPhrase pointer
 
 	void ClearPostWordDataPointers();
 
