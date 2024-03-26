@@ -2720,7 +2720,7 @@ class CAdapt_ItApp : public wxApp
 
 	// Next ones are independent of the adaptation versus glossing choice
 	// not speed critical, so make these always 0 (zero), to use move up way
-	int m_nAddUsersCount;
+	//int m_nAddUsersCount; BEW removed 26Mar24, it's only set to 0 in 3 places, and never incremented
 	int m_nLookupUserCount;
 	int m_nListUsersCount;
 
@@ -3913,7 +3913,7 @@ public:
 	// initialise to _T("gates") and _T("rs46nha#BZ") at end of OnInit()
 	wxString m_strDBusername;
 	wxString m_strDBpassword;
-		
+	wxString m_strDBfullname;
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
 	// Next three are set when authenticating with the bool '...ForManager' 2nd param of the
@@ -3966,11 +3966,28 @@ public:
 	wxString m_newUserDlg_newusername;
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
-	int      m_newUserDlg_newuserpermission;
-	int      m_newUserDlg_grant_permissions;
+	int      m_newUserDlg_newuseradmin; // RHSide checkbox
+	int      m_newUserDlg_grant_permissions; // LHSide checkbox
 	// BEW 13Feb24 added next two, in support of newer NewUserCredentialsDlg
-	bool m_bCreateUserByMenuItem; // TRUE when the NewUserCredentialsDlg is active
+	//bool m_bCreateUserByMenuItem; // TRUE when the NewUserCredentialsDlg is active BEW 22Mar24 value-less, so remove
 	bool m_bGrantSomePermissions;  // TRUE if the user clicked the checkbox for granting (some) user permissions
+	bool m_bChangedSelectedUser; // TRUE while handler for changing to a different user in user list is active, FALSE when
+								 // the handler finishes, or at all times when a change is not active, or no user selected.
+
+	// BEW 22Mar24 added next boolean, because currently both do_add_kbusers.py (6 fields, supporting Mgr's Add User
+	// button), and do_create_user_granting_all.py (10 fields, supporting the menu choice "Add Users To KBserver" on
+	// the Administrator menu, each unilaterally does granting of all permissions. (The grants item is not not yet
+	// instantiated in the user table schema). So the boolean m_bGrantSomePermissions cannot distinguish between
+	// accessing MariaDB to add by the menu choice, versus adding by the KB Sharing Manager's "Add User" button.
+	// It matters, because the menu choice must test that the proposed new user does not already have full permissions,
+	// and requires more fields in the input .dat function than the input .dat for do_add_kbusers.py.
+	// 
+	// NOTE: do_create_user_granting_all.py has two extra fields after the 3 creditials ones (ipAddr, DB_user_name,
+	// DB_user_password) so that the first of the extra fields, user_name, can be tested for equality with DB_user_name.
+	// DB_user_name has all permissions already, because it's able to gain entry to MariaDB. So if user_name matches,
+	// then user_name must ALREADY have full permissions, in which case the attempt to grant all permissions must fail
+	// and so the .py function fails.
+	bool m_bAddUser2UserTable; // TRUE when Add Users To KBserver is clicked, FALSE when Mgr's Add User button is clicked
 
 /*
 // Don't use an enum, int values are simpler
@@ -3991,12 +4008,12 @@ public:
 	const int blanksEnd = 13; // this one changes as we add more above
 
 */
-
-	bool m_bAddUser2UserTable; // BEW 24Dec21, defaul FALSE, but True in app's OnAddUsersToKBserver() handler
+ 
 	wxString m_strCommandLine_ForAddUserWithGrants; // BEW 26Feb2024 when the commandLine is built
 			// in context where m_bGrantSomePermissions (above) is TRUE, avoid having to create the commandLine
 			// contents twice. Instead, store it here, and grab it in ConfigureMovedDatFile() just before
 			// control enters CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine)
+	wxString m_strCommandLine_ForAddUserWithNoGrants; // BEW 26Mar24 like above, but for _T("add_foreign_KBUsers.dat")
 
 	void CheckForDefinedGlossLangName();
 

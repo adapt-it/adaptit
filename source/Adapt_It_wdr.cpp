@@ -7767,113 +7767,116 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(220,-1), 0, strs6, wxLB_SINGLE );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 0 );
 
+    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSIONS, _("Grant Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item3->Add( item4, 0, wxGROW|wxALL, 5 );
 
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Change Permission, Password, or  Fullname") );
-    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
+    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Change Permission, Password, or  Fullname") );
+    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Username (should be unique):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Each user name must be unique on this server") );
-    item7->Add( item9, 0, wxALL, 5 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Username (should be unique):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Each user name must be unique on this server") );
+    item8->Add( item10, 0, wxALL, 5 );
 
-    AutoCorrectTextCtrl *item10 = new AutoCorrectTextCtrl( parent, ID_THE_USERNAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Type or edit the username here") );
-    item7->Add( item10, 0, wxGROW|wxALL, 5 );
+    AutoCorrectTextCtrl *item11 = new AutoCorrectTextCtrl( parent, ID_THE_USERNAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Type or edit the username here") );
+    item8->Add( item11, 0, wxGROW|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Informal username (Fullname):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("The informal username can be a real or a false name") );
-    item7->Add( item11, 0, wxALL, 5 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Informal username (Fullname):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("The informal username can be a real or a false name") );
+    item8->Add( item12, 0, wxALL, 5 );
 
-    AutoCorrectTextCtrl *item12 = new AutoCorrectTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetToolTip( _("Type the user's common name here, for example, Joe Bloggs") );
-    item7->Add( item12, 0, wxGROW|wxALL, 5 );
+    AutoCorrectTextCtrl *item13 = new AutoCorrectTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Type the user's common name here, for example, Joe Bloggs") );
+    item8->Add( item13, 0, wxGROW|wxALL, 5 );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("A password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("If you forget a password, you can type a new password for any user. An existing password is retained if you leave the password text boxes blank") );
-    item7->Add( item13, 0, wxALL, 5 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("A password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("If you forget a password, you can type a new password for any user. An existing password is retained if you leave the password text boxes blank") );
+    item8->Add( item14, 0, wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD );
-    item14->SetToolTip( _("Type in the password. You can type a new one if unknown. Make sure the user knows the password.") );
-    item7->Add( item14, 0, wxGROW|wxALL, 5 );
+    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD );
+    item15->SetToolTip( _("Type in the password. You can type a new one if unknown. Make sure the user knows the password.") );
+    item8->Add( item15, 0, wxGROW|wxALL, 5 );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Type the password again:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item15, 0, wxALL, 5 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Type the password again:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item16, 0, wxALL, 5 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_TWO, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD );
-    item16->SetToolTip( _("Verify the spelling is the same as the first time") );
-    item7->Add( item16, 0, wxGROW|wxALL, 5 );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_TWO, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD );
+    item17->SetToolTip( _("Verify the spelling is the same as the first time") );
+    item8->Add( item17, 0, wxGROW|wxALL, 5 );
 
-    item3->Add( item7, 1, wxALL, 5 );
+    item3->Add( item8, 1, wxALL, 5 );
 
-    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("Change Permission or Fullname, or View Password") );
-    wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
+    wxStaticBox *item19 = new wxStaticBox( parent, -1, _("Change Permission or Fullname, or View Password") );
+    wxStaticBoxSizer *item18 = new wxStaticBoxSizer( item19, wxVERTICAL );
 
-    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
+    item18->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
 
-    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxSize(140,-1), 0 );
-    item19->SetToolTip( _("Tick this box to allow this user the permission to add, remove, or edit other users of this server") );
-    item17->Add( item19, 0, wxALL, 5 );
+    wxCheckBox *item20 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxSize(140,-1), 0 );
+    item20->SetToolTip( _("Tick this box to allow this user the permission to add, remove, or edit other users of this server") );
+    item18->Add( item20, 0, wxALL, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("(can add users, or edit some user options)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item20, 0, wxLEFT, 15 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("(can add users, or edit some user options)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item21, 0, wxLEFT, 15 );
 
-    item17->Add( 20, 4, 0, wxALIGN_CENTER, 5 );
+    item18->Add( 20, 4, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_CHANGE_PERMISSION, _("Change Permission"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_CHANGE_PERMISSION, _("Change Useradmin"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
+    item18->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Selected User's Password") );
-    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
+    wxStaticBox *item24 = new wxStaticBox( parent, -1, _("Selected User's Password") );
+    wxStaticBoxSizer *item23 = new wxStaticBoxSizer( item24, wxVERTICAL );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SEL_USER_PWD, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
-    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_SEL_USER_PWD, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
-    item25->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 5 );
+    item26->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item26 = new wxButton( parent, ID_BUTTON_CHANGE_PASSWORD, _("Change Password"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_CHANGE_PASSWORD, _("Change Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item17->Add( item22, 0, wxALL, 5 );
+    item18->Add( item23, 0, wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_CHANGE_FULLNAME, _("Change Fullname"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item27, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    wxButton *item28 = new wxButton( parent, ID_BUTTON_CHANGE_FULLNAME, _("Change Fullname"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item28, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
-    item3->Add( item17, 0, wxALL, 5 );
+    item3->Add( item18, 0, wxALL, 5 );
 
     item2->Add( item3, 1, wxGROW|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    item28->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
-    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item30 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item30 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item31 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetToolTip( _("View the password for the selected user; it can be changed") );
-    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("View the password for the selected user; it can be changed") );
+    item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item28->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
+    item29->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item28, 0, wxALL, 0 );
+    item2->Add( item29, 0, wxALL, 0 );
 
     item0->Add( item2, 1, wxGROW|wxLEFT|wxBOTTOM, 5 );
 

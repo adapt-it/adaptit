@@ -812,8 +812,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	bool bConfiguredOK;
 	bool bReportResult;
 	wxString execFileName;
-	m_pApp->m_ChangedSinceTimed_Timestamp = timeStamp;
-	// preserve the bDoTimestampUpdate value for other calls to use
+	m_pApp->m_ChangedSinceTimed_Timestamp = timeStamp; // preserve the bDoTimestampUpdate value for other calls to use
 	m_pApp->m_bDoTimestampUpdate = bDoTimestampUpdate;
 
 	bExecutedOK = FALSE; // initialise
@@ -822,13 +821,11 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed); // = 8
 	if (bConfiguredOK)
 	{
-		execFileName = _T("do_changed_since_timed.exe");
+		execFileName = _T("do_changed_since_timed.py");
 		resultsFilename = _T("changed_since_timed_results.dat");
 		bReportResult = FALSE;
 		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath, resultsFilename, 99, 99, bReportResult);
 	}
-
-
 	// ***** at step 2, progress
 	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 	// ***** progress
@@ -875,7 +872,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 			// (or the last_sync_glossing.txt file if in glossing mode) will be empty when
 			// this function, ChangedSince_Timed(timeStamp,bDoTimestampUpdate) - [flag is default true] is
 			// invoked by the always-running timer firing. That, if nothing is done, would kill the attempt
-			// to do a do_changed_since_timed.exe (or .py) call. An automatic solution is required. The best
+			// to do a do_changed_since_timed.py) call. An automatic solution is required. The best
 			// thing would be to do a changed_since_timed from "1920-01-01" (a bulk download), because
 			// this would get any new entries for the local KB (at the cost of a bit of time wasted), but
 			// importantly, the download's results.dat file, if it extracts a datetime, we'll hide it in
@@ -928,14 +925,14 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 			}
 			else 
 			{
-				// warn user, something's wrong because changed_since_timed.exe got no returned timestamp
+				// warn user, something's wrong because changed_since_timed.py got no returned timestamp
 				if (m_pApp->m_bDoTimestampUpdate)
 				{
 					if (bExecutedOK == FALSE || timeStamp.IsEmpty())
 					{
-						// empty timestamp string, or the .exe failed, so return -1 to the caller
+						// empty timestamp string, or the .py failed, so return -1 to the caller
 						// and a msg in LogUserAction for the developer
-						wxString msg = _T("ChangedSince_Timed(): either the do_changed_since_timed.exe call failed, or the timeStamp passed in was empty");
+						wxString msg = _T("ChangedSince_Timed(): either the do_changed_since_timed.py call failed, or the timeStamp passed in was empty");
 						wxMessageBox(msg, _T("Error"), wxICON_ERROR | wxOK); // tell user too
 						m_pApp->LogUserAction(msg);
 						return -1;
@@ -944,7 +941,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 			}
 			// Note, it's possible that ChangedSince_Timed() will return no data for adding to
 			// the local KB, e.g. if timer's time span is short and for some reason the user 
-			// is thinking rather than adapting, so that the timer trips but nothing is
+			// is thinking about what to do, rather than adapting, so that the timer trips but nothing is
 			// newly added to the remote server. This is not an error situation, so don't
 			// treat it like one. Just ignore and give no message back.
 			// Removal of "success,<datetime>" first line, changes the array length, so
@@ -1043,7 +1040,7 @@ void KbServer::ClearAllPrivateStorageArrays()
 
 // BEW  added 4Aug22, if m_kbServerLastSync is empty (like when it's first time)
 // or the relevant lastsync_adaptations.txt or lastsync_glosses.txt (if  glosssing) file
-// does not yet exist, then CallExecute will fail for a do_changed_since_timed.exe call, so
+// does not yet exist, then CallExecute will fail for a do_changed_since_timed.py call, so
 // prevent the failure by detecting m_kbServerLastSync and calling ForstTimeGetsAll() with
 // a datetime set to 1920. That's safe to do, but wastes some time maybe.
 wxString KbServer::FixByGettingAll()
@@ -1117,7 +1114,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		timestamp = _T("1920-01-01"); // earlier than everything!
 		rval = ChangedSince_Timed(timestamp, FALSE); // 2nd param, bool bDoTimestampUpdate is default TRUE
 		// BEW 22Mar22, explicit FALSE in the call above, causes ChangedSince_Timed() to skip updating the
-		// project folder's lastsync_adaptations.txt file's value (or glossing on if a glossing KB), because
+		// project folder's lastsync_adaptations.txt file's value (for glossing turned on if its a glossing KB), because
 		// a 1920 datetime would ruin the incremental data downloads protocal (getting everything instead of a few)
 	}
 		break;
@@ -1159,7 +1156,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) /
 		if (bReady)
 		{
 			// The input .dat file is now set up ready for do_list_users.exe
-			wxString execFileName = _T("do_list_users.exe"); // this call does not use user2, just authenticates
+			wxString execFileName = _T("do_list_users.py"); // this call does not use user2, just authenticates
 			wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 			wxString resultFile = _T("list_users_results.dat");
 			bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 32, 33);
@@ -1179,21 +1176,24 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) /
 
 // Note: ipAddr, username and password are passed in, because this request can be made before
 // the app's m_pKbServer[two] pointers have been instantiated
+// BEW 21Mar24 I started refactoring this, then I realised that it's for doing an early lookup user call, which we dont anymore use
 int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername)
 {
 	// BEW 21Sep20 redo, we have to determine if username == whichusername right here, 
 	// and set the app's m_bUser1IsUser2 true or false, an then set m_bUserAuthenticating
 	// accordingly - so that default values get into the Athenticate2Dlg when called
-	m_pApp->m_bUser1IsUser2 = FALSE; // initialise FALSE
-	m_pApp->m_bUserAuthenticating = FALSE; // initialise, as if foreign user doing things in Manager
+	//m_pApp->m_bUser1IsUser2 = FALSE; // no longer used
+	m_pApp->m_bUserAuthenticating = TRUE; // was FALSE
+	/* BEW removed 21Mar24
 	if (username == whichusername)
 	{
-		m_pApp->m_bUser1IsUser2 = TRUE;
+		//m_pApp->m_bUser1IsUser2 = TRUE;
 		m_pApp->m_bUserAuthenticating = TRUE;
 		// BEW 25Jan22 added next line, so that the 4-field credentials dialog can be suppressed
 		// from showing redundantly -- by code within ConfigureMovedDatFile
 		m_pApp->m_Username2 = whichusername;
 	}
+	*/
 	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	// Prepare the .dat input dependency: "lookup_user.dat" file, into
 	// the execPath folder, ready for the (system() call below. Or, for Windows,
@@ -1324,7 +1324,7 @@ void KbServer::ClearUsersListForeign(UsersListForeign* pUsrListForeign)
 {
 #if defined (_DEBUG)
 	size_t listLen = pUsrListForeign->GetCount();
-	wxLogDebug(_T("%s::%s(), line %d: entry count : %d"),__FILE__,__FUNCTION__,__LINE__, listLen);
+	wxLogDebug(_T("%s(), line %d: entry count : %d"), __FUNCTION__,__LINE__, listLen);
 #endif
 	if (pUsrListForeign ==NULL || pUsrListForeign->IsEmpty())
 		return;
@@ -1695,7 +1695,7 @@ void KbServer::UploadToKbServer()
 	if (bConfiguredOK)
 	{
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString execFileName = _T("do_upload_local_kb.exe");
+		wxString execFileName = _T("do_upload_local_kb.py");
 		wxString resultFile = _T("upload_local_kb_results.dat");
 		//m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99); 
 		m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99);
@@ -1703,7 +1703,7 @@ void KbServer::UploadToKbServer()
 }
 
 // BEW 10Oct20, take a results file and convert to string array.  I need this on AI.h too, for when I 
-// want to process the result file in CallExecute()'s post wxExecute() call's switch, so I'll make a 
+// want to process the result file in CallExecute()'s post execute call's switch, so I'll make a 
 // public copy on app. Yuck, but saves time.
 // BEW 22Mar22, Leon's new results file has no initial line with "success" etc, all lines are just
 // downloaded rows from the entry table, and so lineIndex in the loop must now commence at 0, and I improved

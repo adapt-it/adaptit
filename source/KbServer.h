@@ -163,17 +163,10 @@ extern "C" {
 	int	do_list_users();
 
 
-
-
-
-
-
 #if __cplusplus
 }
 #endif
 */
-
-
 
 
 // forward references (we'll probably need these at some time)
@@ -228,7 +221,7 @@ public:
 
 	//int		 ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername); // BEW deprecated whichusername
 					// 5Sep20  needed, given same signature as LookupUser() on 11Nov20
-	int		 ListUsers(wxString ipAddr, wxString username, wxString password); // BEW 9Feb22
+	int		 ListUsers(wxString ipAddr, wxString username, wxString password); // BEW 9Feb22 BEW 21Mar24 no longer needed
 
 	int		 LookupEntryFields(wxString src, wxString nonSrc); // BEW 13Oct20 refactored
 	wxString ExtractTimestamp(wxString firstLine); // BEW 21Oct20, extract timestamp from
@@ -283,7 +276,7 @@ public:
 	CKB*	GetKB(int whichType); // whichType is 1 for adapting KB, 2 for glossing KB
 	wxString FixByGettingAll(); // BEW  added 4Aug22, if m_kbServerLastSync is empty (like when it's first time)
 	    // or the relevant lastsync_adaptations.txt or lastsync_glosses.txt (if  glosssing) file
-		// does not yet exist, then CallExecute will fail for a do_changed_since_timed.exe call, so
+		// does not yet exist, then CallExecute will fail for a "python do_changed_since_timed.py" call, so
 		// prevent the failure by detecting m_kbServerLastSync and calling FixByGettingAll() with
 		// a datetime set to 1920. That's safe to do, but wastes some time maybe.
 	// BEW 5Aug22, a public setter for the m_kbServerLastTimeStampReceived timestamp. To be used only
@@ -291,8 +284,6 @@ public:
 	// on first run was an empty string. In that case, we download the whole lot, and use this setter
 	// to ensure the lastsync_adaptations.txt file gets reset to a value later than 1920
 	void SetLastTimestampReceived(wxString timestamp);
-
-
 
 	// helpers
 

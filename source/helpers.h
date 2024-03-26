@@ -593,8 +593,9 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
 
 bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername, 
 							wxString* pPassword, wxString datFilename);
-bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
-		wxString* pPassword, bool bCanAddUsers, wxString datFilename); // BEW 23Nov20 call from Manager
+// BEW 26Mar23 removed, as this function is never used now
+//bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
+//		wxString* pPassword, bool bCanAddUsers, wxString datFilename); // BEW 23Nov20 call from Manager
 // BEW 2Jan23 DoAddForeignUser is a helpers.cpp & .h function, similar to Credentials_ForUser() above,
 // but having more fields - to match the do_add_KBuser.py function which Leon altered to have 9 fields:
 // do_add_KBuser( IPaddress,DB_user_name,DB_user_password,user_name,user_password,foreign_username,foreign_user_fullname,
