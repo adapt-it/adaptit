@@ -247,10 +247,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// block for setting commandLine for this situation
 	// set the m_bUser1IsUser2 boolean to TRUE, because we are contraining entry to a
 	// lookup_user case ( = 2) in which user1 == user2 == app's m_strUserID (the project's user)
-	m_pApp->m_bUser1IsUser2 = TRUE;	// (ConfigureMovedDatFile() asserts if it is FALSE)
+	//m_pApp->m_bUser1IsUser2 = TRUE;	no longer needed
 	m_pApp->m_bWithinMgr = FALSE; // we aren't in the GUI yet
 	m_pApp->m_bKBSharingMgrEntered = TRUE;
-	m_pApp->m_bHasUseradminPermission = TRUE; // must be TRUE, otherwise ListUsers() aborts
+	m_pApp->m_bHasUseradminPermission = TRUE; // must be TRUE, otherwise ListUsers() aborts <<-- could be changed, see 1143
 	m_pApp->m_bConfigMovedDatFileError = FALSE; // initialize to "no ConfigureMovedDatFile() error"
 
 	// BEW 16Dec20 Two accesses of the user table are needed. The first, here, LookupUser() 
@@ -484,10 +484,15 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	}
 
 
+
+
+	// BEW 21Mar24, ListUsers() no longer is needed, it was used in lookup_user, which we don't call anymore
 	// Get the list of users into the returned list_users_results.dat file
-	int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr, m_pApp->m_DB_username, m_pApp->m_DB_password);
-	wxUnusedVar(rv);
-	wxASSERT(rv == 0);
+	// BEW 21Mar24, change to new params now that kbadmin & kbauth no longer available
+	//int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr, m_pApp->m_DB_username, m_pApp->m_DB_password);
+	//wxUnusedVar(rv);
+	//wxASSERT(rv == 0);
+	int rv = -1;  rv = rv; // init  (might not need it, but just in case)
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -1484,7 +1489,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
 		if (bOK)
 		{
-			wxString execFileName = _T("do_add_foreign_kbusers.exe");
+			wxString execFileName = _T("do_add_foreign_kbusers.py");
 			result = m_pApp->CallExecute(credentials_for_user, execFileName, m_pApp->m_curExecPath, resultFile, 99, 99);
 		}
 	}

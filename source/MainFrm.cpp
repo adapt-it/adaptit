@@ -4476,45 +4476,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	// otherwise strange behavior may occur.
 	event.Skip();
 }
-/*
-bool CMainFrame::StationaryPhraseBox()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pApp->m_bPseudoUndelete == TRUE)
-	{
-		return TRUE;
-	}
-	if (pApp->m_bChangedSinceTimed == TRUE)
-	{
-		return TRUE;
-	}
-	if (pApp->m_bPseudoDelete == TRUE)
-	{
-		return TRUE;
-	}
-	if (pApp->m_bUploadLocalKb == TRUE)
-	{
-		return TRUE;
-	}
-	if (pApp->m_bUpperLowerTransfer == TRUE)
-	{
-		return TRUE;
-	}
-	return FALSE; // none of the booleans are set
-}
-*/
-/*
-void CMainFrame::ClearBoolsForStationaryPhraseBox()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	// Clear any residual TRUE values
-	pApp->m_bPseudoUndelete = FALSE;
-	pApp->m_bPseudoDelete = FALSE;
-	pApp->m_bUploadLocalKb = FALSE;
-	pApp->m_bChangedSinceTimed = FALSE;
-	pApp->m_bUpperLowerTransfer = FALSE;
-}
-*/
+
 // OnIdle moved here from the App. When it was in the App it was causing
 // the File | Exit and App x cancel commands to not be responsive there
 // BEW 26Mar10, no changes needed for support of doc version 5

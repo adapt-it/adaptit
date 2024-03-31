@@ -14657,6 +14657,7 @@ bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPasswor
 // m_bUseForeignOption to TRUE, so that the case 1, with "add_foreign_users.dat
 // as the input .dat file, can be filled from an alternative path using KB Sharing
 // Manager supplied values.
+/* BEW 26Mar24 definition, is never called, .h has declaration at 596
 bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
 	wxString* pPassword, bool bCanAddUsers, wxString datFilename)
 {
@@ -14758,7 +14759,7 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 	}
 	return TRUE;
 }
-
+*/
 
 // BEW added 16Feb22 for KBserver support.  BEW deprecated, 24Feb22 - not needed, see AI.cpp 21660++
 // The results .dat file (e.g. list_users_results.dat) no longer is guaranteed to have a "success" 

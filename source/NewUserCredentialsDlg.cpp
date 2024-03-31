@@ -90,8 +90,8 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pNewUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERNM); 
 	m_pNewFullnameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_FULLNAME);
 	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
-	m_pCheck_GrantPermission = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
-	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked, RHSide checkbox
+	m_pCheck_Useradmin = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
+	m_pCheck_Useradmin->SetValue(FALSE); // start off unticked, RHSide checkbox
 	m_pCheck_Grant_Permissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSIONS);
 	m_pCheck_Grant_Permissions->SetValue(FALSE); // start off unticked, LHSide checkbox
 
@@ -100,8 +100,8 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
 
-	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->m_bCreateUserByMenuItem = TRUE;
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//pApp->m_bCreateUserByMenuItem = TRUE; BEW 22Mar24, removed, has no useful function
 }
 
 void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
@@ -111,7 +111,7 @@ void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
 	m_pCheck_Grant_Permissions->SetValue(FALSE);
-	m_pCheck_GrantPermission->SetValue(FALSE);
+	m_pCheck_Useradmin->SetValue(FALSE);
 	event.Skip();
 }
 
@@ -153,21 +153,22 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	// so that the KBSharingMgrTabbedDlg can pick them up for it's support of adding a new user
 	CAdapt_ItApp* pApp = &wxGetApp();
 	/* 
-	use these (member variables of AI.cpp):
+	These (member variables of AI.cpp 3966++) preserve the results after  m_bCreateUserByMenuItem 
+		has been cleared to FALSE below:
 	wxString m_newUserDlg_newusername;
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
-	int      m_newUserDlg_newuserpermission;
+	int      m_newUserDlg_newuseradmin; /// was int m_newUserDlg_newuserpermission;
 	int      m_newUserDlg_allpermissions; // BEW added 13Feb24
 	*/
 	pApp->m_newUserDlg_newusername = strNewUser;
 	pApp->m_newUserDlg_newfullname = strNewFullname;
 	pApp->m_newUserDlg_newpassword = strNewPassword;
-	bool bPermission = m_pCheck_GrantPermission->GetValue();
-	pApp->m_newUserDlg_newuserpermission = (bPermission == TRUE) ? 1 : 0;
+	bool bPermission = m_pCheck_Useradmin->GetValue();
+	pApp->m_newUserDlg_newuseradmin = (bPermission == TRUE) ? 1 : 0;
 	bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
-	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0;
+	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0; // this, for when grants field is implemented
 
-	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off
+	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off. BEW 22Mar24, removed, has no useful function
 	event.Skip();
 }
