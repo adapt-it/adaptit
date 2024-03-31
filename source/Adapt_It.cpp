@@ -23204,7 +23204,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
             // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
             wxString msg;
-            wxString title = _("Change mermission warning");
+            wxString title = _("Change permission warning");
             wxString ipAddress = m_strKbServerIpAddr;
             bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
             if (bIsEmptyAddress)
