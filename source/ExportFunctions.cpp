@@ -17205,6 +17205,30 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 			appendHere += pSrcPhrase->GetInlineNonbindingEndMarkers();
 			bAddedSomething = TRUE;
 		}
+		// whm added for testing. Sometimes our current code isn't able to determine
+		// the placement of following outer punctuation when there are two or more
+		// end markers following the m_key. The m_srcSinglePattern records the placement
+		// of such things and this is an experiment to see if I can use it to disambiguate
+		// the placement of the m_follOuterPunct. So, I'm checking to see if the stuff that
+		// follows the m_key part of m_srcSinglePattern m_srcPhrase + appendHere 
+		// value at this point is equal to the m_srcSinglePattern or not. If not, I'm
+		// extracting the m_srcPhrase from m_srcSinglePattern, differes from what has been
+		// composed above for appendHere. If they are not the same, I'm substituting what
+		// follows the m_key in m_srcSinglePattern in place of the appendHere value.
+		// Testing results indicate that this improves the exports of source texts.
+		if (!appendHere.IsEmpty())
+		{
+			int lenSrcPh = pSrcPhrase->m_key.Length();
+			int posFollStuff = pSrcPhrase->m_srcSinglePattern.Find(pSrcPhrase->m_key);
+			if (posFollStuff == 0 && lenSrcPh > 0)
+			{
+				wxString postSrcPhraseStuff = pSrcPhrase->m_srcSinglePattern.Mid(lenSrcPh);
+				if (postSrcPhraseStuff != appendHere)
+				{
+					appendHere = postSrcPhraseStuff;
+				}
+			}
+		}
 	}
 	// whm 12Feb2024 moved the addition of filtered info from the AppendSrcPhraseBeginningInfo()
 	// function to this function since it should be the last thing added to appendHere.

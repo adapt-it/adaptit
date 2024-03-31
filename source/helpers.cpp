@@ -8304,6 +8304,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 	// removed when filtered.
 	wxArrayString MkrAndAssocTextList;
 	MkrAndAssocTextList.Clear();
+	wxArrayString filteredMkrsAndAssocTextNoBrackets;
+	filteredMkrsAndAssocTextNoBrackets.Clear();
 	wxArrayString FilterableMkrsList;
 	FilterableMkrsList.Clear();
 	wxArrayString markersPrecedingFilteredOnes;
@@ -8324,6 +8326,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 		pDoc->GetFilteredAndSweptUpMarkersFromString(filteredMaterialStr,
 			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
 			MkrAndAssocTextList,
+			filteredMkrsAndAssocTextNoBrackets, // this one isn't used here
 			FilterableMkrsList); // this one isn't used here
 
 		// whm 22Jan2024 added. 
