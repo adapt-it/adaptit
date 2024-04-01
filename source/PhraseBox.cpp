@@ -1942,6 +1942,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
             // gbIsGlossing is OFF
 			wxString str = m_Translation; // m_Translation set within LookAhead()
 			CSourcePhrase* pSrcPhraseWhat; pSrcPhraseWhat = NULL; // init
+			wxUnusedVar(pSrcPhraseWhat);
 
 			if (!gbIsGlossing && (m_Translation == _T("<Not In KB>")))
 			{

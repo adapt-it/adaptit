@@ -4794,8 +4794,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		//int oldSN = pApp->m_nOldSequNum;
 		//int curSN = pApp->m_nActiveSequNum;
 
-		bool bIsKBSvrAdaptProj = gpApp->m_bIsKBServerProject;
-		bool bIsKBSvGlossProj = gpApp->m_bIsGlossingKBServerProject;
+		bool bIsKBSvrAdaptProj = gpApp->m_bIsKBServerProject; wxUnusedVar(bIsKBSvrAdaptProj);
+		bool bIsKBSvGlossProj = gpApp->m_bIsGlossingKBServerProject; wxUnusedVar(bIsKBSvGlossProj);
 
 		// BEW 19Mar24 removed the constraining test here, which uses bHasAdvanced, at Bill's request
 		// and to retest to see if reentrancy problems arise from the today's changes
