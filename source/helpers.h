@@ -601,7 +601,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pU
 // do_add_KBuser( IPaddress,DB_user_name,DB_user_password,user_name,user_password,foreign_username,foreign_user_fullname,
 // foreign_user_password,foreign_user_permissions )
 bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPassword, wxString* pUser2, wxString* pPwd2,
-	wxString* pForeignUser, wxString* pForeignFullname, wxString* pForeignPwd, bool bCanAddUsers, wxString datFilename);
+	wxString* pForeignUser, wxString* pForeignFullname, wxString* pForeignPwd, wxString* pUseradmin, wxString datFilename);
 
 
 

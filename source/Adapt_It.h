@@ -2720,7 +2720,6 @@ class CAdapt_ItApp : public wxApp
 
 	// Next ones are independent of the adaptation versus glossing choice
 	// not speed critical, so make these always 0 (zero), to use move up way
-	//int m_nAddUsersCount; BEW removed 26Mar24, it's only set to 0 in 3 places, and never incremented
 	int m_nLookupUserCount;
 	int m_nListUsersCount;
 
@@ -3972,6 +3971,8 @@ public:
 	wxString m_newUserDlg_newpassword;
 	int      m_newUserDlg_newuseradmin; // RHSide checkbox
 	int      m_newUserDlg_grant_permissions; // LHSide checkbox
+	int		 m_nAddUsersCount; // (was at 2722)used to prevent more than one entrance to NewUserCredentialsDlg 
+							   // per call of OnAddUsersToKBserver()
 	// BEW 13Feb24 added next two, in support of newer NewUserCredentialsDlg
 	//bool m_bCreateUserByMenuItem; // TRUE when the NewUserCredentialsDlg is active BEW 22Mar24 value-less, so remove
 	bool m_bGrantSomePermissions;  // TRUE if the user clicked the checkbox for granting (some) user permissions

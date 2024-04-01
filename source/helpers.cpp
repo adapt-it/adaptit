@@ -14538,13 +14538,13 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 // do_add_KBuser( IPaddress,DB_user_name,DB_user_password,user_name,user_password,foreign_username,foreign_user_fullname,
 // foreign_user_password,foreign_user_permissions )
 bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPassword, wxString* pUser2, wxString* pPwd2,
-	wxString* pForeignUser, wxString* pForeignFullname, wxString* pForeignPwd, bool bCanAddUsers, wxString datFilename)
+	wxString* pForeignUser, wxString* pForeignFullname, wxString* pForeignPwd, wxString* pUseradmin, wxString datFilename)
 {
 	gpApp->m_bUseForeignOption = TRUE; // ConfigureMovedDatFile() will therefore
 			// get its values from the open users Page in KBSharingManagerTabbedDlg()
 	// Using absolute paths...
 	wxString separator = gpApp->PathSeparator;
-	wxString ipaddr, username, fullname, pwd, user2, pwd2, foreignUser, foreignFullname, foreignPwd, foreignUseradmin;
+	wxString ipaddr, username, fullname, pwd, user2, pwd2, foreignUser, foreignFullname, foreignPwd, foreign_useradmin;
 	ipaddr = *pIpAddr;
 	username = *pUsername;
 	pwd = *pPassword;
@@ -14556,7 +14556,7 @@ bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPasswor
 	foreignUser = *pForeignUser;
 	foreignFullname = *pForeignFullname;
 	foreignPwd = *pForeignPwd;
-	foreignUseradmin = bCanAddUsers ? _T("1") : _T("0");
+	foreign_useradmin = *pUseradmin;
 
 	// Build the commandLine needed
 	wxString comma = _T(",");
@@ -14586,7 +14586,7 @@ bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPasswor
 	temp = foreignFullname;
 	temp = DoEscapeSingleQuote(temp);
 	commandLine += temp + comma;
-	commandLine += foreignPwd + comma + foreignUseradmin + comma;
+	commandLine += foreignPwd + comma + foreign_useradmin + comma;
 #if defined (_DEBUG)
 	wxLogDebug(_T("DoAddForeignUser(), line %d commandLine= [%s]"), __LINE__, commandLine.c_str());
 #endif
