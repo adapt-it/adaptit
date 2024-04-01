@@ -9836,7 +9836,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// to their assignments below.
 
 			SPList::Node* saveNextPos = NULL;
-			SPList::Node* prevPos = NULL;
+			//SPList::Node* prevPos = NULL;
 			SPList::Node* follPos = NULL; // whm 26Nov2023 added but unused.
 			follPos = follPos;  // avoid gcc set but not used warning
 
@@ -9848,7 +9848,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				// test data the unfiltering of an \x...\x* span was skipped because it was stored
 				// on the first node/pSrcPhrase. Therefore I'm removing the bIsFirstNode block below
 				// and the bIsFirsNode flag.
-				prevPos = saveNextPos; // RHS was set before moving to next Node ptr, so is 'previous' still
+				//prevPos = saveNextPos; // RHS was set before moving to next Node ptr, so is 'previous' still
 				saveNextPos = pos_pList; // now we  can update it to current Node
 				SPList::Node* insertPos = NULL;
 				CSourcePhrase* pInsertSP = NULL;
@@ -9947,8 +9947,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxString nextWholeMkrInFilterBrackets; nextWholeMkrInFilterBrackets.Empty();
 					wxString previousWholeMkrInFilterBrackets; previousWholeMkrInFilterBrackets.Empty();
 					bool bThisMkrToBeUnfiltered;
-					bool bNextMkrToBeUnfiltered;
-					bool bPreviousMkrWasUnfiltered;
+					//bool bNextMkrToBeUnfiltered;
+					//bool bPreviousMkrWasUnfiltered;
 					bool bAnyPreviousMkrWasUnfiltered = FALSE;
 					filteredStrItemsWithBrackets = GetFilteredInfoSegments(theFilteredInfo);
 					int nTotFilterItems = (int)filteredStrItemsWithBrackets.GetCount();
@@ -9971,16 +9971,16 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							bThisMkrToBeUnfiltered = TRUE;
 						else
 							bThisMkrToBeUnfiltered = FALSE;
-						int posNextFilteredMkr = nextWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
-						if (posNextFilteredMkr != wxNOT_FOUND)
-							bNextMkrToBeUnfiltered = TRUE;
-						else
-							bNextMkrToBeUnfiltered = FALSE;
-						int posPrevFilteredMkr = previousWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
-						if (posPrevFilteredMkr != wxNOT_FOUND)
-							bPreviousMkrWasUnfiltered = TRUE;
-						else
-							bPreviousMkrWasUnfiltered = FALSE;
+						//int posNextFilteredMkr = nextWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
+						//if (posNextFilteredMkr != wxNOT_FOUND)
+						//	bNextMkrToBeUnfiltered = TRUE;
+						//else
+						//	bNextMkrToBeUnfiltered = FALSE;
+						//int posPrevFilteredMkr = previousWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
+						//if (posPrevFilteredMkr != wxNOT_FOUND)
+						//	bPreviousMkrWasUnfiltered = TRUE;
+						//else
+						//	bPreviousMkrWasUnfiltered = FALSE;
 						if (!bThisMkrToBeUnfiltered)
 						{
 							// This marker was in m_filteredInfo, but NOT currently to be unfiltered, so it should be
@@ -10000,14 +10000,14 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								// A previous marker was unfiltered, so scan backwards in the filterStatusOfProcessedMkrs 
 								// array and locate the most recent marker item in there with a non-NULL value, if any.
-								bool bFound = FALSE;
+								//bool bFound = FALSE;
 								int itemIndex = -1;
 								int startIndex = itemCt; // don't allow itemCt to change here!
 								for (int i = startIndex; i > 0; i--)
 								{
 									if (LastWordSrcPhrofUnfilteredMkrsArr.Item(i) != NULL)
 									{
-										bFound = TRUE;
+										//bFound = TRUE;
 										itemIndex = i;
 										break; // Don't iterate back any further. We want the last SP that wasn't NULL
 									}
@@ -10276,12 +10276,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							}
 #endif
 							CSourcePhrase* pSP_SubList = NULL;
-							SPList::Node* pos_LastInSubList = pSublist->GetLast();
-							CSourcePhrase* pSP_LastInSubList = NULL;
+							//SPList::Node* pos_LastInSubList = pSublist->GetLast();
+							//CSourcePhrase* pSP_LastInSubList = NULL;
 							SPList::Node* pos_FirstInSubList = pSublist->GetFirst(); // used in a block below
 							CSourcePhrase* pSP_FirstInSubList = NULL;
-							if (pos_LastInSubList != NULL)
-								pSP_LastInSubList = pos_LastInSubList->GetData();
+							//if (pos_LastInSubList != NULL)
+							//	pSP_LastInSubList = pos_LastInSubList->GetData();
 							if (pos_FirstInSubList != NULL)
 								pSP_FirstInSubList = pos_FirstInSubList->GetData();
 							pos_SubList = pSublist->GetFirst();
@@ -10740,12 +10740,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// whm 6Nov2023 provide a pointer to the previous source phrase. We'll use
 			// this to store filtered info from a previously unfiltered char attribute
 			// marker.
-			CSourcePhrase* pPrevSrcPhrase = NULL;
+			//CSourcePhrase* pPrevSrcPhrase = NULL;
 			SPList::Node* prevPos = pos_pList->GetPrevious();
-			if (prevPos != NULL)
-			{
-				pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
-			}
+			//if (prevPos != NULL)
+			//{
+			//	pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
+			//}
 
 			pos_pList = pos_pList->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
@@ -12511,10 +12511,10 @@ g:				bIsUnknownMkr = FALSE;
 				// conditional - we may or may not need to use it below. 
 				// See more notes/comments below where we assign preStr to the m_markers 
 				// member.
-				SPList::Node* follPos = prevPos->GetNext();
-				CSourcePhrase* pFollSrcPhase = NULL;
-				if (follPos != NULL)
-					pFollSrcPhase = follPos->GetData();
+				//SPList::Node* follPos = prevPos->GetNext();
+				//CSourcePhrase* pFollSrcPhase = NULL;
+				//if (follPos != NULL)
+				//	pFollSrcPhase = follPos->GetData();
 
 				// whm 19Mar2024 added. Filtered material is now being stored on a previous SP.
 				// Here we need to ensure that the pPrevSrcPhrase is not a placeholder source 
@@ -46334,7 +46334,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// and appended to the end of the list of CSourcePhrase instances, and that one
 	// gets the data prepared for filtering appended to its m_filteredInfo member.
 	// The boolean is defined now, and a caching wxString after it:
-	bool bDelayStoringFilteredInfo = FALSE;
+	//bool bDelayStoringFilteredInfo = FALSE;
 	wxString strCacheDelayedFilteredContent = wxEmptyString;
 	// BEW 30Dec22 make sure a Doc member variables are initialised to FALSE
 	m_bWidowedParenth = FALSE;
@@ -46906,7 +46906,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		bIsToBeFiltered = FALSE; // BEW 18Aug23 init to FALSE, otherwise it's 205 which is bogus TRUE
 		// BEW 14Aug23 here is where to declare booleans to use in contentless USFM parsing loop
 		bool bProcessEmptyMarker;
-		bool bExitEmptyMkrsLoop;
+		//bool bExitEmptyMkrsLoop;
 
 		while (!bSuppressBackwardSearchForWordBreakChar && IsMarker(ptr))
 		{
@@ -46929,7 +46929,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// test bool EnterEmptyMkrsLoop returns TRUE.
 
 			// ptr is at a beginMkr, so test for entry and set up the alternate parsing loop
-			bExitEmptyMkrsLoop = FALSE; // init
+			//bExitEmptyMkrsLoop = FALSE; // init
 			wxString atMkr = wxEmptyString;
 			wxString mkrTag = wxEmptyString;
 			wxString strVerseNum = wxEmptyString; wxString strChapterNum = wxEmptyString;
@@ -47408,7 +47408,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								//pPrevSrcPhrase->AddToFilteredInfo(temp);
 								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 								strCacheDelayedFilteredContent = temp; // temp is local and can now die
-								bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
+								//bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
 								// if strCacheDelayedFilteredContent wxString is non-empty when control gets
 								// to doc end, the an extra pSrcPhrase will be automatically created to have
 								// a place to store it - see Doc lines 20,702++ for where that's done
@@ -47544,8 +47544,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//pSrcPhrase->m_bFirstOfType = TRUE;
 							//pSrcPhrase->m_bBoundary = TRUE;
 						}
-						wxChar period;
-						period = _T('.');
+						//wxChar period;
+						//period = _T('.');
 						int wholeMkrLength;
 						wholeMkrLength = 0;
 						wxString strTest;
@@ -47603,8 +47603,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 							ptr += awholemkrlen + eolLen;
 							
-							wxChar* pAux;
-							pAux = ptr;
+							//wxChar* pAux;
+							//pAux = ptr;
 #if defined (_DEBUG) && !defined (NOLOGS)
 							{
 								wxString strPointAt = wxString(ptr, 16);
@@ -48203,8 +48203,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 						}
 #endif						
-						wxChar period;
-						period = _T('.');
+						//wxChar period;
+						//period = _T('.');
 						wxString strTest;
 						strTest = wxEmptyString;
 						if (wholeMkr != verseMkr)
@@ -48299,7 +48299,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// m_inform text ("Filtered Info Carrier") are displayed
 									// in the nav text region at doc end
 									strCacheDelayedFilteredContent = temp; // temp is local and can now die
-									bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
+									//bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
 									// if strCacheDelayedFilteredContent wxString is non-empty when control gets
 									// to doc end, the an extra pSrcPhrase will be automatically created to have
 									// a place to store it - see Doc lines 20,702++ for where that's done
@@ -50519,7 +50519,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// m_inform text ("Filtered Info Carrier") are displayed
 							// in the nav text region at doc end
 							strCacheDelayedFilteredContent = temp; // temp is local and can now die
-							bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
+							//bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
 							// if strCacheDelayedFilteredContent wxString is non-empty when control gets
 							// to doc end, the an extra pSrcPhrase will be automatically created to have
 							// a place to store it - see Doc lines 20,702++ for where that's done
@@ -52605,14 +52605,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// been reached, m_key in pSrcPhrase will be empty. So, providing m_precPunct is
 			// empty, pSrcPhrase is not a valid CSourcePhrase instance. We need to check and
 			// remove it.
-			bool bPrecedingPunctIsEmpty;
-			bPrecedingPunctIsEmpty = pSrcPhrase->m_precPunct.IsEmpty();
-			bool bHasNonEndMarkers;
-			bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
+			//bool bPrecedingPunctIsEmpty;
+			//bPrecedingPunctIsEmpty = pSrcPhrase->m_precPunct.IsEmpty();
+			//bool bHasNonEndMarkers;
+			//bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
 			wxString someFilteredInfo;
 			someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
-			bool bHasFilteredInfo;
-			bHasFilteredInfo = !someFilteredInfo.IsEmpty();
+			//bool bHasFilteredInfo;
+			//bHasFilteredInfo = !someFilteredInfo.IsEmpty();
 
 			/*
 			// whm 12Jan2024 removed the following two if tests below entirely. 

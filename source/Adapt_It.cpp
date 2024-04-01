@@ -35244,9 +35244,9 @@ enum Reparse reparseDoc)
     wxString xMkr = _T("\\x ");
     wxString xtMkr = _T("\\xt ");
     int indexOfXTmarker;
-    int indexOfXmarker;
+    //int indexOfXmarker;
     indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
-    indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+    //indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
     m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
     m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
     //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
