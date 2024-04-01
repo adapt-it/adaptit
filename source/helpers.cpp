@@ -8304,6 +8304,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 	// removed when filtered.
 	wxArrayString MkrAndAssocTextList;
 	MkrAndAssocTextList.Clear();
+	wxArrayString filteredMkrsAndAssocTextNoBrackets;
+	filteredMkrsAndAssocTextNoBrackets.Clear();
 	wxArrayString FilterableMkrsList;
 	FilterableMkrsList.Clear();
 	wxArrayString markersPrecedingFilteredOnes;
@@ -8324,6 +8326,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 		pDoc->GetFilteredAndSweptUpMarkersFromString(filteredMaterialStr,
 			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
 			MkrAndAssocTextList,
+			filteredMkrsAndAssocTextNoBrackets, // this one isn't used here
 			FilterableMkrsList); // this one isn't used here
 
 		// whm 22Jan2024 added. 
@@ -8466,7 +8469,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 
 	} // end of else block for test: if (!bEndPuntsModified)
 
-	/* BEW, commented out - the caller will do this when appropriate
+	// BEW, commented out - the caller will do this when appropriate
 	pSingleSrcPhrase->m_srcPhrase = pSingleSrcPhrase->m_srcSinglePattern; // that's the word plus what follows
 
 	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
@@ -13625,7 +13628,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
+					    //BEW 25Sep20, deprecate, codes are no longer wanted, names instead
 						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr,
 							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,
 							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
@@ -15639,7 +15642,7 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 	numWhites = 0;
 	itsPuncts = wxEmptyString;
 	space = _T(' '); // there might be a space before the punctuation in mkrSpan
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString prefixPunct; prefixPunct.Empty();
 
 	// whm 14Feb2024 the original coding of the for loop below ignores any tokens that
@@ -15660,10 +15663,10 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 			// punctuation, and if so call GetConvertedPunct() to convert it to
 			// target punctuation equivalents, and then put it as the first part 
 			// of CopiedTstr.
-			wxChar chFirst;
+			//wxChar chFirst;
 			if (!mkrSpan.IsEmpty())
 			{
-				chFirst = mkrSpan.GetChar(0);
+				//chFirst = mkrSpan.GetChar(0);
 				if (FindOneOf(mkrSpan, tgtPuncts) != wxNOT_FOUND)
 				{
 					// mkrSpan contains at least one char in tgtPuncts set
@@ -15705,13 +15708,13 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 			// Found the offset to the backslash of a marker (begin or end marker)
 			// Is the marker in this span a begin marker or end marker? 
 			// Set up the pointers we need for scanning itemStr's data buffer
-			bool bIsBeginMkr;
-			bool bIsEndMkr;
-			const wxChar* pBuffStart = mkrSpan.GetData();
-			wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
-			wxChar* pEnd = ptr + (size_t)mkrSpanLen; // points to null
+			//bool bIsBeginMkr;
+			//bool bIsEndMkr;
+			//const wxChar* pBuffStart = mkrSpan.GetData();
+			//wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
+			//wxChar* pEnd = ptr + (size_t)mkrSpanLen; // points to null
 			//wholeMkr = mkrSpan.Left(offset + 1);
-			bIsBeginMkr = pDoc->IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr); // returns wholMkr
+			//bIsBeginMkr = pDoc->IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr); // returns wholMkr
 			int lenMarker = (int)wholeMkr.Length();
 			remainder = mkrSpan.Mid(lenMarker);
 			if (!prefixPunct.IsEmpty())

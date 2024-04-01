@@ -266,7 +266,7 @@ protected:
 	wxString		GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After,
 		wxString& metadata, int& offset, int& nEnd);
 	// whm 24Oct2023 added 3rd parameter
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo);
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString& existingFilteredInfo);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
 	wxString		GetLastEndMarker(wxString endMkrs); //BEW added 31May23 for use in propagation code (in TokenizeText)
@@ -383,6 +383,12 @@ public:
 
 	// whm 10Nov2023 added the following to aid in insertion of marker-being-unfiltered into pList
 	// when a previous adjacent marker must occur under the current marker-being-unfiltered.
+	// whm 26Mar2024 revised some of these functions below to include the MD5 sums for more accurate
+	// determination of proper/original ordering of multiple adjacent markers, some like the intro
+	// paragraph marker \ip can, when filtered, be present 5 or more times in a single pSrcPhrase's
+	// m_filteredInfo member - occurring as many times as there are continuous introductory paragraphs
+	// that get filtered. The only way to tell which order those markers should be stored would be by
+	// examining the MD5 sums of the text following those markers.
 	/*
 	// The following are currently unused
 	bool			ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Node* currPos, 
@@ -390,7 +396,7 @@ public:
 	wxString		GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, wxString ChVs, wxArrayString m_UsfmStructArr, 
 					wxString& filterStatusStr, wxString& filterableMkrStr);
 	*/
-	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& filterStatus);
+	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& filterStatus);
 	wxArrayString	m_UsfmStructArr;
 	wxString		m_UsfmStructStringBuffer;
 	wxString		m_usfmStructFilePathAndName;
@@ -402,10 +408,10 @@ public:
 						pInputBuffer, SPList* pList = NULL);
 	bool			m_bUsfmStructEnabled;
 	bool			FilteredMaterialContainsMoreThanOneItem(wxString filteredStuff);
-	wxArrayString   GetFilteredInfoSegments(wxString filterStr); // whm 8Feb2024 added
 	void			GetFilteredAndSweptUpMarkersFromString(wxString tempMkrs, // whm 8Feb2024 revised
 						wxArrayString& markersPrecedingFilteredOnes,
-						wxArrayString& filteredMkrsArrayWithFilterBrackets, 
+						wxArrayString& filteredMkrsArrayWithFilterBrackets,
+						wxArrayString& filteredMkrsAndAssocTextNoBrackets,
 						wxArrayString& filteredMkrsArray);
 	wxString		GetMarkerFromWithinOneFilteredString(wxString filteredMkrString); // whm 8Feb2024 added
 	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
@@ -459,6 +465,8 @@ public:
 	wxString		GetBareMarkerForLookup(wxString wholeMkr); // whm 30Nov2023 added
 	void			GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
+	void			GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str);
+	wxArrayString   GetFilteredInfoSegments(wxString filterStr); // whm 8Feb2024 added
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);

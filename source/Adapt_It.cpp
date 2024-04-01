@@ -23281,7 +23281,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
             // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
             wxString msg;
-            wxString title = _("Change mermission warning");
+            wxString title = _("Change permission warning");
             wxString ipAddress = m_strKbServerIpAddr;
             bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
             if (bIsEmptyAddress)
@@ -24640,9 +24640,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_footnoteMarkerSet.Add(_T("\\fqa "));
     m_footnoteMarkerSet.Add(_T("\\fl "));
     m_footnoteMarkerSet.Add(_T("\\fp "));
+    m_footnoteMarkerSet.Add(_T("\\fv "));
     m_footnoteMarkerSet.Add(_T("\\ft "));
     m_footnoteMarkerSet.Add(_T("\\fdc "));
-    m_footnoteMarkerSet.Add(_T("\\fv "));
     m_footnoteMarkerSet.Add(_T("\\fm "));
 
     // BEW 24Oct14, Some of the following potentially may be nested, so instead of guessing
@@ -24664,24 +24664,42 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 22Mar2024 testing indicates that the stand-alone \xt ...\xt* "linking" marker needs to be added to the
     // inlineNonbinding fast access strings below, so as of this date I added \xt to m_inlineNonbindingMarkers and 
     // \xt* to the m_inlineNonbindingEndMarkers set below:
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* \\jmp* \\+jmp* \\xt* "); // whm 23Feb2024 added \\jmp* and \\+jmp*
-    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig \\jmp \\+jmp \\xt "); // whm 23Feb2024 added \\jmp and \\+jmp
+    m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig \\jmp \\+jmp \\xt "); // whm 23Feb2024 added \\jmp and \\+jmp
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* \\jmp* \\+jmp* \\xt* "); // whm 23Feb2024 added \\jmp* and \\+jmp*
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
-    // whm 24Jan2024 Note: The m_inlineBindingMarkers set below lacks 5 markers that the m_charFormatMkrs set has: \\png \\addpn \\qt \\sls and \\sup
-    // TODO: Why the difference? The comment above m_charFormatMkrs below seems to indicate that they are the same set just named differently.
-    m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    // whm 30Mar2024 Update: The m_inlineBindingMarkers and m_inlineBindingEndMarkers sets below are now identical to the
+    // m_charFormatMkrs and m_charFormatEndMkrs sets. Previoulsy the m_inlineBinding... sets lacked 5 markers that the 
+    // m_charFormat... sets had: \\png \\addpn \\qt \\sls and \\sup.
+    // whm 30Mar2024 also added the \\fv and \\+fv markers to m_charFormatMkrs and added \\fv* and \\+fv* to m_charFormatEndMkrs sets
+    // after noting that TokenizeText() was failing to parse a \+fv* end marekr in a unit test, which resulted in the "Unrecognized
+    // Markers..." warning when parsing in an input text with the sequence \f ... \+fv 38\+fv* ...\f* containing the \+fv and \+fv*
+    // embedded markers. 
+    // However, it appears that the \\qt marker should actually go in the m_inlineNonbinding... sets along with its
+    // \+qt and \+qt* embedded cousins. Otherwise, if \qt ...\qt* are in the binding set (and m_charFormat... set), the order 
+    // of restoration for bilding source test results in original order of: \f*\qt*. being reversed to: qt*.\f*
+    // So, as of 30Mar2024 I've removed the \qt and \qt* markers from the m_inlineBinding... sets below and added them
+    // to the m_inlineNonbinding... sets above.
+    // BEW's comment above m_charFormatMkrs below seems to indicate that they are the same set just named differently.
+    m_inlineBindingMarkers = _T("\\add \\fk \\fv \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+fv \\+bk \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     // BEW 31May23, before this date, checking for the matching end marker was done as a hack, better to have the above set as its own set of ending ones
-    m_inlineBindingEndMarkers = _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    m_inlineBindingEndMarkers = _T("\\add* \\fk* \\fv* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+fv* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
     
     //OLDm_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup \\nd \\+nd "); // BEW 1May23 added \fk , on 30May moved it to m_RedBeginMarkers
     // and the end marker forms
     //OLDm_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn* \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\nd* \\+nd* ");
 
     // BEW 5Jun23 these two are just renamed m_inlineBindingMarkers and m_inlineBindingEndMarkers, because the charFormat versions lacked several, especially embedded ones
-    m_charFormatMkrs = _T("\\add \\fk \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
-    m_charFormatEndMkrs = _T("\\add* \\fk* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    // whm 30Mar2024 added the \\fv and \\+fv markers to m_charFormatMkrs and added \\fv* and \\+fv* to m_charFormatEndMkrs.
+    // Also made the m_inlindBindingMarkers and m_indlingBindingEndMarkers be identical sets with the same marker inventory
+    // as the following m_charFormatMkrs and m_charFormatEndMkrs sets - as per BEW's 5Jun23 comment above that specifies that 
+    // they should have the same inventories. Since the following m_charFormat... sets have a bit larger inventory 
+    // (including \\png \\addpn \\qt \\sls and \\sup) those 5 are also now added to the m_inlineBinding... sets above.
+    // Also, found that for proper ordering of 
+    m_charFormatMkrs = _T("\\add \\fk \\fv \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+fv \\+bk \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    // whm 30Mar2024 added the \\fv* and \\+fv* markers to the m_charFormatEndMkrs
+    m_charFormatEndMkrs = _T("\\add* \\fk* \\fv* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+fv* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
     
     // whm 22Feb2024 the following >m_charAttributeMkrs sets defined below should include the \xt and \xt* markers.
     // I've as of this date added the \xt and \xt* markers to the next two sets.
@@ -32272,6 +32290,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     nTextLen = nTextLen;
     // whm 16Mar2024 testing my revision of AddParagraphMarkers() above
     */
+    /*
+    // whm testing GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str) below
+    CAdapt_ItDoc* pDoc = GetDocument();
+    wxArrayString mkrList; mkrList.Empty();
+    wxString str = _T("\\~FILTER \\ip Pol atorou la-ukei dah. \\~FILTER*\r\n\\p\r\n\\~FILTER \\ip Ma bwena handru badeh.\\~FILTER*");
+    pDoc->GetMarkersAndAssocTextsFromFilteredString(mkrList, str);
+    int totItems = (int)mkrList.GetCount();
+    for (int i = 0; i < totItems; i++)
+        wxLogDebug(mkrList.Item(i));
+    int break_here = 1; wxUnusedVar(break_here);
+    // whm testing GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str) below
+    */
 
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -32343,7 +32373,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strDBfullname = _T("pearly"); // instead of unavailable "KBUser" or similar
 
     return TRUE;
-}
+} // end of OnInit()
 
 //#if defined (_KBSERVER)
 
@@ -35291,9 +35321,9 @@ enum Reparse reparseDoc)
     wxString xMkr = _T("\\x ");
     wxString xtMkr = _T("\\xt ");
     int indexOfXTmarker;
-    int indexOfXmarker;
+    //int indexOfXmarker;
     indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
-    indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+    //indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
     m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
     m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
     //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);

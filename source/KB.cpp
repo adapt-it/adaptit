@@ -4323,7 +4323,7 @@ bool CKB::StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSuppor
 #endif
 		if (pSrcPhrase->m_nSequNumber >= 44)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif

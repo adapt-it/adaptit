@@ -24,8 +24,9 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-
 #include <wx/string.h>
+
+// ************ SEE BELOW ABOUT LINE 207 THINGS TO DO BEFORE EACH UPDATE/RELEASE*****************
 
 // comment out to turn off the frequent logging of value of boolean: m_bTypedNewAdaptationInChooseTranslation
 //#define TRACK_PHRBOX_CHOOSETRANS_BOOL
@@ -183,7 +184,6 @@ class test_system_call;
 // it locates all code throughout the app which implements the support for this feature
 //#define FWD_SLASH_DELIM
 
-
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
 //	DWORD (unsigned long)			wxUint32
@@ -205,6 +205,9 @@ class test_system_call;
 
 // ******************************* my #defines *********************************************
 
+// *****************************************************************************************
+// ****************** BELOW ARE THINGS TO DO BEFORE EACH UPDATE/RELEASE*********************
+// *****************************************************************************************
 // whm 16Sep2021 modifications of application version numbers and dates for consolidation
 // and simplification.
 // The defines for version number are now consolidated in the _AIandGitVersionNumbers.h 
@@ -213,19 +216,13 @@ class test_system_call;
 // Note: the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32 
 // now are updated automatically from the defines in the _AIandGitVersionNumbers.h header 
 // file. 
-// Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio IDE's Resource View
-// editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we
-// don't want in it and obliterating the wx stuff we do want in it.
-// Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain
-// text editor such as Notepad. If Visual Studio is open during the editing of
-// Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
-// Adapt_It.rc file after sensing that it was changed by the external program.
-//
+// Warning: There is now no need to edit the Adapt_It.rc file to update new version numbers
+// or dates.
 // The application version numbers and dates are now mainly set in the
 // _AIandGitVersionNumbers.h header file (included below). However, the version numbers 
 // and/or date numbers for the following still need to be set manually in these locations:
-// 1. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the 
-//    adaptit/xml folder.
+// 1. The applicationCompatibility attribute's version number  in the AI_UserProfiles.xml 
+// file in the adaptit/xml folder. Just update the version number.
 // 2. The Visual Studio 2019 Adapt_It > Properties > Linker > General > Version (do for 
 //    both the Unicode Debug and Unicode Release Configurations).
 //    The Version in the Linker settings, just uses the first two version digits - the
@@ -233,7 +230,8 @@ class test_system_call;
 //    versions of Visual Studio.
 // 3. The Mac's Info.plist file in adaptit/bin/mac/ (Erik B. does Mac builds for the 
 //    Adapt_It-x.x.x.dmg distribution). Change in two locations within the Info.plist file
-// 4. The changelog file at: adaptit/debian/changelog
+// 4. The changelog file at: adaptit/debian/changelog. Add a new entry at top of file for
+//    new version and release date.
 // 5. Various documentation files in the adaptit/docs folder files including: 
 //    [ ] Adapt It changes.txt
 //    [ ] Readme_Unicode_Version.txt
@@ -248,6 +246,9 @@ class test_system_call;
 //    which includes the build number.
 // 7. Within the adaptit.1 man page file, change the release date and version number
 //    within the .TH line.
+// *****************************************************************************************
+// ****************** ABOVE ARE THINGS TO DO BEFORE EACH UPDATE/RELEASE*********************
+// *****************************************************************************************
 
 // The header file included below defines the application's version and date numbers.
 // It also includes the Git version numbers for our Git downloads.
