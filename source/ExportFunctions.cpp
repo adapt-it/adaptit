@@ -17216,7 +17216,7 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 		// composed above for appendHere. If they are not the same, I'm substituting what
 		// follows the m_key in m_srcSinglePattern in place of the appendHere value.
 		// Testing results indicate that this improves the exports of source texts.
-		if (!appendHere.IsEmpty())
+		if (!appendHere.IsEmpty() && !pSrcPhrase->m_srcSinglePattern.IsEmpty())
 		{
 			int lenSrcPh = pSrcPhrase->m_key.Length();
 			int posFollStuff = pSrcPhrase->m_srcSinglePattern.Find(pSrcPhrase->m_key);
