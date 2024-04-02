@@ -961,6 +961,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 	wxString strUser2Fullname = m_pApp->m_mgrSavedFullnameArr.Item(selIndex); //see AI.h line 2445
 	wxString strUser2Pwd = m_pApp->m_mgrSavedPasswordArr.Item(selIndex); //see AI.h line 2445
 	int User2UseradminFlag = m_pApp->m_mgrSavedUseradminArr.Item(selIndex); // see AI.h line 2446
+	wxUnusedVar(User2UseradminFlag);
 #if defined (_DEBUG)
 	wxLogDebug(_T("\nOnButtonUserPageChangeFullname() line %d, orig params: user2= %s, user2Fullname= %s user2Pwd= %s user2UseradminFlag= %d"),
 		__LINE__, strClickedUser2.c_str(), strUser2Fullname.c_str(), strUser2Pwd.c_str(), (int)User2UseradminFlag);
@@ -1096,6 +1097,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 	wxString strUser2Fullname = m_pApp->m_mgrSavedFullnameArr.Item(selIndex); //see AI.h line 2445
 	wxString strUser2Pwd = m_pApp->m_mgrSavedPasswordArr.Item(selIndex); //see AI.h line 2445
 	int User2UseradminFlag = m_pApp->m_mgrSavedUseradminArr.Item(selIndex); // see AI.h line 2446
+	wxUnusedVar(User2UseradminFlag);
 #if defined (_DEBUG)
 	wxLogDebug(_T("\nOnButtonUserPageChangePassword() line %d, orig params: user2= %s, user2Fullname= %s user2Pwd= %s user2UseradminFlag= %d"),
 		__LINE__, strClickedUser2.c_str(), strUser2Fullname.c_str(), strUser2Pwd.c_str(), (int)User2UseradminFlag);
