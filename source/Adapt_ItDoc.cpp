@@ -1306,14 +1306,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// AFTER the TokenizeText[String]() call below.
 			bool bSetupOK;
 			bSetupOK = SetupUsfmStructArrayAndFile(createNewFile, *pApp->m_pBuffer);
-			if (!bSetupOK)
-			{
-				// Not likely to happen so an English message is OK.
-				wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-				wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-				pApp->LogUserAction(msg);
-				m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
-			}
+			wxUnusedVar(bSetupOK);
+
+			//if (!bSetupOK)
+			//{
+			//	// Not likely to happen so an English message is OK.
+			//	wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			//	wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			//	pApp->LogUserAction(msg);
+			//	m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+			//}
 
 			/*
 			// whm 13Nov2023 added the following code to create a wxArrayString UsfmStructArr from 
@@ -5858,8 +5860,9 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 // whm 16Nov2023 added for support of the .usfmstruct file and the doc's m_UsfmStructArr array.
 // This function is used to assign values to the the Doc's variables related to the creation
 // and maintenance of the m_usfmStructArr in-memory array and related variables on the Doc, 
-// and the external .usfmstruct file that is stored in the .usfmstruct folder, a sub-folder of
-// the current project's "Adaptations" folder.
+// and ensure that there is an appropriately populated external .usfmstruct file for the current 
+// document, the <projname>.usfmstruct file being stored in the hidden .usfmstruct folder, which is
+// a sub-folder of the current project's "Adaptations" folder.
 // This function takes as its first parameter an enum value of: createNewFile, recreateExistingFile, 
 // openExistingFile, or createFromSPList. 
 // The second parameter is a reference parameter inputBuffer which is replaced by an internally
@@ -5868,36 +5871,47 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 // first parameter enum is createFromSPList.
 // whm 26Mar2024 Modified this function to incorporate the MD5 hash sum value back into the
 // usfmstruct file that is generated for each AI document.
-bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess, 
+// whm 2Apr2024 BEW's tessting revealed some significant issues with this function when opening
+// and existing document. It wasn't calling RebuildSourceText from the SPList for one thing, and
+// the GetLine(0) caused a crash when wny existing usfmstruct file existed but was empty. So the
+// revisions of this date will hopefully fix those issues, and improve/simplify the function.
+// The SetupUsfmStructArrayAndFile() function is called at the following time:
+// 1. When a new document is created in the Doc's OnNewDocument()
+// 2. When an existing document is opened in the Doc's OnOpenDocument()
+// 3. When the source text of the document has been edited the View's OnEditSourceText()
+// 4. When opening a document under collaboration in CollabUtilities.cpp's OpenDocWithMerger()
+// 5. When OK_btn_delayedHandler_GetSourceTextFromEditor(), either for chapter only text, or whole book text.
+// This function makes use of the GetUsfmStructureAndExtent() function - without the TRUE parameter, which 
+// will result in the m_UsfmStructArr strings having the MD5 hash value - a 32 char string - being included 
+// as a 4th colon delimited field for lines stored in the m_UsfmStructArr array. Each string in the array 
+// will appear as:
+// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
+// \c n:numChars:0:0
+// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+// where:
+//   The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
+//     initial backslash, but no following space. \c and \v markers have following space + number.
+//   The numChars field is a number representing the character count of the marker and its assoc text
+//   The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
+//     following the marker. For markers like \c nn (and empty content markers) which don't have 
+//     associated text, the MD5 hash value field is just 0
+//   The last field is a 0 or 1 which is the filter status of the marker.
+// In the GetUsfmStructureAndExtent() call below leeave out the 2nd parameter so that it defaults to FALSE
+// value which then includes the MD5 has sum values in each marker line that goes into the array.
+bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess,
 	wxString& inputBuffer, SPList* pList)
 {
 	// whm 13Nov2023 added the following code to create a wxArrayString UsfmStructArr from 
-	// the source input *pApp->m_pBuffer text, or alternately from a pList of source phrases
-	// and then saves that array of strings to a file named <filename>.usfmstruct that is 
+	// the source input *pApp->m_pBuffer text, or alternately from a pList of source phrases,
+	// and then save that array of strings to a file named <filename>.usfmstruct that is 
 	// saved to a hidden sub-directory at the following path:
-	// /Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+	//    /Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
 	// where <filename> is the name of the document file being created via gpApp->m_curOutputPath
 	// which already has an .xml extension. We add the additional extension .usfmstruct to 
 	// the usfm struct file we're creating.
-	// This usfm struct file will get updated with filter status fields in the 
-	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function call made after TokenizeText() is
-	// called later below.
-
-	// Substitute a string generated from RebuildSourceText is the fileProcess is createFromSPList
-	if (fileProcess == createFromSPList)
-	{
-		int textLen;
-		textLen = RebuildSourceText(inputBuffer, pList);
-		if (textLen == 0 || inputBuffer.IsEmpty() || pList->IsEmpty())
-		{
-			// Not likely to happen so an English message is OK.
-			wxString msg = _T("RebuildSourceText could not create an inputBuffer.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-			gpApp->LogUserAction(msg);
-			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
-		}
-	}
-
+	// This usfm struct file will get updated with current filter status fields by calling the 
+	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function here needed in other code.
 	m_usfmStructDirName = _T(".usfmstruct");
 	wxFileName structFn(gpApp->m_curOutputPath);
 	m_usfmStructFilePath = structFn.GetPath();
@@ -5914,43 +5928,92 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 			wxString msg = _T("In OnNewDocument() - Failed to Create hidden directory at %s");
 			msg = msg.Format(msg, m_usfmStructDirPath.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			return FALSE;
 		}
 	}
 
+	// First determine if we have an existing and valid usfmstruct file for this document. If one exists, it
+	// must not be empty and must have MD5 hash sum data. Set some flags to store the initial properties for the
+	// usfmstruct file for this document.
+	bool bTextFileNeedsRecreating = FALSE;
+	bool bReadDataFromExistingUsfmFile = FALSE;
 	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
-
-	// The wxArrayString m_UsfmStructArr array is on the Doc class, and its contents persist while a doc is open.
-	// whm 26Mar2024 modified. Call the GetUsfmStructureAndExtent() without the TRUE parameter, which will
-	// result in the m_UsfmStructArr strings having the MD5 hash value - a 32 char string - being included 
-	// as a 4th colon delimited field for lines stored in the m_UsfmStructArr array. Each string in the array 
-	// will appear as:
-	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
-	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
-	// \c n:numChars:0:0
-	// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
-	// where:
-	//   The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
-	//     initial backslash, but no following space. \c and \v markers have following space + number.
-	//   The numChars field is a number representing the character count of the marker and its assoc text
-	//   The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
-	//     following the marker. For markers like \c nn (and empty content markers) which don't have 
-	//     associated text, the MD5 hash value field is just 0
-	//   The last field is a 0 or 1 which is the filter status of the marker.
-	// In the GetUsfmStructureAndExtent() call below leeave out the 2nd parameter so that it defaults to FALSE
-	// value which then includes the MD5 has sum values in each marker line that goes into the array.
-	m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer); //m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer, TRUE);
-	// Get the wxArrayString's lines and save them in the <filename>.usfmstruct file at:
-	// .../Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
-	m_UsfmStructStringBuffer.Empty();
-	size_t len = 0;
-	// scan our array and determine its required character length including EOL chars
-	int totCt = (int)m_UsfmStructArr.GetCount();
-	for (int i = 0; i < totCt; i++)
+	wxLogNull nolog; // avoid spurious messages from the system
+	// Check whether we're opening an existing usfmstruct file. If so we set the bTextFileNeedsRecreating and
+	// bReadDataFromExistingUsfmFile to TRUE if needed.
+	if (::wxFileExists(m_usfmStructFilePathAndName) && fileProcess == openExistingFile)
 	{
-		m_UsfmStructStringBuffer = m_UsfmStructStringBuffer + m_UsfmStructArr.Item(i) + _T("\r\n");
-		len += m_UsfmStructArr.Item(i).Length();
-		len += 2; // for the EOLs _T("\r\n") to be added
+		wxTextFile textFile(m_usfmStructFilePathAndName);
+		bool bOpened = textFile.Open();
+		if (!bOpened)
+		{
+			wxString msg = _T("Failed f.Open() for reading usfmstruct info to %s");
+			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+			gpApp->LogUserAction(msg);
+			m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			return FALSE;
+		}
+		else
+		{
+			// File is open for reading, and we read its contents into the m_UsfmStructArr
+			// 
+			// whm 26Mar2024 added. We'll check the first line of the existing file and see if it lacks MD5 hash 
+			// sum data or not. If so, we need to first remove the existing file and create a new usfmstruct file 
+			// in its place that contains the MD5 data that now exists in the m_UsfmStructArr array.
+			// If the file has MD5 hash sum data fields, there will be 3 colons in each line, otherwise just
+			// 2 colons will be present in each line.
+			// If the existing file has the MD5 hash sum data, then we just read its data lines into the
+			// m_UsfmStructArr array.
+			// whm 2Apr2024 BEW reported a crash that was caused by the usfmstruct file existing but being
+			// empty, and if empty the textFile.GetLine(0) call below would cause a crash due to index out of
+			// range. So we must first check that the textFile has at least one line of text.
+			wxString testLine; testLine.Empty();
+			if (textFile.GetLineCount() > 0)
+			{
+				// The textFile has at least one text line in it. Does the file have MD5 hash sum data?
+				testLine = textFile.GetLine(0);
+				if (testLine.Replace(_T(":"), _T(":")) == 2) // Replace returns the number of replacements 
+				{
+					// The textFile doesn't have hash sum data so set flag to recreate it below.
+					bTextFileNeedsRecreating = TRUE;
+				}
+				else
+				{
+					// The textFile has MD5 hash sum data, so set the flag indicating we can read from it
+					// into the m_UsfmStructArr below
+					bReadDataFromExistingUsfmFile = TRUE;
+				}
+			}
+			else
+			{
+				// The textFile was empty so set flag to recreate it below.
+				bTextFileNeedsRecreating = TRUE;
+			}
+		}
+	}
+	else
+	{
+		// No usfmstruct file exists so it needs to be recreated.
+		bTextFileNeedsRecreating = TRUE;
+	}
+
+	// Substitute a string generated from RebuildSourceText if the fileProcess is createFromSPList
+	if (fileProcess == createFromSPList)
+	{
+		int textLen;
+		textLen = RebuildSourceText(inputBuffer, pList);
+		if (textLen == 0)
+		{
+			// Not likely to happen so an English message is OK.
+			wxString msg = _T("RebuildSourceText could not create an inputBuffer.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			gpApp->LogUserAction(msg);
+			m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			return FALSE;
+		}
+		// At this point we should have a new inputBuffer ready into the 
+		// GetUsfmStructureAndExtent(inputBuffer) call below.
 	}
 
 	if (fileProcess == createNewFile || fileProcess == recreateExistingFile)
@@ -5958,6 +6021,9 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		// This block is executed when creating a new document in OnNewDocument() in non-collaboration
 		// scenarios, and when creating a new document or opening an existing document in collaboration
 		// scenarios.
+		// In this scenario the incoming inputBuffer passed in to this function should already have 
+		// the text we can use to input to the GetUsfmStructureAndExtent(inputBuffer) call below.
+
 		// We should ensure the .usfmstruct file doesn't exist because we want to start afresh for a new 
 		// usfmstruct file.
 		wxLogNull nolog; // avoid spurious messages from the system
@@ -5971,106 +6037,144 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 				wxString msg = _T("Unable to remove existing usfmstruct file at:\n%s");
 				msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 				gpApp->LogUserAction(msg);
-				return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+				m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+				return FALSE;
 			}
 		}
+		// At this point we should have an existing inputBuffer that was passed in to this 
+		// SetupUsfmStructArrayAndFile() function.
 	}
 
 	if (fileProcess == openExistingFile)
 	{
 		// The openExistingFile is used when AI is opening an existing file in
-		// non-collaboration scenarios.
-		// Open and read the .usfmstruct file into the m_UsfmStructArr array
-		// so that the array has the doc's usfm structure listed for the life
-		// of the open document.
+		// non-collaboration scenarios via the Doc's OnOpenDocument() method. 
+		// In this case the inputBuffer will be empty, but there may or may not
+		// already be a valid usfmstruct file associated with this document that
+		// was created previously. If not, we need to create one using a call to
+		// RebuildSourceText(). If a previous and valid usfmstruct file already
+		// exists, we can just open it and get our m_UsfmStructArr array filled
+		// with the content of the existing usfmstruct file.
+		// For some users with documents created before version 6.11.1, their
+		// existing documents won't have any usfmstruct file in existence.
 		wxLogNull nolog; // avoid spurious messages from the system
-		wxTextFile f(m_usfmStructFilePathAndName);
-		bool bOpened = f.Open();
+		if (!::wxFileExists(m_usfmStructFilePathAndName) || bTextFileNeedsRecreating)
+		{
+			int textLen;
+			textLen = RebuildSourceText(inputBuffer, pList);
+			wxASSERT(!inputBuffer.IsEmpty());
+			// At this point we should have a new inputBuffer ready to feed into the 
+			// GetUsfmStructureAndExtent(inputBuffer) call below.
+		}
+		else
+		{
+			// At this point there should be an existing usfmstruct file
+		}
+	}
+
+	// Now, when opening an existing and valie usfmstruct file we just read the text data via 
+	// wxTextFile into the array. Otherwise (when inputBuffer is not empty) we execute the else
+	// block below where we call GetUsfmStructureAndExtent(inputBuffer) to create the Doc's 
+	// m_UsfmStructArr array and fill the m_UsfmStructStringBuffer string. After
+	// GetUsfmStructureAndExtent() is called we then use the m_UsfmStructStringBuffer to write 
+	// the data out to the external usfmstruct file.
+	if (bReadDataFromExistingUsfmFile && fileProcess == openExistingFile)
+	{
+		// A usfmstruct file should now exist if it did not already exist, so now we can 
+		// open/reopen it and read its data into the m_UsfmStructArr array.
+		// The m_UsfmStructArr array and the m_UsfmStructStringBuffer string are then
+		// available/active for the life of the current open document.
+		wxLogNull nolog; // avoid spurious messages from the system
+		wxTextFile textFile(m_usfmStructFilePathAndName);
+		bool bOpened = textFile.Open();
 		if (!bOpened)
 		{
 			wxString msg = _T("Failed f.Open() for reading usfmstruct info to %s");
 			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			return FALSE;
 		}
 		else
 		{
-			// File is open for reading, and we read its contents into the m_UsfmStructArr
-			// 
-			// whm 26Mar2024 added. We'll check the first line of the existing file and see if it lacks MD5 hash 
-			// sum data or not. If so, we need to first remove the existing file and create a new usfmstruct file 
-			// in its place that contains the MD5 data that now exists in the m_UsfmStructArr array.
-			// If the file has MD5 hash sum data fields, there will be 3 colons in each line, otherwise just
-			// 2 colons will be present in each line.
-			// If the existing file has the MD5 hash sum data, then we just read its data lines into the
-			// m_UsfmStructArr array.
-			wxString testLine = f.GetLine(0);
-			if (testLine.Replace(_T(":"), _T(":")) == 2) // Replace returns the number of replacements
+			// The testFile exists, is open for reading and has MD5 hash sum data fields, so we can empty 
+			// the array and add this file's data to the m_UsfmStructArr array.
+			// The Doc's m_UsfmStructArr should be empty
+			m_UsfmStructArr.Clear();
+			int totLines = textFile.GetLineCount();
+			wxString lineStr;
+			// Read each line of text and store it into the m_UsfmStructArr wxArrayString on the Doc
+			for (int i = 0; i < totLines; i++)
 			{
-				// The first line of this usfmstruct file only has 2 colons (3 fields) so it doesn't have an 
-				// MD5 hash sum data field. We need to remove the obsolete file and create a new one that 
-				// contains lines with 3 colons (4 fields including an MD5 hash sum field).
-				bool bRemoved = FALSE;
-				f.Close();
-				bRemoved = ::wxRemoveFile(m_usfmStructFilePathAndName);
-				if (!bRemoved)
-				{
-					// Not likely to happen, so an English message will suffice.
-					wxString msg = _T("Unable to remove existing usfmstruct file at:\n%s");
-					msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
-					gpApp->LogUserAction(msg);
-					return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
-				}
-				// Now that the old file is out of the way create a new file of the same name and path
-				wxLogNull nolog; // avoid spurious messages from the system
-				wxFile f;
-				if (!f.Open(m_usfmStructFilePathAndName, wxFile::write))
-				{
-					wxString msg = _T("Failed f.Open() for writing usfmstruct info to %s");
-					msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
-					gpApp->LogUserAction(msg);
-					return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
-				}
-				else
-				{
-					f.Write(m_UsfmStructStringBuffer, len);
-					f.Close();
-				}
+				lineStr = textFile.GetLine(i);
+				m_UsfmStructArr.Add(lineStr);
 			}
-			else
-			{
-				// The file has MD5 hash sum data fields, so we can empty the array and add this file's data to 
-				// the m_UsfmStructArr array.
-				// The Doc's m_UsfmStructArr should be empty
-				m_UsfmStructArr.Clear();
-				int totLines = f.GetLineCount();
-				wxString lineStr;
-				// Read each line of text and store it into the m_UsfmStructArr wxArrayString on the Doc
-				for (int i = 0; i < totLines; i++)
-				{
-					lineStr = f.GetLine(i);
-					m_UsfmStructArr.Add(lineStr);
-				}
-				f.Close();
-			}
+			textFile.Close();
 		}
 	}
-	else // whm when fileProcess == createNewFile or fileProcess == recreateExistingFile
+	else if (!inputBuffer.IsEmpty())
 	{
-		// Write the usfmstruct string to the .usfmstruct file
+		// Call GetUsfmStructureAndExtent(inputBuffer) to create the Doc's m_UsfmStructArr array and 
+		// fill the m_UsfmStructStringBuffer string. After GetUsfmStructureAndExtent() is called we 
+		// then use the m_UsfmStructStringBuffer to write the data out to the external usfmstruct file.
+		// 
+		// Note: The wxArrayString m_UsfmStructArr array is on the Doc class, and its contents persist 
+		// while a doc is open. 
+		// whm 26Mar2024 modified. Call the GetUsfmStructureAndExtent() without the TRUE parameter, 
+		// which will result in the m_UsfmStructArr strings having the MD5 hash value - a 32 char 
+		// string - being included now as the 3rd colon delimited field for lines stored in the 
+		// m_UsfmStructArr array. The filter status is now the 4th field delimited by 3 colons in
+		// each line.
+		// Each string in the array will now appear as:
+		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
+		// \c n:numChars:0:0
+		// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+		// where:
+		//  The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
+		//    initial backslash, but no following space. \c and \v markers have following space + number.
+		//  The numChars field is a number representing the character count of the marker and its assoc text
+		//  The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
+		//     following the marker. For markers like \c nn (and empty content markers) which don't have 
+		//     associated text, the MD5 hash value field is just 0
+		//  The last field is a 0 or 1 which is the filter status of the marker.
+		// In the GetUsfmStructureAndExtent() call below we previously added a TRUE second parameter to 
+		// suppress the creation of MD5 hash sum values. But, as of 26Mar2024 we leeave out the 2nd 
+		// parameter so that it defaults to a FALSE value which then causes the function to include the 
+		// MD5 has sum values in each marker line that goes into the array.
+		m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer); //m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer, TRUE);
+		// Get the wxArrayString's lines and save them in the <filename>.usfmstruct file at:
+		//.../Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+		m_UsfmStructStringBuffer.Empty();
+		size_t len = 0;
+		// scan our array and determine its required character length including EOL chars
+		int totCt = (int)m_UsfmStructArr.GetCount();
+		for (int i = 0; i < totCt; i++)
+		{
+			m_UsfmStructStringBuffer = m_UsfmStructStringBuffer + m_UsfmStructArr.Item(i) + _T("\r\n");
+			len += m_UsfmStructArr.Item(i).Length();
+			len += 2; // for the EOLs _T("\r\n") to be added
+		}
+
+		// Lastsly, write out the data in the m_UsfmStructStringBuffer to the usfmstruct file using
+		// a generic wxFile descriptor.
 		wxLogNull nolog; // avoid spurious messages from the system
-		wxFile f;
-		if (!f.Open(m_usfmStructFilePathAndName, wxFile::write))
+		wxFile file;
+		if (!file.Open(m_usfmStructFilePathAndName, wxFile::write))
 		{
 			wxString msg = _T("Failed f.Open() for writing usfmstruct info to %s");
 			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+			return FALSE;
 		}
 		else
 		{
-			f.Write(m_UsfmStructStringBuffer, len);
-			f.Close();
+			file.Write(m_UsfmStructStringBuffer, len);
+			file.Close();
+			// Note: now that the m_UsfmStructStringBuffer data has been written out to the 
+			// external usfmstruct file the Doc's populated m_UsfmStructArr array remains in 
+			// memory, for use in other parts of the App without having to reopen the usfmstruct file.
 		}
 	}
 	return TRUE;
@@ -8442,16 +8546,35 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// document being opened by calling the Doc's SetupUsfmStructArrayAndFile() function.
 	// When opening an existing document, there is a good chance that the user will be opening
 	// a document that AI created before version 6.11.1 and there would not be any existing
-	// <filename>.usfmstruct file to process. We check first to see if the <filename.usfmstruct
-	// file exists. If so, we pass openExistingFile enum to SetupUsfmStructArrayAndFile(). If
-	// the .usfmstruct file doesn't yet exist we need to pass createFromSPList to the 
-	// SetupUsfmStructArrayAndFile() function. At this point in OnOpenDocument() the SPList
-	// should exist for the just-opened document.
+	// <filename>.usfmstruct file to process. 
+	// whm 2Apr2024 revision. The SetupUsfmStructArrayAndFile() function itself now internally
+	// checks for the existence of the m_usfmStructDirPath and an appropriately populated 
+	// <filename.usfmstruct file, and it creates them if necessary so we need not handle dir
+	// and file existence matters here. Here we will just call the SetupUsfmStructArrayAndFile() 
+	// function with appropriate parameters. 
+	// . 
 	m_usfmStructDirName = _T(".usfmstruct");
 	wxFileName structFn(gpApp->m_curOutputPath);
 	m_usfmStructFilePath = structFn.GetPath();
 	m_usfmStructFileName = structFn.GetFullName(); // gets full name including extension, but excluding directories
 	m_usfmStructDirPath = m_usfmStructFilePath + gpApp->PathSeparator + m_usfmStructDirName;
+	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
+	
+	wxString unusedString; unusedString.Empty();
+	bool bSetupOK;
+	bSetupOK = SetupUsfmStructArrayAndFile(openExistingFile, unusedString, gpApp->m_pSourcePhrases);
+	wxUnusedVar(bSetupOK);
+
+	//if (!bSetupOK)
+	//{
+	//	// Not likely to happen so an English message is OK.
+	//	wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+	//	wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+	//	pApp->LogUserAction(msg);
+	//	m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+	//}
+	/*
+
 	if (!::wxDirExists(m_usfmStructDirPath))
 	{
 		// The hidden dir .usfmstruct doesn't exist yet so create it.
@@ -8467,7 +8590,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		}
 	}
 
-	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
 	if (!::wxFileExists(m_usfmStructFilePathAndName))
 	{
 
@@ -8498,6 +8620,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
 		}
 	}
+	*/
+
 	// We should update the .usfmstruct file (that was created when 
 	// document was first created) with current filter status information. We do that by calling the Doc function:
 	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray().
@@ -46428,7 +46552,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 
 
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+		if (pSrcPhrase->m_nSequNumber == 6)
+		{
+			int break_here = 0; wxUnusedVar(break_here);
+		}
 		// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 		//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
@@ -46467,7 +46595,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		// Try correct "<<" followed by space before a word. We dont want the word's << punctuation
 		// to be a detached pSrcPhrase storing only "<<"  ptr should be pointing at the first '<' as
-		// nothing has been parsed over for pSrcPhrase as yet
+		// nothing has been parsed over for pSrcPhrase as yet.
 		wxChar anOpenWedge = _T('<');
 		wxChar aSpace = _T(' ');
 		if (*ptr == aSpace && *(ptr + 1) == anOpenWedge)
@@ -46485,28 +46613,99 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			ptr += 3;
 		}
 
-		wxString endWedges = wxString(ptr, 3); // are the next 3 characters _T(" >>")
-		if (endWedges == _T(" >>"))
+		// whm 4Apr2024 modified. The blocks that attempted to deal with detached double angle quotes
+		// were only able to catch the >> quotes that were "detached" due to a single space (aSpace).
+		// occurring before the >> double quotes.
+		// However, BEW reported on 2Apr2024 that a sequence like:
+		// - - - - - - - - - - - - -
+		// ...tokim ol ensel bilong en long yu, na bai ol i karim yu long han
+		// bilong ol. Nogut yu bagarapim lek bilong yu long wanpela ston.>
+		// >>
+		// \v 7 Jisas i tokim Satan, <<Harim! Baibel i tok moa, <Yu no ken
+		// traim Bikpela, em i God bilong yu.> >>
+		// - - - - - - - - - - - - -
+		// The above part of input text was failing to parse correctly because where there was an EOL 
+		// between the double angle quote markers at the end of verse 6 just before verse 7. 
+		// The result was that the \v 7 markers didn't get parsed correctly, and two extra source phrases
+		// got created because of the EOL between the >> and the \v 7, and the >> was not being put back 
+		// in the m_follPUnct of the pPrevSrcPhrase.
+		// As of this date I've modified the code below to detect detached double angle quotes >> preceded
+		// by any whitespace, and not just a single space. 
+		// ptr advancement when >> is found after the whitespace takes the whitespace into account, 
+		// and the block (as previously) saves the quote marks where appropriate in the repair process.
+		// Note: itemLen was set to 0 above and set to 0 again below the code blocks below that deal
+		// with detachted wedge punctuation, and itemLen is not used with the same blocks below,
+		// therefore I'm removing itemLen here. 
+		if (IsWhiteSpace(ptr))
 		{
-			// This is to handle a markup error users may often make, putting a space before ending
-			// punctuation detached from the word-end by a single space. We will finish off this
-			// pSrcPhrase and start another if the 4th wxChar is a whitespace, and we'll try correct
-			// the markup error - the >> belongs on the previous pSrcPhrase, in it's m_follPunct member
-			wxChar chNext = *(ptr + 3);
-			bool bIsWhite;
-			bIsWhite = IsWhiteSpace(&chNext);
-			if (bIsWhite && pPrevSrcPhrase != NULL)
+			int nLenWhites = ParseWhiteSpace(ptr);
+			// Make a test string whitesAndPossibleEndWedges from the whites and following two non-white 
+			// characters. We'll search for ">>" within this test string, and if found store the >> in
+			// the pPrevSrcPhrase members.
+			wxString whitesAndPossibleEndWedges = wxString(ptr, nLenWhites + 2);
+			int posEndWedges = whitesAndPossibleEndWedges.Find(_T(">>"));
+			wxChar charBeforeWedges = _T(' ');
+			if (posEndWedges != wxNOT_FOUND)
 			{
-				pPrevSrcPhrase->m_follPunct += _T(">>");
-				// add the >> to m_srcPhrase as well, then
-				// skip over the space followed by >>
-				pPrevSrcPhrase->m_srcPhrase += _T(">>");
-				itemLen += 3;
-				ptr += 3;
-				// force creation of a new pSrcPhase
-				continue; // 1st continue in TokenizeText()
+				charBeforeWedges = whitesAndPossibleEndWedges.GetChar(posEndWedges - 1);
+				if (charBeforeWedges == _T('\n') || charBeforeWedges == _T('\r'))
+					charBeforeWedges = _T(' ');
+			}
+			if (whitesAndPossibleEndWedges.Find(_T(">>")) != wxNOT_FOUND)
+			{
+				// There are double ending angle quotes following the whitespace. BEW's code checked for
+				// any whitespace following the double ending angle quotes, but I think it's better to
+				// not have that as an additional test. We know that whitespace precedes the >> and so
+				// it qualifies as "detached" from the pPrevSrcPhrase so if pPrevSrcPhrase is not NULL
+				// we update it's m_follPunct and m_srcPhrase members, then advance the ptr.
+				if (pPrevSrcPhrase != NULL)
+				{
+					// whm 4Apr2024 further modified. If the m_follPunct already has a '>' as it's last
+					// char, and the whitesAndPossibleEndWedges has a non-eol whitespace char before the
+					// >> I think we should add the non-eol space between the existing > and the >> we
+					// add to it.
+					if (!pPrevSrcPhrase->m_follPunct.IsEmpty() && pPrevSrcPhrase->m_follPunct.Last() == _T('>'))
+						pPrevSrcPhrase->m_follPunct += (wxString(charBeforeWedges) + _T(">>"));
+					else
+						pPrevSrcPhrase->m_follPunct += _T(">>");
+					// Add the >> to m_srcPhrase as well, then advance ptr over the whitespace and >>
+					// whm 4Apr2024 further modified as above for m_follPunct.
+					if (!pPrevSrcPhrase->m_srcPhrase.IsEmpty() && pPrevSrcPhrase->m_srcPhrase.Last() == _T('>'))
+						pPrevSrcPhrase->m_srcPhrase += (wxString(charBeforeWedges) + _T(">>"));
+					else
+						pPrevSrcPhrase->m_srcPhrase += _T(">>");
+					//itemLen += 3;
+					int lenQuotes = 2;
+					ptr += (lenQuotes + nLenWhites); //ptr += 3;
+					// force creation of a new pSrcPhase
+					continue; // 1st continue in TokenizeText()
+				}
 			}
 		}
+
+		// whm 4Apr2024 This was the original block commented out below:
+		//wxString endWedges = wxString(ptr, 3); // are the next 3 characters _T(" >>")
+		//if (endWedges == _T(" >>"))
+		//{
+		//	// This is to handle a markup error users may often make, putting a space before ending
+		//	// punctuation detached from the word-end by a single space. We will finish off this
+		//	// pSrcPhrase and start another if the 4th wxChar is a whitespace, and we'll try correct
+		//	// the markup error - the >> belongs on the previous pSrcPhrase, in it's m_follPunct member
+		//	wxChar chNext = *(ptr + 3);
+		//	bool bIsWhite;
+		//	bIsWhite = IsWhiteSpace(&chNext);
+		//	if (bIsWhite && pPrevSrcPhrase != NULL)
+		//	{
+		//		pPrevSrcPhrase->m_follPunct += _T(">>");
+		//		// add the >> to m_srcPhrase as well, then
+		//		// skip over the space followed by >>
+		//		pPrevSrcPhrase->m_srcPhrase += _T(">>");
+		//		itemLen += 3;
+		//		ptr += 3;
+		//		// force creation of a new pSrcPhase
+		//		continue; // 1st continue in TokenizeText()
+		//	}
+		//}
 
 		// BEW 29Dec22, one of the test files recevied from the field, "04-JHN-NY-test" had a couple of problems for
 		// our parser which uses ParseAWord(). The first problem was that < << >> and > were used througout, for punctuations

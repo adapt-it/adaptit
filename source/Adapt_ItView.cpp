@@ -31179,14 +31179,16 @@ bailout:	pAdaptList->Clear();
 		// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function to update the filter
 		// status of the Doc's array and external file.
 		bSetupOK = pDoc->SetupUsfmStructArrayAndFile(createFromSPList, inputBuffer, pSrcPhrases);
-		if (!bSetupOK)
-		{
-			// Not likely to happen so an English message is OK.
-			wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-			pApp->LogUserAction(msg);
-			pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
-		}
+		wxUnusedVar(bSetupOK);
+
+		//if (!bSetupOK)
+		//{
+		//	// Not likely to happen so an English message is OK.
+		//	wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+		//	wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+		//	pApp->LogUserAction(msg);
+		//	pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+		//}
 		// whm 13Nov2023 added the following function call to update the filter status fields in the 
 		// .usfmstruct file that was created for the newly created document from the input source text
 		// file before the TokenizeText() call above.
