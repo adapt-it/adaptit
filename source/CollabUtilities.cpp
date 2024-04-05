@@ -2975,14 +2975,16 @@ extern bool gbDoingInitialSetup;
 			// AFTER the TokenizeText[String]() call below.
 			bool bSetupOK;
 			bSetupOK = pDoc->SetupUsfmStructArrayAndFile(recreateExistingFile, *pBuffer);
-			if (!bSetupOK)
-			{
-				// Not likely to happen so an English message is OK.
-				wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-				wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-				pApp->LogUserAction(msg);
-				pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
-			}
+			wxUnusedVar(bSetupOK);
+
+			//if (!bSetupOK)
+			//{
+			//	// Not likely to happen so an English message is OK.
+			//	wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			//	wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			//	pApp->LogUserAction(msg);
+			//	pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+			//}
 
 			// parse the new source text data into a list of CSourcePhrase instances
 			int nHowMany;
@@ -11343,14 +11345,16 @@ extern bool gbDoingInitialSetup;
 					{
 						bSetupOK = gpApp->GetDocument()->SetupUsfmStructArrayAndFile(createNewFile, m_collab_sourceWholeBookBuffer);
 					}
-					if (!bSetupOK)
-					{
-						// Not likely to happen so an English message is OK.
-						wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-						wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-						pApp->LogUserAction(msg);
-						gpApp->GetDocument()->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
-					}
+					wxUnusedVar(bSetupOK);
+
+					//if (!bSetupOK)
+					//{
+					//	// Not likely to happen so an English message is OK.
+					//	wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+					//	wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					//	pApp->LogUserAction(msg);
+					//	gpApp->GetDocument()->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+					//}
 
 					// parse the input file
 					int nHowMany;
