@@ -19108,7 +19108,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
                     // menu way: grant all permissions is possible, user to be created then added; 
                     // grant if checkbox "Grant Permissions" LHSide is ticked in NewUserCredentialsDlg
                     filename = _T("kb_users_add_list.dat"); // was _T("create_user_granting_all.dat"); 
-                    execFilename = _T("do_add_kbusers.py"); // was_T("do_create_user_grant_all.py"); 
+                    execFilename = _T("do_add_kbusers.exe"); // _T("do_add_kbusers.py"); // was_T("do_create_user_grant_all.py"); 
                 }
                 else
                 {
@@ -19138,7 +19138,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
                     // _T("do_create_user_grant_all.py") (and its input .dat file is: _T("create_user_granting_all.dat").
                     // (if new user is a duplicate name, the do_create_user_grant_all.py fails and no create is done)
                     filename = _T("kb_users_add_list.dat");
-                    execFilename = _T("do_add_kbusers.py");
+                    execFilename = _T("do_add_kbusers.exe"); // _T("do_add_kbusers.py");
                 }
                 else
                 {
@@ -19205,7 +19205,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
                 if (this->m_bGrantSomePermissions)
                 {
                     // adding by the Administrator menu's menu item choice
-                    wxString execFilename = _T("do_add_kbusers.py");
+                    wxString execFilename = _T("do_add_kbusers.exe"); //_T("do_add_kbusers.py");
                     wxString execInDest = dataFolderPath + execFilename;
                     bool bPresentInDest = ::FileExists(execInDest);
                     if (bPresentInDest)
@@ -19224,7 +19224,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
                     else
                     {
                         // Oops, if it's not in the _DATA_KB_SHARING folder, can't go further. Tell user & exit False
-                        wxString msg = _("do_add_kbusers.py is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
+                        wxString msg = _("do_add_kbusers.exe is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
                         wxString caption = _("ConfigureDatFile resource absent error");
                         LogUserAction(msg);
                         wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -20153,7 +20153,7 @@ bool CAdapt_ItApp::DatFileMoveToExecFolder(const int funcNumber, wxString datFil
         if (bExecPresent)
         {
             // If an old version of same .dat name is present, remove it, we'll replace with the current version
-            ::DeleteFile(execFilePath);
+            wxRemoveFile(execFilePath);
         }
         // It should not be present, so copy it there 
         {
@@ -22777,8 +22777,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             //const char* pstart = { "python do_add_kbusers.py" };
             //const char* pstart = { "python do_create_user_grant_all.py"};
             //char* pstart = "python do_create_user_grant_all.py";
-            char* pstart = "python do_add_kbusers.py";
-            rv = system(pstart);
+            //const char* pstart = { "python do_add_kbusers.py" }; //"python do_add_kbusers.py";
+            rv = system("python do_add_kbusers.py");
             wxLogDebug(_T("CallExecute() line %d: (some) PERMISSIONS granted:  rv is: %d"), __LINE__, rv);
             if (rv == 0)
             {
@@ -23459,6 +23459,14 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         fnn.SetCwd(saveCWD); // restore old CWD path
     }
 
+    // BEW 5Apr24 if kbserver is not running, or if a commandLine fails to work in the switch above, then
+    // bSuccessfulSwitch will be FALSE. At 23487 (or thereabouts) I had an assert, but TRUE is not assured,
+    // and we don't want app to crash in such a situation. So check for FALSE and return false from CallExecute()
+    // instead. The attempted .py operation will not produce any change, in that situation.
+    if (bSuccessfulSwitch == FALSE)
+    {
+        return FALSE;
+    }
     // BEW 27Jan22 - what follows is legacy code, from years ago - it's still okay - gotta restore
     // current working directory etc.
 	//wxArrayString output; // uninitialised, it's null
@@ -23475,7 +23483,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         wxString comma = _T(",");
 
 		// do post-execute processing, as required (not all cases need it)
-        wxASSERT(bSuccessfulSwitch == TRUE);
+        //wxASSERT(bSuccessfulSwitch == TRUE);
         if (bSuccessfulSwitch)  
         {
 
@@ -23571,7 +23579,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
                                     else
                                     {
                                         // the system() call failed
-                                        wxString doFile = _("python do_add_kbusers.py"); // was _("python do_create_use_grant_all.py");
+                                        wxString doFile = _T("do_add_kbusers.py"); // _("python do_add_kbusers.py"); // was _("python do_create_use_grant_all.py");
                                         wxString msg = _("CallExecute() line %d. Calling system() file failed, when executing %s");
                                         msg = msg.Format(msg, __LINE__, doFile.c_str());
                                         LogUserAction(msg);
@@ -40385,7 +40393,7 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
                 if (bReady)
                 {
                     // The input .dat file is now set up ready for kb_users_add_list.dat 
-                    wxString execFileName = _T("do_add_kbusers.py"); 
+                    wxString execFileName = _T("do_add_kbusers.exe"); //_T("do_add_kbusers.py"); 
                     wxString resultFile = _T("add_kbusers_results.dat");//_T("add_kbusers_results.dat");
                     // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
                     bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathOnly, resultFile, 30, 31, TRUE);
