@@ -29452,6 +29452,10 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 
 	pApp->LogUserAction(_T("Initiated OnEditSourceText()"));
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	// we cannot have any synchronized scrolling messages be received, throwing the active
     // location to any old place during vertical edit mode, we have to keep total control
     // of the active location; so if it is currently on, save the setting, turn it off, and
@@ -29600,6 +29604,10 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	pRec->nCancelSpan_StartingSequNum = pRec->nStartingSequNum;
 	pRec->nCancelSpan_EndingSequNum = pRec->nEndingSequNum;
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
     // do any required selection 'extension' (actually only possibly new sequence numbers
     // are returned), returning TRUE if there was no error, FALSE there was an error. The
     // bWasExtended bool parameter returns TRUE if extension and either or both ends was
@@ -29634,6 +29642,11 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	}
 	if (bWasExtended)
 	{
+
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
         // extension to left or right or in both directions was done, so we have to reset
         // the relevant parameters above to new values (check later, I'm doing it
         // differently so we may not need all these parameters)
@@ -29659,6 +29672,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	pRec->nOldSpanCount = pRec->nCancelSpan_EndingSequNum -
 									pRec->nCancelSpan_StartingSequNum + 1;
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	// make the required deep copy and store in the CObList for this
 	// in the EditRecord as the cancel span's list
 	bool bAllWasOK;
@@ -29681,6 +29698,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
     // deep copy the one just delineated; we don't ever expect this to fail
 	DeepCopySublist2Sublist(&pRec->cancelSpan_SrcPhraseList,
 							&pRec->modificationsSpan_SrcPhraseList);
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 
     // now that we have the editable span delineated, (this is the material the user will
     // see), we need to determine if there are any glosses in this span and set the
@@ -29707,6 +29728,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		goto exit;
 	}
 	pRec->bEditSpanHasAdaptations = bHasAdaptations;
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 
     // The next sections of code determine if we need to widen the cancel span, and
     // modifications span, to include free translation whole sections; and then again, do
@@ -29889,6 +29914,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		pRec->nFreeTrans_EndingSequNum = -1;
 	}
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
     // do a third subspan, if it exists, for the collected back translations; the start of
     // such a span (if it exists) will usually be somewhere preceding the
     // pRec->nStartingSequNum value, and may even be preceding the
@@ -30042,6 +30071,11 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		pRec->nBackTrans_StartingSequNum = -1;
 		pRec->nBackTrans_EndingSequNum = -1;
 	}
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	// clear out the contents of the temporary list & delete the list itself
 	pDoc->DeleteSourcePhrases(pTempList);
 	if (pTempList != NULL) // whm 11Jun12 added NULL test
@@ -30179,6 +30213,10 @@ bailout:	pAdaptList->Clear();
 		}
 	}
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	// don't leak memory, delete the local lists now their contents have been inserted at
 	// the top of the respective persistent lists
 	if (pNoteList != NULL) // whm 11Jun12 added NULL test
@@ -30212,6 +30250,10 @@ bailout:	pAdaptList->Clear();
 		goto bailout;
 	}
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
     // There could be other filtered information in the reconstructed source text, which is
     // not a note, free translation or back translation, and it does not get removed. It
     // will therefore have \~FILTER and \~FILTER* marker and endmarker pairs wrapping each
@@ -30244,6 +30286,11 @@ bailout:	pAdaptList->Clear();
 		DoConditionalStore(FALSE); // FALSE is bOnlyWithinSpan, it forces unilateral
 								   // store if other conditions are met
 	}
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	pApp->m_targetPhrase.Empty();	// empty m_targetPhrase; because the box may be built
 									// elsewhere after editing
 	if (pApp->m_pTargetBox != NULL)
@@ -30292,6 +30339,10 @@ bailout:	pAdaptList->Clear();
 		(int)gEditStep);
 #endif
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 	// put up the Edit Source Text dialog's window
 	bool bMarkerSetsAreDifferent = FALSE;
 	if (dlg.ShowModal() == wxID_OK)
@@ -30311,6 +30362,10 @@ bailout:	pAdaptList->Clear();
 #if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
 	wxLogDebug(_T("OnEditSourceText() At E: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
+#endif
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
 #endif
 
         // Before we do anything to the CSourcePhrase instances, we have to set up a
@@ -30366,6 +30421,10 @@ bailout:	pAdaptList->Clear();
 					}
 				}
 			}
+
+#if defined(_DEBUG)
+			wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 		}
 
         // Detect whether or not the user has edited the SF markers - specifically, if
@@ -30398,6 +30457,10 @@ bailout:	pAdaptList->Clear();
 #if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
 	wxLogDebug(_T("OnEditSourceText() At F: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
+#endif
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
 #endif
 
         // Any unfiltering & filtering will be handled by the TokenizeTextString(), but it
@@ -30451,6 +30514,10 @@ bailout:	pAdaptList->Clear();
 				pRec->bExtendedForFiltering = TRUE; // record the fact
 		}
 
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
         // Tokenize the edited source text into a list of new CSourcePhrase instances on
         // the heap, pRec->nStartingSequNum is the absolute sequence number for first
         // source phrase in the sublist - it is used to define the starting sequence number
@@ -30467,9 +30534,8 @@ bailout:	pAdaptList->Clear();
 		wxString chvStr = pApp->m_curChapter;
 
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s, %s(), line=%d, BEFORE TokenizeText(); m_bWithinMrkAtributeSpan %d , m_bHiddenMataDataDone %d  gbVerticalEditInProgress %d"),
-			__FILE__, __FUNCTION__, __LINE__ , (int)pDoc->m_bWithinMkrAttributeSpan,
-			(int)pDoc->m_bHiddenMetadataDone, (int)gbVerticalEditInProgress);
+		wxLogDebug(_T("OnEditSourceText(), line=%d, BEFORE TokText(); chvStr= %s, m_bWithinMrkAtributeSpan %d , m_bHiddenMetaDataDone %d  gbVerticalEditInProgress %d"),
+			__LINE__ , chvStr.c_str(), (int)pDoc->m_bWithinMkrAttributeSpan, (int)pDoc->m_bHiddenMetadataDone, (int)gbVerticalEditInProgress);
 #endif
 		// whm 15Mar2024 added. In case the TokenizeTextString() call below includes a marker
 		// that needs to be filtered - due to a mis-spelled marker that, when edited, becomes
@@ -30502,8 +30568,16 @@ bailout:	pAdaptList->Clear();
 			seqNumDecrement++;
 		}
 
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 		nNewCount = TokenizeTextString(&pRec->editableSpan_NewSrcPhraseList, strNewSrcText,
 										pRec->nStartingSequNum);
+
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 
 		pRec->nNewSpanCount = nNewCount; // this value may decrease by one if a
                                 // CSourcePhrase carrier of final endmarkers, but with no
@@ -30562,6 +30636,10 @@ bailout:	pAdaptList->Clear();
 		int nHowMany = pRec->nCancelSpan_EndingSequNum - pRec->nCancelSpan_StartingSequNum + 1;
 		int nReplacementCount = nHowMany;
 
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nHowMany is nReplacementCount= %d )"), __LINE__, nReplacementCount);
+#endif
+
         // As explained above, replace, in m_pSourcePhrases list, all of the instances in
         // the cancel span, with the parallel list of instances in the modification span --
         // the latter are identical copies to those in the former, except that any notes,
@@ -30591,6 +30669,9 @@ bailout:	pAdaptList->Clear();
 #if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
 	wxLogDebug(_T("OnEditSourceText() At H: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
+#endif
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
 #endif
 
 		// do a while loop for looking at the pSrcPhrase instances after the
@@ -30679,6 +30760,9 @@ bailout:	pAdaptList->Clear();
 	wxLogDebug(_T("OnEditSourceText() At I: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
 #endif
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 
 		// now get the preceding CSourcePhrase's pointer (ie. preceding the editable span),
 		// it could be NULL if we edited right at the start of the doc
@@ -30729,6 +30813,9 @@ bailout:	pAdaptList->Clear();
             // a discussion of where that matters, before the DoMarkerHousekeeping() call)
 			nNewCount = pRec->nNewSpanCount;
 		}
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
 
         // We now come to the point where we have to possibly propagate the new list's
         // final TextType and m_bSpecialText values forward past the end of the editable
@@ -30840,12 +30927,16 @@ bailout:	pAdaptList->Clear();
 		}
 		else
 		{
+#if defined(_DEBUG)
+			wxLogDebug(_T("OnEditSourceText() line %d, nOldSpanCount= %d, nNewSpanCount= %d )"), __LINE__, pRec->nOldSpanCount, pRec->nNewSpanCount);
+#endif
+
 			// a non-empty list means the type and special text values can be
 			// obtained from the list contents (this call will set or clear the global
 			// gbPropagationNeeded)
 			GetDocument()->DoMarkerHousekeeping(&pRec->editableSpan_NewSrcPhraseList,
-								pRec->nNewSpanCount, gPropagationType,
-								gbPropagationNeeded); // sets gbSpecialText internally
+								pRec->nNewSpanCount, gPropagationType, gbPropagationNeeded); // sets gbSpecialText internally
+
 		}
 		if (gbPropagationNeeded)
 			pRec->bSpecialText = gbSpecialText; // update the EditRecord,
@@ -31268,13 +31359,18 @@ bailout:	pAdaptList->Clear();
 /// \~FILTER* markers, for as many filtered info pieces as there may be present. When there
 /// is such filtered content "widowed" in this way, it really belongs on the CSourcePhrase
 /// which is first in the following context. So that transfer is done here.
+/// 
+/// BEW 18Apr24 A problem detected is that pRec->m_newSpanCount gets shortened by 1, 
+/// leading to accessing an app crash which destroys the app, truncating all the doc 
+/// content after where the edit end location was. (More comment internally)
+/// 
 /// (2) If moving filtered info leaves a CSourcePhrase instance whose only reason for existing
 /// was to carry that stuff; then once it's gone, this carrier instance must be deleted.
 /// (3) Knowledge of what happened is passed back to the caller by the returned bool
 /// parameter.
 /// Note 1: we check for m_precPunct non-empty, because a CSourcePhrase instance that
 /// results from a parse of endmarker followed by punctuation without any intervening space
-/// will manifest as m_prevPunct carrying the punctuation on a CSourcePhrase final widow,
+/// will manifest as m_precPunct carrying the punctuation on a CSourcePhrase final widow,
 /// but the endmarker will be in m_endMarkers of the penultimate CSourcePhrase. In such a
 /// circumstance, if we transferred the preceding punctuation to the following
 /// CSourcePhrase then we'd effect a bogus change to the document, so we need to let the
@@ -31298,7 +31394,11 @@ bailout:	pAdaptList->Clear();
 /// pFollSrcPhrase to pPrecSrcPhrase, since filtered information is now stored/transported 
 /// to a preceding source phrase. Hence, the code and comments in the function body below 
 /// now use pFirstSrcPhrase instead of pLastSrcPhrase and pPrecSrcPhrase instead of 
-/// pFollSrcPhrase. 
+/// pFollSrcPhrase.
+/// BEW refactored to fix a serious crash problem, cause by removal of code which needs
+/// to remain - and moving of a \f to precede the pile on which is belongs, and deletion
+/// of the first pile of the user's edited text, which leads to an access crash and
+/// total ruin (severe loss of later piles)
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewSrcPhrases,
 			CSourcePhrase* pPrecSrcPhrase, EditRecord* pRec)
@@ -31353,23 +31453,27 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
 	// non-empty is sufficient for setting the boolean
 	bool bHasNonEndmarkers = FALSE; // default; BEW added 24Jan09
 	wxString nonEndmarkers; // BEW added 24Jan09
-	bHasNonEndmarkers = !pFirstSrcPhrase->m_markers.IsEmpty();
+	bHasNonEndmarkers = !pFirstSrcPhrase->m_markers.IsEmpty(); // e.g. user may turn content into a footnote, 
+			// so \f would be in m_markers, and it must remain there, it must not get moved to earlier pile
 	if (bHasNonEndmarkers)
 	{
 		nonEndmarkers = pFirstSrcPhrase->m_markers; // these may need to be transferred
 						// to the first CSourcePhrase instance of the preceding context
+		// BEW 18Apr24 BUT NOT UNILATERALLY. Only if the pFirstSrcPhrase is a temporary
+		// insertion just to allow storage - we detect that by m_key & m_precPunct being empty
 	}
-
 
     // we have some filtered info (in m_filteredInfo) and/or non-endmarkers to transfer -
     // do so, but only provided pPrevSrcPhrase's m_key and m_precPunct CString members are
-    // both empty
-    bool bRemoveSrcPhrase = FALSE;
+    // both empty - yes, correct still.
+    bool bRemoveSrcPhrase = FALSE; // <--  BEW 18Apr24, this is dangerous, take care, removing a 
+								   // needed pSrcPhrase will crash the app disasterously
 	if (bFilteredInfoToBeTransferred || bHasNonEndmarkers)
 	{
         // only do the transfer provided there is something there to be transferred in the
         // first place; and only if the relevant members are empty (which indicates a
         // CSourcePhrase otherwise unwanted)
+		
 		// whm 16Mar2024 modified. There should be no constraint of m_key or m_precPunct being
 		// empty when doing the transfer to a preceding context.
 		//if (pPrevSrcPhrase->m_key.IsEmpty() && pPrevSrcPhrase->m_precPunct.IsEmpty())
@@ -31401,11 +31505,22 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
 				}
 				// record, in the EditRecord, what we just did
 				pRec->bTransferredFilterStuffFromCarrierSrcPhrase = TRUE;
-				bRemoveSrcPhrase = TRUE;
+
+				// BEW 18Apr24 as far as I can see, transferring filtered info does not
+				// render the old carrier pSrcPhrase a candidate to removal. Such a removal
+				// would occur at the beginning of the modified span, bringing disaster.
+				// So the only thing I think is valid here is to comment out setting the bool TRUE
+				//bRemoveSrcPhrase = TRUE;
 			}
 			// now transfer non-endmarkers, if any
+			
+			// BEW 18Apr24, if the user added an initial \f marker at the start of the old selection
+			// there is no logic in moving it to pPrecSrcPhrase, it belongs where it is, so I'm
+			// commenting out this block
+			/*
 			if (bHasNonEndmarkers)
 			{
+
 				pPrecSrcPhrase->m_markers = nonEndmarkers + pPrecSrcPhrase->m_markers;
 
 				// make sure the marker info we are transferring ends with a space
@@ -31418,6 +31533,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
 				// might pFirstSrcPhrase, so transfer that information too
 				pPrecSrcPhrase->m_inform = pFirstSrcPhrase->m_inform + pPrecSrcPhrase->m_inform;
 			}
+			*/
 
 			// Because the user may have edited a bogus (ie. misspelled) marker, we
 			// need to search for the nav text marking with wrapping ? characters.
@@ -31458,19 +31574,21 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
 				// whm 16Mar2024 removed the following as I don't think it is needed here.
 				//pFollSrcPhrase->m_bFirstOfType = FALSE;
 			}
-
+			// BEW 18Apr24, this next block causes app crash, if user added \f data to his selection
+			// Since the two things it does are both disasterous, I'm commenting it out
+			/*
 			if (bHasNonEndmarkers || bRemoveSrcPhrase)
 			{
 				// delete the carrier, pFirstSrcPhrase, which is no longer needed & update
 				// the count value stored in pRec to comply with this deletion; remove the
 				// pointer at the tail of the list too
-				pApp->GetDocument()->DeleteSingleSrcPhrase(pFirstSrcPhrase);
-				pRec->nNewSpanCount -= 1;
+				pApp->GetDocument()->DeleteSingleSrcPhrase(pFirstSrcPhrase); <<<<---- no don't
+				pRec->nNewSpanCount -= 1;  <<<<---- no don't
 				SPList::Node* spLast = pNewSrcPhrases->GetLast();
 				pNewSrcPhrases->DeleteNode(spLast);
 				pRec->bDocEndPreventedTransfer = FALSE; // make sure we get value correct
 			}
-
+			*/
             // reset the partner pile & its width - not strictly necessary as probably
             // the pile width is unchanged, but no harm in it, and it is a fail-safe
 			// thing to do for updating of the view, since it guarantees the strip

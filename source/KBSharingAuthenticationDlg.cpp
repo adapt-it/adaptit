@@ -334,6 +334,20 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 			{
 				testPwd = m_pApp->GetMainFrame()->GetKBSvrPassword();
 			}
+			// BEW 8Apr24 add code here, user 'natashia' had create_entry.dat with pwd rs46... instead of
+			// what she assigned when her username entry was created (it was buysmum), and that was because
+			// the last funcName code used gates/rs46... and saved the password in MainFrame's
+			// m_pApp->GetMainFrame()->SetKBSvrPassword("rs46..."); - which caused do_create_entry.py to
+			// fail because the pwd was wrong. So I need to test hear, for ChangeUsername dlg's m_strPassword
+			// value, and if it differs from what GetKBSvrPassword returns, then use m_strPassword and update
+			// what's in MainFrm.cpp
+			if (testPwd != m_pApp->m_strPassword)
+			{
+				testPwd = m_pApp->m_strPassword;
+
+				m_pApp->GetMainFrame()->SetKBSvrPassword(testPwd);
+			}
+
 		} // end of TRUE block for test: if (bUsrAuthenticate == TRUE)
 		if (!testPwd.IsEmpty())
 		{
