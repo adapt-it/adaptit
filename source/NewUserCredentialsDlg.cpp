@@ -159,7 +159,7 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
 	int      m_newUserDlg_newuseradmin; /// was int m_newUserDlg_newuserpermission;
-	int      m_newUserDlg_allpermissions; // BEW added 13Feb24
+	int      m_newUserDlg_grant_permissions; // BEW added 13Feb24
 	*/
 	pApp->m_newUserDlg_newusername = strNewUser;
 	pApp->m_newUserDlg_newfullname = strNewFullname;

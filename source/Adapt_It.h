@@ -2656,7 +2656,12 @@ class CAdapt_ItApp : public wxApp
 	void DeleteOldEXEfile(wxString filename, wxString execFolderPath); // deletes do_.....exe,
 			// and internally is identical to DeleteOldDATfile() - using separate names when
 			// the one could do both jobs, is just for documenting convenience
-	
+	// BEW 3Apr24 created, to move an input .dat file for funcNum = 1, direct from _DATA_KB_SHARING path
+	// to wherever the AI executable is running from - because using CreateInputDatFile_AndCopyEXE would
+	// attempt a conversion to utf8, and if that is already done, the utf8 would be corrupted; so this
+	// move function moves the file without any encoding change. REturns TRUE if all goes well, else FALSE
+	bool DatFileMoveToExecFolder(const int funcNumber, wxString datFilename);
+
 	bool CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine);
 	// BEW 17Jun22, the next function does just the "AndCopyEXe" part of  CreateInputDatFile_AndCopyEXE (used in the upload of local kb)
 	//bool MoveEXEfile(wxString datFilename, wxString execFilename);

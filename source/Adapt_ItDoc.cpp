@@ -40528,7 +40528,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 	wxString pointsAt = wxString(ptr, 20);
 	wxLogDebug(_T("ParseWord() START, line %d : sequNum= %d , ptr->%s "), __LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
-	if (pSrcPhrase->m_nSequNumber == 82)
+	if (pSrcPhrase->m_nSequNumber >= 2034)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
