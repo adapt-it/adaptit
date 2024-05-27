@@ -1315,6 +1315,16 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 	{
 		// The checkbox item was checked, store the marker of that item in 
 		// tempMarkersChangedToBeFiltered
+
+		// TODO: Put code here to determine if this marker-to-be-filtered is in the first pSrcPhrase of the documents. If so,
+		// we need to query the user for a book <CODE> to use for an inserted to hold the \id line <CODE> where the <CODE> becomes 
+		// to-be-inserted-Source-Phrase having a m_key and m_srcPhrase of <CODE>.
+		// If user decides to abort we can most easily just return from here, without having changed anything, going back to the
+		// USFM and Filtering page's doc list of filter markers. (Probably need to cause a programatic unticking of the marker selected
+		// that got us here - but only for an aborted marker selection.
+		// TODO:
+
+
 		tempMarkersChangedToBeFiltered += augWholeMkr;
 	}
 	else

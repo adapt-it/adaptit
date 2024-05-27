@@ -10962,7 +10962,48 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// bMarkerInNonbindingSet. (If the begin marker is in m_inlineNonbindingMarkers,
 			// then the relevant processing block will, of course, need to hunt for its
 			// endmarker in m_inlineNonbindingEndMarkers, not m_endMarkers.)
-
+			wxString title = _("Marker cannot be filtered at beginning of document");
+			/*
+			wxString msg, msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8, msg9, msg10, msg11;
+			wxString msg12, msg13, msg14, msg15, msg16, msg17, msg18, msg19, msg20, msg21, msg22;
+			msg1 = _("   You have chosen to filter the \\%s marker, but that marker is at the very beginning of the Document.\n");
+			msg2 = _("A marker at the beginning of the document CANNOT be filtered when there also is no \\id <CODE> line\n");
+			msg3 = _("or other text at the beginning of the document. The USFM standard specified that Scripture should have an\n");
+			msg4 = _("\\id <CODE> line at the beginning of the document. You can continue filtering the \\%s marker, or abort this\n");
+			msg5 = _("filtering operation. If you continue, not all of the \\%s markers will be filtered.\n");
+			msg6 = _("   We recommend that you ABORT the current filtering operation and instead do the Edit Source Text (from the\n");
+			msg7 = _("Edit menu), and ADD an appropriate \\id <CODE> identification line in the text before the first \\%s marker.\n");
+			msg8 = _("Please do the following:\n\n");
+			msg9 = _("   1. Read and write down these steps to Edit the Source Text, and add an \\id <CODE> line at the beginning\n");
+			msg10 = _("      of the document.\n");
+			msg11 = _("   2. Abort the current filtering process by clicking on \"YES\" below.\n");
+			msg12 = _("   3. Click on the first word of the \\%s marker's source text to select it - it will have a yellow background\n");
+			msg13 = _("      when selected.\n");
+			msg14 = _("   4. Select \"Edit Source Text\" from Adapt It's \"Edit\" menu.\n");
+			msg15 = _("   5. In the \"Edit Source Text\" dialog, type: \\id XXX\n");
+			msg16 = _("      before the \\%s marker. XXX is the 3-letter Scripture book code for the document that is displaying\n");
+			msg17 = _("      on screen. Click \"OK\" once you've added that line to the beginning of the document.\n");
+			msg18 = _("   6. You can now fully filter the \\%s marker using the \"USFM and Filtering\" tab in the Edit > Preferences.\n");
+			msg19 = _("       All of the \\%s markers will then be filtered (and can be viewed by clicking on the green wedges).\n\n");
+			msg20 = _("Do you want to abort?\n");
+			msg21 = _("Click YES to abort, or NO to continue with the filtering operation.");
+			msg = msg1 + msg2 + msg3 + msg3 + msg5 + msg6 + msg7 + msg8 + msg9 + msg10 + msg11 + msg12 + msg13 + msg14 + msg15 + msg16 + msg17 + msg18 + msg19 + msg20 + msg21;
+			*/
+			wxString msg = _(
+"   You have chosen to filter the \\%s marker, but that marker is at the very beginning of the Document. A marker at the beginning of the document CANNOT be filtered when there also is no \\id <CODE> line or other text at the beginning of the document.\n"
+"   The USFM standard specifies that Scripture should have an \\id <CODE> line at the beginning of the document. You can continue filtering the \\% s marker, or abort this filtering operation. If you continue, not all of the \\%s markers will be filtered.\n"
+"   We recommend that you ABORT the current filtering operation, and instead do the Edit Source Text (from the Edit menu), and ADD an appropriate \\id <CODE> identification line in the text before the first \\%s marker.\n"
+"Please do the following:\n"
+"   1. Read and write down these steps to Edit the Source Text, and add an \\id <CODE> line at the beginning of the document.\n"
+"   2. Abort the current filtering process by clicking on \"YES\" below.\n"
+"   3. Click on the first word of the \\%s marker's source text (%s) to select it - it will have a yellow background when selected.\n"
+"   4. Select \"Edit Source Text\" from Adapt It's \"Edit\" menu. In the \"Edit Source Text\" dialog, type before the \\%s marker:\n"
+"      \\id XXX\n"
+"Note: XXX is the 3-letter Scripture book code for the document that is displaying on screen, for example MRK for The Gospel of Mark.\n"
+"   5. Click \"OK\" once you've added that line to the beginning of the document.\n"
+"   6. You can now fully filter the \\%s marker using the \"USFM and Filtering\" tab in the Edit > Preferences. All of the \\%s markers will then be filtered (and can be viewed by clicking on the green wedges).\n\n"
+"Do you want to abort?\n\n"
+"Click YES to abort, or NO to continue with the filtering operation.");
 			if (!inlineNonbindingMarkersStr.IsEmpty())
 			{
 
@@ -10980,16 +11021,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					bHasEndmarker, bIsUnknownMkr,    // both are 'out'
 					nStartingOffset_NB);			 // in
 				//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkrBeingFiltered.c_str());
-
+				
 				// If not in nonbinding mkr storage, exit block and let control 
 				// go on to check m_markers block just below
-				if (filterableMkrOffset_NB != wxNOT_FOUND)
-				{
-					// we found the filter marker within pSrcPhrase->m_inlineNonbindingMarkers
-					bMarkerInNonbindingSet = TRUE; // TRUE causes the m_markers test block to be skipped
-
-				}
-				else
+				if (filterableMkrOffset_NB == wxNOT_FOUND)
 				{
 					// This marker is in pSrcPhrase->m_inlineNonbindingMarkers but it is NOT to be filtered, 
 					// so iterate to the next sourcephrase at top of loop
@@ -11001,6 +11036,65 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					}
 
 					continue;
+				}
+				else
+				{
+					// whm 6Apr2024 added. We've found a marker that is to be filtered.
+					// Check whether the sequence number of pSrcPhrase is zero. If so,
+					// there will be no valid pPrevSrcPhrase on which to store the marker.
+					// We'll warn the user that this marker at the beginning of the document 
+					// will not be filtered due to there not being an \id XXX line within
+					// this document. If this same marker occurs later within this document 
+					// they will be filtered if the user decides to continue with the 
+					// filtering operation. If the user opts to abort the filter operation
+					// no filtering will take place.
+					if (pSrcPhrase->m_nSequNumber == 0)
+					{
+						// We're at the first pSrcPhrase in the document's pList. There is 
+						// no valid pPrevSrcPhrase available to store filtered material which
+						// means that there is no \id XXX line at the beginning of the document.
+						// This violates the USFM standard that says of the \id <CODE> marker:
+						//    "This is the initial USFM marker in any scripture text file."
+						// Since this Scripture file is non-standard we will warn the user and
+						// allow the user to decide whether to continue - and not get the current
+						// marker filtered here at the beginning of the file, or abort the filtering
+						// operation. Continuing would mean the user would have the first marker 
+						// here at the beginning of the document be unfiltered whereas the same
+						// marker in other parts of the document would be filtered. The marker
+						// within the USFM and Filtering tab, will indicate that the marker is 
+						// unticked/unfiltered, but that would be a discrepancy for that marker
+						// here at the beginning of the Doc which would remain unfiltered. In 
+						// order to fix this situation the user would have to edit the document
+						// and add the proper \id XXX line at the beginning of the document, then
+						// unfilter that same marker, then re-filter that same marker again.
+						// Another alternative would be for the user to edit the input file that
+						// was used to create the document originally and add the \id XXX line to
+						// that input file, and then re-create the document afresh from the input
+						// file - a process that might wipe out some work if the document has had
+						// many adaptations added to it before the user initiated the current
+						// filtering process.
+						msg = msg.Format(msg, wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(),
+							wholeMkrBeingFiltered.c_str(), pSrcPhrase->m_srcPhrase.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str());
+
+						int response = 0;
+						response = wxMessageBox(msg, title, wxICON_WARNING | wxYES_NO | wxYES_DEFAULT);
+						if (response == wxYES)
+						{
+							// User opted to sbort the filtering operation (and maybe do the recommended
+							// Edit Source Text to add an \id XXX line to the beginning of the document).
+							// Return TRUE here from ReconstisuteAfterFilteringChange() as we have no 
+							// fixesStr to report in this case.
+							return TRUE;
+						}
+						else
+						{
+							// User opted to continue the filtering process, but we must skip this first
+							// marker in the document.
+							continue; // to skip over the filtering of this marker
+						}
+					}
+					// we found the filter marker within pSrcPhrase->m_inlineNonbindingMarkers
+					bMarkerInNonbindingSet = TRUE; // TRUE causes the m_markers test block to be skipped
 				}
 
 			} // end of TRUE block for test: if (!inlineNonbindingMarkersStr.IsEmpty())
@@ -11055,6 +11149,63 @@ g:				bIsUnknownMkr = FALSE;
 					}
 
 					continue;
+				}
+				else
+				{
+					// whm 6Apr2024 added. We've found a marker that is to be filtered.
+					// Check whether the sequence number of pSrcPhrase is zero. If so,
+					// there will be no valid pPrevSrcPhrase on which to store the marker.
+					// We'll warn the user that this marker at the beginning of the document 
+					// will not be filtered due to there not being an \id XXX line within
+					// this document. If this same marker occurs later within this document 
+					// they will be filtered if the user decides to continue with the 
+					// filtering operation. If the user opts to abort the filter operation
+					// no filtering will take place.
+					if (pSrcPhrase->m_nSequNumber == 0)
+					{
+						// We're at the first pSrcPhrase in the document's pList. There is 
+						// no valid pPrevSrcPhrase available to store filtered material which
+						// means that there is no \id XXX line at the beginning of the document.
+						// This violates the USFM standard that says of the \id <CODE> marker:
+						//    "This is the initial USFM marker in any scripture text file."
+						// Since this Scripture file is non-standard we will warn the user and
+						// allow the user to decide whether to continue - and not get the current
+						// marker filtered here at the beginning of the file, or abort the filtering
+						// operation. Continuing would mean the user would have the first marker 
+						// here at the beginning of the document be unfiltered whereas the same
+						// marker in other parts of the document would be filtered. The marker
+						// within the USFM and Filtering tab, will indicate that the marker is 
+						// unticked/unfiltered, but that would be a discrepancy for that marker
+						// here at the beginning of the Doc which would remain unfiltered. In 
+						// order to fix this situation the user would have to edit the document
+						// and add the proper \id XXX line at the beginning of the document, then
+						// unfilter that same marker, then re-filter that same marker again.
+						// Another alternative would be for the user to edit the input file that
+						// was used to create the document originally and add the \id XXX line to
+						// that input file, and then re-create the document afresh from the input
+						// file - a process that might wipe out some work if the document has had
+						// many adaptations added to it before the user initiated the current
+						// filtering process.
+						msg = msg.Format(msg, wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(),
+							wholeMkrBeingFiltered.c_str(), pSrcPhrase->m_srcPhrase.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str(), wholeMkrBeingFiltered.c_str());
+
+						int response = 0;
+						response = wxMessageBox(msg, title, wxICON_WARNING | wxYES_NO | wxYES_DEFAULT);
+						if (response == wxYES)
+						{
+							// User opted to sbort the filtering operation (and maybe do the recommended
+							// Edit Source Text to add an \id XXX line to the beginning of the document).
+							// Return TRUE here from ReconstisuteAfterFilteringChange() as we have no 
+							// fixesStr to report in this case.
+							return TRUE;
+						}
+						else
+						{
+							// User opted to continue the filtering process, but we must skip this first
+							// marker in the document.
+							continue; // to skip over the filtering of this marker
+						}
+					}
 				}
 
 			} // end of TRUE block for test: if (!pSrcPhrase->m_markers.IsEmpty() && !bMarkerInNonbindingSet)
@@ -11697,21 +11848,12 @@ g:				bIsUnknownMkr = FALSE;
 				if (prevPos != NULL && prevPos->GetPrevious() != NULL)
 				{
 					pPrevSrcPhrase = prevPos->GetData();
-					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); //, pList);
+					// In the next call GetPreviousNonPlaceholderSrcPhrase() it immediately 
+					// returns NULL if pPrevSrcPhrase is NULL on entry
+					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase);
 				}
 				if (pPrevSrcPhrase == NULL && prevPos != NULL)
 				{
-					// The pPrevSrcPhrase determined above is NULL meaning that we are at 
-					// the very beginning of the document. This shouldn't ordinarily happen 
-					// with usfm scripture text since such text would have an \id line with 
-					// at least a 3-letter scripture book code at te beginning of the document.
-					// However, we need to do something reasonable this situation were ever to
-					// occur. Probably best would be to set prevPos to the following source 
-					// phrase, get pPrevSrcPhrase at that position, and dump the filtered
-					// information there.
-					prevPos = prevPos->GetNext();
-					pPrevSrcPhrase = prevPos->GetData();
-					wxASSERT(pPrevSrcPhrase != NULL);
 				}
 
 				// whm Note: The parallel section outside the if (bMarkerInNonbindingSet)
@@ -12576,7 +12718,6 @@ g:				bIsUnknownMkr = FALSE;
 						}
 					}
 				}
-				gpApp->m_nActiveSequNum = nCurActiveSequNum;
 
 				// Construct m_markers on the first sourcephrase following the filtered
 				// section; if the filtered section is at the end of the document (shouldn't
@@ -12597,49 +12738,6 @@ g:				bIsUnknownMkr = FALSE;
 				// string strFilteredStuffToCarryForward, has to be handled here too (it
 				// could, of course, be an empty string)
 				// 
-				// whm 2Feb2024 removed. The following code is not needed as it was designed
-				// when filtered information was saved on a following source phrase and moreover
-				// it didn't account for the possibility of of encountering a placeholder.
-				/*
-				CSourcePhrase* pPrevSrcPhrase = NULL;
-				if (posEnd == NULL)
-				{
-					pPrevSrcPhrase = new CSourcePhrase;
-
-					// force it to at least display an asterisk in nav text area to alert the
-					// user to its presence
-					pPrevSrcPhrase->m_bNotInKB = TRUE;
-					pList->Append(pPrevSrcPhrase);
-				}
-				else
-				{
-					// get the first sourcephrase instance following the filtered section
-					// 
-					// whm 6Nov2023 changed the location for storing the filtered marker
-					// and its associated text to the source phrase instance BEFORE the
-					// filtered section, which source phrase we've set elsewhere to be
-					// pPrevSrcPhrase.
-					// whm 2Feb2024 see revision below.
-					//pPrevSrcPhrase = (CSourcePhrase*)posEnd->GetData();
-					pPrevSrcPhrase = pPrevSrcPhrase;
-				}
-				wxASSERT(pPrevSrcPhrase);
-				*/
-				// whm 4Feb2024 Below is code that determines the follPos and the 
-				// pFollSrcPhrase - being the source phrase that immediately follows the
-				// position/location subsequent to the removal of the filtered marker and its
-				// associated text. We can get the follPos node and its source phrase data 
-				// now that the sublist of filtered SPs have been removed from the pList and 
-				// the sequ numbers have been updated. We can get the follPos node by calling 
-				// GetNext() of the prePos node. The determination of pFollSrcPhrase is here
-				// conditional - we may or may not need to use it below. 
-				// See more notes/comments below where we assign preStr to the m_markers 
-				// member.
-				//SPList::Node* follPos = prevPos->GetNext();
-				//CSourcePhrase* pFollSrcPhase = NULL;
-				//if (follPos != NULL)
-				//	pFollSrcPhase = follPos->GetData();
-
 				// whm 19Mar2024 added. Filtered material is now being stored on a previous SP.
 				// Here we need to ensure that the pPrevSrcPhrase is not a placeholder source 
 				// phrase, especially one that is at the end of a retranslation.
@@ -12654,11 +12752,25 @@ g:				bIsUnknownMkr = FALSE;
 				// there.
 				// Note: There is a parallel block later below to iterate past placeholder 
 				// source phrases in the block where bIsMarkerInNonbindingSet is FALSE.
+				// 
+				// whm 5Apr2024 modification. BEW managed to produce a Scripture text that didn't 
+				// have an \id XXX marker at the beginning of the file and also started with a 
+				// section heading (\s ...). Of course, when filtering the \s marker is such 
+				// unusual circumstances there is no non-NULL pPrevSrcPhrase on which to store 
+				// the filtered \s marker. So, to protect from crashes in such situations we need
+				// to create an extra source phrase at the beginning of the pList to be our
+				// valid pPrevSrcPhrase where we can store the filtered information, in addition
+				// to still protecting coding below from trying to access a NULL pPrevSrcPhrase
+				// pointer. Also the code block below that attempts to get a valid pPrevSrcPhrase
+				// by doing prevPos->GetNext() is useless since the prePos pointer would also be
+				// NULL and it would never happen at the beginning of the doc.
 				CSourcePhrase* pPrevSrcPhrase = NULL;
 				if (prevPos != NULL && prevPos->GetPrevious() != NULL)
 				{
 					pPrevSrcPhrase = prevPos->GetData();
-					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
+					// In the next call GetPreviousNonPlaceholderSrcPhrase() it immediately 
+					// returns NULL if pPrevSrcPhrase is NULL on entry
+					pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase);
 				}
 				if (pPrevSrcPhrase == NULL && prevPos != NULL)
 				{
@@ -12724,7 +12836,12 @@ g:				bIsUnknownMkr = FALSE;
 				//pPrevSrcPhrase->m_markers = preStr; // any previously assumulated
 														// filtered info, or markers
 
+
 				// BEW 22Sep10 added next 3 lines
+				// whm TODO: The next 4 assignments to pPrevSrcPhrase member are NOT present in
+				// the almost identical bMarkerInNonbindingSet block above. Shoule it be there too?
+				// or can it just be removed from this block as it appears that remainderStr is
+				// always an empty string at this point???
 				pPrevSrcPhrase->m_markers.Trim();
 				pPrevSrcPhrase->m_markers += _T(" "); //ensure an intervening space
 				pPrevSrcPhrase->m_markers += remainderStr;
