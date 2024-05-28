@@ -47,6 +47,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 #include  "wx/checklst.h"
+#include <wx/textdlg.h>
 
 #include "Adapt_It.h"
 #include "Pile.h"
@@ -94,6 +95,28 @@ wxString msgCannotFilterAndChangeSFMset = _T("Trying to change the standard form
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar;
+
+bool CUsfmFilterPageCommon::IsMarkerBeingFilteredAtDocStart(wxString wholeMkr)
+{
+	if (wholeMkr.IsEmpty())
+		return FALSE;
+	wxString augWholeMkr = wholeMkr;
+	if (augWholeMkr.Last() != _T(' '))
+		augWholeMkr += _T(" "); // ensure
+	CSourcePhrase* pSP = NULL;
+	SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
+	if (pos_pSP != NULL)
+	{
+		pSP = pos_pSP->GetData();
+		if (pSP->m_markers.Find(augWholeMkr) != wxNOT_FOUND)
+			return TRUE;
+		if (pSP->GetInlineBindingMarkers().Find(augWholeMkr) != wxNOT_FOUND)
+			return TRUE;
+		if (pSP->GetInlineNonbindingMarkers().Find(augWholeMkr) != wxNOT_FOUND)
+			return TRUE;
+	}
+	return FALSE;
+}
 
 // CUsfmFilterPageCommon Class /////////////////////////////////////////////////////
 void CUsfmFilterPageCommon::DoSetDataAndPointers()
@@ -1316,14 +1339,87 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 		// The checkbox item was checked, store the marker of that item in 
 		// tempMarkersChangedToBeFiltered
 
-		// TODO: Put code here to determine if this marker-to-be-filtered is in the first pSrcPhrase of the documents. If so,
-		// we need to query the user for a book <CODE> to use for an inserted to hold the \id line <CODE> where the <CODE> becomes 
-		// to-be-inserted-Source-Phrase having a m_key and m_srcPhrase of <CODE>.
-		// If user decides to abort we can most easily just return from here, without having changed anything, going back to the
-		// USFM and Filtering page's doc list of filter markers. (Probably need to cause a programatic unticking of the marker selected
-		// that got us here - but only for an aborted marker selection.
-		// TODO:
+		// We must determine if this marker-to-be-filtered is a begin marker stored in the first pSrcPhrase of the documents. 
+		// If so, we need to query the user for a book <CODE> to use for an \id line <CODE> inserted into an added source phrase
+		// at the beginning of the document's source phrases. If the user enters a valid book ID, we isert a new source phrase at
+		// the beginning of the Doc's pSourcePhrases list. The inserted source phrase will have \id <CODE> stored in its m_markers
+		// field and the <CODE> itself stored as the source phrase's m_key and m_srcPhrase.
+		// If the user decides to not filter the given marker at this point, and presses Cancel, we can from here simply reset 
+		// the checkbox to an unticked state for the pListBoxSFMsDoc at the lbItemIndex. and just return from here, without having 
+		// changed anything, going back to the USFM and Filtering page's doc list of filter markers. 
+		//
+		// Check to see if the checkStr marker is in the first source phrase of the document's list of source phrases.
+		if (IsMarkerBeingFilteredAtDocStart(checkStr) == TRUE)
+		{
+			// The marker being filtered (box ticked) is located at sn = 0 at document start, so we issue a warning message to
+			// the user that the document doesn't currently have an \id XXX line, and query the user for a book code XXX. 
+			wxString message = _T("The marker %s is located at the beginning of the document\nand the document has no Scripture Book ID line.\nAdapt It cannot filter this marker without an id line and book code preceding the marker line.\n\nPlease type a 3-letter Scripture book code (for example MAT),\nand Adapt It will create the id line for this document.\n\nPress OK to continue after typing the 3-letter Scripture book code,\nor press Cancel to avoid filtering the %s marker.");
+			message = message.Format(message, checkStr.c_str(), checkStr.c_str());
+			wxString caption = _T("No book ID code line is present at the beginning of this document");
+			wxTextEntryDialog tedlg(gpApp->GetMainFrame(), message, caption);
+			bool bContinue = TRUE;
+			while (bContinue)
+			{
+				if (tedlg.ShowModal() == wxID_OK)
+				{
+					wxString userText = tedlg.GetValue();
+					userText.MakeUpper();
+					userText.Trim(FALSE);
+					userText.Trim(TRUE);
+					if (gpApp->IsValidBookID(userText))
+					{
+						// The user entered a valid book ID. 
+						// We create a new CSourcePhrase instance, store the book ID info within it, and insert it at the
+						// beginning of the doc's pSourcePhrases list.
+						CSourcePhrase* pSP = new CSourcePhrase;
+						pSP->m_markers = _T("\\id ");
+						pSP->m_inform = _T("id");
+						pSP->m_key = userText;
+						pSP->m_srcPhrase = userText;
+						pSP->m_srcSinglePattern = userText;
+						pSP->m_oldKey = userText;
+						SPList::Node* pSPFirst = gpApp->m_pSourcePhrases->GetFirst();
+						gpApp->m_pSourcePhrases->Insert(pSPFirst, pSP);
+						gpApp->GetView()->UpdateSequNumbers(0);
+						gpApp->m_nActiveSequNum++;
+						gpApp->GetDocument()->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_and_piles);
 
+						// Don't return here but exit the while loop and fall through to continue the filter operation
+						bContinue = FALSE;
+					}
+					else
+					{
+						// The code typed in the dialog is not a valid book code.
+						wxString msg = _("The Scripture ID Code you typed (%s) is unrecognized.\n\nDo you want to try again?");
+						msg = msg.Format(msg, userText.c_str());
+						int response;
+						response = wxMessageBox(msg, _("Scripture ID Code unrecognized"), wxICON_ERROR | wxYES_NO | wxNO_DEFAULT);
+						if (response == wxYES)
+						{
+							// End the current modal dialog. It will be created and shown modal again at the top of the while loop
+							//tedlg.EndModal(wxID_CANCEL); // the wxTextEntryDialog was already gone so this only asserted.
+							bContinue = TRUE;
+						}
+						else
+						{
+							bContinue = FALSE;
+							pListBoxSFMsDoc->Check(lbItemIndex, FALSE); // FALSE unticks the checkbox
+							return;
+						}
+					}
+				}
+				else
+				{
+					// The user canceled the text entry dialog, so we reset the checkbox to an empty unticked state and return
+					pListBoxSFMsDoc->Check(lbItemIndex, FALSE); // FALSE unticks the checkbox
+					bContinue = FALSE;
+					return;
+				}
+			} // end of while (bContinue)
+		} // end of if (IsMarkerBeingFilteredAtDocStart(checkStr) == TRUE)
+
+		// If we get here the marker being filtered is not located at the beginning of the document so normal filtering can
+		// take place for this marker.
 
 		tempMarkersChangedToBeFiltered += augWholeMkr;
 	}

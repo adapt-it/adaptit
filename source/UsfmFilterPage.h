@@ -168,6 +168,7 @@ public:
 	wxTextCtrl* pTextCtrlAsStaticFilterPage;
 	wxStaticText* pStaticNoDocsInThisProj;
 
+	bool IsMarkerBeingFilteredAtDocStart(wxString wholeMkr);
 	void DoSetDataAndPointers();
 	void DoInit();
 	
