@@ -4171,6 +4171,52 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 	return (long)array.GetCount();
 }
 
+// BEW 29May24 This override takes in the relevant spacelessPuncts string, as decided by the caller,
+// which is only RemovePunctuation(). This override is called nowhere else, the other 18 places where SmartTokenize()
+// gets called, work okay, some of those want any puncts on tokens left in place so we must not change them unless
+// they cause trouble. This version is the only one which explicitly removes any beginning or following punctuation
+// strings from the tgt text (if passed in) or the src text (if passed in). What promped this new version is
+// the risk of puntuation doubling if a source text edit is done, an in the resulting vertical edit, the user
+// wrongly supplies punctuation to a word when it should not have any puncts before or after.
+long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, wxString spacelessPuncts, int nIndex,
+					bool bStoreEmptyStringsToo)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
+	wxString oneWord = wxEmptyString;
+	wxString aToken;
+	array.Empty();
+	// Don't test for spacelessPuncts empty. In such an odd situation, we probably don't have puncts in the
+	// src or tgt text data, and we would still want this tokenizer to do its job and return the array's count.
+	// If there are puncts, and the spacelessPuncts string is empty, then at worst some puncts would find their
+	// way into the KB - but that doesn't break the KB, it would just be a nuisance
+	wxStringTokenizerMode mode = wxTOKEN_RET_EMPTY_ALL;
+	wxStringTokenizer tokenizer(str, delimiters, mode);
+	while (tokenizer.HasMoreTokens())
+	{
+		aToken = tokenizer.GetNextToken();
+		aToken.Trim(FALSE); // FALSE means trim white space from left end
+		aToken.Trim(); // default TRUE means trim white space from right end
+		if (aToken.IsEmpty())
+		{
+			if (bStoreEmptyStringsToo)
+				array.Add(aToken);
+		}
+		else
+		{
+			// BEW 29May24 here is where we need to remove any preceding or following puncts
+			// from aToken. This was an issue in vertical edit when doing a source text edit, I was getting
+			// occasional doubling of puncts when the normal mode was resumed, if I typed puncts on the
+			// word or words when in vertical edit. Changing puncts is allowed, but do it in normal mode
+			oneWord = pView->RemovePunctuationOnOneWord(aToken, spacelessPuncts, nIndex);
+			array.Add(oneWord);
+			oneWord = wxEmptyString; // not needed, but harmless
+		}
+	}
+	return (long)array.GetCount();
+}
+
+
 // BEW created 11Oct10, this utility parses strToParse, extracting in sequence each SF
 // marker and ignoring any other non-marker substrings. It works whether or not there is a
 // space between markers. Returns TRUE if at least one was added to arr, otherwise returns

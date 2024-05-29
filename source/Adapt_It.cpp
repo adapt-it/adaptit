@@ -152,7 +152,7 @@ wxMutex s_AutoSaveMutex;
 //#define ERR_DUPLICATE
 //#define FREETRMODE
 
-#define NOLOGS
+//#define NOLOGS
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"

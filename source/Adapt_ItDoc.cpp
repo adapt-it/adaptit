@@ -27,7 +27,7 @@
 const int logStart = 2;
 const int logEnd = 5;
 //#define SEEPTR
-#define NOLOGS
+//#define NOLOGS
 //#define NOPAREN
 
 #if defined(__GNUG__) && !defined(__APPLE__)

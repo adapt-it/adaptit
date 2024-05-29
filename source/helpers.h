@@ -303,6 +303,17 @@ bool      IsReadOnlyProtection_LockFile(wxString& filename);
 
 long      SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
 					  bool bStoreEmptyStringsToo = TRUE);
+// BEW 29May24 This override takes in the relevant spacelessPuncts string, as decided by the caller,
+// which is only RemovePunctuation(). This override is called nowhere else, the other 18 places where SmartTokenize()
+// gets called, work okay, some of those want any puncts on tokens left in place so we must not change them unless
+// they cause trouble. This version is the only one which explicitly removes any beginning or following punctuation
+// strings from the tgt text (if passed in) or the src text (if passed in). What promped this new version is
+// the risk of puntuation doubling if a source text edit is done, an in the resulting vertical edit, the user
+// wrongly supplies punctuation to a word when it should not have any puncts before or after. nIndex, 0 for src, 1 for tgt
+long      SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, wxString spacelessPuncts, int nIndex,
+						bool bStoreEmptyStringsToo = TRUE);
+
+
 wxString  ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
 wxString ChangeWhitespaceToSingleSpace(wxString& rString);

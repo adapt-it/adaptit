@@ -63,7 +63,7 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 //#define _Trace_DrawFreeTrans
 //#define CHECK_GEDITSTEP
 
-#define NOLOGS
+//#define NOLOGS
 
 // define a resouorce ID integer for the hidden developer menu item
 int ID_MENU_ITEM_HIDDEN = 9999;
@@ -14336,7 +14336,13 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// pair of words into two parts. These changes were prompted by the fact that 
 /// File > Restore Knowledge Base's code makes an utter mess of a good KB - destroying the
 /// meanings of every entries target text.
-/////////////////////////////////////////////////////////////////////////////////
+/// BEW 29May24 Refactored to call a new version of SmartTokenize() that strips puncts from
+/// it's internal tokenizing function's output, from substrings "aToken", when filling the
+/// internal array. SmartTokenize() is called in 19 places in the app currently, but only
+/// here is it vital to strip puncts of each aToken substring, and currently it does not happen
+/// and must. So a new version will take in the spaceless puncts string, and use it to remove
+/// puncts, if any, that are attached to the internal tokenizer's aToken substrings
+/// /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -14352,19 +14358,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	wxString word1 = wxEmptyString; // could be a phrase, of course i.e. spaces allowed
 	wxString phrase = wxEmptyString;
 	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE;
-
-	wxArrayString wordsArr; // auto initialises to empty
-	wxString delimiters = _T(" "); // delimit using Latin space, we want an array of words (with their 
-								   // puncts attached, if present)
-	bool bStoreEmptyStringsToo = FALSE;
-	long numWords = SmartTokenize(delimiters, str, wordsArr, bStoreEmptyStringsToo);
-	if (numWords > 1)
-	{
-		// set the phrase for potential call of its value further down
-		phrase = *pStr;
-	}
-
-	if (bTgtPuncts)
+	if (bTgtPuncts) // BEW 29May24 moved this determination of spacelessPunctsStr to here, instead of after SmartTokenize()
 	{
 		spacelessPunctsStr = pApp->m_strSpacelessTargetPuncts;
 	}
@@ -14372,7 +14366,17 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	{
 		spacelessPunctsStr = pApp->m_strSpacelessSourcePuncts;
 	}
-	//offset = wxNOT_FOUND;
+
+	wxArrayString wordsArr; // auto initialises to empty
+	wxString delimiters = _T(" "); // delimit using Latin space, we want an array of words (with their 
+								   // puncts attached, if present)
+	bool bStoreEmptyStringsToo = FALSE;
+	long numWords = SmartTokenize(delimiters, str, wordsArr, spacelessPunctsStr, nIndex, bStoreEmptyStringsToo);
+	if (numWords > 1)
+	{
+		// set the phrase for potential call of its value further down
+		phrase = *pStr;
+	}
 	
 	if (numWords > 1) // was a test for bHasFixedSpaceSymbol which is no longer relevant
 	{
@@ -16707,7 +16711,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	bool bHandledPrecPuncts = FALSE; // init
 	bool bHandledFollPuncts = FALSE; // init BEW added 11Oct23
 
-	if (pSrcPhrase->m_nSequNumber >= 18)
+	if (pSrcPhrase->m_nSequNumber >= 4447)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -31466,8 +31470,8 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
     // we have some filtered info (in m_filteredInfo) and/or non-endmarkers to transfer -
     // do so, but only provided pPrevSrcPhrase's m_key and m_precPunct CString members are
     // both empty - yes, correct still.
-    bool bRemoveSrcPhrase = FALSE; // <--  BEW 18Apr24, this is dangerous, take care, removing a 
-								   // needed pSrcPhrase will crash the app disasterously
+    bool bRemoveSrcPhrase = FALSE; // <--  BEW 18Apr24, this is dangerous if TRUE, take care, removing a 
+	wxUnusedVar(bRemoveSrcPhrase);  // needed pSrcPhrase will crash the app disasterously
 	if (bFilteredInfoToBeTransferred || bHasNonEndmarkers)
 	{
         // only do the transfer provided there is something there to be transferred in the
@@ -34199,6 +34203,8 @@ void CAdapt_ItView::OnUpdateButtonEndNow(wxUpdateUIEvent& event)
 }
 
 // BEW refactored 19Oct15 to support the better way of exiting vertical edit
+// BEW 29May24, added call of RemovePunctuation() on target text, because if user has added some punctuation,
+// leaving it there would result in it going into the KB, and being doubled when the phrasebox changes location
 void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -34206,6 +34212,8 @@ void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 	// saved on the app instance needs to be used here to configure
 	// the active CSourcePhrase instance at ending time.
 	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument(); int nIndex = 1; // BEW 29May24 added
+
 	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
 	wxString phraseboxContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();// whm 12Jul2018 added ->GetTextCtrl() part
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
@@ -34218,6 +34226,7 @@ void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
+		RemovePunctuation(pDoc, &phraseboxContents, nIndex); // BEW added 29May24
 		pSrcPhrase->m_adaption = phraseboxContents;
 	}
 	// And the handler for wxEVT_END_VERTICAL_EDIT requires the following
@@ -34229,6 +34238,7 @@ void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
+		RemovePunctuation(pDoc, &phraseboxContents, nIndex); // BEW added 29May24
 		pApp->m_vertEdit_LastActiveLoc_Adaptation = phraseboxContents;
 	}
 	pApp->m_bVertEdit_WithinSpan = TRUE;
