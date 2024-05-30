@@ -12916,6 +12916,9 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
+	pApp->GetMainFrame()->SendSizeEvent(); // BEW 31May2024 added to test Bill's solution for cleaning up unmerger
+	pApp->m_bMergeSucceeded = FALSE;
+	pApp->m_bMergerIsCurrent = FALSE;
 }
 
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
