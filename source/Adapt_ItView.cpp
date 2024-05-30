@@ -12068,7 +12068,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
-    pApp->m_bMergeSucceeded = TRUE;
+	pApp->GetMainFrame()->SendSizeEvent(); // whm 29May2024 added to reduce incidence of overlapping piles after merger
+	pApp->m_bMergeSucceeded = TRUE;
 	pApp->m_bMergerIsCurrent = FALSE;
 
 //#if defined(FWD_SLASH_DELIM)

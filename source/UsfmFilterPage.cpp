@@ -1383,6 +1383,9 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 						gpApp->GetView()->UpdateSequNumbers(0);
 						gpApp->m_nActiveSequNum++;
 						gpApp->GetDocument()->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_and_piles);
+						// get a new (valid) active pile pointer, now that the layout is recalculated
+						gpApp->m_pActivePile = gpApp->GetView()->GetPile(gpApp->m_nActiveSequNum);
+						wxASSERT(gpApp->m_pActivePile != NULL);
 
 						// Don't return here but exit the while loop and fall through to continue the filter operation
 						bContinue = FALSE;
