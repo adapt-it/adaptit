@@ -31324,6 +31324,8 @@ bailout:	pAdaptList->Clear();
 
 	// Restore value of m_bWithinMkrAttributeSpan
 	pDoc->m_bWithinMkrAttributeSpan = pDoc->bSaveWithinAttributesSpanValue;
+	pApp->GetMainFrame()->SendSizeEvent(); // BEW 31May2024 added to test Bill's solution for cleaning up unmerger
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
