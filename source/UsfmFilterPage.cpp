@@ -1381,7 +1381,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 						SPList::Node* pSPFirst = gpApp->m_pSourcePhrases->GetFirst();
 						gpApp->m_pSourcePhrases->Insert(pSPFirst, pSP);
 						gpApp->GetView()->UpdateSequNumbers(0);
-						gpApp->m_nActiveSequNum++;
+						gpApp->m_nActiveSequNum++; // increment active sequ number by 1 since we've added a source phrase to beginning of m_pSourcePhrases
 						gpApp->GetDocument()->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_and_piles);
 						// get a new (valid) active pile pointer, now that the layout is recalculated
 						gpApp->m_pActivePile = gpApp->GetView()->GetPile(gpApp->m_nActiveSequNum);
