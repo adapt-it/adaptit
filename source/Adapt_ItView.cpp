@@ -12417,9 +12417,12 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		if (!pSP->m_adaption.IsEmpty())
 		{
 			// restore its KB entry, and don't inhibit the call of MakeTargetStringincludingPunctuation()
+			// BEW 31May24 changed to doing the inhibit, otherwise a merger's long tgt text gets being repeated
 			bool bOK;
+			pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bOK = pApp->m_pKB->StoreText(pSP,pSP->m_adaption);
 			bOK = bOK; // avoid waring
+			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 
 		if (pApp->m_pKB->IsItNotInKB(pSP))
@@ -12897,6 +12900,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	// need to recalc layout again
 #ifdef _NEW_LAYOUT
 	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+	//GetLayout()->RecalcLayout(pSrcPhrases, create_strips_and_piles);
 #else
 	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
