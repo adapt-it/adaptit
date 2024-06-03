@@ -1357,6 +1357,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 			message = message.Format(message, checkStr.c_str(), checkStr.c_str());
 			wxString caption = _T("No book ID code line is present at the beginning of this document");
 			wxTextEntryDialog tedlg(gpApp->GetMainFrame(), message, caption);
+			tedlg.ForceUpper();
 			bool bContinue = TRUE;
 			while (bContinue)
 			{

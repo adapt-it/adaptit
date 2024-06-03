@@ -2725,748 +2725,752 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-	if (pApp->m_bKeepBoxMidscreen) {
-	// COMMENCE code for scrolling regime "keep phrase box midscreen"
-
-
-	if (pApp->m_nActiveSequNum == -1)
+	if (pApp->m_bKeepBoxMidscreen) 
 	{
-		return; // do nothing if the phrase box is hidden because we are at doc end
-	}
+		// COMMENCE code for scrolling regime "keep phrase box midscreen"
+
+		wxLogDebug(_T("Call ScrollInfoView m_bKeepBoxMidscreen if TRUE"));
+
+		if (pApp->m_nActiveSequNum == -1)
+		{
+			return; // do nothing if the phrase box is hidden because we are at doc end
+		}
 #ifdef Do_Clipping
-	// disable clipping, but note below - if we determine that no scroll is needed we will
-	// turn the flag off so that clipping becomes possible (provided the CLayout bool
-	// m_bAllowScrolling is also TRUE)
-	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
+		// disable clipping, but note below - if we determine that no scroll is needed we will
+		// turn the flag off so that clipping becomes possible (provided the CLayout bool
+		// m_bAllowScrolling is also TRUE)
+		pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
 
 #endif
-	//#ifdef _debugLayout
-	//ShowSPandPile(393, 50);
-	//ShowSPandPile(394, 50);
-	//ShowInvalidStripRange();
-	//#endif
+		//#ifdef _debugLayout
+		//ShowSPandPile(393, 50);
+		//ShowSPandPile(394, 50);
+		//ShowInvalidStripRange();
+		//#endif
 
-// ------------------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------------------
 
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
-	if (!pApp->m_bFreeTranslationMode)
-	{
+		if (!pApp->m_bFreeTranslationMode)
+		{
 //#endif
-	// the legacy scroll into view code - now used when not in free translation mode
+		// the legacy scroll into view code - now used when not in free translation mode
 
-	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
-	if (!debugDisableScrollIntoView)
-	{
-		CAdapt_ItView* pView = pApp->GetView();
-		CPile* pPile = pView->GetPile(nSequNum);
-		//CStrip* pStrip = pPile->GetStrip(); // unused
-		//wxRect rectStrip = pStrip->GetStripRect(); // unused
-
-		// get the visible rectangle's coordinates
-		wxRect visRect; // wxRect rectClient;
-        // wx note: calling GetClientSize on the canvas produced different results in wxGTK
-        // and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
-        // main frame's client size after subtracting the controlBar's height and
-        // composeBar's height (if visible).
-		wxSize canvasSize;
-		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
-		visRect.width = canvasSize.GetWidth();
-		visRect.height = canvasSize.GetHeight();
-
-        // calculate the window depth, and then how many strips are fully visible in it; we
-        // will use the latter in order to change the behaviour so that instead of
-        // scrolling so that the active strip is at the top (which hides preceding context
-        // and so is a nuisance), we will scroll to somewhere a little past the window
-        // center (so as to show more, rather than less, of any automatic inserted material
-        // which may have background highlighting turned on)
-		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
-		// in free translation mode) in the now removed m_curPileHeight value;
-		// the refactored design doesn't so I'll have to add them here
-		int nWindowDepth = visRect.GetHeight();
-		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
-		if (pApp->m_bFreeTranslationMode)
+		bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
+		if (!debugDisableScrollIntoView)
 		{
-			nStripHeight += 3 + pLayout->GetTgtTextHeight();
-		}
-		int nVisStrips = nWindowDepth / nStripHeight;
-		if (nWindowDepth % nStripHeight > 0) // modulo
-			nVisStrips++; // add 1 if a part strip fits as well
+			CAdapt_ItView* pView = pApp->GetView();
+			CPile* pPile = pView->GetPile(nSequNum);
+			//CStrip* pStrip = pPile->GetStrip(); // unused
+			//wxRect rectStrip = pStrip->GetStripRect(); // unused
 
-		// get the current horizontal and vertical pixels currently scrolled
-		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
-		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+			// get the visible rectangle's coordinates
+			wxRect visRect; // wxRect rectClient;
+			// wx note: calling GetClientSize on the canvas produced different results in wxGTK
+			// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
+			// main frame's client size after subtracting the controlBar's height and
+			// composeBar's height (if visible).
+			wxSize canvasSize;
+			canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
+			visRect.width = canvasSize.GetWidth();
+			visRect.height = canvasSize.GetHeight();
 
-        // determine how much preceding context (ie. how many strips) we want to try make
-        // visible above the phrase box when auto inserting (so as to show as much
-        // highlighted material as possible); we make this amount equal to nVisStrips less
-        // two (one for the phrase box strip itself, and another for one strip of following
-        // context below it) when auto inserting, but a much bigger value (see below) when
-        // auto inserting stops (so that more of any auto inserted & hilighted adapatations
-        // will be visible to the user without scrolling)
-        int numTopHalfStrips = nVisStrips / 2;
-
-		// for debugging purposes
-#ifdef DEBUG_ScrollIntoView
-		int midstripPixelDist = numTopHalfStrips * nStripHeight;
-			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\nScollIntoView: m_srcPhrase %s  , numTopHalfStrips %d ,  midstripPixelDist  %d , nVisStrips %d"),
-						pSrcPhrase->m_srcPhrase, numTopHalfStrips, midstripPixelDist, nVisStrips);
-			if (pApp->m_bAutoInsert)
-				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is TRUE"),
-						nStripHeight, nWindowDepth);
-			else
-				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is FALSE"),
-						nStripHeight, nWindowDepth);
-#endif
-		int nBoundForPrecedingContextStrips = nVisStrips - 3;
-		int nPrecedingContextDepth = numTopHalfStrips * nStripHeight; // nStripHeight
-		// includes the leading; the value calculated here is the default, it may
-		// may be changed by the code a little further below where auto-insertions
-		// are taken into account when the box has halted
-
-        // Get the required y-coord of the top of the phrase box's strip where the "strip"
-        // includes its preceding leading -- that is, the distance from the start of the
-        // document to the beginning of the leading for the active strip (the new value was
-        // determined by a prior call to RecalcLayout)
-		int yDistFromDocStartToStripTopLeading =
-										pPile->GetPileRect().GetTop() - pApp->m_curLeading;
-#ifdef DEBUG_ScrollIntoView
-			wxLogDebug(_T("Pixels to top of active strip %d  , nBoundForPrecedingContextStrips %d strips, Default nPrecedingContextDepth %d pixels"),
-						yDistFromDocStartToStripTopLeading, nBoundForPrecedingContextStrips, nPrecedingContextDepth);
-#endif
-       // wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is
-        // designed to figure out how much to scroll from the current scroll position to
-        // get to the new position using ScrollWindow. But, the wx version equivalent of
-        // ScrollWindow is Scroll(x,y) which scrolls to a given position in the doc,
-        // eliminating the need to determine an "amount" to scroll from a current position.
-
-        // if auto inserting, use an nPrecedingContextDepth value that puts the box about
-        // mid way down the view window; similarly for review mode, or when in single step
-        // mode; but if in automatic mode and m_bAutoInsert is FALSE (eg. as when the auto
-        // insertions have just stopped) then take into account the number of auto-inserted
-        // (ie. highlighted) strips and try show them all while keeping the box mid-window,
-        // but show the box lower if necessary, but always maintain at least two strips of
-        // "following context" at the window bottom
-		int nAutoInsertedStripsCount = 0;
-		bool bPhraseBoxIsInLastAutoInsertedStrip = FALSE;
-		bool bAutoInsertionsExist = pApp->m_pLayout->GetHighlightedStripsRange(
-			nAutoInsertedStripsCount, bPhraseBoxIsInLastAutoInsertedStrip);
-		int nPrecedingContextDepth_Max = nBoundForPrecedingContextStrips * nStripHeight;
-
-#ifdef DEBUG_ScrollIntoView
-		if (bAutoInsertionsExist)
-			wxLogDebug(_T("bAutoInsertionsExist is TRUE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
-						bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
-		else
-			wxLogDebug(_T("bAutoInsertionsExist is FALSE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
-						bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
-		wxLogDebug(_T("nPrecedingContextDepth_Max (the bound) is  %d  pixels"), nPrecedingContextDepth_Max);
-#endif
-		int numExtrasToShow = 0; // how many extra strips need to be shown if not all will
-								 // fit in the top half of the window
-		int numExtras_Max = 0; // maximum number of extra highlighted strips that can be
-					// shown by moving the phrase box's strip lower, without exceeding
-					// the calculated bound given by nBoundForPrecedingContextStrips
-		if (!pApp->m_bAutoInsert)
-		{
-			if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
+			// calculate the window depth, and then how many strips are fully visible in it; we
+			// will use the latter in order to change the behaviour so that instead of
+			// scrolling so that the active strip is at the top (which hides preceding context
+			// and so is a nuisance), we will scroll to somewhere a little past the window
+			// center (so as to show more, rather than less, of any automatic inserted material
+			// which may have background highlighting turned on)
+			// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
+			// in free translation mode) in the now removed m_curPileHeight value;
+			// the refactored design doesn't so I'll have to add them here
+			int nWindowDepth = visRect.GetHeight();
+			int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
+			if (pApp->m_bFreeTranslationMode)
 			{
-				if (bAutoInsertionsExist)
+				nStripHeight += 3 + pLayout->GetTgtTextHeight();
+			}
+			int nVisStrips = nWindowDepth / nStripHeight;
+			if (nWindowDepth % nStripHeight > 0) // modulo
+				nVisStrips++; // add 1 if a part strip fits as well
+
+			// get the current horizontal and vertical pixels currently scrolled
+			int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
+			GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+
+			// determine how much preceding context (ie. how many strips) we want to try make
+			// visible above the phrase box when auto inserting (so as to show as much
+			// highlighted material as possible); we make this amount equal to nVisStrips less
+			// two (one for the phrase box strip itself, and another for one strip of following
+			// context below it) when auto inserting, but a much bigger value (see below) when
+			// auto inserting stops (so that more of any auto inserted & hilighted adapatations
+			// will be visible to the user without scrolling)
+			int numTopHalfStrips = nVisStrips / 2;
+
+			// for debugging purposes
+#ifdef DEBUG_ScrollIntoView
+			int midstripPixelDist = numTopHalfStrips * nStripHeight;
+				CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+				wxLogDebug(_T("\nScollIntoView: m_srcPhrase %s  , numTopHalfStrips %d ,  midstripPixelDist  %d , nVisStrips %d"),
+							pSrcPhrase->m_srcPhrase, numTopHalfStrips, midstripPixelDist, nVisStrips);
+				if (pApp->m_bAutoInsert)
+					wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is TRUE"),
+							nStripHeight, nWindowDepth);
+				else
+					wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is FALSE"),
+							nStripHeight, nWindowDepth);
+#endif
+			int nBoundForPrecedingContextStrips = nVisStrips - 3;
+			int nPrecedingContextDepth = numTopHalfStrips * nStripHeight; // nStripHeight
+			// includes the leading; the value calculated here is the default, it may
+			// may be changed by the code a little further below where auto-insertions
+			// are taken into account when the box has halted
+
+			// Get the required y-coord of the top of the phrase box's strip where the "strip"
+			// includes its preceding leading -- that is, the distance from the start of the
+			// document to the beginning of the leading for the active strip (the new value was
+			// determined by a prior call to RecalcLayout)
+			int yDistFromDocStartToStripTopLeading =
+											pPile->GetPileRect().GetTop() - pApp->m_curLeading;
+#ifdef DEBUG_ScrollIntoView
+				wxLogDebug(_T("Pixels to top of active strip %d  , nBoundForPrecedingContextStrips %d strips, Default nPrecedingContextDepth %d pixels"),
+							yDistFromDocStartToStripTopLeading, nBoundForPrecedingContextStrips, nPrecedingContextDepth);
+#endif
+		   // wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is
+			// designed to figure out how much to scroll from the current scroll position to
+			// get to the new position using ScrollWindow. But, the wx version equivalent of
+			// ScrollWindow is Scroll(x,y) which scrolls to a given position in the doc,
+			// eliminating the need to determine an "amount" to scroll from a current position.
+
+			// if auto inserting, use an nPrecedingContextDepth value that puts the box about
+			// mid way down the view window; similarly for review mode, or when in single step
+			// mode; but if in automatic mode and m_bAutoInsert is FALSE (eg. as when the auto
+			// insertions have just stopped) then take into account the number of auto-inserted
+			// (ie. highlighted) strips and try show them all while keeping the box mid-window,
+			// but show the box lower if necessary, but always maintain at least two strips of
+			// "following context" at the window bottom
+			int nAutoInsertedStripsCount = 0;
+			bool bPhraseBoxIsInLastAutoInsertedStrip = FALSE;
+			bool bAutoInsertionsExist = pApp->m_pLayout->GetHighlightedStripsRange(
+				nAutoInsertedStripsCount, bPhraseBoxIsInLastAutoInsertedStrip);
+			int nPrecedingContextDepth_Max = nBoundForPrecedingContextStrips * nStripHeight;
+
+#ifdef DEBUG_ScrollIntoView
+			if (bAutoInsertionsExist)
+				wxLogDebug(_T("bAutoInsertionsExist is TRUE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
+							bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
+			else
+				wxLogDebug(_T("bAutoInsertionsExist is FALSE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
+							bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
+			wxLogDebug(_T("nPrecedingContextDepth_Max (the bound) is  %d  pixels"), nPrecedingContextDepth_Max);
+#endif
+			int numExtrasToShow = 0; // how many extra strips need to be shown if not all will
+									 // fit in the top half of the window
+			int numExtras_Max = 0; // maximum number of extra highlighted strips that can be
+						// shown by moving the phrase box's strip lower, without exceeding
+						// the calculated bound given by nBoundForPrecedingContextStrips
+			if (!pApp->m_bAutoInsert)
+			{
+				if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
 				{
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("m_bAutoInsert is FALSE &  bAutoInsertionsExist is TRUE"));
-#endif
-					// try to keep the nPrecedingContextDepth value such that the active
-					// strip is just at or below mid window vertically, but adjust the
-					// value to accomodate making all the inserted material visible; and
-					// when these two conditions conflict because the range of strips with
-					// inserted material cannot be all shown without the phrase box being
-					// too low in the window, use the bounding value which is already set
-					if (bPhraseBoxIsInLastAutoInsertedStrip)
+					if (bAutoInsertionsExist)
 					{
-						if (nAutoInsertedStripsCount - 1 <= numTopHalfStrips)
-						{
-							// nothing to be done, all the highlighted strips are visible
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is TRUE &  Do nothing because ALL strips are visible"));
+			wxLogDebug(_T("m_bAutoInsert is FALSE &  bAutoInsertionsExist is TRUE"));
 #endif
-							;
-						}
-						else
+						// try to keep the nPrecedingContextDepth value such that the active
+						// strip is just at or below mid window vertically, but adjust the
+						// value to accomodate making all the inserted material visible; and
+						// when these two conditions conflict because the range of strips with
+						// inserted material cannot be all shown without the phrase box being
+						// too low in the window, use the bounding value which is already set
+						if (bPhraseBoxIsInLastAutoInsertedStrip)
 						{
-							// not all the hightlighted strips are visible, so check out
-							// whether or not we can make an adjustment to get them all
-							// shown without going beyond the calculated bound, if so,
-							// get the phrase box's strip shown the necessary amount lower
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is TRUE  &  NOT ALL strips are visible -- adjust now"));
-#endif
-							numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount + 1;
-							numExtrasToShow = nAutoInsertedStripsCount - (numTopHalfStrips + 1);
-							if (numExtrasToShow > numExtras_Max)
+							if (nAutoInsertedStripsCount - 1 <= numTopHalfStrips)
 							{
-								// use the bounding value instead, user will have to
-								// manually scroll if he wants to see all of the
-								// highlighted ones
-								nPrecedingContextDepth = nPrecedingContextDepth_Max;
+								// nothing to be done, all the highlighted strips are visible
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , TOO MANY so nPrecedingContextDepth = %d"),
-					numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+			wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is TRUE &  Do nothing because ALL strips are visible"));
 #endif
+								;
 							}
 							else
 							{
-								// we can make all the highlighted strips visible by
-								// showing the box numExtrasToShow's amount of strips
-								// lower in the view window
-								nPrecedingContextDepth += numExtrasToShow * nStripHeight;
+								// not all the hightlighted strips are visible, so check out
+								// whether or not we can make an adjustment to get them all
+								// shown without going beyond the calculated bound, if so,
+								// get the phrase box's strip shown the necessary amount lower
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , NOT TOO MANY so nPrecedingContextDepth = %d"),
-					numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+			wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is TRUE  &  NOT ALL strips are visible -- adjust now"));
 #endif
+								numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount + 1;
+								numExtrasToShow = nAutoInsertedStripsCount - (numTopHalfStrips + 1);
+								if (numExtrasToShow > numExtras_Max)
+								{
+									// use the bounding value instead, user will have to
+									// manually scroll if he wants to see all of the
+									// highlighted ones
+									nPrecedingContextDepth = nPrecedingContextDepth_Max;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , TOO MANY so nPrecedingContextDepth = %d"),
+						numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+#endif
+								}
+								else
+								{
+									// we can make all the highlighted strips visible by
+									// showing the box numExtrasToShow's amount of strips
+									// lower in the view window
+									nPrecedingContextDepth += numExtrasToShow * nStripHeight;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , NOT TOO MANY so nPrecedingContextDepth = %d"),
+						numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+#endif
+								}
 							}
-						}
-					}
-					else
-					{
-						if (nAutoInsertedStripsCount <= numTopHalfStrips)
-						{
-							// nothing to be done, all the highlighted strips are visible
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE &  Do nothing because ALL strips are visible"));
-#endif
-							;
 						}
 						else
 						{
-							// not all the hightlighted strips are visible, so check out
-							// whether or not we can make an adjustment to get them all
-							// shown without going beyond the calculated bound, if so,
-							// get the phrase box's strip shown the necessary amount lower
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE  &  NOT ALL strips are visible -- adjust now"));
-#endif
-							numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount;
-							numExtrasToShow = nAutoInsertedStripsCount - numTopHalfStrips;
-							if (numExtrasToShow > numExtras_Max)
+							if (nAutoInsertedStripsCount <= numTopHalfStrips)
 							{
-								// use the bounding value instead, user will have to
-								// manually scroll if he wants to see all of the
-								// highlighted ones
-								nPrecedingContextDepth = nPrecedingContextDepth_Max;
+								// nothing to be done, all the highlighted strips are visible
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , TOO MANY so nPrecedingContextDepth = %d"),
-					numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+			wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE &  Do nothing because ALL strips are visible"));
 #endif
+								;
 							}
 							else
 							{
-								// we can make all the highlighted strips visible by
-								// showing the box numExtrasToShow's amount of strips
-								// lower in the view window
-								nPrecedingContextDepth += numExtrasToShow * nStripHeight;
+								// not all the hightlighted strips are visible, so check out
+								// whether or not we can make an adjustment to get them all
+								// shown without going beyond the calculated bound, if so,
+								// get the phrase box's strip shown the necessary amount lower
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , NOT TOO MANY so nPrecedingContextDepth = %d"),
-					numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+			wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE  &  NOT ALL strips are visible -- adjust now"));
 #endif
+								numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount;
+								numExtrasToShow = nAutoInsertedStripsCount - numTopHalfStrips;
+								if (numExtrasToShow > numExtras_Max)
+								{
+									// use the bounding value instead, user will have to
+									// manually scroll if he wants to see all of the
+									// highlighted ones
+									nPrecedingContextDepth = nPrecedingContextDepth_Max;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , TOO MANY so nPrecedingContextDepth = %d"),
+						numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+#endif
+								}
+								else
+								{
+									// we can make all the highlighted strips visible by
+									// showing the box numExtrasToShow's amount of strips
+									// lower in the view window
+									nPrecedingContextDepth += numExtrasToShow * nStripHeight;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("numExtras_Max = %d strips ,  numExtrasToShow = %d strips , NOT TOO MANY so nPrecedingContextDepth = %d"),
+						numExtras_Max,numExtrasToShow,nPrecedingContextDepth);
+#endif
+								}
 							}
 						}
 					}
 				}
-			}
-			else // review mode or it's single step
-			{
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Review mode, or it's single step mode, so -- NO ADJUSTMENT required (phrase box should be mid window)"));
-#endif
-			//	nPrecedingContextDepth = nVisStrips / 2 * nStripHeight + 1; // mid window,
-			//													// or a little below that
-			}
-		}
-
-		// get the desired logical top (ie. y Distance) to the desired scroll position
-		// (this calculation will yield a negative number if the target strip is closer
-		// to the top of the virtual document than the value of nPrecedingContextDepth)
-		int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Initial desiredViewTop = %d"),desiredViewTop);
-#endif
-#ifdef Do_Clipping
-		int old_desiredTop = desiredViewTop; // for anti-flicker support
-#endif
-		// make a sanity check on the above value
-		if (desiredViewTop < 0)
-		{
-			desiredViewTop = 0;
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Final desiredViewTop = 0 (reset because was negative)"));
-#endif
-		}
-		//-------------------- now the desiredViewBottom calculations ---------------
-
-        // Determine the desired bottom position in the document of the content we wish to
-        // view. We do this by adding the window depth to the desiredViewTop value. When
-        // the active strip gets close to the end of the logical document, this could
-        // result in a value which exceeds the logical document's height - so if that is
-        // the case, we force the bottom of the view to be at the end of the logical
-        // document - except when the document height is so small that all of it fits
-        // within the view - in that case we just show it all. (Remember that
-        // desiredViewTop is the vertical distance that we want the scroll car to track,
-        // therefore everything has to be calculated based on the desiredViewTop value.)
-		int desiredViewBottom = desiredViewTop + nWindowDepth;
-		bool bForceRepositioningToDocEnd = FALSE;
-		wxSize virtDocSize;
-		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Initial desiredViewBottom = %d"),desiredViewBottom);
-#endif
-		// sanity check on the above value
-		if (desiredViewBottom > virtDocSize.y)
-		{
-			desiredViewBottom = virtDocSize.y;
-			bForceRepositioningToDocEnd = TRUE;
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Final desiredViewBottom = %d (reset smaller because value was too great"),desiredViewBottom);
-#endif
-		}
-
-		// now we are ready to scroll - we don't care where the scroll car currently is,
-		// because the Scroll() function in wxWidgets is absolute, and resets the car
-		// position to whatever location we've calculated as the desiredViewTop
-		if (nWindowDepth >= virtDocSize.y)
-		{
-			// it's a short document that fits in the current view window's vertical
-			// dimensions
-			Scroll(0,0); // Scroll takes scroll units not pixels
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Short doc, scroll car must be at 0"));
-#endif
-		}
-		else
-		{
-			// the logical document is longer than the view window, so the scroll bar will
-			// be active (the Scroll call takes scroll units) Note: see the comment about
-			// the kluge done in CLayout::SetLogicalDocHeight(), the comment is within
-			// that function - it prevents the last strip, when box is in it and mode is
-			// vertical editing, from being below the bottom of the view window.
-			// Increasing the y value in the Scroll() call below doesn't do what we want.
-			if (bForceRepositioningToDocEnd)
-			{
-				// active location is at or near doc end, so scroll to the end; allow for
-				// granularity of yPixelsPerUnit, add 1 more
-				Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
-#ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Scroll forced to doc end"));
-#endif
-			}
-			else
-			{
-                // normal situation: active strip is either near the doc top (and remember
-                // that the needed ajustment for the value of desiredViewTop has been made
-                // already), or it is somewhere in the document and not near either end
-#ifdef Do_Clipping
-// 				wxLogDebug(_T("allow clipping flag is %s, old_desiredTop  %d, desiredViewTop  %d  Test is %s , Clipped? %s"),
-//				pLayout->GetAllowClippingFlag() ? _T("TRUE") : _T("FALSE"),
-//				old_desiredTop,desiredViewTop,
-//				old_desiredTop == desiredViewTop ? _T("TRUE") : _T("FALSE"),
-//				pLayout->GetAllowClippingFlag() && !pLayout->GetScrollingFlag() != TRUE ? _T("YES") : _T("NO"));
-				if (old_desiredTop == desiredViewTop)
+				else // review mode or it's single step
 				{
-					// no scroll is needed, so clipping is potentially possible (provided
-					// m_bAllowClipping is also TRUE)
-					pLayout->SetScrollingFlag(FALSE); // clear m_bScrolling to FALSE
-				}
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Review mode, or it's single step mode, so -- NO ADJUSTMENT required (phrase box should be mid window)"));
 #endif
-				//int scrollRange = GetScrollRange(wxVERTICAL);
-				//wxLogDebug(_T("scrollRange = %d  steps"), scrollRange);
-				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+				//	nPrecedingContextDepth = nVisStrips / 2 * nStripHeight + 1; // mid window,
+				//													// or a little below that
+				}
+			}
+
+			// get the desired logical top (ie. y Distance) to the desired scroll position
+			// (this calculation will yield a negative number if the target strip is closer
+			// to the top of the virtual document than the value of nPrecedingContextDepth)
+			int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Initial desiredViewTop = %d"),desiredViewTop);
+#endif
+#ifdef Do_Clipping
+			int old_desiredTop = desiredViewTop; // for anti-flicker support
+#endif
+			// make a sanity check on the above value
+			if (desiredViewTop < 0)
+			{
+				desiredViewTop = 0;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Final desiredViewTop = 0 (reset because was negative)"));
+#endif
+			}
+			//-------------------- now the desiredViewBottom calculations ---------------
+
+			// Determine the desired bottom position in the document of the content we wish to
+			// view. We do this by adding the window depth to the desiredViewTop value. When
+			// the active strip gets close to the end of the logical document, this could
+			// result in a value which exceeds the logical document's height - so if that is
+			// the case, we force the bottom of the view to be at the end of the logical
+			// document - except when the document height is so small that all of it fits
+			// within the view - in that case we just show it all. (Remember that
+			// desiredViewTop is the vertical distance that we want the scroll car to track,
+			// therefore everything has to be calculated based on the desiredViewTop value.)
+			int desiredViewBottom = desiredViewTop + nWindowDepth;
+			bool bForceRepositioningToDocEnd = FALSE;
+			wxSize virtDocSize;
+			GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Initial desiredViewBottom = %d"),desiredViewBottom);
+#endif
+			// sanity check on the above value
+			if (desiredViewBottom > virtDocSize.y)
+			{
+				desiredViewBottom = virtDocSize.y;
+				bForceRepositioningToDocEnd = TRUE;
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Final desiredViewBottom = %d (reset smaller because value was too great"),desiredViewBottom);
+#endif
+			}
+
+			// now we are ready to scroll - we don't care where the scroll car currently is,
+			// because the Scroll() function in wxWidgets is absolute, and resets the car
+			// position to whatever location we've calculated as the desiredViewTop
+			if (nWindowDepth >= virtDocSize.y)
+			{
+				// it's a short document that fits in the current view window's vertical
+				// dimensions
+				Scroll(0,0); // Scroll takes scroll units not pixels
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Short doc, scroll car must be at 0"));
+#endif
+			}
+			else
+			{
+				// the logical document is longer than the view window, so the scroll bar will
+				// be active (the Scroll call takes scroll units) Note: see the comment about
+				// the kluge done in CLayout::SetLogicalDocHeight(), the comment is within
+				// that function - it prevents the last strip, when box is in it and mode is
+				// vertical editing, from being below the bottom of the view window.
+				// Increasing the y value in the Scroll() call below doesn't do what we want.
+				if (bForceRepositioningToDocEnd)
+				{
+					// active location is at or near doc end, so scroll to the end; allow for
+					// granularity of yPixelsPerUnit, add 1 more
+					Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
+#ifdef DEBUG_ScrollIntoView
+			wxLogDebug(_T("Scroll forced to doc end"));
+#endif
+				}
+				else
+				{
+					// normal situation: active strip is either near the doc top (and remember
+					// that the needed ajustment for the value of desiredViewTop has been made
+					// already), or it is somewhere in the document and not near either end
+#ifdef Do_Clipping
+	// 				wxLogDebug(_T("allow clipping flag is %s, old_desiredTop  %d, desiredViewTop  %d  Test is %s , Clipped? %s"),
+	//				pLayout->GetAllowClippingFlag() ? _T("TRUE") : _T("FALSE"),
+	//				old_desiredTop,desiredViewTop,
+	//				old_desiredTop == desiredViewTop ? _T("TRUE") : _T("FALSE"),
+	//				pLayout->GetAllowClippingFlag() && !pLayout->GetScrollingFlag() != TRUE ? _T("YES") : _T("NO"));
+					if (old_desiredTop == desiredViewTop)
+					{
+						// no scroll is needed, so clipping is potentially possible (provided
+						// m_bAllowClipping is also TRUE)
+						pLayout->SetScrollingFlag(FALSE); // clear m_bScrolling to FALSE
+					}
+#endif
+					//int scrollRange = GetScrollRange(wxVERTICAL);
+					//wxLogDebug(_T("scrollRange = %d  steps"), scrollRange);
+					Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
 
 #ifdef DEBUG_ScrollIntoView
-		wxLogDebug(_T("Typical scroll, scroll car set to yDist of  %d pixels"),desiredViewTop);
-		int newXPos,current_yDistFromDocStartToViewTop;
-		CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
-		wxLogDebug(_T("Scroll Distance =  %d logical units; +ve value means Scrolled DOWN, -ve means Scrolled UP , old car position = %d logical units"),
-			(desiredViewTop/yPixelsPerUnit - current_yDistFromDocStartToViewTop/yPixelsPerUnit), current_yDistFromDocStartToViewTop/yPixelsPerUnit);
+			wxLogDebug(_T("Typical scroll, scroll car set to yDist of  %d pixels"),desiredViewTop);
+			int newXPos,current_yDistFromDocStartToViewTop;
+			CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
+			wxLogDebug(_T("Scroll Distance =  %d logical units; +ve value means Scrolled DOWN, -ve means Scrolled UP , old car position = %d logical units"),
+				(desiredViewTop/yPixelsPerUnit - current_yDistFromDocStartToViewTop/yPixelsPerUnit), current_yDistFromDocStartToViewTop/yPixelsPerUnit);
 #endif
-			}
-		}
-	}
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
-//#if defined(_FT_ADJUST) && defined(_DEBUG)
-	}
-//#endif
-
-// ------------------------------------------------------------------------------------------------------
-
-//#if defined(_FT_ADJUST) && defined(_DEBUG)
-	else
-	{
-//#endif
-	// The (hopefully simpler) free-translation supporting scroll into view code
-
-	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
-	if (!debugDisableScrollIntoView)
-	{
-		CAdapt_ItView* pView = pApp->GetView();
-		CPile* pPile = pView->GetPile(nSequNum);
-		//CStrip* pStrip = pPile->GetStrip(); // unused
-		//wxRect rectStrip = pStrip->GetStripRect(); // unused
-
-		// get the visible rectangle's coordinates
-		wxRect visRect; // wxRect rectClient;
-        // wx note: calling GetClientSize on the canvas produced different results in wxGTK
-        // and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
-        // main frame's client size after subtracting the controlBar's height and
-        // composeBar's height (if visible).
-		wxSize canvasSize;
-		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
-		//visRect.width = canvasSize.GetWidth();
-		visRect.height = canvasSize.GetHeight();
-
-        // calculate the window depth, and then how many strips are fully visible in it; we
-        // will use the latter in order to change the behaviour so that instead of
-        // scrolling so that the active strip is at the top (which hides preceding context
-        // and so is a nuisance), we will scroll to somewhere a little past the window
-        // center (so as to show more, rather than less, of any automatic inserted material
-        // which may have background highlighting turned on)
-		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
-		// in free translation mode) in the now removed m_curPileHeight value;
-		// the refactored design doesn't so I'll have to add them here
-		int nWindowDepth = visRect.GetHeight();
-
-		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
-		if (pApp->m_bFreeTranslationMode)
-		{
-			nStripHeight += 3 + pLayout->GetTgtTextHeight();
-		}
-		int nVisStrips = nWindowDepth / nStripHeight;
-		if (nWindowDepth % nStripHeight > 0) // modulo
-			nVisStrips++; // add 1 if a part strip fits as well
-
-		// get the current horizontal and vertical pixel scale factors for scroll units
-		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
-		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-
-        // determine how much preceding context (ie. how many strips) we want to try make
-        // visible above the phrase box  - for free translation, we'll use a sliding scale
-        // depending on how many strips fit. For 5 or less, show one above; otherwise show 2
-        int numTopHalfStrips;
-		if (nVisStrips <= 5)
-			numTopHalfStrips = 1;
-		else
-			numTopHalfStrips = 2;
-
-		//int nBoundForPrecedingContextStrips = nVisStrips - 3;
-
-		int nPrecedingContextDepth = numTopHalfStrips * nStripHeight;
-        // nStripHeight calculated above includes the leading
-
-        // Get the required y-coord of the top of the phrase box's strip where the "strip"
-        // includes its preceding leading -- that is, the distance from the start of the
-        // document to the beginning of the leading for the active strip (the new value was
-        // determined by a prior call to RecalcLayout)
-		int yDistFromDocStartToStripTopLeading = pPile->GetPileRect().GetTop() - pApp->m_curLeading;
-
-		// get the desired logical top (ie. y Distance) to the desired scroll position
-		// (this calculation will yield a negative number if the target strip is closer
-		// to the top of the virtual document than the value of nPrecedingContextDepth)
-		int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
-#ifdef Do_Clipping
-		int old_desiredTop = desiredViewTop; // for anti-flicker support
-#endif
-		// make a sanity check on the above value
-		if (desiredViewTop < 0)
-		{
-			desiredViewTop = 0;
-		}
-		//-------------------- now the desiredViewBottom calculations ---------------
-
-        // Determine the desired bottom position in the document of the content we wish to
-        // view. We do this by adding the window depth to the desiredViewTop value. When
-        // the active strip gets close to the end of the logical document, this could
-        // result in a value which exceeds the logical document's height - so if that is
-        // the case, we force the bottom of the view to be at the end of the logical
-        // document - except when the document height is so small that all of it fits
-        // within the view - in that case we just show it all. (Remember that
-        // desiredViewTop is the vertical distance that we want the scroll car to track,
-        // therefore everything has to be calculated based on the desiredViewTop value.)
-		int desiredViewBottom = desiredViewTop + nWindowDepth;
-		bool bForceRepositioningToDocEnd = FALSE;
-		wxSize virtDocSize;
-		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
-
-		// sanity check on the above value
-		if (desiredViewBottom > virtDocSize.y)
-		{
-			desiredViewBottom = virtDocSize.y;
-			bForceRepositioningToDocEnd = TRUE;
-		}
-
-		// now we are ready to scroll - we don't care where the scroll car currently is,
-		// because the Scroll() function in wxWidgets is absolute, and resets the car
-		// position to whatever location we've calculated as the desiredViewTop
-		if (nWindowDepth >= virtDocSize.y)
-		{
-			// it's a short document that fits in the current view window's vertical
-			// dimensions
-			Scroll(0,0); // Scroll takes scroll units not pixels
-		}
-		else
-		{
-			// the logical document is longer than the view window, so the scroll bar will
-			// be active (the Scroll call takes scroll units) Note: see the comment about
-			// the kluge done in CLayout::SetLogicalDocHeight(), the comment is within
-			// that function - it prevents the last strip, when box is in it and mode is
-			// vertical editing, from being below the bottom of the view window.
-			// Increasing the y value in the Scroll() call below doesn't do what we want.
-			if (bForceRepositioningToDocEnd)
-			{
-				// active location is at or near doc end, so scroll to the end; allow for
-				// granularity of yPixelsPerUnit, add 1 more
-				Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
-			}
-			else
-			{
-                // normal situation: active strip is either near the doc top (and remember
-                // that the needed ajustment for the value of desiredViewTop has been made
-                // already), or it is somewhere in the document and not near either end
-#ifdef Do_Clipping
-				if (old_desiredTop == desiredViewTop)
-				{
-					// no scroll is needed, so clipping is potentially possible (provided
-					// m_bAllowClipping is also TRUE)
-					pLayout->SetScrollingFlag(FALSE); // clear m_bScrolling to FALSE
 				}
-#endif
-				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
 			}
 		}
-	}
-#if defined (FREETRMODE)
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-#endif
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
-	}
+		}
 //#endif
-	// end of the free translation supporting else block
 
-	// END of code for scrolling regime "keep phrase box midscreen"
-	}
-	else
-	{
-    // COMMENCE code for scrolling regime "keep strips stationary (until an autoscroll is
-    // forced on us), and move the box down the strips until it reaches the last, then do
-    // autoscroll"
-    // BEW comment 7Feb13.(This is legacy code, from 9May2009 (svn r500) tweaked for using
-    // the refactoring's accessor functions for pile and strip and layout; but with
-    // additional logic changes. A logic 'bad feature' is now fixed. A legacy variable
-    // called desiredViewBottom (i.e. the place in the view where we don't want the bottom
-    // of the phrase box's strip to be below [which would bring it too close to the window
-    // bottom] is calculated, so far so good, but the failure of two previous tests
-    // resulted in a third using that variable, and the test would always be TRUE,
-    // resulting in the phrase box being kept at 3 strips from the bottom of the window.
-    // The logic error here is that autoscrolling thereby nearly always ignores the
-    // desiredViewTop value, and the box never gets put near the client area's top, and so
-    // the user never sees a temporarily 'fixed' vertical location of the strips while just
-    // the box moves down vertically as the user adapts. I've reworked the protocol. The
-    // desiredViewBottom calculation really is not a place for where to scroll to when all
-    // else fails; instead, it's a location at which if the box moves down past it, then it
-    // should trigger a scroll down so that the box ends up at the desiredViewTop location.
-    // So I'm renaming desiredViewBottom as scrollTriggerLocation (I'll make it be one
-    // strip height short of the client area bottom), and when the box moves past that
-    // vertical location, an autoscroll is done. The scroll calculations are done at the
-    // bottom of this code, I'll comment out the legacy code there, and rewrite the scroll
-    // logic according to the new protocol described here. Also, desiredViewTop is set at
-	// 3 strips from bottom of client area, which is unfortunate - I want it to be such
-	// that there is only a single strip of preceding context visible in the window (when
-	// an autoscroll happens, the viewing eyes need some earlier context visible so they
-	// can pick up where their attention should be; those cues would be missing if we
-	// scrolled so as to put the phrase box at the top strip)
+	// ------------------------------------------------------------------------------------------------------
 
-	if (pApp->m_nActiveSequNum == -1)
-	{
-		return; // do nothing if the phrase box is hidden because we are at doc end
-	}
-	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
-	if (!debugDisableScrollIntoView)
-	{
-		CAdapt_ItView* pView = pApp->GetView();
-		CPile* pPile = pView->GetPile(nSequNum);
-
-		// get the visible rectangle's coordinates
-		wxRect visRect; // wxRect rectClient;
-		// wx note: calling GetClientSize on the canvas produced different results in wxGTK
-		// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
-		// main frame's client size after subtracting the controlBar's height and
-		// composeBar's height (if visible).
-		wxSize canvasSize;
-		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
-		visRect.width = canvasSize.GetWidth();
-		visRect.height = canvasSize.GetHeight();
-
-		// calculate the window depth, and then how many strips are fully visible in it; we
-		// will use the latter in order to change the behaviour so that instead of
-		// scrolling so that the active strip is at the top (which hides preceding context
-		// and so is a nuisance), we will scroll to somewhere a little past the window
-		// center (so as to show more, rather than less, of any automatic inserted material
-		// which may have background highlighting turned on)...
-
-		int nWindowDepth = visRect.GetHeight();
-        // BEW 7Feb13 the following strip height calculation takes into account the height
-        // adjustment required if free translation mode is currently on
-		int nStripHeight = pLayout->GetStripHeight() + pLayout->GetCurLeading();
-
-		// get the current horizontal and vertical pixels currently scrolled
-		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
-		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-
-        // Determine how much preceding context (ie. how many strips) we want to try make
-        // visible above the phrase box when auto inserting (so as to show some cues for
-        // reorienting where the eye should be looking); we make this amount equal to one
-        // strip lower than the visual top. The legacy protocol adjusted the calculated
-        // distance depending on mode - I'm not sure yet to what extent I'll comply with
-        // that
-		int nPrecedingContextDepth = nStripHeight; // nStripHeight includes the leading
-
-        // Get the required y-coord of the top of the phrase box's strip -- that is, the
-        // distance from the start of the document to the top of the top cell for the
-        // active strip (the new value was determined by a prior call to RecalcLayout)
-		int yDistFromDocStartToActiveStripTop = pPile->GetPileRect().GetTop();
-
-		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as
-	    // when the auto insertions have just stopped) then put the box near the bottom of
-	    // the window to show more of the preceding context
-	    /* the legacy adjustments - remove shortly as the code above makes them wrong now
-		int nVisStrips = nWindowDepth / nStripHeight;
-		if (!pApp->m_bAutoInsert)
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
+		else
 		{
-			if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
-				nPrecedingContextDepth = (nVisStrips - 3) * nStripHeight; // whm changed 2 to 3
+//#endif
+		// The (hopefully simpler) free-translation supporting scroll into view code
+
+		bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
+		if (!debugDisableScrollIntoView)
+		{
+			CAdapt_ItView* pView = pApp->GetView();
+			CPile* pPile = pView->GetPile(nSequNum);
+			//CStrip* pStrip = pPile->GetStrip(); // unused
+			//wxRect rectStrip = pStrip->GetStripRect(); // unused
+
+			// get the visible rectangle's coordinates
+			wxRect visRect; // wxRect rectClient;
+			// wx note: calling GetClientSize on the canvas produced different results in wxGTK
+			// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
+			// main frame's client size after subtracting the controlBar's height and
+			// composeBar's height (if visible).
+			wxSize canvasSize;
+			canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
+			//visRect.width = canvasSize.GetWidth();
+			visRect.height = canvasSize.GetHeight();
+
+			// calculate the window depth, and then how many strips are fully visible in it; we
+			// will use the latter in order to change the behaviour so that instead of
+			// scrolling so that the active strip is at the top (which hides preceding context
+			// and so is a nuisance), we will scroll to somewhere a little past the window
+			// center (so as to show more, rather than less, of any automatic inserted material
+			// which may have background highlighting turned on)
+			// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
+			// in free translation mode) in the now removed m_curPileHeight value;
+			// the refactored design doesn't so I'll have to add them here
+			int nWindowDepth = visRect.GetHeight();
+
+			int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
+			if (pApp->m_bFreeTranslationMode)
+			{
+				nStripHeight += 3 + pLayout->GetTgtTextHeight();
+			}
+			int nVisStrips = nWindowDepth / nStripHeight;
+			if (nWindowDepth % nStripHeight > 0) // modulo
+				nVisStrips++; // add 1 if a part strip fits as well
+
+			// get the current horizontal and vertical pixel scale factors for scroll units
+			int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
+			GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+
+			// determine how much preceding context (ie. how many strips) we want to try make
+			// visible above the phrase box  - for free translation, we'll use a sliding scale
+			// depending on how many strips fit. For 5 or less, show one above; otherwise show 2
+			int numTopHalfStrips;
+			if (nVisStrips <= 5)
+				numTopHalfStrips = 1;
 			else
-				nPrecedingContextDepth = nVisStrips / 2 * nStripHeight;
-		}
-		*/
+				numTopHalfStrips = 2;
 
-		// get the desired logical top (ie. y Distance) to the desired scroll position
-		// (this calculation will yield a negative number if the target strip is closer
-		// to the top of the virtual document than the value of nPrecedingContextDepth)
-		int desiredViewTop = yDistFromDocStartToActiveStripTop - nPrecedingContextDepth;
+			//int nBoundForPrecedingContextStrips = nVisStrips - 3;
 
-		// make a sanity check on the above value
-		if (desiredViewTop < 0)
-			desiredViewTop = 0;
+			int nPrecedingContextDepth = numTopHalfStrips * nStripHeight;
+			// nStripHeight calculated above includes the leading
 
-		//-------------------- now the scrollTriggerLocation calculations ---------------
+			// Get the required y-coord of the top of the phrase box's strip where the "strip"
+			// includes its preceding leading -- that is, the distance from the start of the
+			// document to the beginning of the leading for the active strip (the new value was
+			// determined by a prior call to RecalcLayout)
+			int yDistFromDocStartToStripTopLeading = pPile->GetPileRect().GetTop() - pApp->m_curLeading;
 
-		// Determine the trigger location. If, like in the legacy calculations, we base
-		// the value on where the bottom of the active strip would be to be near the
-		// window bottom but at least a strip height's short of that, to avoid a scroll,
-		// then we'd have the right value.
-		wxSize virtDocSize;
-		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
-		int scrollTriggerLocation = pPile->GetPileRect().GetBottom();
-		// if free translating, add in the additional vertical space taken by the free
-		// translation line
-		if (pApp->m_bFreeTranslationMode)
-		{
-			scrollTriggerLocation += 3 + pApp->m_nTgtHeight;
-		}
-		// increment scrollTriggerLocation by the height of one strip; note, this value may
-		// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
-		// sanity check first and make it equal to virtDocSize.y
-		//scrollTriggerLocation += nStripHeight;
-#if defined (FREETRMODE)
-		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+			// get the desired logical top (ie. y Distance) to the desired scroll position
+			// (this calculation will yield a negative number if the target strip is closer
+			// to the top of the virtual document than the value of nPrecedingContextDepth)
+			int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
+#ifdef Do_Clipping
+			int old_desiredTop = desiredViewTop; // for anti-flicker support
 #endif
-		// sanity check on the above value
-		if (scrollTriggerLocation > virtDocSize.y)
-			scrollTriggerLocation = virtDocSize.y;
-	    /* legacy calc, where scrollTriggerLocation was called desiredViewBottom
-		wxSize virtDocSize;
-		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
-		int scrollTriggerLocation = pPile->GetPileRect().GetBottom();
-		if (pApp->m_bFreeTranslationMode)
-		{
-			scrollTriggerLocation += 3 + pApp->m_nTgtHeight;
-		}
-		// increment scrollTriggerLocation by the amount of two strips; note, this value may
-		// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
-		// sanity check first and make it equal to virtDocSize.y
-		scrollTriggerLocation += 2*nStripHeight;
+			// make a sanity check on the above value
+			if (desiredViewTop < 0)
+			{
+				desiredViewTop = 0;
+			}
+			//-------------------- now the desiredViewBottom calculations ---------------
 
-		// sanity check on the above value
-		if (scrollTriggerLocation > virtDocSize.y)
-			scrollTriggerLocation = virtDocSize.y;
-		*/
+			// Determine the desired bottom position in the document of the content we wish to
+			// view. We do this by adding the window depth to the desiredViewTop value. When
+			// the active strip gets close to the end of the logical document, this could
+			// result in a value which exceeds the logical document's height - so if that is
+			// the case, we force the bottom of the view to be at the end of the logical
+			// document - except when the document height is so small that all of it fits
+			// within the view - in that case we just show it all. (Remember that
+			// desiredViewTop is the vertical distance that we want the scroll car to track,
+			// therefore everything has to be calculated based on the desiredViewTop value.)
+			int desiredViewBottom = desiredViewTop + nWindowDepth;
+			bool bForceRepositioningToDocEnd = FALSE;
+			wxSize virtDocSize;
+			GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
 
-		//-------------------- now the current position data ------------------------
+			// sanity check on the above value
+			if (desiredViewBottom > virtDocSize.y)
+			{
+				desiredViewBottom = virtDocSize.y;
+				bForceRepositioningToDocEnd = TRUE;
+			}
 
-		// get the current y distance to the top of the view, that is, to the top of the
-		// client area
-		int newXPos,current_yDistFromDocStartToViewTop;
-		CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
-
-		//------- now check if no scroll needed, or if needed, do it -----------------
-
-		// first check if no scroll is needed - return if it isn't needed
-		if ((desiredViewTop >= current_yDistFromDocStartToViewTop) &&
-			(scrollTriggerLocation <= current_yDistFromDocStartToViewTop + nWindowDepth - nStripHeight))
-		{
-			// no scroll needed, the box is visible and within the preceding and following
-			// context depths, so just return
-			return;
-		}
-
-        // Have we reached the trigger location, at which a scroll must be done? But first
-        // check for the box having reached the last visible strip of the document if so,
-        // don't scroll, just leave it there
-        if (scrollTriggerLocation == virtDocSize.y)
-		{
-			return;
-		}
-		else if (scrollTriggerLocation >= current_yDistFromDocStartToViewTop + nWindowDepth - nStripHeight)
-		{
-			Scroll(0, desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
-			return;
-		}
-		// Third test must ensure that the phrase box isn't left above the top of the
-		// client area...
-		// handle the situation where the desiredViewTop is < (i.e., above)
-		// the current logical view top
-		if (desiredViewTop < current_yDistFromDocStartToViewTop)
-		{
-			Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
-			return;
+			// now we are ready to scroll - we don't care where the scroll car currently is,
+			// because the Scroll() function in wxWidgets is absolute, and resets the car
+			// position to whatever location we've calculated as the desiredViewTop
+			if (nWindowDepth >= virtDocSize.y)
+			{
+				// it's a short document that fits in the current view window's vertical
+				// dimensions
+				Scroll(0,0); // Scroll takes scroll units not pixels
+			}
+			else
+			{
+				// the logical document is longer than the view window, so the scroll bar will
+				// be active (the Scroll call takes scroll units) Note: see the comment about
+				// the kluge done in CLayout::SetLogicalDocHeight(), the comment is within
+				// that function - it prevents the last strip, when box is in it and mode is
+				// vertical editing, from being below the bottom of the view window.
+				// Increasing the y value in the Scroll() call below doesn't do what we want.
+				if (bForceRepositioningToDocEnd)
+				{
+					// active location is at or near doc end, so scroll to the end; allow for
+					// granularity of yPixelsPerUnit, add 1 more
+					Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
+				}
+				else
+				{
+					// normal situation: active strip is either near the doc top (and remember
+					// that the needed ajustment for the value of desiredViewTop has been made
+					// already), or it is somewhere in the document and not near either end
+#ifdef Do_Clipping
+					if (old_desiredTop == desiredViewTop)
+					{
+						// no scroll is needed, so clipping is potentially possible (provided
+						// m_bAllowClipping is also TRUE)
+						pLayout->SetScrollingFlag(FALSE); // clear m_bScrolling to FALSE
+					}
+#endif
+					Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+				}
+			}
 		}
 #if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 #endif
-		/* legacy scroll code, which unfortunately worked to keep the box near window bottom
-		// handle the situation where the desiredViewTop is < (i.e., above)
-		// the current logical view top
-		if (desiredViewTop < current_yDistFromDocStartToViewTop)
-		{
-			Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
-			return;
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
 		}
+//#endif
+		// end of the free translation supporting else block
 
-		// handle the situation where the scrollTriggerLocation is > (i.e., above)
-		// the current logical view bottom
-		if (scrollTriggerLocation > current_yDistFromDocStartToViewTop + nWindowDepth)
-		{
-			Scroll(0, (scrollTriggerLocation - nWindowDepth) / yPixelsPerUnit); //takes scroll units
-			return;
-		}
-		*/
+		// END of code for scrolling regime "keep phrase box midscreen"
 	}
-	// END of code for scrolling regime "keep strips as stationary as possible, and the
-	// phrase box then moves down the client area until it reaches the last strip, and
-	// then autoscroll is done to put it near the view top again"
+	else
+	{
+		// COMMENCE code for scrolling regime "keep strips stationary (until an autoscroll is
+		// forced on us), and move the box down the strips until it reaches the last, then do
+		// autoscroll"
+		// BEW comment 7Feb13.(This is legacy code, from 9May2009 (svn r500) tweaked for using
+		// the refactoring's accessor functions for pile and strip and layout; but with
+		// additional logic changes. A logic 'bad feature' is now fixed. A legacy variable
+		// called desiredViewBottom (i.e. the place in the view where we don't want the bottom
+		// of the phrase box's strip to be below [which would bring it too close to the window
+		// bottom] is calculated, so far so good, but the failure of two previous tests
+		// resulted in a third using that variable, and the test would always be TRUE,
+		// resulting in the phrase box being kept at 3 strips from the bottom of the window.
+		// The logic error here is that autoscrolling thereby nearly always ignores the
+		// desiredViewTop value, and the box never gets put near the client area's top, and so
+		// the user never sees a temporarily 'fixed' vertical location of the strips while just
+		// the box moves down vertically as the user adapts. I've reworked the protocol. The
+		// desiredViewBottom calculation really is not a place for where to scroll to when all
+		// else fails; instead, it's a location at which if the box moves down past it, then it
+		// should trigger a scroll down so that the box ends up at the desiredViewTop location.
+		// So I'm renaming desiredViewBottom as scrollTriggerLocation (I'll make it be one
+		// strip height short of the client area bottom), and when the box moves past that
+		// vertical location, an autoscroll is done. The scroll calculations are done at the
+		// bottom of this code, I'll comment out the legacy code there, and rewrite the scroll
+		// logic according to the new protocol described here. Also, desiredViewTop is set at
+		// 3 strips from bottom of client area, which is unfortunate - I want it to be such
+		// that there is only a single strip of preceding context visible in the window (when
+		// an autoscroll happens, the viewing eyes need some earlier context visible so they
+		// can pick up where their attention should be; those cues would be missing if we
+		// scrolled so as to put the phrase box at the top strip)
+
+		wxLogDebug(_T("Call ScrollInfoView m_bKeepBoxMidscreen if FALSE"));
+
+		if (pApp->m_nActiveSequNum == -1)
+		{
+			return; // do nothing if the phrase box is hidden because we are at doc end
+		}
+		bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
+		if (!debugDisableScrollIntoView)
+		{
+			CAdapt_ItView* pView = pApp->GetView();
+			CPile* pPile = pView->GetPile(nSequNum);
+
+			// get the visible rectangle's coordinates
+			wxRect visRect; // wxRect rectClient;
+			// wx note: calling GetClientSize on the canvas produced different results in wxGTK
+			// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
+			// main frame's client size after subtracting the controlBar's height and
+			// composeBar's height (if visible).
+			wxSize canvasSize;
+			canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
+			visRect.width = canvasSize.GetWidth();
+			visRect.height = canvasSize.GetHeight();
+
+			// calculate the window depth, and then how many strips are fully visible in it; we
+			// will use the latter in order to change the behaviour so that instead of
+			// scrolling so that the active strip is at the top (which hides preceding context
+			// and so is a nuisance), we will scroll to somewhere a little past the window
+			// center (so as to show more, rather than less, of any automatic inserted material
+			// which may have background highlighting turned on)...
+
+			int nWindowDepth = visRect.GetHeight();
+			// BEW 7Feb13 the following strip height calculation takes into account the height
+			// adjustment required if free translation mode is currently on
+			int nStripHeight = pLayout->GetStripHeight() + pLayout->GetCurLeading();
+
+			// get the current horizontal and vertical pixels currently scrolled
+			int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
+			GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+
+			// Determine how much preceding context (ie. how many strips) we want to try make
+			// visible above the phrase box when auto inserting (so as to show some cues for
+			// reorienting where the eye should be looking); we make this amount equal to one
+			// strip lower than the visual top. The legacy protocol adjusted the calculated
+			// distance depending on mode - I'm not sure yet to what extent I'll comply with
+			// that
+			int nPrecedingContextDepth = nStripHeight; // nStripHeight includes the leading
+
+			// Get the required y-coord of the top of the phrase box's strip -- that is, the
+			// distance from the start of the document to the top of the top cell for the
+			// active strip (the new value was determined by a prior call to RecalcLayout)
+			int yDistFromDocStartToActiveStripTop = pPile->GetPileRect().GetTop();
+
+			// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as
+			// when the auto insertions have just stopped) then put the box near the bottom of
+			// the window to show more of the preceding context
+			/* the legacy adjustments - remove shortly as the code above makes them wrong now
+			int nVisStrips = nWindowDepth / nStripHeight;
+			if (!pApp->m_bAutoInsert)
+			{
+				if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
+					nPrecedingContextDepth = (nVisStrips - 3) * nStripHeight; // whm changed 2 to 3
+				else
+					nPrecedingContextDepth = nVisStrips / 2 * nStripHeight;
+			}
+			*/
+
+			// get the desired logical top (ie. y Distance) to the desired scroll position
+			// (this calculation will yield a negative number if the target strip is closer
+			// to the top of the virtual document than the value of nPrecedingContextDepth)
+			int desiredViewTop = yDistFromDocStartToActiveStripTop - nPrecedingContextDepth;
+
+			// make a sanity check on the above value
+			if (desiredViewTop < 0)
+				desiredViewTop = 0;
+
+			//-------------------- now the scrollTriggerLocation calculations ---------------
+
+			// Determine the trigger location. If, like in the legacy calculations, we base
+			// the value on where the bottom of the active strip would be to be near the
+			// window bottom but at least a strip height's short of that, to avoid a scroll,
+			// then we'd have the right value.
+			wxSize virtDocSize;
+			GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
+			int scrollTriggerLocation = pPile->GetPileRect().GetBottom();
+			// if free translating, add in the additional vertical space taken by the free
+			// translation line
+			if (pApp->m_bFreeTranslationMode)
+			{
+				scrollTriggerLocation += 3 + pApp->m_nTgtHeight;
+			}
+			// increment scrollTriggerLocation by the height of one strip; note, this value may
+			// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
+			// sanity check first and make it equal to virtDocSize.y
+			//scrollTriggerLocation += nStripHeight;
+#if defined (FREETRMODE)
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
+			// sanity check on the above value
+			if (scrollTriggerLocation > virtDocSize.y)
+				scrollTriggerLocation = virtDocSize.y;
+			/* legacy calc, where scrollTriggerLocation was called desiredViewBottom
+			wxSize virtDocSize;
+			GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
+			int scrollTriggerLocation = pPile->GetPileRect().GetBottom();
+			if (pApp->m_bFreeTranslationMode)
+			{
+				scrollTriggerLocation += 3 + pApp->m_nTgtHeight;
+			}
+			// increment scrollTriggerLocation by the amount of two strips; note, this value may
+			// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
+			// sanity check first and make it equal to virtDocSize.y
+			scrollTriggerLocation += 2*nStripHeight;
+
+			// sanity check on the above value
+			if (scrollTriggerLocation > virtDocSize.y)
+				scrollTriggerLocation = virtDocSize.y;
+			*/
+
+			//-------------------- now the current position data ------------------------
+
+			// get the current y distance to the top of the view, that is, to the top of the
+			// client area
+			int newXPos,current_yDistFromDocStartToViewTop;
+			CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
+
+			//------- now check if no scroll needed, or if needed, do it -----------------
+
+			// first check if no scroll is needed - return if it isn't needed
+			if ((desiredViewTop >= current_yDistFromDocStartToViewTop) &&
+				(scrollTriggerLocation <= current_yDistFromDocStartToViewTop + nWindowDepth - nStripHeight))
+			{
+				// no scroll needed, the box is visible and within the preceding and following
+				// context depths, so just return
+				return;
+			}
+
+			// Have we reached the trigger location, at which a scroll must be done? But first
+			// check for the box having reached the last visible strip of the document if so,
+			// don't scroll, just leave it there
+			if (scrollTriggerLocation == virtDocSize.y)
+			{
+				return;
+			}
+			else if (scrollTriggerLocation >= current_yDistFromDocStartToViewTop + nWindowDepth - nStripHeight)
+			{
+				Scroll(0, desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+				return;
+			}
+			// Third test must ensure that the phrase box isn't left above the top of the
+			// client area...
+			// handle the situation where the desiredViewTop is < (i.e., above)
+			// the current logical view top
+			if (desiredViewTop < current_yDistFromDocStartToViewTop)
+			{
+				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+				return;
+			}
+#if defined (FREETRMODE)
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
+			/* legacy scroll code, which unfortunately worked to keep the box near window bottom
+			// handle the situation where the desiredViewTop is < (i.e., above)
+			// the current logical view top
+			if (desiredViewTop < current_yDistFromDocStartToViewTop)
+			{
+				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+				return;
+			}
+
+			// handle the situation where the scrollTriggerLocation is > (i.e., above)
+			// the current logical view bottom
+			if (scrollTriggerLocation > current_yDistFromDocStartToViewTop + nWindowDepth)
+			{
+				Scroll(0, (scrollTriggerLocation - nWindowDepth) / yPixelsPerUnit); //takes scroll units
+				return;
+			}
+			*/
+		}
+		// END of code for scrolling regime "keep strips as stationary as possible, and the
+		// phrase box then moves down the client area until it reaches the last strip, and
+		// then autoscroll is done to put it near the view top again"
 	}
 }
 

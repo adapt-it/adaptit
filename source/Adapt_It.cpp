@@ -35355,6 +35355,7 @@ enum Reparse reparseDoc)
     int indexOfXmarker;
     indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
     indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+    wxUnusedVar(indexOfXmarker);
     m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
     m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
     //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
