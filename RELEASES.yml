@@ -22,3 +22,8 @@ include:
   - distro: 'ubuntu'   # Ubuntu 22.04
     release: 'jammy'
     args: '--unsigned-source --unsigned-changes'
+
+  - distro: 'ubuntu'   # Ubuntu 24.04
+    release: 'noble'
+    args: '--unsigned-source --unsigned-changes'
+
