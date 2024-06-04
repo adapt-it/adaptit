@@ -1,10 +1,15 @@
 ﻿----------------------------------------------
-Version 6.11.1  5 October 2023
+Version 6.11.1  7 June 2024
 ----------------------------------------------
 Feature changes and new features in 6.11.1
 --------------------------------------------------------------------------------------
 * The parser of input source text has been extensively revised. It's more capable, and
 works well with a greater variety of novel (but correct) USFM markup structures.
+* The filtering and un-filtering (hiding and showing) of certain markers has been 
+significantly revised. Previously, this function did not handle well situations where
+multiple adjacent markers were filtered, for example, when \ms (major section head), 
+\mr (major sect head reference), \s (section head) and/or \r (parallel reference) were
+grouped together, which might typically occur at a new chapter (\c n) marker. 
 * In earlier versions, certain errors when parsing in source text, could crash the app.
 Now, Adapt It will put up a warning message dialog, saying where the data error occurs, 
 and shows the input text for about 60 characters either side of where the error lies. 
