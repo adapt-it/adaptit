@@ -5468,6 +5468,9 @@ bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
+	// BEW added 5Jun24 
+	m_pApp->m_bStartingFreeTransSetup = FALSE; // initialise
+
 	// Start with no CPile instances marked for background colouring in pink
 	m_pLayout->MakeAllPilesNonCurrent();
 
@@ -5489,16 +5492,19 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	}
 
 #ifdef _DEBUG
-//	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
+	wxLogDebug(_T("\n Setting up free trans section: Active SN passed in: %d"),activeSequNum);
 #endif
+	// BEW added 5Jun24 
+	m_pApp->m_bStartingFreeTransSetup = TRUE;
+	m_pApp->m_nLastSN_forFreeTrans = -1; // BEW 5Jun24 initialise
+
 	m_pApp->m_pActivePile = m_pView->GetPile(activeSequNum); // has to be set here, because at
 							// end of RecalcLayout's legacy code it is still undefined
 	bool bEditBoxHasText = FALSE; // to help with initializing the ComposeBar's contents,
                             // because we may be returning from normal mode after an
                             // editing operation and want the box text to still be there
 	wxASSERT(m_pFrame->m_pComposeBar != NULL);
-	wxTextCtrl* pEdit = (wxTextCtrl*)
-							m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+	wxTextCtrl* pEdit = (wxTextCtrl*)m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 	// whm 24Aug06 removed gFreeTranslationStr global here and below
 	wxString tempStr;
 	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
@@ -5547,7 +5553,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 				break;
 
 			// get the next pile - beware, it will be NULL if we are at doc end
-			pNextPile = m_pView->GetNextPile(pile);
+			pNextPile = m_pView->GetNextPile(pile); // BEW changed to use this refactored one, on 5Jun24
 			if (pNextPile == NULL)
 			{
                 // we are at the doc end
@@ -6771,6 +6777,12 @@ void CFreeTrans::OnUpdateAdvanceButton(wxUpdateUIEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
+	// BEW 5Jun24 get the anchor location's sequNum value - it should be the active location
+	// before the advance kicks off
+	m_pApp->m_nSN_forFreeTrans = m_pApp->m_nActiveSequNum;
+	wxLogDebug(_T("OnAdvanceButton() in FreeTrans.cpp,  line= %d, Active SN= %d"),
+		__LINE__, m_pApp->m_nSN_forFreeTrans);
+
  	m_bAllowOverlengthTyping = FALSE; // ensure default is restored (BEW added 26Nov13)
 
  	if (m_pApp->m_bForceVerseSectioning)

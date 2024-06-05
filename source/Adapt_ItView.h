@@ -186,6 +186,7 @@ public:
 	CPile*		GetNextEmptyPile(CPile* pPile);
 	CSourcePhrase* GetNextEmptySrcPhrase(int nStartingSequNum);
 	CPile*		GetNextPile(CPile* pPile);
+	CPile*		GetNextPile_forFreeTrans();
 	CPile*		GetPile(const int nSequNum);
 	CPile*		GetPrevPile(CPile* pPile);
 	CSourcePhrase*  GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase);

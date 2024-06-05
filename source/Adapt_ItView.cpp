@@ -1171,7 +1171,9 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 		}
 	}
 #endif
-	int nCount = pLayout->GetPileList()->GetCount();
+	PileList* pPileList = pLayout->GetPileList();
+	int nCount = pPileList->GetCount();
+	//int nCount = pLayout->GetPileList()->GetCount();
 	if (nSequNum < 0 || nSequNum >= nCount)
 	{
 		// bounds error, so return NULL
@@ -1180,10 +1182,11 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 
 	//PileList::Node* pos_pPileList = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases
 												  // and m_pileList lists
-	PileList::Node* pos_pPileList = pLayout->GetPileList()->Item(nSequNum);
-
+	//PileList::Node* pos_pPileList = pLayout->GetPileList()->Item(nSequNum); 
+	PileList::Node* pos_pPileList = pPileList->Item(nSequNum);
 	wxASSERT(pos_pPileList != NULL);
-	return pos_pPileList->GetData();
+	CPile* pPile = pos_pPileList->GetData();
+	return pPile;
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -1211,10 +1214,11 @@ CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
 	return pPile->GetCell(cellIndex);
 }
 
-
 // returns a pointer to the next pile, or NULL if there is none
 // BEW 26Mar10, no changes needed for support of doc version 5
-CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
+// BEW 5Jun24 refactored a bit to get rid of the use of Node* and the overt pile list,
+// Document() has a call that works instead, to get CSourcePhrase* and we can get sequNum from that
+CPile* CAdapt_ItView::GetNextPile(CPile* pPile)
 {
 	// refactored 17Mar09; BEW modified 25Oct09 as pPile can be NULL
 	// passed in, in Review mode, so must test for it early!
@@ -1222,7 +1226,14 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 		return (CPile*)NULL;
 	CPile* pNextPile = NULL;
 	PileList* pPiles = GetLayout()->GetPileList();
-	int index = pPiles->IndexOf(pPile);
+
+	// BEW  try 5Jun24
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CSourcePhrase* pSP = pPile->GetSrcPhrase();
+	int index = pSP->m_nSequNumber;
+	//int index = pPiles->IndexOf(pPile);
+
 	index++; // index of next CPile instance
 	if (index >= (int)pPiles->GetCount())
 	{
@@ -1231,10 +1242,101 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 	else
 	{
 		// not past end of document
+		//PileList::Node* pos_pPile = pPiles->Item(index);
+		//pNextPile = pos_pPile->GetData();
+		
+		// BEW try 5Jun24
+		pNextPile = this->GetPile(index);
+		wxASSERT(pNextPile != NULL);
+	}
+	return pNextPile;
+}
+// returns a pointer to the next pile, or NULL if there is none
+// BEW 26Mar10, no changes needed for support of doc version 5
+CPile* CAdapt_ItView::GetNextPile_forFreeTrans()
+{
+	// refactored 17Mar09; BEW modified 25Oct09 as pPile can be NULL
+	// passed in, in Review mode, so must test for it early!
+	CPile* pNextPile = NULL;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int iStart = 0;
+//#ifdef _DEBUG
+	if (pApp->m_bStartingFreeTransSetup)
+	{
+		// Only use the active sequNum to kick off the building of a free trans section
+		// thereafter, use pApp->m_nLastSN_forFreeTrans
+		pApp->m_nSN_forFreeTrans = pApp->m_nActiveSequNum;
+		pApp->m_bStartingFreeTransSetup = FALSE;
+		pApp->m_nLastSN_forFreeTrans = -1; // section extent is not yet known
+	}
+	else
+	{
+		pApp->m_nSN_forFreeTrans = pApp->m_nLastSN_forFreeTrans;
+	}
+	
+	wxLogDebug(_T("GetNextPile_forFreeTrans() in View, check first sequNum, line= %d, sequNum= %d"),
+		__LINE__, pApp->m_nSN_forFreeTrans);
+	CSourcePhrase* pSP = NULL;
+
+	iStart = pApp->m_nSN_forFreeTrans;
+	PileList* pilesPtr = GetLayout()->GetPileList();
+
+	int anSN = pApp->m_nSN_forFreeTrans; // starter, and use in iterations
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CPile* aPilePtr = pDoc->GetPile(anSN);
+	pSP = aPilePtr->GetSrcPhrase();
+	//wxLogDebug(_T("GetNextPile() in View, At Active Loc?, line= %d, src= %s , tgt= %s , sequNum= %d"),
+	//	__LINE__, pSP->m_srcPhrase, pSP->m_targetStr, pSP->m_nSequNumber);
+
+	// How long is the current section of free translation - want number of piles, m_pFreeTrans has that info
+	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
+	int nFreeTransLen = pFreeTrans->m_pCurFreeTransSectionPileArray->GetCount();
+
+	// int iStart = pilesPtr->IndexOf(pPile); RHSide fails
+
+	// Start at pile after last one of the current section
+	iStart += nFreeTransLen;
+	int iEnd = iStart + nFreeTransLen;
+	int ndex = 0;
+#ifdef _DEBUG
+	for (ndex = iStart; ndex <= iEnd; ndex++)
+	{
+		aPilePtr = pDoc->GetPile(ndex);
+		pSP = aPilePtr->GetSrcPhrase();
+
+		// BEW 6Jun24 these two lines return an item which is garbage, and dereferecing gives garbage or crash,
+		// so bypass. Doc's GetPile() from a sequNum works correctly, so rebuild using that in code above this comment
+		//PileList::Node* mypos_pPile = pilesPtr->Item(ndex);
+		//pSP = (CSourcePhrase*)mypos_pPile->GetData();
+		wxLogDebug(_T("GetNextPile() in View, TEST 1 or more, line= %d, src= %s , tgt= %s , ndex sequNum= %d"),
+						__LINE__, pSP->m_srcPhrase, pSP->m_targetStr, pSP->m_nSequNumber);
+	}
+#endif
+
+	// BEW removed 5Jun24
+	//PileList* pPiles = GetLayout()->GetPileList();
+	//int index = pPiles->IndexOf(pPile);
+
+	int index = pApp->m_nSN_forFreeTrans;
+	pNextPile = pDoc->GetPile(index);
+
+	//index++; // index of next CPile instance
+	if (index >= (int)pilesPtr->GetCount())
+	{
+		return (CPile*)NULL; // bounds error - passed end of document
+	}
+	/* BEW removed 5Jun24
+	else
+	{
+		// not past end of document
 		PileList::Node* pos_pPile = pPiles->Item(index);
 		pNextPile = pos_pPile->GetData();
 		wxASSERT(pPile != NULL);
 	}
+	*/
+	pApp->m_nLastSN_forFreeTrans = pApp->m_nSN_forFreeTrans;
+	//pApp->m_nSN_forFreeTrans++; // next entry needs to be next pSrcPhrase
+
 	return pNextPile;
 }
 

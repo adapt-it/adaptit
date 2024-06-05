@@ -6091,6 +6091,12 @@ public:
 	wxArrayString m_arrOldSearches; // old search strings accumulated while in this project, this
 					                // array (and the one above)should be cleared when the project is exitted
 
+
+	// BEW 5Jun24 added next, to help with Free Translation Mode, IndexOf() is failing, need a way around using it
+	int m_nSN_forFreeTrans;
+	int m_nLastSN_forFreeTrans;
+	bool m_bStartingFreeTransSetup;
+
 	// whm removed the NavProtectNewDoc* m_pNavProtectDlg pointer below after creating
     // the dialog on the stack rather than on the heap (which can sometimes lead to a crash
     // in GTK/Linux version if ShowModal() is then called).
