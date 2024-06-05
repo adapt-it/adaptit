@@ -1357,6 +1357,9 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 			message = message.Format(message, checkStr.c_str(), checkStr.c_str());
 			wxString caption = _T("No book ID code line is present at the beginning of this document");
 			wxTextEntryDialog tedlg(gpApp->GetMainFrame(), message, caption);
+			// whm 3Jun2024 adjustment. Older versions of wxWidgets don't have the .ForceUpper() method. Therefore, I'll 
+			// just use the wxString.MakeUpper() method instead. The user just won't see automatic conversion to upper case.
+			// tedlg.ForceUpper();
 			bool bContinue = TRUE;
 			while (bContinue)
 			{

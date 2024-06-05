@@ -6062,6 +6062,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		{
 			int textLen;
 			textLen = RebuildSourceText(inputBuffer, pList);
+			wxUnusedVar(textLen);
 			wxASSERT(!inputBuffer.IsEmpty());
 			// At this point we should have a new inputBuffer ready to feed into the 
 			// GetUsfmStructureAndExtent(inputBuffer) call below.
@@ -45476,7 +45477,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										wxLogDebug(_T("ParseWord() line %d Storing ch:vs: %s "), __LINE__, gpApp->m_chapterVerseAttrSpan.c_str());
 										if (pSrcPhrase->m_nSequNumber >= 2)
 										{
-											int halt_here = 1;
+											int halt_here = 1; wxUnusedVar(halt_here);
 										}
 #endif
 #if defined (_DEBUG) && defined (NOPAREN)
@@ -45593,7 +45594,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 4)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -45787,7 +45788,7 @@ parenth:
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 4)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -50149,7 +50150,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokenizeText line %d,  sequNumLast %d,  lastKey: %s"), __LINE__, sequNumLast, lastKey.c_str());
 
 							//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
@@ -51192,7 +51193,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), at.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 #endif
 							wxString theMkr = GetWholeMarker(ptr);
@@ -51219,7 +51220,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 #endif
 						if (!bFoundOne)
@@ -51351,7 +51352,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 7)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 #endif
 						break; // 10th break in TokenizeText()
@@ -51470,7 +51471,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), ptrPointsAt.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 #endif
 		if (bEmptyUSFM)
@@ -51649,7 +51650,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str());
 				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 			}
 #endif
@@ -51813,7 +51814,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				__LINE__, pSrcPhrase->m_nSequNumber, itemLen, wxString(ptr, 16).c_str());
 			if (pSrcPhrase->m_nSequNumber >= 1)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 #endif
 
@@ -51845,7 +51846,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 3)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 #endif
 			// We do NormalizeToSpaces() only on the string of standard format markers which
@@ -51863,7 +51864,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str());
 				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 			}
 #endif
@@ -52159,7 +52160,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			if (!strMarkers.IsEmpty())
 			{
 				offset = strMarkers.Find(strVerseMkr);
-				int verseLen;
+				int verseLen; wxUnusedVar(verseLen);
 				verseLen = 0; // init
 				wxString strAtVerse; wxString strAtNumber;
 				strAtVerse = wxEmptyString;
@@ -52611,7 +52612,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger, atPtr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif	
@@ -52933,7 +52934,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
 				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 			}
 #endif			
@@ -53127,7 +53128,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 3)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 		}
 #endif			
