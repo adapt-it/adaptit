@@ -35345,6 +35345,7 @@ enum Reparse reparseDoc)
     countBeforeEdit = countBeforeEdit; // avoid warning
     countAfterEdit = countAfterEdit; // avoid warning
 
+    /*
     // whm 29Feb204 added. We need to determine the filter status of the \x and \xt markers
     // before the edit in the filter page, so we can use this information to adjust the
     // filter status of the \xt marker properly after the filtering changes have been done
@@ -35360,6 +35361,7 @@ enum Reparse reparseDoc)
     m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
     //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
     //m_bMkr_x_WasUnfilteredBeforeFilteringChange = !m_bMkr_x_WasFilteredBeforeFilteringChange;
+    */
 
     int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
@@ -35436,6 +35438,29 @@ enum Reparse reparseDoc)
 
     if (bFilterChangeInDoc)
     {
+        // whm 7Jun2024 made the following booleans local to this block.
+        // These are designed to track the filter status of the \xt marker 
+        // as it existed before a filtering session change using the filter 
+        // page in Preferences.
+        bool	m_bMkr_xt_WasFilteredBeforeFilteringChange;
+        bool	m_bMkr_xt_WasUnfilteredBeforeFilteringChange;
+
+        // whm 29Feb204 added. We need to determine the filter status of the \x and \xt markers
+        // before the edit in the filter page, so we can use this information to adjust the
+        // filter status of the \xt marker properly after the filtering changes have been done
+        // by the TokenizeText() call below.
+        wxString xMkr = _T("\\x ");
+        wxString xtMkr = _T("\\xt ");
+        int indexOfXTmarker;
+        //int indexOfXmarker;
+        indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+        //indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+        //wxUnusedVar(indexOfXmarker);
+        m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
+        m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
+        //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
+        //m_bMkr_x_WasUnfilteredBeforeFilteringChange = !m_bMkr_x_WasFilteredBeforeFilteringChange;
+
         // Any filter change in the Doc requires updating the current USFM and Filtering data
         // structures.
 

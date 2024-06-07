@@ -5036,13 +5036,6 @@ public:
 	// whm 26Feb2024 the following m_bUnfiltering_ex_NotFiltered is set FALSE, but never used in code, so is now removed
 	//bool	 m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
-	// whm 29Feb2024 added the following booleans to track the status of the \x and \xt marker before
-	// a filtering session using the filter page in Preferences.
-	//bool	m_bMkr_x_WasFilteredBeforeFilteringChange;
-	bool	m_bMkr_xt_WasFilteredBeforeFilteringChange;
-	//bool	m_bMkr_x_WasUnfilteredBeforeFilteringChange;
-	bool	m_bMkr_xt_WasUnfilteredBeforeFilteringChange;
-
 	wxString m_chapterVerseAttrSpan; // BEW 18Apr20, store nearest earlier ch:vs ref for error message
 
 	// whm 22Feb2024 moved the following two here to the App from the Doc, and renaming them m_...
