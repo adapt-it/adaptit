@@ -78,6 +78,10 @@
 # 6. Update Linux Mint aliases assignments to DIST at about 277 and 444. 
 #    See: https://www.linuxmint.com/download_all.php
 # 7. Add ORed tests:   || [ x"$DIST" = x"DISTname" ]   to the if test statement at about line 351.
+# Revised 2022-04-23 by Bill Martin
+#   - Added line debchange --release "" to A05suffix script creation at suggestion of Neil Mayhew
+#     This is to fix the failure of pbuilder to find its .changes file at end of build process.
+
 # !!!!!!! NOTE: UPDATES REQUIRED WHEN NEW UBUNTU, DEBIAN and LINUX MINT DISTs APPEAR !!!!!!!!!!
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
@@ -387,6 +391,7 @@ echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
 # whm - 2017-01-14 Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
 # whm - 2018-04-17 Corrected to cd to /tmp/buildd/*/
 # whm - 2020-05-08 Added Debian and Linux Mint dists and their Ubuntu equivalents
+# whm - 2022-04-23 Added line debchange --release "" at suggestion of Neil Mayhew
 
 echo ""
 echo "******************************************************************************"
@@ -475,6 +480,7 @@ then
     PWDDIR=`pwd`
     echo "Current pwd Dir is: $PWDDIR"
     debchange --local=+$DIST "Build for $DIST"
+    debchange --release ""
     # Remove unwanted trailing 1 from distribution suffix
     sed -i -e "1s/+${DIST}1/+${DIST}/" debian/changelog
 fi
