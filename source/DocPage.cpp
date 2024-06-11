@@ -1103,6 +1103,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			   dt2 = wxDateTime::UNow();
 #endif
 
+		// whm 10June2024 moved the following pDoc->Modify(FALSE) to this location from below.
+		// The reason: Calling Modify(FALSE) after OnOpenDocument() nullifies the Modify(TRUE)
+		// that may get set when an existing document that esd created with docVersion before 10 
+		// is loaded by XML.cpp.
+		pDoc->Modify(FALSE);
+
 		bool bOK = pDoc->OnOpenDocument(docPath, true); // BEW 7Oct14, this sets or
 					// clears the app boolean m_bZWSPinDoc at the end of the call
         
@@ -1255,7 +1261,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // behaviour that a just-opened document is immediately ready for a Split operation
         // without the user having to realize a save must first be done to get the document
         // clean for the Split to be enabled
-		pDoc->Modify(FALSE);
+		// 
+		// whm 10June2024 moved the pDoc->Modity(FALSE) from here up to just before the
+		// OnOpenDocument() call. The reason: If the user opens an existing document that 
+		// requires auto upgrading to the current document version, the Modify(FALSE) call
+		// here resets the Modify(TRUE) calls that are made within the upgrade functions in
+		// XML.cpp.
+		//pDoc->Modify(FALSE);
 		gpApp->RefreshStatusBarInfo();
 
 #ifdef SHOW_DOC_I_O_BENCHMARKS

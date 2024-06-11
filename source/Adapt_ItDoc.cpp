@@ -35696,7 +35696,11 @@ CSourcePhrase* CAdapt_ItDoc::GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase)
 // document and the returned value would also be NULL.
 // This function is used mainly within TokenizeText(), but also has some application within the 
 // ReconstituteAfterFilteringChange() function, and possibly elsewhere such as within DoMarkerHousekeeping().
-CSourcePhrase* CAdapt_ItDoc::GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase) //, SPList* pList)
+// When this function is called from routines in XML.cpp, the second paramter bXMLInput should be TRUE
+// in order to have a work around for a problem with m_pSourcePhrases->Find(pPrevSrcPhrase) and getting
+// a previous position in the m_pSourcePhrase list there.
+CSourcePhrase* CAdapt_ItDoc::GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase,
+													bool bXMLInput) //, SPList* pList)
 {
 	if (pPrevSrcPhrase == NULL)
 		return NULL;
@@ -35705,26 +35709,75 @@ CSourcePhrase* CAdapt_ItDoc::GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* p
 		// The incoming pPrevSrcPhrase is not a placeholder, so just return it to the caller.
 		return pPrevSrcPhrase;
 	}
-	//int nSequNum = pPrevSrcPhrase->m_nSequNumber;
-	SPList::Node* pos_pList;
+	SPList* pList = gpApp->m_pSourcePhrases;
+	if (pList == NULL || pList->IsEmpty())
+		return pPrevSrcPhrase;
+	SPList::Node* pos_pSPList = NULL;
+
+	int nSequNum = pPrevSrcPhrase->m_nSequNumber;
 	// whm 19Mar2024 modified. For situations where TokenizeText() is called to tokenize a sub-string, 
 	// such as when it is called from the first call in OnEditSourceText(), the pList is not suitable 
 	// for determining a position by calling pList->Item(nSequNum) because pList may well be an empty 
 	// list and in any case, the position returned from a pList->Item(nSequNum) will not be accurate 
 	// for use in getting a previous non-placeholder pPrevSrcPhrase to return to the caller.
 	// Therefore, we set the pos_pList here to its value based on the App's m_pSourcePhrases list.
-	pos_pList = gpApp->m_pSourcePhrases->Find(pPrevSrcPhrase);
-	CSourcePhrase* pLastSP = NULL;
-	pos_pList->GetPrevious();
-	pLastSP = pos_pList->GetData();
-	while (pLastSP != NULL && pLastSP->m_bNullSourcePhrase && pLastSP->m_nSequNumber >= 0)
+	// using m_pSourcePhrases->Find(pPrevSrcPhrase).
+	// whm 10June2024 workaround. The m_pSourcePhrases->Find(pPrevSrcPhrase) does not appear to work
+	// well when GetPreviousNonPlaceholderSrcPhrase() is called from the XML upgrade routines
+	// FromDocVersion4ToDocVersionCurrent() amd FromDocVersion5through9ToDocVersionCurrent(). See
+	// note inside while loop below for more information on the issue. I've added a bool parameter to
+	// make the signature GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase, bool bXMLInput = FALSE)
+	// in which when no parameter is given (in calls from TokenizeText etc) a ->Find(pPrevSrcPhrase)
+	// is used below. When bXMLInput is TRUE, m_pSourcePhrases->Item(nSequNum) is used instead.
+	CSourcePhrase* pTestSP = NULL;
+	if (bXMLInput == TRUE)
 	{
-		pos_pList->GetPrevious();
-		pLastSP = pos_pList->GetData();
+		// When called from XML input routines start by determining the pos_pSPList of the last
+		// source phrase in pList.
+		pos_pSPList = pList->GetLast();
+		pTestSP = pos_pSPList->GetData();
+#ifdef _DEBUG
+		wxASSERT(nSequNum == pTestSP->m_nSequNumber);
+#endif
 	}
-	if (pLastSP != NULL)
+	else
 	{
-		pPrevSrcPhrase = pLastSP;
+		// When called from TokenizeText() etc, start by determining the pos_pSPList position by
+		// using the pList->Find(pPrevSrcPhrase) command. This is necessary because certain
+		// calls of TokenizeText() - such as during unfiltering - are made on a sublist of source
+		// phrases of a larger m_pSourcePhrases list on the App. 
+		pos_pSPList = pList->Find(pPrevSrcPhrase);
+		pos_pSPList->GetPrevious(); // TODO: Test if this is necessary.
+	}
+	if (pos_pSPList == NULL)
+	{
+		// Couldn't find the pPrevSrcPhrase in the App's gpApp->m_pSourcePhrases which is 
+		// unexpected. Probably best to just return the pPrevSrcPhrase unchanged.
+		return pPrevSrcPhrase;
+	}
+	CSourcePhrase* pPrevSP = NULL;
+	pPrevSP = pos_pSPList->GetData();
+	nSequNum = pPrevSP->m_nSequNumber;
+	while (pPrevSP != NULL && pPrevSP->m_bNullSourcePhrase && pPrevSP->m_nSequNumber >= 0 && nSequNum >= 0)
+	{
+		// whm 10Jun2024 strange pos_pSPList->GetPrevious() behavior ovserved. 
+		// I found the pos_pList->GetPrevious() call would sometimes misbehave when trying to get the
+		// previous position of a source phrase when working with the App's m_pSourcePhrases when
+		// GetPreviousNonPlaceholderSrcPhrase() was called from within the upgrade routines of XML.cpp.
+		// The pos_pSPList position value was not changing even when pos_pSPList->GetPrevious() was called.
+		// Therefore I've decided to use the m_nSequNum of the incoming pPrevSrcPhrase, and just 
+		// use PList->Item(nSequNum) to get the pos_pSPList with decremented values and retrieve the pPrevSP
+		// source phrases within this while loop until a previous source phrase is found whose
+		// m_bNullSourcePhrase is FALSE. This approach also works for when this function is called from
+		// TokenizeText() since the first nSequNum is determined using the pList->Find(pPrevSrcPhrase)
+		// operation for those cases.
+		nSequNum--;
+		pos_pSPList = pList->Item(nSequNum); //pos_pSPList->GetPrevious();
+		pPrevSP = pos_pSPList->GetData();
+	}
+	if (pPrevSP != NULL)
+	{
+		pPrevSrcPhrase = pPrevSP;
 	}
 	return pPrevSrcPhrase;
 }
@@ -40155,7 +40208,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	{
 		wxString pointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("ParseWord() line %d , Before ParseNumber() , ptr-> [%s]"), __LINE__, pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 18)
+		if (pSrcPhrase->m_nSequNumber >= 49)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}

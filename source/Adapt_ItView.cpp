@@ -1229,7 +1229,7 @@ CPile* CAdapt_ItView::GetNextPile(CPile* pPile)
 
 	// BEW  try 5Jun24
 	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument(); wxUnusedVar(pDoc);
 	CSourcePhrase* pSP = pPile->GetSrcPhrase();
 	int index = pSP->m_nSequNumber;
 	//int index = pPiles->IndexOf(pPile);

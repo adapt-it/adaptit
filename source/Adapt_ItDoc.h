@@ -523,7 +523,8 @@ public:
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, bool& bWordNotParsed); // BEW 3Aug23 added bWordNotParsed
 	//CSourcePhrase*  GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase); // BEW added 13Dec22, and commented out 13Dec22 - it isn't needed yet, but is robust
-	CSourcePhrase*	GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase); // whm 18Mar2024 added for getting prev SP to store filtered info
+	CSourcePhrase*	GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase,// whm 18Mar2024 added for getting prev SP to store filtered info
+						bool bXMLInput = FALSE); // defaults to FALSE for calls from TokenizeText() etc.
 	SPList::Node*	GetFollowingNonPlaceholderInsertPosition(SPList::Node* insertPos, CSourcePhrase*& pInsertSP); // whm 18Mar2024 added for getting insert position for unfiltering SP sublist
 	bool			CanParseForward(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 26Jul23 refactored, because
 						// internally the algorithm gave false positives, especially if ' (straight quote) was not in the punctuation set.

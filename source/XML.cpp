@@ -3326,6 +3326,16 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	// the switch can be commented out
 	if (tag == xml_settings) // if it's a "Settings" tag
 	{
+		// whm 10June2024 added an initialization for gpPrevSrcPhrase here to NULL.
+		// The gpPrevSrcPhrase was only initialized in global space at line `16 which 
+		// is not sufficient to prevent a crash due to uninitialized pointer, which can
+		// happen when a document is retrieved from the document history via the 
+		// File > View list of previously remembered versions... menu item, and the
+		// retrieved document was of a previous docVersion requiring upgrading via the
+		// FromDocVersion6through9ToDocVersionCurrent() function.
+		// Initializing it here when the xml_settings tag is encountered should guarantee
+		// that it gets initialized to NULL for each document that gets opened.
+		gpPreviousSrcPhrase = NULL;
 		// this tag only has attributes, so nothing to be done (the first attribute
 		// within the Settings tag will set the docVersion number, and the rest
 		// of doc input will then be versionable
@@ -4113,6 +4123,13 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			else if (attrName == xml_sn)
 			{
 				gpEmbeddedSrcPhrase->m_nSequNumber = atoi(attrValue);
+#if defined (_DEBUG)
+				if (gpEmbeddedSrcPhrase->m_nSequNumber == 81)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
+				//				wxLogDebug(_T("Parsing Doc: sn = %d"), gpSrcPhrase->m_nSequNumber); // VERY VALUABLE for detecting an XML error introduced by manual doc xml fixing
+#endif
 			}
 			else if (attrName == xml_w)
 			{
@@ -4332,9 +4349,13 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			else if (attrName == xml_sn)
 			{
 				gpSrcPhrase->m_nSequNumber = atoi(attrValue);
-//#if defined (_DEBUG)
+#if defined (_DEBUG)
+				if (gpSrcPhrase->m_nSequNumber == 69)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
 //				wxLogDebug(_T("Parsing Doc: sn = %d"), gpSrcPhrase->m_nSequNumber); // VERY VALUABLE for detecting an XML error introduced by manual doc xml fixing
-//#endif
+#endif
 			}
 			else if (attrName == xml_w)
 			{
@@ -4667,13 +4688,53 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			{
 				FromDocVersion4ToDocVersionCurrent(gpSrcPhrase->m_pSavedWords, 
 									gpEmbeddedSrcPhrase, TRUE, gnDocVersion);
+				// whm 11June2024 addition. for gnDocVersion == 4 I think it would be 
+				// appropriate to populate the embedded gpSrcPhrase->m_srcSinglePattern and 
+				// m_oldKey members - if empty - in order to bring them up to the current 
+				// docVersion.
+				// Note: The FromDocVersion4ToDocVersionCurrent() call above attempts to
+				// separate out the various end markers and punctuation that were all store 
+				// in docVersion 4 members via the TransferEndMarkers() function called there. 
+				// 
+				if (gpEmbeddedSrcPhrase->m_srcSinglePattern.IsEmpty())
+				{
+					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+					// strWordAndExtras value which includes m_key word plus material that is 
+					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+					gpEmbeddedSrcPhrase->m_srcSinglePattern = gpEmbeddedSrcPhrase->m_key;
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetInlineBindingEndMarkers();
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->m_follPunct;
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetEndMarkers();
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetFollowingOuterPunct();
+				}
+				if (gpEmbeddedSrcPhrase->m_oldKey.IsEmpty())
+				{
+					gpEmbeddedSrcPhrase->m_oldKey = gpEmbeddedSrcPhrase->m_key;
+				}
 			}
-			// whm 27Jan2024 I assume there is no need to have an if (gnDocVersion == 5)
-			// block here nor a call of FromDocVersion4ToDocVersionCurrent() passing in
-			// the gpEmbeddedSrcPhrase here. I don't think it would work since the 
-			// gpPreviousSrcPhrase is NOT an embedded source phrase and doesn't point to
-			// any source phrase word in the m_pSavedWords source phrase list of merged
-			// word SPs.
+			if (gnDocVersion >= 5 && gnDocVersion <= 9)
+			{
+				// whm 11June2024 addition. for gnDocVersion 5 through 9 I think it would be 
+				// appropriate to populate the embedded gpSrcPhrase->m_srcSinglePattern and 
+				// m_oldKey members - if empty - in order to bring them up to the current 
+				// docVersion.
+				if (gpEmbeddedSrcPhrase->m_srcSinglePattern.IsEmpty())
+				{
+					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+					// strWordAndExtras value which includes m_key word plus material that is 
+					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+					gpEmbeddedSrcPhrase->m_srcSinglePattern = gpEmbeddedSrcPhrase->m_key;
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetInlineBindingEndMarkers();
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->m_follPunct;
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetEndMarkers();
+					gpEmbeddedSrcPhrase->m_srcSinglePattern += gpEmbeddedSrcPhrase->GetFollowingOuterPunct();
+				}
+				if (gpEmbeddedSrcPhrase->m_oldKey.IsEmpty())
+				{
+					gpEmbeddedSrcPhrase->m_oldKey = gpEmbeddedSrcPhrase->m_key;
+				}
+
+			}
 			gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
 			gpEmbeddedSrcPhrase = NULL;
 		}
@@ -4686,6 +4747,25 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			{
 				FromDocVersion4ToDocVersionCurrent(gpApp->m_pSourcePhrases,  
 									gpSrcPhrase, FALSE, gnDocVersion);
+
+				// whm 10June2024 addition. In header comments for this function BEW wondered if it would
+				// be good to assign a value to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as
+				// part of the upgrading process. I agree that it should be done which I've done below.
+				if (gpSrcPhrase->m_srcSinglePattern.IsEmpty())
+				{
+					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+					// strWordAndExtras value which includes m_key word plus material that is 
+					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+					gpSrcPhrase->m_srcSinglePattern = gpSrcPhrase->m_key;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetInlineBindingEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->m_follPunct;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetFollowingOuterPunct();
+				}
+				if (gpSrcPhrase->m_oldKey.IsEmpty())
+				{
+					gpSrcPhrase->m_oldKey = gpSrcPhrase->m_key;
+				}
 			}
 
 			// whm 27Jan2024 added next block. Any doc version 4 transfers will have
@@ -4694,6 +4774,54 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			if (gnDocVersion == 5)
 			{
 				FromDocVersion5ToDocVersionCurrent(gpSrcPhrase);
+				// whm 10June2024 addition. In header comments for this function BEW wondered if it would
+				// be good to assign a value to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as
+				// part of the upgrading process. I agree that it should be done which I've done below.
+				if (gpSrcPhrase->m_srcSinglePattern.IsEmpty())
+				{
+					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+					// strWordAndExtras value which includes m_key word plus material that is 
+					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+					gpSrcPhrase->m_srcSinglePattern = gpSrcPhrase->m_key;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetInlineBindingEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->m_follPunct;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetFollowingOuterPunct();
+				}
+				if (gpSrcPhrase->m_oldKey.IsEmpty())
+				{
+					gpSrcPhrase->m_oldKey = gpSrcPhrase->m_key;
+				}
+			}
+
+			// whm 10Jun2024 change. The next test needs to test gnDocVersion >= 6 && gnDocVersion <= 9 
+			// in order to include gnDocVersion from 6 through 9. Those versions all stored filtered information
+			// on a following source phrase instead of a previous source phrase. AI Version 6.11.1 is the
+			// first version to store filtered information on a previous source phrase. The function call 
+			// below FromDocVersion6through9ToDocVersionCurrent() moves the filtered information to a
+			// previous non-placeholder source phrase, to make the xml document being input compatible with
+			// version 6.11.1.
+			if (gnDocVersion >= 6 && gnDocVersion <= 9)
+			{
+				FromDocVersion6through9ToDocVersionCurrent(gpSrcPhrase);
+				// whm 10June2024 addition. In header comments for this function BEW wondered if it would
+				// be good to assign a value to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as
+				// part of the upgrading process. I agree that it should be done which I've done below.
+				if (gpSrcPhrase->m_srcSinglePattern.IsEmpty())
+				{
+					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+					// strWordAndExtras value which includes m_key word plus material that is 
+					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+					gpSrcPhrase->m_srcSinglePattern = gpSrcPhrase->m_key;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetInlineBindingEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->m_follPunct;
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetEndMarkers();
+					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetFollowingOuterPunct();
+				}
+				if (gpSrcPhrase->m_oldKey.IsEmpty())
+				{
+					gpSrcPhrase->m_oldKey = gpSrcPhrase->m_key;
+				}
 			}
 
 			if (gpSrcPhrase != NULL)
@@ -4757,11 +4885,28 @@ bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata), CStack*& WX
 // the legacy doc to docV6 that the original value for this flag can be restored, so we
 // just default the flag to being FALSE - that is, the default "by Punctuation" setting
 // for how free translations are to be section -- which may not be correct
+// 
+// whm 10Jun2024 Note update: For any given older version document, ONLY one of the two functions:
+// (this) FromDocVersion4ToDocVersionCurrent() OR the FromDocVersion5through9ToDocVersionCurrent() 
+// will be called. The two functions should NEVER be called in succession since, for doc version
+// 4 xml input, filtered information gets moved in such cases to a previous non-placeholder location,
+// and if a subseqwuent call were made to FromDocVersion5through9ToDocVersionCurrent(), filtered
+// information would be carried forward AGAIN which would be an error. 
 void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhrase, bool bIsEmbedded,
 										int docVersion)
 {
 	gpApp->m_bDefineFreeTransByPunctuation = TRUE; // BEW 27Feb12, best we can do
 
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	// whm 10June2024 added to make upgraded doc dirty.
+	pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
+
+	// whm 10June2024 comment: This whole block below doesn't make sense here in 
+	// FromDocVersion4ToDocVersionCurrent(). The doc version throughout this function
+	// is docVersion 4 only, so the following if (docVersion >= 7 will never test
+	// TRUE and so its TRUE block will never execute and is meaningless!
+	// See also later in this function where a docVersion >= 6 test is also 
+	// meaningless and will never execute.
 	if (docVersion >= 7)
 	{
 		// set an empty string as the current bookName
@@ -4791,7 +4936,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 	// node in the pList as we've customarily used the label pLastSP!
 	// I am assuming that BEW intended this to be the case for sending a "pLastSP"
 	// into the TransferEndMarkers() function below in which pLastSP at that call 
-	// will be the "final" source phrase in pList (which I assum would be m_pSavedWords list).
+	// will be the "final" source phrase in pList (which I assume would be m_pSavedWords list).
 	// The comment within the if (!pLastSP->m_pSavedWords->IsEmpty() && bSomethingTransferred)
 	// TRUE block below the TransferEndMarkers() call suggests what's happening: 
 	//    "this CSourcePhrase instance is a merger, so also transfer to its last
@@ -4881,7 +5026,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 	if (bDeleteOrphan)
 	{
 		bDeleteOrphan = FALSE;
-		gpApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase,FALSE);
+		pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE);
 		pSrcPhrase = NULL; // caller needs to know it's NULL, so it won't try to append
 						   // it to the m_pSourcePhrases list, or whatever list we are
 						   // constructing
@@ -4923,14 +5068,25 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// Therefore, filtered info being transferred from the m_markers member of a 
 			// doc version 4 document, should go into the gpPreviousSrcPhrase's m_filteredInfo
 			// member, rather than the m_filteredInfo member of the current pSrcPhrase.
-			// Note: I've also created a new separate FromDocVersion5ToDocVersionCurrent() 
-			// functioin to transfer filtered info from the doc 5's m_filteredInfo of the 
+			// Note: I've also created a new separate FromDocVersion5through9ToDocVersionCurrent() 
+			// functioin to transfer filtered info from doc 5 through 9's m_filteredInfo of the 
 			// current pSrcPhrase to the m_filteredInfo member of the LAST source phrase
 			// - gpPreviousSrcPhrase.
 			// I've modified the code block below to do the transfer for doc version 4
 			// to the current doc version 10+. See the separate function created this date
-			// called FromDocVersion5ToDocVersionCurrent() for newer docs needing their
+			// called FromDocVersion5through9ToDocVersionCurrent() for newer docs needing their
 			// filtered info transferred to their gpPreviousSrcPhrase->m_filteredInfo member.
+			// 
+			// whm 10June2024 modification to ensure that the gpPreviousSrcPhrase is a
+			// non-placeholder source phrase. If the most immediate previous source phrase is
+			// a placeholder, the code now scans to previous source phrases until a non-
+			// placeholder source phrase is located.
+			// Note: The gnDocVersion value that was detected in the Settings of the document
+			// remains constance until the document xml is fully parsed in. The doc version of
+			// the xml doesn't change until the parsed in document is actually saved, at which
+			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// 10.
+			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
 			// 
             // [BEW] extract all the wrapped filtered info into its own string, deal
             // separately with free translations, notes, and collected back
@@ -5035,7 +5191,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 // Note: This function should only be called AFTER the FromDocVersion4ToDocVersionCurrent()
 // function. When that is the case this function can assume that doc 4 to 5 transers have
 // already been made. This function then only needs a pSrcPhrase value parameter. 
-// 
+//
 // BEW TODO: Verify whether the filtered infor transfer done here is all that needs to be
 // transferred for successful upgrading of Doc version 5 documents. What about doc version 9?
 // In particular, I am wondering about the pSrcPhrase->m_srcSinglePattern member. 
@@ -5047,11 +5203,17 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 // What about the status of the m_srcSinglePattern member here when loading a doc version
 // 5 document?
 // BEW TODO: Is the assigning of m_srcSinglePattern here in this function a good idea or
-// not???
+// not??? [see whm response below]
+// whm 10June2024 RESPONSE to above TODO comment by BEW. Yes, I think it would be a good idea
+// to assign values to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as part of
+// the upgrading process, if those value are empty. I've done the assignments at the end of
+// this function.
 void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 {
 	if (pSrcPhrase != NULL && gpPreviousSrcPhrase != NULL)
 	{
+		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+		pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
 		// whm 27Jan2024 comment:
 		// Note: The purpose of this FromDocVersion5ToDocVersionCurrent() 
 		// functioin is to transfer filtered info from a doc 5's m_filteredInfo 
@@ -5082,6 +5244,19 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 		// longer automatically unfilter to the export. Now, they are stored and are
 		// unused until an explicit choice by the user to unfilter something.
 		wxString filterStuff = pSrcPhrase->GetFilteredInfo();
+		if (!filterStuff.IsEmpty())
+		{
+			// whm 10June2024 modification to ensure that the gpPreviousSrcPhrase is a
+			// non-placeholder source phrase. If the most immediate previous source phrase is
+			// a placeholder, the code now scans to previous source phrases until a non-
+			// placeholder source phrase is located.
+			// Note: The gnDocVersion value that was detected in the Settings of the document
+			// remains constance until the document xml is fully parsed in. The doc version of
+			// the xml doesn't change until the parsed in document is actually saved, at which
+			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// 10.
+			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
+		}
 		wxString filteredInfo = ExtractWrappedFilteredInfo(filterStuff,
 			strFreeTrans, strNote, strCollectedBackTrans, strRemainder);
 		if (!strFreeTrans.IsEmpty())
@@ -5129,7 +5304,116 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 		strRemainder = ExtractAndStoreInlineMarkersDocV4To5(strRemainder, pSrcPhrase);
 		pSrcPhrase->m_markers = strRemainder;
 	}
+}
 
+// whm 10June2024 modified. This function is mainly used to transfer any filtered information
+// from Doc Version 6 through 9 files - which all stored it in the m_filteredInfo member of
+// the following pSrcPhrase. Starting with Doc Version 10, all filtered information is stored
+// in a previous non-placeholder source phrase.
+// The caller of this function in XML.cpp's DocEndTag() detects whether the XML document 
+// being input was created as a document version 6 through 9, and ONLY calls this function 
+// for doc versions 6 through 9.
+//
+// whm 10Jun2024 Note update: For any given older version document, ONLY one of the update functions:
+// FromDocVersion4ToDocVersionCurrent(), FromDocVersion5ToDocVersionCurrent() OR (this) 
+// FromDocVersion6through9ToDocVersionCurrent() will be called. These 3 functions should NEVER be 
+// called in succession since, doing so, filtered information would be carried forward AGAIN which 
+// would be an error. 
+// 
+// Note: Like the FromDocVersion5ToDocVersionCurrent() function, this function also has opted
+// to assign values to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as part of
+// the upgrading process, if those value are empty. I've done the assignments at the end of
+// this function - as suggested by BEW (see his comment in above function).
+void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
+{
+	if (pSrcPhrase != NULL && gpPreviousSrcPhrase != NULL)
+	{
+		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+		pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
+		// whm 27Jan2024 comment:
+		// Note: The purpose of this FromDocVersion5through9ToDocVersionCurrent() 
+		// functioin is to transfer filtered info from a doc 5's m_filteredInfo 
+		// of the current pSrcPhrase's m_filteredInof member, to the m_filteredInfo 
+		// member of the LAST/PREVIOUS source phrase - gpPreviousSrcPhrase here in XML.cpp.
+		// I've modified the code block below to do the transfer for doc version 5
+		// to the current doc version 10+.
+		// 
+		// [BEW] extract all the wrapped filtered info into its own string, deal
+		// separately with free translations, notes, and collected back
+		// translations, and the rest belongs in m_markers
+		// (ExtractWrappedFilteredInfo() is defined in XML.cpp)
+		wxString strRemainder;
+		wxString strFreeTrans;
+		wxString strNote;
+		wxString strCollectedBackTrans;
+		// [BEW] the next call strips of \~FILTER and \~FILTER* and any marker and endmarker
+		// wrapped by these wrapper markers, if returning data via strFreeTrans, strNote,
+		// and/or strCollectedBackTrans; but the normal return string which goes to
+		// filteredInfo will have neither the filter marker wrappers, nor the marker
+		// and endmarker (if present)wrapped by them, removed - because Adapt It makes
+		// no use of the m_filteredInfo content in version 5, that member is just
+		// there as a catch all for all filtered stuff needing to be kept in case the
+		// use calls for an export - in which case it needs to be put into the export
+		// at the appropriate places, but until then we just squirrel it away and
+		// forget about it
+		// BEW Dec 2016 - changed the export functions a few years ago so that they no
+		// longer automatically unfilter to the export. Now, they are stored and are
+		// unused until an explicit choice by the user to unfilter something.
+		wxString filterStuff = pSrcPhrase->GetFilteredInfo();
+		if (!filterStuff.IsEmpty())
+		{
+			// whm 10June2024 modification to ensure that the gpPreviousSrcPhrase is a
+			// non-placeholder source phrase. If the most immediate previous source phrase is
+			// a placeholder, the code now scans to previous source phrases until a non-
+			// placeholder source phrase is located.
+			// Note: The gnDocVersion value that was detected in the Settings of the document
+			// remains constance until the document xml is fully parsed in. The doc version of
+			// the xml doesn't change until the parsed in document is actually saved, at which
+			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// 10.
+			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
+		}
+		wxString filteredInfo = ExtractWrappedFilteredInfo(filterStuff,
+			strFreeTrans, strNote, strCollectedBackTrans, strRemainder);
+		if (!strFreeTrans.IsEmpty())
+		{
+			// [BEW] transfer the unwrapped content (with \free and \free* markers removed)
+			// to the m_freeTrans member
+			// 
+			// whm 27Jan2024 modified. The SetFreeTrans() method call below should be
+			// done to store filtered \free material on gpPreviousSrcPhrase now rather than
+			// on pSrcPhrase.
+			gpPreviousSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
+		}
+		if (!strNote.IsEmpty())
+		{
+			// [BEW] transfer the unwrapped content (with \note and \note* markers removed)
+			// to the m_note member
+			// 
+			// whm 27Jan2024 modified. The SetNote() method call below should be
+			// done to store filtered \note material on gpPreviousSrcPhrase now rather than
+			// on pSrcPhrase. Ditto for the m_bHasNote = TRUE
+			gpPreviousSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
+			gpPreviousSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
+		}
+		if (!strCollectedBackTrans.IsEmpty())
+		{
+			// [BEW] transfer the unwrapped content (with \bt, or any \bt-initial marker, removed)
+			// to the m_collectedBackTrans member
+			// 
+			// whm 27Jan2024 modified. The SetCollectedBackTrans() method call below should 
+			// be done to store filtered \bt... material on gpPreviousSrcPhrase now rather than
+			// on pSrcPhrase.
+			gpPreviousSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+		}
+		// [BEW] transfer filteredInfo returned string to m_filteredInfo member (& it may
+		// be an empty string)
+		// 
+		// whm 27Jan2024 modified. The SetFilteredInfo() method call below should be
+		// done to store remaining filtered material on gpPreviousSrcPhrase now rather than
+		// on pSrcPhrase.
+		gpPreviousSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
+	}
 }
 
 wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* pSrcPhrase)

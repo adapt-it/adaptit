@@ -367,6 +367,9 @@ void FromDocVersion4ToDocVersionCurrent( SPList* pList, CSourcePhrase*& pSrcPhra
 // See definition for details.
 void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
 
+// whm 10Jun2024 added
+void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
+
 // convert from doc version 5's various filtered content storage members, back to the
 // legacy doc version 4 storage regime, where filtered info and endmarkers (for
 // non-filtered info) were all stored on m_markers. This function must only be called on a
