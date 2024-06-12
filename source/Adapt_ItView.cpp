@@ -1296,9 +1296,9 @@ CPile* CAdapt_ItView::GetNextPile_forFreeTrans()
 
 	// Start at pile after last one of the current section
 	iStart += nFreeTransLen;
+#ifdef _DEBUG
 	int iEnd = iStart + nFreeTransLen;
 	int ndex = 0;
-#ifdef _DEBUG
 	for (ndex = iStart; ndex <= iEnd; ndex++)
 	{
 		aPilePtr = pDoc->GetPile(ndex);
