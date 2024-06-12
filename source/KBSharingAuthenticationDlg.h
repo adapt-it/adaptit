@@ -89,7 +89,12 @@ public:
 	wxString m_strNormalUsername;
 	wxString m_strNormalIpAddr;
 	wxString m_strNormalPassword;
-	wxTextCtrl* pwdCtrlPtr = m_pPasswordCtrl;
+	// whm 11June2024 removed the following unused declaration. pwdCtrlPtr is never
+	// referenced within the source code.
+	// Also, some compilers generate the following error: 
+	// "error C2864: 'KBSharingAuthenticationDlg::pwdCtrlPtr' : only static
+	// const integral data members can be initialized within a class."
+	//wxTextCtrl* pwdCtrlPtr = m_pPasswordCtrl;
 
 	//KbServer* m_pForManagerKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other
