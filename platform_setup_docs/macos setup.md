@@ -1,6 +1,6 @@
 # Adapt It setup
 
-These are a couple other setup-related items I've run across with macOS. 
+These are a couple other setup-related items I've run across with macOS. This file is meant to supplement the "Setting up Adapt It on OS X..." files, which are a bit of a mess right now (mostly because an errant edit of mine clipped out the back half of the file). Your mileage may vary.
 
 ## Suppress debug asserts in Release mode
 
@@ -14,6 +14,26 @@ We have to make one change to the wxWidgets library source before building; the 
     // #else
     //  #define wxDEBUG_LEVEL 2
     #endif
+
+## Set the xcode build path
+
+We’re using a static build of wxWidgets for osx. Part of this setup requires a known path for the library when built -- a configuration that Apple deems "legacy" these days. 
+
+1. Open Xcode’s Settings > Locations tab, and click the Advanced button. 
+2. In the popup that appears, select the Legacy radio button.
+
+*Side note:* I’ve needed to jump back and forth between the legacy build location and the default one when moving from Adapt It and Adapt It Mobile, respectively. You'll likely only need to do this if you've got other/newer apps you support along with Adapt It.
+
+## Build wxwidgets
+
+As of May 2022 / wxWidgets 3.1.6 / Adapt It 6.10.7, we want to build for both Intel (x64) and Mac Silicon:
+
+1. Open wxcocoa.xcodeproj and select the wxcocoa project>static target.
+2. From the build path / configuration bar, select static > Any Mac (Intel, Apple Silicon).
+3. Select the Project > Build For > Running menu command to build the debug version.
+4. Select the Project > Build For > Profileing menu command to build the release version. 
+
+If all goes well, the builds will succeed and end up in the osx>build>Debug and osx>build>Release subdirectories, respectively, as the file `libwx_osx_cocoa.static.a`.
 
 ## Environment variables
 
@@ -75,16 +95,6 @@ As of May 2022, there are two pieces needed to get a good build from _both_ the 
     <true/>
     </dict>
     </plist>
-
-
-## Setting the wxwidgets build path 
-
-We’re using a static build of wxWidgets for osx. Part of this setup requires a known path for the library when built -- a configuration that Apple deems "legacy" these days. 
-
-1. Open Xcode’s Settings > Locations tab, and click the Advanced button. 
-2. In the popup that appears, select the Legacy radio button.
-
-*Side note:* I’ve needed to jump back and forth between the legacy build location and the default one when moving from Adapt It and Adapt It Mobile, respectively. You'll likely only need to do this if you've got other/newer apps you support along with Adapt It.
 
 ## Command line build / archive
 
