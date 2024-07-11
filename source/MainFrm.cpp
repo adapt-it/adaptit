@@ -4424,12 +4424,23 @@ void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
 // NOTE: wxFrame::OnActivate() is MS Windows only. It is not a virtual function
 // under wxWidgets, and takes a single wxActivateEvent& event parameter.
 // BEW 26Mar10, no changes needed for support of doc version 5
+// whm 11July2024 modified to suppress automatic scrolling of AI's main window back to
+// the location of the phrasebox when the user has scrolled it out of view, and subsequently
+// clicked on another top level window like a word processor or Paratext, then clicks back to
+// AI's scrolled main window. The auto scrolling back to the location of the phrasebox was
+// undesirable and frustrating. This modification checks if the active location's strip is
+// out of view, and if so, suppresses the action of this OnActivate() handler preventing it
+// from calling SetFocusAndSetSelectionAtLanding() and event.Skip() in such circumstances.
 void CMainFrame::OnActivate(wxActivateEvent& event)
 {
 	// NOTE: Setting a breakpoint in this type of function will be problematic
 	// because the breakpoint will itself trigger the OnActivate() event!
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// whm 11July2024 added the following call of IsPhraseBoxVisibleInClientWindow() for use in suppessing
+	// the SetFocusAndSetSelectionAtLanding() and event.Skip() calls farther below. See Comments there.
+	bool bPhraseBoxVisibleInClientWindow = pApp->m_pTargetBox->IsPhraseBoxVisibleInClientWindow();
 
 	// m_pTargetBox is now on the App, and under wxWidgets the main frame's
 	// OnActivate() method may be called after the view has been destroyed
@@ -4458,23 +4469,41 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
             {
                 // whm 17May2020 Note: The following call of SetFocusAndSetSelectionAtLanding() gets called
                 // early on AFTER the closure of a modal dialog, AND BEFORE a bogus ENTER key press is passed on
-                // to the CPhraseBox::OnKeyUp() handler.
-#if defined(_DEBUG)				
-				if (pApp->m_pTargetBox->IsShownOnScreen())
-				{
-					wxLogDebug(_T("In CMainFrame::OnActivate IsShownOnScreen() is TRUE")); // whm 25Jan2024 added
-				}
-#endif
+                // to the CPhraseBox::OnKeyUp() handler
+				// 
 				// BEW 14Dec20 commented out 
-				wxLogDebug(_T("In CMainFrame::OnActivate calling SetFocusAndSetSelectionAtLanding()")); // whm 25Jan2024 added back
-                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+				// whm 11July2024 Note: The issue of AI auto-scrolling back to the phrasebox and bring it back into view, 
+				// results when BOTH the SetFocusAndSetSelectionAtLanding() is called AND when that is followed by the 
+				// event.Skip() call below. When both SetFocusAndSetSelectionAtLanding() and event.Skip() are commented 
+				// out, the undesirable scroll back to the PhraseBox location doesn't happen.
+				// TODO: Check and test to make sure that this behavior is not harmful for other situations:
+				// To reduce the possibility of bad interactions, there is now a function prototype:
+				// CPhraseBox::IsPhraseBoxVisibleInClientWindow() that could be used here within OnActivate() to only
+				// prevent calls to SetFocusAndSetSelectionAtLanding() and event.Skip() when IsPhraseBoxVisibleInClientWindow()
+				// returns FALSE.
+				if (bPhraseBoxVisibleInClientWindow)
+				{
+					wxLogDebug(_T("In CMainFrame::OnActivate calling SetFocusAndSetSelectionAtLanding()")); // whm 25Jan2024 added back
+					pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+				}
             }
-        }
-		
+        }	
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
-	event.Skip();
+	// 
+	// whm 11July2024 Note: The issue of AI auto-scrolling back to the phrasebox and bring it back into view, 
+	// results when BOTH the SetFocusAndSetSelectionAtLanding() is called AND when that is followed by the 
+	// event.Skip() call below. When both SetFocusAndSetSelectionAtLanding() and event.Skip() are commented 
+	// out, the undesirable scroll back to the PhraseBox location doesn't happen.
+	// TODO: Check and test to make sure that this behavior is not harmful for other situations:
+	if (bPhraseBoxVisibleInClientWindow)
+	{
+#if defined(_DEBUG)				
+		wxLogDebug(_T("In CMainFrame::OnActivate now calling event.Skip()")); // whm 11July2024 added
+#endif
+		event.Skip();
+	}
 }
 
 // OnIdle moved here from the App. When it was in the App it was causing

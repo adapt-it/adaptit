@@ -8347,28 +8347,52 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 // When this function returns FALSE it means that the phrase box location was
 // scrolled away at the time the main frame was activated by a user click or
 // by some dialog closing. For example, at the time the phrasebox has landed
-// at a location, the user may decide to scroll away to a different location that
-// where the phrasebox is NOT in view, then decides to click on a different
-// location to move the phrasebox there. In the meantime the user has also
-// clicked away from AI to some other window, or has just dismissed a dialog
-// window. Without this function, however, the user's click back on the AI
-// main window to move the phrasebox to a location away from the current phrasebox
-// location is frustrated because the main frame's OnActivate() function will
-// automatically scroll back to the current location of the phrasebox instead
-// of honoring the user's click to move the phrasebox to its new intended
-// location.
+// at a location, the user may decide to scroll away to a different location to
+// examine the text in the other location without actually moving the phrasebox
+// to that other location. In the meantime the user may have also clicked away 
+// from AI to some other window, or has just dismissed a dialog window. 
+// Without this function, however, the user's click back on the AI main window 
+// to continue examining the scrolled location is frustrated because the main 
+// frame's OnActivate() function would automatically scroll back to the current 
+// location of the phrasebox instead of remaining at the scrolled location.
 bool CPhraseBox::IsPhraseBoxVisibleInClientWindow()
 {
-	bool bPhraseBoxIsVisible = TRUE;
+	// If the phrasebox is not currently within the client window we
+	// return FALSE. If the phrasebox is currently within a visible strip
+	// we return TRUE.
+	bool bPhraseBoxIsVisible = FALSE;
 
-	// TODO: if phrasebox is not currently within the client window we
-	// return FALSE instead of the default TRUE value.
 	if (gpApp->m_pTargetBox != NULL)
 	{
-		// get the client coordinates of the phrasebox
-
+		CAdapt_ItView* pView = gpApp->GetView();
+		int nFirstStrip;
+		int nLastStrip;
+		pView->GetVisibleStrips(nFirstStrip, nLastStrip);
+		// Get the strip index of the active pile, may be NULL
+		CPile* pile = pView->GetPile(gpApp->m_nActiveSequNum);
+		if (pile != NULL)
+		{
+			int stripArrayCount = (int)GetLayout()->GetStripArray()->GetCount();
+			if (stripArrayCount > 0)
+			{
+				int activeStripIndex = pile->GetStripIndex(); // returns m_pOwningStrip->m_nStrip if Owner strip is not NULL
+				if (activeStripIndex != -1 && activeStripIndex >= nFirstStrip && activeStripIndex <= nLastStrip)
+				{
+#if defined(_DEBUG)				
+					wxLogDebug(_T("In CPhraseBox::IsPhraseBoxVisibleInClientWindow() returns TRUE"));
+#endif
+					bPhraseBoxIsVisible = TRUE;
+				}
+				else
+				{
+#if defined(_DEBUG)				
+					wxLogDebug(_T("In CPhraseBox::IsPhraseBoxVisibleInClientWindow() returns FALSE"));
+#endif
+					bPhraseBoxIsVisible = FALSE;
+				}
+			}
+		}
 	}
-
 	return bPhraseBoxIsVisible;
 }
 
