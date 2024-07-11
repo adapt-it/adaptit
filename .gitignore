@@ -9,7 +9,7 @@
 *.rtf#
 *.gmo
 *.pot
-/bin/win32/Unicode Debug/
+x/bin/win32/Unicode Debug/
 /bin/win32/Unicode Release/
 /bin/win32/Debug/
 /bin/win32/Adapt_It.depend
@@ -59,3 +59,6 @@
 /setup Git/Git_Downloader_2_12_1_4AI.exe
 /bin/win32/Adapt_It.aps
 /setup Git/Git_Downloader_2_18_0_4AI.exe
+.DS_Store
+.DS_Store
+.DS_Store
