@@ -9681,8 +9681,23 @@ void CPhraseBox::SetFocusAndSetSelectionAtLanding()
     // View menu's 'Select Copied Source' toggle menu item. 
     int len = this->GetTextCtrl()->GetValue().Length();
 	// Never select phrasebox contents when there a > 1 items in list.
-	if (this->GetDropDownList()->GetCount() > 1)
-    {
+
+	// BEW 13Jul24 experiment: skip dropping down the list if KB Editor has set
+	// pApp->m_bSuppressDropDown to TRUE
+	CMyListBox* pMyDropdownList = this->GetDropDownList();
+	int listCount = pMyDropdownList->GetCount();
+	//if (this->GetDropDownList()->GetCount() > 1)
+	if (gpApp->m_bSuppressDropDown == TRUE)
+	{ 
+		int halt_here = 1;
+		// trace from here to find where the drop down is asked to drop...
+		//gpApp->m_bSuppressDropDown = FALSE; // restore default
+		return;
+	}
+
+	if(listCount > 1)
+	{
+    
 		// The dropdown list has more than one item so it will be open and displaying its
 		// list items. In this situation we set the cursor to the end of the text, but
 		// not during editing - i.e., within the OnPhraseBoxChanged(), otherwise the cursor
@@ -9712,4 +9727,5 @@ void CPhraseBox::SetFocusAndSetSelectionAtLanding()
         else
             this->GetTextCtrl()->SetSelection(len, len); // Set insertion point at end of text.
     }
+	
 }

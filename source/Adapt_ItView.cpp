@@ -19013,6 +19013,13 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			int len = pApp->m_targetPhrase.Length();
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
+
+			// BEW experiment: suppress having the dropdown dropped down when returning from
+			// having the KB Editor opened.
+			// Turn off my changes, by setting next line FALSE, until more development is to be done
+			pApp->m_bSuppressDropDown = FALSE; // next line is the only place where set TRUE, currently
+			//pApp->m_bSuppressDropDown = TRUE;  // The call in next line uses the TRUE value to skip over dropping
+											   // down the list, when 2 or more entries are in the list
             pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
 	}

@@ -24160,6 +24160,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pServer = (AI_Server*)NULL;
 	m_bkSlash = _T("\\");
     m_bSelectionChange = FALSE; // init - used in KB Sharing Mgr
+    m_bSuppressDropDown = FALSE; // FALSE is default value, wanted for allowing dropdown list to be dropped.
+            // But a TRUE value needs to do a once-only suppression of the opening, then set the bool back to FALSE
     const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
     // on my Windows machine name = "Adapt_ItApp-Bill Martin"
     // on my Linux machine name = "Adapt_ItApp-wmartin"
