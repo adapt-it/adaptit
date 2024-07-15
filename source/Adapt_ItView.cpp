@@ -34773,7 +34773,7 @@ void CAdapt_ItView::ShowGlosses()
 		gbGlossingVisible = FALSE;
 		gbIsGlossing = FALSE; // must be off whenever the other flag is off
 
-		// hide the mode bar checkbox when glossing is not allowed to be visible
+		// Hide the mode bar checkbox when glossing is not allowed to be visible
 		// and when not visible it obligatorily must be adapting
 		if (pCheckboxIsGlossing != NULL)
 		{
