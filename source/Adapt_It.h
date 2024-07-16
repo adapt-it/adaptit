@@ -2381,19 +2381,6 @@ class CAdapt_ItApp : public wxApp
     // global from the App.
     //bool b_Spurious_Enter_Tab_Propagated;
 
-	// BEW 13jUL24 added, so that if the user accesses some other function, such as KB Editor,
-	// ChooseTranslation dialog, Preferences, does something there then returns to the focused
-	// location - the Phrasebox, and the Phrasebox has 2 or more items in the dropdown list,
-	// we can use a TRUE value of this new boolean to suppress dropping down the list. Why?
-	// The list is auto-dropped down, obscures part of next strip, and this is rarely what the
-	// user would want. E.g. it's a big nuisance when I do free translation, because I access
-	// the KB Editor lots of times and I don't want to have to close the drop down after I return
-	// having found out the info I want from the KB Editor. A FALSE value of this boolean just
-	// lets the legacy normal behaviour happen. The suppression is done in SetFocusAndSetSelectionAtLanding()
-	// and possibly may be needed in what follows that, the event.Skip() function.
-	// and possibly may be needed in what follows that, the event.Skip() function.
-	bool m_bSuppressDropDown; 
-
     // whm 15Apr2019 added the following m_nDropDownClickedItemIndex member in order to
     // correct index of a clicked on item if a sudden scroll at left-click would cause
     // a wrong index value for the item user intended to click on. It is initialized

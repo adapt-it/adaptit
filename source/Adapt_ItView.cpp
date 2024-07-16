@@ -15968,10 +15968,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			//int saveBoolean = pApp->m_bTypedNewAdaptationInChooseTranslation;
 			GetLayout()->PlaceBox(); // might not be needed? No it is needed - otherwise it rebuids list on 
 						// where I move phrasebox too & adds old locations meanings to the list there. Ouch.
-						
 			// I didn't notice the next line, that clobbers the boolean too early - so is probably why I
 			// got the error. Commenting it out should suffice
 			//pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // gotta restore initialized value before leaving here
+
+			pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+			pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
 
 #if defined (_DEBUG)
 			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d returning, at end simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
@@ -16053,7 +16055,11 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
         // it is needed.
         // TODO: Determine if there really is a need for the PlaceBox() call here within the OnButtonChooseTranslation()
         // handler.
-        pApp->m_pTargetBox->m_Translation.Empty(); // If the PlaceBox() call can be removed, this can go back into Layout's PlaceBox() after the PopulateDropDownList() call
+
+		pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+		pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+
+		pApp->m_pTargetBox->m_Translation.Empty(); // If the PlaceBox() call can be removed, this can go back into Layout's PlaceBox() after the PopulateDropDownList() call
 #if defined (_DEBUG)
 		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d End legacy code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
@@ -19013,13 +19019,6 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			int len = pApp->m_targetPhrase.Length();
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
-
-			// BEW experiment: suppress having the dropdown dropped down when returning from
-			// having the KB Editor opened.
-			// Turn off my changes, by setting next line FALSE, until more development is to be done
-			pApp->m_bSuppressDropDown = FALSE; // next line is the only place where set TRUE, currently
-			//pApp->m_bSuppressDropDown = TRUE;  // The call in next line uses the TRUE value to skip over dropping
-											   // down the list, when 2 or more entries are in the list
             pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
 	}
@@ -19044,6 +19043,9 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
         // enum internally and calls the SetupDropDownPhraseBoxForThisLocation() to initialize the dropdown
         // list - to include any changes made in the editor.
 		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
+		pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+		pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+
 //#if defined (_DEBUG)
 //        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  -  AFTER PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
 //            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());

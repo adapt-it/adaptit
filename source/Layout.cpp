@@ -1163,20 +1163,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// the dropdown phrasebox list, so I'm here commenting out the m_bDrafting test.
 		//if (m_pApp->m_bDrafting)
 	
-		// BEW experiment 13Jul24, if m_pApp->m_bSuppressDropDown is TRUE, avoid calling SetupDropDownPhraseBoxForThisLocation();
-		// because on return from might have nothing changed in KB, but if something was changed, I'd need to do more. But
-		// let's see if returning here, after clearing boolean, gives no dropdown of list. Yep, it succeeds - the list was not
-		// opened. What remains is to provide code that would update the list contents if KB Editor changes values for what's
-		// at the active location - changes at items in the KB Editor which is not pointing at the active location can be accepted
-		// and stored permanently - it's only when in the Editor we are looking at what the phrasebox's list needs to be changed.
-		// Probably we can grab from code further below to do that, we then just need to avoid opening the list - even though we've
-		// updated its contents. TODO... maybe Bill can take this further.
-		if (m_pApp->m_bSuppressDropDown)
-		{
-			m_pApp->m_bSuppressDropDown = FALSE;
-			return;
-		}
-
 		if (placeboxsetup == initializeDropDown)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();

@@ -4656,6 +4656,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		CCell* pCell = pApp->m_pActivePile->GetCell(1);
 		int activeSN = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 		pView->PlacePhraseBox(pCell,1);
+		pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+		pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
 		pApp->m_pActivePile = pView->GetPile(activeSN); // restore active pile ptr
 		pView->Invalidate();
 	}
