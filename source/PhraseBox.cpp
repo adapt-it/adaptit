@@ -3644,6 +3644,24 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			wxLogDebug(_T("10. JumpForward() line %d , pApp->m_bAutoInsert = TRUE has just been set"), __LINE__);
 #endif
 
+			// whm 25Aug2024 addition of pLayout->ClearAutoInsertionsHighlighting() back to this else block.
+			// In BEW's commit of 18Mar2024 (bd2539f2) he accidentally removed the pLayout->ClearAutoInsertionsHighlighting()
+			// call that previously existed in the code dating back to 2012. That call functioned to remove previously
+			// highlighted auto-insertions when an Enter key presss was subsequently made by the user. 
+			// I think that in BEW's efforts to get his app to respond to an Enter/Tab key press after and merger, he
+			// accidentally removed this call which - not being called at this point - allows the auto-insert background
+			// purple color to persist even when Enter/Tab is pressed. To fix this issue I've added the call of
+			// pLayout->ClearAutoInsertionsHighlighting() back here below - along with BEW's original preceding comment.
+			// 
+			// [BEW's original comment] User has pressed the Enter key  (OnChar() calls JumpForward())
+			// BEW changed 9Apr12, to support discontinuous highlighting
+			// spans for auto-insertions...
+			// Since OnIdle() will call OnePass() and the latter will call
+			// MoveToNextPile(), and it is in MoveToNextPile() that CCell's
+			// m_bAutoInserted flag can get set TRUE, we only here need to ensure that the
+			// current location is a kick-off one, which we can do by clearing any earlier
+			// highlighting currently in effect
+			pLayout->ClearAutoInsertionsHighlighting();
 		} // end of else block for test for m_bSingleStep == TRUE, i.e. autoinserting
 
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
