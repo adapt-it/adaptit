@@ -6031,6 +6031,16 @@ private:
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
 
+	bool	MakeLastSyncFilesIfNone(wxString execFolderPath); // BEW added 26Aug24, 
+				// to make safe values forfiles in exec folder: 
+				// lastsync_adaptations, and lastsync_glosses,
+				// whether or not the active project is a kbserver sharing one, so
+				// if he project becomes a kbserver one, it won't start off with
+				// no lastsync files existing - otherwise, ChangedSinceTimed() will
+				// will fail because there is no lastsync value to compare with. Run
+				// this function in OnInit(), and make the files only if each is
+				// not present in the executable folder.
+
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
 #endif

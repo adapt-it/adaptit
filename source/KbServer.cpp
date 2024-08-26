@@ -2090,7 +2090,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 	//wxString strEntryTableData = _T("EntryTableData"); // use for the wxTextFile
 	//wxString entryTablePath = execPath + strEntryTableData; // path to the EntryTableData file
 
-	wxString datPath = execPath + datFilename; // execPath passed in, ends with PathSeparator char
+	wxString datPath = execPath + pApp->PathSeparator + datFilename; // execPath passed in, ends with PathSeparator char
 	bool bFileExists = ::wxFileExists(datPath); // looking for path to local_kb_lines.dat file
 	//bool bEntryTableFileExists = ::wxFileExists(entryTablePath); // looking for path to EntryTableData file, BEW 5Jul22
 	

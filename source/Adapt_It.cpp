@@ -11241,9 +11241,12 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
         // BEW 15Mar24, OnOk() has already saved the user's password in 3rd box, to app->m_strPassword
         wxString aPwd = wxEmptyString;
         CMainFrame* pFrame = this->GetMainFrame();
-        aPwd = pFrame->GetKBSvrPassword();       
-        wxASSERT(aPwd == m_strPassword);
-        pFrame->SetKBSvrPassword(m_strPassword); // ensure MainFrm stores correct value, as other funcs will grab it
+        aPwd = pFrame->GetKBSvrPassword(); // this will be the old one most likely      
+        //wxASSERT(aPwd == m_strPassword);
+        if (aPwd != m_strPassword)
+        {
+            pFrame->SetKBSvrPassword(m_strPassword); // ensure MainFrm stores correct value, as other funcs will grab it
+        }
         // BEW comment 16Mar24: dlg.m_finalPassword is empty, didn't expect that, but pApp->m_strPassword has accepted
         // the user's type value and copied it to pFrame's SetKBSvrPassword() accessor, so I use that value
 
@@ -18175,6 +18178,86 @@ KbServer* CAdapt_ItApp::GetKbServer(int whichType)
 	return pKBS;
 }
 
+
+// BEW added 26Aug24, to make safe values for
+// files in exec folder: lastsync_adaptations, and lastsync_glosses,
+// whether or not the active project is a kbserver sharing one, so
+// if he project becomes a kbserver one, it won't start off with
+// no lastsync files existing - otherwise, ChangedSinceTimed() will
+// will fail because there is no lastsync value to compare with. Run
+// this function in OnInit(), and make the files only if each is
+// not present in the executable folder.
+bool CAdapt_ItApp::MakeLastSyncFilesIfNone( wxString execFolderPath)
+{
+   wxString execPath = execFolderPath + PathSeparator; //m_appInstallPathOnly was passed in, needs PathSeparator
+   wxString lastsyncadaptions = _T("lastsync_adaptations.txt");
+   wxString lastsyncglosses =   _T("lastsync_glossses.txt");
+   bool execDirExists = wxDirExists(execFolderPath);
+   if (execDirExists)
+   {
+       wxString adaptfilepath = execPath + lastsyncadaptions;
+       wxString glossfilepath = execPath + lastsyncglosses;
+       // handle adaptations one first, then glosses one
+       bool b_adapt_file_exists = wxFileExists(adaptfilepath);
+       if (b_adapt_file_exists)
+       {
+           // If such a file exists, then it must already be storing a previously
+           // instantiated lastsync_adaptations file in the executable's folder,
+           // so nothing more to do here, as the lack of such a file will not
+           // be a cause of ChangedSinceTimed() failing
+           return TRUE;
+       }
+       else
+       {
+           // The needed lastsync_adaptations.txt file does not exist in the
+           // executable's folder, so make one
+           wxFile f(adaptfilepath, wxFile::write);
+           bool bOK = f.IsOpened();
+           if (bOK)
+           {
+               wxASSERT(bOK);
+               // Now I need to make a suitable timestamp. Use an existing 2024 one, as it
+               // will be earlier than anyone using the kbserver feature when released
+               wxString timestamp = _T("2024-03-01 11:08:00"); // March 1st, 8 minutes past 11am
+               int length = timestamp.Length();
+               bool wroteOK = f.Write(timestamp, length);
+               f.Flush();
+               f.Close();
+               wxASSERT(wroteOK);
+               return TRUE;
+           }
+       }
+       // now for glossing kb server support
+       bool b_gloss_file_exists = wxFileExists(glossfilepath);
+       if (b_gloss_file_exists)
+       {
+           // nothing to be done here
+           return TRUE;
+       }
+       else
+       {
+           // No such file yet exists, so make one
+           wxFile f(glossfilepath, wxFile::write);
+           bool bOK = f.IsOpened();
+           if (bOK)
+           {
+               wxASSERT(bOK);
+               // Now I need to make a suitable timestamp. Use an existing 2024 one, as it
+               // will be earlier than anyone using the kbserver feature when released
+               wxString timestamp = _T("2024-03-01 11:08:00"); // March 1st, 8 minutes past 11am
+               int length = timestamp.Length();
+               bool wroteOK = f.Write(timestamp, length);
+               f.Flush();
+               f.Close();
+               wxASSERT(wroteOK);
+               return TRUE;
+           }
+       }
+       return TRUE;
+   }
+   return FALSE; 
+}
+
 // Call SetupForKBServer() once or twice (once for an adapting KB, the second for a
 // glossing KB, or vise versa; or have just one of the two set up) when re-opening a
 // project which has been designated earlier as associating with a KBserver (ie.
@@ -22923,6 +23006,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         if (rv == 0)
         {
             bExecutedSucceeded = TRUE;
+
         }
         //*/ 
         if (bExecutedSucceeded)
@@ -23269,8 +23353,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             bool bExecCwd = fn.SetCwd(pathOnly);
             if (bExecCwd)
             {
-                //char* executable = "do_upload_local_kb.py";
-                const char* executable = "python do_upload_local_kb.py";
+                const char* executable = "do_upload_local_kb.py";
+                // const char* executable = "python do_upload_local_kb.py";
                 rv = system(executable);
                 bExecutedSucceeded = rv == 0 ? TRUE : FALSE;
 
@@ -32405,6 +32489,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strDBpassword = _T("rs46nha#BZ");
     // Also supply a default fullname to associate with 'gates' when needed
     m_strDBfullname = _T("pearly"); // instead of unavailable "KBUser" or similar
+
+    bool bLastSyncExists = MakeLastSyncFilesIfNone(m_appInstallPathOnly);
+    wxUnusedVar(bLastSyncExists); // probably don't need a returned bool value
 
     return TRUE;
 }
