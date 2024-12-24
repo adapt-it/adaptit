@@ -6374,6 +6374,428 @@ wxString CAdapt_ItDoc::GetMarkerFromWithinOneFilteredString(wxString filteredMkr
 	return tempStr;
 }
 
+// whm 23Dec2024 added this function to replace the IsNextFilterableMkrToBeFiltered() function below.
+// This function is now used in the TokenizeText() function in place of the formerly named function.
+// This function allows us to do all of what the old function did in gathering the 
+// sweptUpWhiteSpaceAndMarkersPrededingMkrBeingFiltered string, its length in nLenSweptUpStuff, and
+// whether the sweptStuffInclChOrVs bool value. Additionally, the newly named function also preserves 
+// the string of swept up stuff for storage in the current pSrcPhrase->m_markers member when that 
+// material is not being stored as a prefix to a filtered marker.
+void CAdapt_ItDoc::GatherWhiteSpaceAndSweepableMarkers(wxChar* ptr, wxChar* pEnd, // whm 23Dec2024 added
+	wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs, bool& bIsNextFilterableMkrToBeFiltered)
+{
+	sweptStuffInclChOrVs = FALSE;
+	wxChar* pAux = ptr;
+	int chCount = 0;
+	int lenSweptStuff = 0; // a local variable to keep track of length of swept material
+	wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
+	wxString tempStr; tempStr.Empty();
+	// When this function is called in TokenizeText() ptr should be pointing
+	// at whitespace, so we'll parse the whitespace.
+	while (pAux <= pEnd)
+	{
+		int wsLen = 0;
+		wsLen = ParseWhiteSpace(pAux);
+		lenSweptStuff += wsLen;
+		// Add whitespace to the tempSweptUpMaterial we've parsed over so far
+		AppendItem(tempSweptUpMaterial, tempStr, pAux, wsLen);
+		pAux += wsLen;
+		//int ctVerse = 0; // unused here
+		if (IsMarker(pAux))
+		{
+			// The following initializations are local values since we're just interested here in dealing
+			// with any bogus periods and not the bIsEmptyMkr value that IsEmptyMkr() returns.
+			bool bHasBogusPeriods = FALSE;
+			int nWhitesLenIncludingBogusPeriods = 0;
+			int nPeriodsInWhitesLen = 0;
+
+			// Deal with any spurious periods that might follow our marker. The EsEmptyMkr() function can do this.
+			// Here we only use its reference parameter values and not its function return value.
+			bool bIsEmptyMkr = IsEmptyMkr(pAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+			bIsEmptyMkr = bIsEmptyMkr; // avoid gcc warning
+			if (bHasBogusPeriods)
+			{
+				// whm 23Dec2024 modified. At this point pAux should be pointing at the backslash of an empty marker.
+				// Before calling IteratePtrPastBogusPeriods() below we need to parse past the marker and any space
+				// that intervenes between the empty marker and the following periods.
+				// First parse past the empty marker.
+				int mkrAndAnySpace = 0;
+				mkrAndAnySpace = ParseMarker(pAux);
+				// This empty marker is part of any swept up marker/space, so add it to tempSweptUpMaterial
+				// and increment the pAux and lenSweptStuff values.
+				AppendItem(tempSweptUpMaterial, tempStr, pAux, mkrAndAnySpace);
+				pAux += mkrAndAnySpace;
+				lenSweptStuff += mkrAndAnySpace;
+				//
+				// whm 23Dec2024 further modification. We shouldn't totally ignore the empty marker that
+				// has bogus periods following it, but should store that marker
+				// There is likely a space between the marker and the bogus periods.
+				// We should NOT include this space and NOT include the periods within
+				// the tempSweepUpMaterial. However, we add the length of the space
+				// to the onPassItemLen
+				int whiteSpLen = ParseWhiteSpace(pAux);
+				// Here we don't append the whitespace to tempSweptUpMaterial
+				pAux += whiteSpLen;
+				lenSweptStuff += whiteSpLen;
+				int nPeriods = 0;
+				IteratePtrPastBogusPeriods(pAux, pEnd, nPeriods); // iterates pAux but not lenSweptStuff
+				// Since we are returning to the caller a value for nLenSweptUpStuff which
+				// needs to include the length of the periods, even though the actual
+				// periods are not included within our returned value for tempSweptUpMaterial.
+				// The caller may use the nLenSweptUpStuff to move its ptr value past
+				// the tempSweptUpMaterial and periods too. So in this case
+				lenSweptStuff += nPeriods;
+				whiteSpLen = ParseWhiteSpace(pAux); // this whitespace we add to tempSweptUpMaterial.
+				AppendItem(tempSweptUpMaterial, tempStr, pAux, whiteSpLen);
+				pAux += whiteSpLen;
+				lenSweptStuff += whiteSpLen;
+			}
+			else
+			{
+				int whiteSpLen = ParseWhiteSpace(pAux);
+				// Append the whitespace to the tempSweptUpMaterial
+				AppendItem(tempSweptUpMaterial, tempStr, pAux, whiteSpLen);
+				pAux += whiteSpLen;
+				lenSweptStuff += whiteSpLen;
+			}
+
+			int lenMkr = 0;
+			lenMkr = ParseMarker(pAux);
+			// Don't increment lenSweptStuff here, but below in the next if () test.
+			// We don't know if this marker will be stored in tempSweptUpMaterial until we
+			// determine that is it a member of the m_markersCanBeSweptUpByFilteredMarker set.
+			// We also delay the AppendItem(tempSweptUpMaterial, tempStr, pAux, lenSweptStuff) 
+			// call to the TRUE block below.
+			wxString augWholeMkr = wxString(pAux, lenMkr);
+			augWholeMkr += _T(" ");
+#if defined (_DEBUG)
+			{
+				if (augWholeMkr == _T("\\b "))
+				{
+					int break_here = 1;
+					wxUnusedVar(break_here);
+				}
+			}
+#endif
+			if (gpApp->m_markersCanBeSweptUpByFilteredMarker.Find(augWholeMkr) != wxNOT_FOUND)
+			{
+				// It's in our m_markersCanBeSweptUpByFilteredMarker marker set.
+				// We parsed the marker intially above to get an augWholeMkr value
+				// but we didn't increment pAux or lenSweptStuff there. Since we now
+				// know we have a potential swept up marker, parse the marker again 
+				// here and this time we increment pAux, lenSweptStuff, and add any 
+				// tempSweptUpMaterial.
+				// Check if we have a chapter marker.
+				if (IsChapterMarker(pAux))
+				{
+					sweptStuffInclChOrVs = TRUE; // return flag value via ref param
+					// Count the number of chapter markers we encountered and return
+					// FALSE if this is a second chapter marker.
+					chCount++;
+					if (chCount > 1)
+					{
+						// We've encountered a second chapter marker within the swept up
+						// stuff, so we abort the scan and return FALSE to let TokenizeText() 
+						// deal with what we saw up to this point - including the initial 
+						// chapter marker we encountered.
+						// whm 8Dec2024 Note: This if (chCount > 1) block is only entered
+						// when a second chapter marker within the swept up stuff is detected,
+						// it is not entered when the first \ch n marker is encountered in 
+						// the swept up stuff. When two or more \ch n markers are encountered
+						// in the swept up stuff, there is no verse content between those
+						// chapters.
+						sweptStuffInclChOrVs = FALSE; // return flag value via ref param
+						//sweptUpStuff.Empty();
+						//nLenSweptUpStuff = 0;
+						//return FALSE;
+						bIsNextFilterableMkrToBeFiltered = FALSE;
+						return;
+					}
+					// whm 3Dec2024 tried adding the following else block after Roland F's report
+					// that revealed a parsing problem that resulted in a swept up sequence of
+					// ...\b\c 2... not being recognized properly resulting in the App's m_curChapter
+					// value not getting updated from 1 to 2, and the chapter number '2' of the
+					// \c 2 marker being parsed as a separate source phrase, instead of being
+					// included with \c in m_markers.
+					// RESULT = the above didn't work. 
+					// A better approach would be to just update the App's m_curChapter value after
+					// parsing the chapter number below.
+
+					// If we get here we parse the chapter marker, space and following number
+					int lenCh = 0;
+					lenCh = ParseMarker(pAux);
+					// Append the marker to the tempSweptUpMaterial
+					lenSweptStuff += lenCh;
+					AppendItem(tempSweptUpMaterial, tempStr, pAux, lenCh);
+					pAux += lenCh;
+					// Parse the space and following number.
+					lenCh = ParseWhiteSpace(pAux);
+					lenSweptStuff += lenCh;
+					AppendItem(tempSweptUpMaterial, tempStr, pAux, lenCh);
+					pAux += lenCh;
+					// parse the following number and increment
+					lenCh = ParseNumber(pAux);
+					lenSweptStuff += lenCh;
+					AppendItem(tempSweptUpMaterial, tempStr, pAux, lenCh);
+					// whm 8Dec2024 added code here - before augmenting pAux - to update App's m_curChapter value
+					wxString chNumStr = _T("");
+					chNumStr = wxString(pAux, lenCh);
+					gpApp->m_curChapter = chNumStr + _T(":");
+					// continue here with previous coding and augmenting the pAux value
+					pAux += lenCh;
+					// Any following whitespace is caught at top of while loop
+				}
+				else
+				{
+					// It's one of the other non-chapter markers in the set
+					// Parse the whitespace following the marker
+					int wsLen = 0;
+					wsLen = ParseMarker(pAux);
+					lenSweptStuff += wsLen;
+					// Append the marker to the tempSweptUpMaterial
+					AppendItem(tempSweptUpMaterial, tempStr, pAux, wsLen);
+					pAux += wsLen;
+					wsLen = ParseWhiteSpace(pAux);
+					lenSweptStuff += wsLen;
+					AppendItem(tempSweptUpMaterial, tempStr, pAux, wsLen);
+					pAux += wsLen;
+					// The marker at this point is a member of the set and will be part of any 
+					// swept up aterial, but only as long as it is actually followed by a marker
+					// that is to-be-filtered, otherwise this function returns FALSE and 
+					// TokenizeText() will put it into the current source phrase's member.
+				}
+			}
+			else if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+			{
+				// The marker we're pointing at is a marker designated to be filtered
+				// We don't parse it here but the caller will do it; here we just set
+				// the return bool to TRUE.
+				// This marker is NOT to be included within the swept up material. Instead
+				// the caller will deal with filtering it.
+				sweptUpStuff = tempSweptUpMaterial;
+				nLenSweptUpStuff = lenSweptStuff;
+				// Note: It is up to the caller in TokenizeText() to advance ptr past the 
+				// sweptUpStuff by using the returned nLenSweptUpStuff.
+				//return TRUE;
+				bIsNextFilterableMkrToBeFiltered = TRUE;
+				return;
+			}
+			else
+			{
+				// It's some other marker which stops our scan and returns FALSE.
+				//sweptUpStuff.Empty();
+				//nLenSweptUpStuff = 0;
+				//return FALSE;
+				// whm 23Dec2024 modified. Return via ref param the sweptUpStuff and nLenSweptUpStuff
+				// as well as the new bool bIsNextFilterableMkrToBeFiltered. The caller in this case
+				// will use the tempSweptUpMaterial and lenSweptStuff to augment the m_markers and ptr.
+				sweptUpStuff = tempSweptUpMaterial;
+				nLenSweptUpStuff = lenSweptStuff;
+				bIsNextFilterableMkrToBeFiltered = FALSE;
+				return;
+			}
+		}
+		else
+		{
+			// What follows the whitespace is non-marker material so just return FALSE.
+			//sweptUpStuff.Empty();
+			//nLenSweptUpStuff = 0;
+			//return FALSE;
+			// whm 23Dec2024 modified. Return via ref param the sweptUpStuff and nLenSweptUpStuff
+			// as well as the new bool bIsNextFilterableMkrToBeFiltered. The caller in this case
+			// will use the tempSweptUpMaterial and lenSweptStuff to augment the m_markers and ptr.
+			sweptUpStuff = tempSweptUpMaterial;
+			nLenSweptUpStuff = lenSweptStuff;
+			bIsNextFilterableMkrToBeFiltered = FALSE;
+			return;
+		}
+
+		/*
+		if (IsChapterMarker(pAux) || IsVerseMarker(pAux, ctVerse))
+		{
+			// When this block is first entered sweptStuffInclChOrVs will be FALSE
+			// We don's want more than one chapter or verse marker in the same
+			// swept up stuff, so if sweptStuffInclChOrVs is already TRUE at this
+			// point in this block, we should return what swept up stuff we have
+			// detected so far even before we determine whether the next marker is
+			// to be filtered ot not. So, if pAux is not pointing at a second instance
+			// of a chapter or verse marker we return FALSE for the function, but we
+			// leave boolean flag sweptStuffInclChOrVs parameter set to TRUE.
+			if (sweptStuffInclChOrVs == TRUE)
+			{
+				return FALSE;
+			}
+			// If control gets here this is the first instance seen of a chapter or
+			// verse marker, so parse the marker and keep scanning.
+			int lenChVs = 0;
+			lenChVs = ParseMarker(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			lenChVs = ParseWhiteSpace(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			// parse the following number and increment
+			lenChVs = ParseNumber(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			// A chapter or verse marker is probably followed by whitespace so parse that too
+			lenChVs = ParseWhiteSpace(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			sweptStuffInclChOrVs = TRUE;
+		}
+		else if (IsMarker(pAux))
+		{
+			int lenMkr = 0;
+			lenMkr = ParseMarker(pAux);
+			// Don't increment lenSweptStuff here, but below in the while loop
+			// We don't know if this marker will be stored in tempSweptUpMaterial until we
+			// determine that both of these conditions are TRUE:
+			// 1. It IS NOT a marker-to-be-filtered, and
+			// 2. It IS an empty marker
+			// Hence, we delay the AppendItem(tempSweptUpMaterial, tempStr, pAux, lenSweptStuff)
+			// call to the IsEmptyMkr() TRUE block below.
+			wxString augWholeMkr = wxString(pAux, lenMkr);
+			augWholeMkr += _T(" ");
+			if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+			{
+				// The marker we're pointing at is a marker designated to be filtered
+				// We don't parse it here but the caller will do it; here we just set
+				// the return bool to TRUE.
+				bFoundMkrToBeFiltered = TRUE;
+				// This marker is NOT to be included within the swept up material. Instead
+				// the caller will deal with filtering it.
+				break; // No need to go further beyond this marker
+			}
+			else
+			{
+				// pAux is pointing at some kind of not-to-be filtered marker and NOT at
+				// whitespace at this point.
+				// There could be one or more contentless markers preceding a marker
+				// currently being filtered. If so they should also be swept up here.
+				bool bHasBogusPeriods = FALSE;
+				int nWhitesLenIncludingBogusPeriods = 0;
+				int nPeriodsInWhitesLen = 0;
+				int accumItemLen = 0; // accumulate item len value for pass through while loop
+				//wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
+				wxChar* tempAux = pAux; // preserve pAux for use after the while loop below
+				bool bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+				while (bIsEmptyMkr && tempAux < pEnd)
+				{
+					// We parsed the marker intially above to get an augWholeMkr value
+					// but we didn't increment pAux or lenSweptStuff there. Since we are now
+					// within a while loop, parse the marker again here and this time we
+					// increment pAux, lenSweptStuff, and add any tempSweptUpMaterial.
+					int onePassItemLen = 0;
+					onePassItemLen = ParseMarker(tempAux);
+					// Append the marker to the tempSweptUpMaterial
+					AppendItem(tempSweptUpMaterial, tempStr, tempAux, onePassItemLen);
+					wxString augWholeMkr = wxString(tempAux, onePassItemLen);
+					augWholeMkr += _T(" ");
+					tempAux += onePassItemLen;
+					// A contentless marker could be a marker like \p \m and other markers
+					// that are not followed by non-marker text. These will be part of any
+					// swept up material, but only as long as they are actually followed by
+					// a marker that is currently being filtered - otherwise TokenizeText()
+					// will put them into the current source phrase's m_markers member.
+					// Deal with any spurious periods
+					if (bHasBogusPeriods)
+					{
+						// There is likely a space between the marker and the bogus periods.
+						// We should NOT include this space and NOT include the periods within
+						// the tempSweepUpMaterial. However, we add the length of the space
+						// to the onPassItemLen
+						int whiteSpLen = ParseWhiteSpace(tempAux);
+						// Here we don't append the whitespace to tempSweptUpMaterial
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+						int nPeriods = 0;
+						IteratePtrPastBogusPeriods(tempAux, pEnd, nPeriods); // iterates pAux but not lenSweptStuff
+						// Since we are returning to the caller a value for nLenSweptUpStuff which
+						// needs to include the length of the periods, even though the actual
+						// periods are not included within our returned value for sweptUpStuff.
+						// The caller may use the nLenSweptUpStuff to move its ptr value past
+						// the sweptUpStuff and periods too. So in this case
+						onePassItemLen += nPeriods;
+						whiteSpLen = ParseWhiteSpace(tempAux); // this whitespace we add to tempSweptUpMaterial.
+						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+					}
+					else
+					{
+						int whiteSpLen = ParseWhiteSpace(tempAux);
+						// Append the whitespace to the tempSweptUpMaterial
+						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+					}
+					// Is this marker one to be filtered? If so we're done. If not we continue
+					// with the while loop iteration.
+					if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+					{
+						// The marker we're pointing at is a marker designated to be filtered
+						// We don't parse it here but the caller will do it; here we just set
+						// the return bool to TRUE.
+						bFoundMkrToBeFiltered = TRUE;
+						// This marker is NOT to be included within the swept up material. Instead
+						// the caller will deal with filtering it.
+						break; // No need to go further beyond this marker
+					}
+					// If we get here the augWholeMkr above was not to be filtered, so we
+					// continue to iterate
+					// The pAux pointer is now pointing past any whitespace that followed
+					// the augWholeMkr above - could be another marker or non-marker text.
+					accumItemLen += onePassItemLen;
+					bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+				} // end of while (IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen))
+				int mkrLen = ParseMarker(tempAux); // The marker at tempAux is not empty, so we don't add it to the tempSweptUpMaterial
+				wxString augmkr = wxString(tempAux, mkrLen);
+				augmkr += _T(" ");
+				if (gpApp->gCurrentFilterMarkers.Find(augmkr) != wxNOT_FOUND)
+				{
+					bFoundMkrToBeFiltered = TRUE;
+					pAux += accumItemLen; // move pAux to point past the marker at tempAux
+					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+					break; // since the marker at tempAux is not an empty marker we can break out of the while loop
+
+				}
+				else
+				{
+					pAux += accumItemLen; // move pAux to point past the marker at tempAux
+					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+					break;
+				}
+			}
+		}
+		else
+		{
+			// what follows the whitespace is non-marker material so just return FALSE
+			bFoundMkrToBeFiltered = FALSE;
+			return FALSE;
+		}
+		*/
+	} // end of while (pAux <= pEnd)
+
+	// If we get here we probably got to the end of the file
+	// so set ref parameters to not-found situation and return FALSE
+	//sweptUpStuff.Empty();
+	//nLenSweptUpStuff = 0;
+	//return 	FALSE;
+	// whm 23Dec2024 modified. Return via ref param the sweptUpStuff and nLenSweptUpStuff
+	// as well as the new bool bIsNextFilterableMkrToBeFiltered. The caller in this case
+	// will use the tempSweptUpMaterial and lenSweptStuff to augment the m_markers and ptr.
+	sweptUpStuff = tempSweptUpMaterial;
+	nLenSweptUpStuff = lenSweptStuff;
+	bIsNextFilterableMkrToBeFiltered = FALSE;
+	return;
+}
+
+/*
 // whm 20Feb2024 added IsNextFilterableMkrToBeFiltered() for use in the 
 // TokenizeText() function - in the outer while (ptr < pEnd) loop between the 
 // if (IsWhiteSpace(ptr)) and itemLen = ParseWhiteSpace(ptr) calls.
@@ -6478,6 +6900,15 @@ bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd,
 			// call to the TRUE block below.
 			wxString augWholeMkr = wxString(pAux, lenMkr);
 			augWholeMkr += _T(" ");
+#if defined (_DEBUG)
+			{
+				if (augWholeMkr == _T("\\b "))
+				{
+					int break_here = 1;
+					wxUnusedVar(break_here);
+				}
+			}
+#endif
 			if (gpApp->m_markersCanBeSweptUpByFilteredMarker.Find(augWholeMkr) != wxNOT_FOUND)
 			{
 				// It's in our m_markersCanBeSweptUpByFilteredMarker marker set.
@@ -6495,15 +6926,31 @@ bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd,
 					chCount++;
 					if (chCount > 1)
 					{
-						// We've encountered a second chapter marker, so we abort the
-						// scan and return FALSE to let TokenizeText() deal with what
-						// we saw up to this point - including the initial chapter 
-						// marker we encountered.
+						// We've encountered a second chapter marker within the swept up
+						// stuff, so we abort the scan and return FALSE to let TokenizeText() 
+						// deal with what we saw up to this point - including the initial 
+						// chapter marker we encountered.
+						// whm 8Dec2024 Note: This if (chCount > 1) block is only entered
+						// when a second chapter marker within the swept up stuff is detected,
+						// it is not entered when the first \ch n marker is encountered in 
+						// the swept up stuff. When two or more \ch n markers are encountered
+						// in the swept up stuff, there is no verse content between those
+						// chapters.
 						sweptStuffInclChOrVs = FALSE; // return flag value via ref param
 						sweptUpStuff.Empty();
 						nLenSweptUpStuff = 0;
 						return FALSE;
 					}
+					// whm 3Dec2024 tried adding the following else block after Roland F's report
+					// that revealed a parsing problem that resulted in a swept up sequence of
+					// ...\b\c 2... not being recognized properly resulting in the App's m_curChapter
+					// value not getting updated from 1 to 2, and the chapter number '2' of the
+					// \c 2 marker being parsed as a separate source phrase, instead of being
+					// included with \c in m_markers.
+					// RESULT = the above didn't work. 
+					// A better approach would be to just update the App's m_curChapter value after
+					// parsing the chapter number below.
+
 					// If we get here we parse the chapter marker, space and following number
 					int lenCh = 0;
 					lenCh = ParseMarker(pAux);
@@ -6520,6 +6967,11 @@ bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd,
 					lenCh = ParseNumber(pAux);
 					lenSweptStuff += lenCh;
 					AppendItem(tempSweptUpMaterial, tempStr, pAux, lenCh);
+					// whm 8Dec2024 added code here - before augmenting pAux - to update App's m_curChapter value
+					wxString chNumStr = _T("");
+					chNumStr = wxString(pAux, lenCh);
+					gpApp->m_curChapter = chNumStr + _T(":");
+					// continue here with previous coding and augmenting the pAux value
 					pAux += lenCh;
 					// Any following whitespace is caught at top of while loop
 				}
@@ -6571,176 +7023,175 @@ bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd,
 			nLenSweptUpStuff = 0;
 			return FALSE;
 		}
+		
+		//if (IsChapterMarker(pAux) || IsVerseMarker(pAux, ctVerse))
+		//{
+		//	// When this block is first entered sweptStuffInclChOrVs will be FALSE
+		//	// We don's want more than one chapter or verse marker in the same
+		//	// swept up stuff, so if sweptStuffInclChOrVs is already TRUE at this
+		//	// point in this block, we should return what swept up stuff we have
+		//	// detected so far even before we determine whether the next marker is
+		//	// to be filtered ot not. So, if pAux is not pointing at a second instance
+		//	// of a chapter or verse marker we return FALSE for the function, but we
+		//	// leave boolean flag sweptStuffInclChOrVs parameter set to TRUE.
+		//	if (sweptStuffInclChOrVs == TRUE)
+		//	{
+		//		return FALSE;
+		//	}
+		//	// If control gets here this is the first instance seen of a chapter or
+		//	// verse marker, so parse the marker and keep scanning.
+		//	int lenChVs = 0;
+		//	lenChVs = ParseMarker(pAux);
+		//	lenSweptStuff += lenChVs;
+		//	AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+		//	pAux += lenChVs;
+		//	lenChVs = ParseWhiteSpace(pAux);
+		//	lenSweptStuff += lenChVs;
+		//	AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+		//	pAux += lenChVs;
+		//	// parse the following number and increment
+		//	lenChVs = ParseNumber(pAux);
+		//	lenSweptStuff += lenChVs;
+		//	AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+		//	pAux += lenChVs;
+		//	// A chapter or verse marker is probably followed by whitespace so parse that too
+		//	lenChVs = ParseWhiteSpace(pAux);
+		//	lenSweptStuff += lenChVs;
+		//	AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+		//	pAux += lenChVs;
+		//	sweptStuffInclChOrVs = TRUE;
+		//}
+		//else if (IsMarker(pAux))
+		//{
+		//	int lenMkr = 0;
+		//	lenMkr = ParseMarker(pAux);
+		//	// Don't increment lenSweptStuff here, but below in the while loop
+		//	// We don't know if this marker will be stored in tempSweptUpMaterial until we
+		//	// determine that both of these conditions are TRUE:
+		//	// 1. It IS NOT a marker-to-be-filtered, and 
+		//	// 2. It IS an empty marker
+		//	// Hence, we delay the AppendItem(tempSweptUpMaterial, tempStr, pAux, lenSweptStuff) 
+		//	// call to the IsEmptyMkr() TRUE block below.
+		//	wxString augWholeMkr = wxString(pAux, lenMkr);
+		//	augWholeMkr += _T(" ");
+		//	if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+		//	{
+		//		// The marker we're pointing at is a marker designated to be filtered
+		//		// We don't parse it here but the caller will do it; here we just set
+		//		// the return bool to TRUE.
+		//		bFoundMkrToBeFiltered = TRUE;
+		//		// This marker is NOT to be included within the swept up material. Instead
+		//		// the caller will deal with filtering it.
+		//		break; // No need to go further beyond this marker
+		//	}
+		//	else
+		//	{
+		//		// pAux is pointing at some kind of not-to-be filtered marker and NOT at 
+		//		// whitespace at this point.
+		//		// There could be one or more contentless markers preceding a marker
+		//		// currently being filtered. If so they should also be swept up here.
+		//		bool bHasBogusPeriods = FALSE;
+		//		int nWhitesLenIncludingBogusPeriods = 0;
+		//		int nPeriodsInWhitesLen = 0;
+		//		int accumItemLen = 0; // accumulate item len value for pass through while loop
+		//		//wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
+		//		wxChar* tempAux = pAux; // preserve pAux for use after the while loop below
+		//		bool bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+		//		while (bIsEmptyMkr && tempAux < pEnd)
+		//		{
+		//			// We parsed the marker intially above to get an augWholeMkr value
+		//			// but we didn't increment pAux or lenSweptStuff there. Since we are now
+		//			// within a while loop, parse the marker again here and this time we
+		//			// increment pAux, lenSweptStuff, and add any tempSweptUpMaterial.
+		//			int onePassItemLen = 0;
+		//			onePassItemLen = ParseMarker(tempAux);
+		//			// Append the marker to the tempSweptUpMaterial
+		//			AppendItem(tempSweptUpMaterial, tempStr, tempAux, onePassItemLen);
+		//			wxString augWholeMkr = wxString(tempAux, onePassItemLen);
+		//			augWholeMkr += _T(" ");
+		//			tempAux += onePassItemLen;
+		//			// A contentless marker could be a marker like \p \m and other markers
+		//			// that are not followed by non-marker text. These will be part of any
+		//			// swept up material, but only as long as they are actually followed by
+		//			// a marker that is currently being filtered - otherwise TokenizeText()
+		//			// will put them into the current source phrase's m_markers member.
+		//			// Deal with any spurious periods 
+		//			if (bHasBogusPeriods)
+		//			{
+		//				// There is likely a space between the marker and the bogus periods.
+		//				// We should NOT include this space and NOT include the periods within
+		//				// the tempSweepUpMaterial. However, we add the length of the space
+		//				// to the onPassItemLen
+		//				int whiteSpLen = ParseWhiteSpace(tempAux);
+		//				// Here we don't append the whitespace to tempSweptUpMaterial
+		//				tempAux += whiteSpLen;
+		//				onePassItemLen += whiteSpLen;
+		//				int nPeriods = 0;
+		//				IteratePtrPastBogusPeriods(tempAux, pEnd, nPeriods); // iterates pAux but not lenSweptStuff
+		//				// Since we are returning to the caller a value for nLenSweptUpStuff which
+		//				// needs to include the length of the periods, even though the actual
+		//				// periods are not included within our returned value for sweptUpStuff.
+		//				// The caller may use the nLenSweptUpStuff to move its ptr value past
+		//				// the sweptUpStuff and periods too. So in this case
+		//				onePassItemLen += nPeriods;
+		//				whiteSpLen = ParseWhiteSpace(tempAux); // this whitespace we add to tempSweptUpMaterial.
+		//				AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+		//				tempAux += whiteSpLen;
+		//				onePassItemLen += whiteSpLen;
+		//			}
+		//			else
+		//			{
+		//				int whiteSpLen = ParseWhiteSpace(tempAux);
+		//				// Append the whitespace to the tempSweptUpMaterial
+		//				AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+		//				tempAux += whiteSpLen;
+		//				onePassItemLen += whiteSpLen;
+		//			}
+		//			// Is this marker one to be filtered? If so we're done. If not we continue
+		//			// with the while loop iteration.
+		//			if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+		//			{
+		//				// The marker we're pointing at is a marker designated to be filtered
+		//				// We don't parse it here but the caller will do it; here we just set
+		//				// the return bool to TRUE.
+		//				bFoundMkrToBeFiltered = TRUE;
+		//				// This marker is NOT to be included within the swept up material. Instead
+		//				// the caller will deal with filtering it.
+		//				break; // No need to go further beyond this marker
+		//			}
+		//			// If we get here the augWholeMkr above was not to be filtered, so we 
+		//			// continue to iterate
+		//			// The pAux pointer is now pointing past any whitespace that followed
+		//			// the augWholeMkr above - could be another marker or non-marker text.
+		//			accumItemLen += onePassItemLen;
+		//			bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+		//		} // end of while (IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen))
+		//		int mkrLen = ParseMarker(tempAux); // The marker at tempAux is not empty, so we don't add it to the tempSweptUpMaterial
+		//		wxString augmkr = wxString(tempAux, mkrLen);
+		//		augmkr += _T(" ");
+		//		if (gpApp->gCurrentFilterMarkers.Find(augmkr) != wxNOT_FOUND)
+		//		{
+		//			bFoundMkrToBeFiltered = TRUE;
+		//			pAux += accumItemLen; // move pAux to point past the marker at tempAux
+		//			lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+		//			break; // since the marker at tempAux is not an empty marker we can break out of the while loop
 
-		/*
-		if (IsChapterMarker(pAux) || IsVerseMarker(pAux, ctVerse))
-		{
-			// When this block is first entered sweptStuffInclChOrVs will be FALSE
-			// We don's want more than one chapter or verse marker in the same
-			// swept up stuff, so if sweptStuffInclChOrVs is already TRUE at this
-			// point in this block, we should return what swept up stuff we have
-			// detected so far even before we determine whether the next marker is
-			// to be filtered ot not. So, if pAux is not pointing at a second instance
-			// of a chapter or verse marker we return FALSE for the function, but we
-			// leave boolean flag sweptStuffInclChOrVs parameter set to TRUE.
-			if (sweptStuffInclChOrVs == TRUE)
-			{
-				return FALSE;
-			}
-			// If control gets here this is the first instance seen of a chqapter or
-			// verse marker, so parse the marker and keep scanning.
-			int lenChVs = 0;
-			lenChVs = ParseMarker(pAux);
-			lenSweptStuff += lenChVs;
-			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
-			pAux += lenChVs;
-			lenChVs = ParseWhiteSpace(pAux);
-			lenSweptStuff += lenChVs;
-			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
-			pAux += lenChVs;
-			// parse the following number and increment
-			lenChVs = ParseNumber(pAux);
-			lenSweptStuff += lenChVs;
-			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
-			pAux += lenChVs;
-			// A chapter or verse marker is probably followed by whitespace so parse that too
-			lenChVs = ParseWhiteSpace(pAux);
-			lenSweptStuff += lenChVs;
-			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
-			pAux += lenChVs;
-			sweptStuffInclChOrVs = TRUE;
-		}
-		else if (IsMarker(pAux))
-		{
-			int lenMkr = 0;
-			lenMkr = ParseMarker(pAux);
-			// Don't increment lenSweptStuff here, but below in the while loop
-			// We don't know if this marker will be stored in tempSweptUpMaterial until we
-			// determine that both of these conditions are TRUE:
-			// 1. It IS NOT a marker-to-be-filtered, and 
-			// 2. It IS an empty marker
-			// Hence, we delay the AppendItem(tempSweptUpMaterial, tempStr, pAux, lenSweptStuff) 
-			// call to the IsEmptyMkr() TRUE block below.
-			wxString augWholeMkr = wxString(pAux, lenMkr);
-			augWholeMkr += _T(" ");
-			if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
-			{
-				// The marker we're pointing at is a marker designated to be filtered
-				// We don't parse it here but the caller will do it; here we just set
-				// the return bool to TRUE.
-				bFoundMkrToBeFiltered = TRUE;
-				// This marker is NOT to be included within the swept up material. Instead
-				// the caller will deal with filtering it.
-				break; // No need to go further beyond this marker
-			}
-			else
-			{
-				// pAux is pointing at some kind of not-to-be filtered marker and NOT at 
-				// whitespace at this point.
-				// There could be one or more contentless markers preceding a marker
-				// currently being filtered. If so they should also be swept up here.
-				bool bHasBogusPeriods = FALSE;
-				int nWhitesLenIncludingBogusPeriods = 0;
-				int nPeriodsInWhitesLen = 0;
-				int accumItemLen = 0; // accumulate item len value for pass through while loop
-				//wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
-				wxChar* tempAux = pAux; // preserve pAux for use after the while loop below
-				bool bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
-				while (bIsEmptyMkr && tempAux < pEnd)
-				{
-					// We parsed the marker intially above to get an augWholeMkr value
-					// but we didn't increment pAux or lenSweptStuff there. Since we are now
-					// within a while loop, parse the marker again here and this time we
-					// increment pAux, lenSweptStuff, and add any tempSweptUpMaterial.
-					int onePassItemLen = 0;
-					onePassItemLen = ParseMarker(tempAux);
-					// Append the marker to the tempSweptUpMaterial
-					AppendItem(tempSweptUpMaterial, tempStr, tempAux, onePassItemLen);
-					wxString augWholeMkr = wxString(tempAux, onePassItemLen);
-					augWholeMkr += _T(" ");
-					tempAux += onePassItemLen;
-					// A contentless marker could be a marker like \p \m and other markers
-					// that are not followed by non-marker text. These will be part of any
-					// swept up material, but only as long as they are actually followed by
-					// a marker that is currently being filtered - otherwise TokenizeText()
-					// will put them into the current source phrase's m_markers member.
-					// Deal with any spurious periods 
-					if (bHasBogusPeriods)
-					{
-						// There is likely a space between the marker and the bogus periods.
-						// We should NOT include this space and NOT include the periods within
-						// the tempSweepUpMaterial. However, we add the length of the space
-						// to the onPassItemLen
-						int whiteSpLen = ParseWhiteSpace(tempAux);
-						// Here we don't append the whitespace to tempSweptUpMaterial
-						tempAux += whiteSpLen;
-						onePassItemLen += whiteSpLen;
-						int nPeriods = 0;
-						IteratePtrPastBogusPeriods(tempAux, pEnd, nPeriods); // iterates pAux but not lenSweptStuff
-						// Since we are returning to the caller a value for nLenSweptUpStuff which
-						// needs to include the length of the periods, even though the actual
-						// periods are not included within our returned value for sweptUpStuff.
-						// The caller may use the nLenSweptUpStuff to move its ptr value past
-						// the sweptUpStuff and periods too. So in this case
-						onePassItemLen += nPeriods;
-						whiteSpLen = ParseWhiteSpace(tempAux); // this whitespace we add to tempSweptUpMaterial.
-						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
-						tempAux += whiteSpLen;
-						onePassItemLen += whiteSpLen;
-					}
-					else
-					{
-						int whiteSpLen = ParseWhiteSpace(tempAux);
-						// Append the whitespace to the tempSweptUpMaterial
-						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
-						tempAux += whiteSpLen;
-						onePassItemLen += whiteSpLen;
-					}
-					// Is this marker one to be filtered? If so we're done. If not we continue
-					// with the while loop iteration.
-					if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
-					{
-						// The marker we're pointing at is a marker designated to be filtered
-						// We don't parse it here but the caller will do it; here we just set
-						// the return bool to TRUE.
-						bFoundMkrToBeFiltered = TRUE;
-						// This marker is NOT to be included within the swept up material. Instead
-						// the caller will deal with filtering it.
-						break; // No need to go further beyond this marker
-					}
-					// If we get here the augWholeMkr above was not to be filtered, so we 
-					// continue to iterate
-					// The pAux pointer is now pointing past any whitespace that followed
-					// the augWholeMkr above - could be another marker or non-marker text.
-					accumItemLen += onePassItemLen;
-					bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
-				} // end of while (IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen))
-				int mkrLen = ParseMarker(tempAux); // The marker at tempAux is not empty, so we don't add it to the tempSweptUpMaterial
-				wxString augmkr = wxString(tempAux, mkrLen);
-				augmkr += _T(" ");
-				if (gpApp->gCurrentFilterMarkers.Find(augmkr) != wxNOT_FOUND)
-				{
-					bFoundMkrToBeFiltered = TRUE;
-					pAux += accumItemLen; // move pAux to point past the marker at tempAux
-					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
-					break; // since the marker at tempAux is not an empty marker we can break out of the while loop
-
-				}
-				else
-				{
-					pAux += accumItemLen; // move pAux to point past the marker at tempAux
-					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
-					break; 
-				}
-			}
-		}
-		else
-		{
-			// what follows the whitespace is non-marker material so just return FALSE
-			bFoundMkrToBeFiltered = FALSE;
-			return FALSE;
-		}
-		*/
+		//		}
+		//		else
+		//		{
+		//			pAux += accumItemLen; // move pAux to point past the marker at tempAux
+		//			lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+		//			break; 
+		//		}
+		//	}
+		//}
+		//else
+		//{
+		//	// what follows the whitespace is non-marker material so just return FALSE
+		//	bFoundMkrToBeFiltered = FALSE;
+		//	return FALSE;
+		//}
+		
 	} // end of while (pAux <= pEnd)
 
 	// If we get here we probably got to the end of the file
@@ -6749,6 +7200,7 @@ bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd,
 	nLenSweptUpStuff = 0;
 	return 	FALSE;
 }
+*/
 
 void CAdapt_ItDoc::RestoreCurrentDocVersion()
 {
@@ -39154,7 +39606,18 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 				// and only else, put it in m_markers. I'll use the m_charFormatMkrs list here
 				// since it has 5 more markers than the m_inlineBindingMarkers - including
 				// has no \\png \\addpn \\qt \\sls and \\sup.
-				if (gpApp->m_charFormatMkrs.Find(augmentedMkr) != wxNOT_FOUND)
+				// 
+				// whm 15Dec2024 modification. This block should do the same thing that the block
+				// above does that checks for augmentedMkr in gpApp->m_inlineBindingMarkers, and sets
+				// the bIsInlineBindingMkr to TRUE when found and FALSE when not found, and then calls
+				// pSrcPhrase->AppendToInlineBindingMarkers(augmentedMkr). Before this modification,
+				// the bIsInlineBindingMkr wasn't being set to TRUE for Roland F.'s data which then
+				// downstream, the code fails to correctly parse the whole word when the corresponding
+				// end marker (\nd* in his case) was embedded within the word in a medial position, 
+				// resulting in the part of the word followoing the \nd* end marker was incorrectly being
+				// broken off as a separate source phrase. 
+				bIsInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augmentedMkr) != wxNOT_FOUND;
+				if (bIsInlineBindingMkr)
 				{
 					// It's a char format marker and also an inline binding begin marker,
 					// both have the same inventory of begin markers! Probably use the Append...
@@ -39169,7 +39632,13 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 				// TokenizeText() can be called on a portion of text in which the last marker could
 				// be \p at the end of the file without any trailing space. To be safe then and get
 				// an accurate len value I'll add below a ParseSpace() call and use its actual return
-				// value which may be zero
+				// value which may be zero.
+				// whm 15Dec2024 Note: Since the current block is within the TRUE test:
+				//   if (*ptr == gSFescapechar)
+				// it is NOT going to be the case that there will be any whitespace at ptr, but it is
+				// already determined at the test above to be a gSFescapechar instead. Therefore, the 
+				// augmenting of len and of ptr below isn't ever going to happen before the code below
+				// that executes return len.
 				int whitespaceLen = 0;
 				whitespaceLen = ParseWhiteSpace(ptr);
 				len += mkrLen + whitespaceLen;
@@ -39181,6 +39650,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 					wxUnusedVar(halt_here);
 				}
 #endif
+				// ParseWord() can now be called next, to handle the marker's content safely
 				return len;
 			}
 #if defined (_DEBUG) && !defined(NOLOGS)
@@ -40283,8 +40753,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				pView->RemovePunctuation(pDoc, &strSrcKey, nSrcPunctsSet);
 				// Now fix m_key to have no wrapping parentheses
 				pSrcPhrase->m_key = strSrcKey;
-#if defined (_DEBUG) && defined (NOPAREN)
-				if (pSrcPhrase->m_nSequNumber >= 18)
+#if defined (_DEBUG)
+				if (pSrcPhrase->m_nSequNumber == 99)
 				{
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s]  **FIXED** m_key has no parentheses"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
@@ -40921,7 +41391,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		wxString pointsAt = wxString(ptr, 20);
 		//		wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , ptr->%s"),
 		//			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 3)
+		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -46684,7 +47154,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// current pSrcPhrase->m_filteredInfo member - the sweptUpStuff prefixed to the bracketed
 	// to-be-filtered marker and its associated text, and set the boolean value 
 	// bParseSweptUpMatterBeforeMarkerToBeFiltered to TRUE.
-	// These variables are set by the IsNextFilterableMkrToBeFiltered() function call below in 
+	// These variables are set by the GatherWhiteSpaceAndSweepableMarkers() function call below in 
 	// the outer while (ptr < pEnd) loop between the if (IsWhiteSpace(ptr)) and 
 	// itemLen = ParseWhiteSpace(ptr) calls.
 	wxString sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered; // whm 10Feb2024 added.
@@ -46754,7 +47224,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber == 6)
+		if (pSrcPhrase->m_nSequNumber == 99)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
@@ -46970,7 +47440,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 6);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber == 31) // whm break
+		if (pSrcPhrase->m_nSequNumber == 2) // whm break
 		//if (mypointsAt.Find(_T(" later")) != wxNOT_FOUND) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -46984,12 +47454,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// the \n if we don't record the fact that if here gets parsed over.
 		// 
 		// whm 22Feb2024 modified the test for whitespace below so that it is parsed and also the
-		// if (IsNextFilterableMkrToBeFiltered(...)) call is always made. In the previous version of
-		// the code made 20Feb2024 the IsNextFilterableMkrToBeFiltered() call was only made if ptr
+		// GatherWhiteSpaceAndSweepableMarkers(...)) call is always made. In the previous version of
+		// the code made 20Feb2024 ththat call was only made if ptr
 		// was pointing at whitespace. However, it is possible that what follows could be the begin
 		// marker of one that is-to-be-filtered and there is no intervening space before that begin
 		// marker. Therefore, I think it would be best to temporarily parse any whitespace that is
-		// now being pointed at by ptr, and always make a call to IsNextFilterableMkrToBeFiltered().
+		// now being pointed at by ptr, and always make a call to GatherWhiteSpaceAndSweepableMarkers().
 		// Then after than call, any whitespace returned to itemLen that is found will be used 
 		// - along with any nLenSweptUpStuff to advance the ptr below. Also, any tempWhites would 
 		// be prefixed to any sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, for use later
@@ -47003,10 +47473,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			tempPtr += itemLen;
 		}
 
-		// whm 22Feb2024 updated to get the IsNextFilterableMkrToBeFiltered() 
-		// whm 20Feb2024 The following variables and IsNextFilterableMkrToBeFiltered() function
-		// call are used to help determine if there is a following filtereable marker which is 
-		// to be filtered during this Tokenizing of the input text. In cases where the the stuff
+		// whm 23Dec2024 updated to call GatherWhiteSpaceAndSweepableMarkers() now a void function
+		// that also adds an additional reference parameter named bIsNextFilterableMkrToBeFiltered
+		// so the caller can then use the swept up info either for filtered info, or for storing
+		// within the m_markers member.
+		// whm 23Dec2024 The following variables and GatherWhiteSpaceAndSweepableMarkers() function
+		// call are used to gather up white space and other non-SP-generating markers. These space
+		// markers and other markers are gathered/swept up and stored either within the filtered
+		// info, or within the current m_markers member. They are stored as prefix to filtered info
+		// when it is determined that there is a following filtereable marker which is 
+		// to be filtered during this Tokenizing of the input text, otherwise such space/markers
+		// are stored within the current m_markers member. Specifically, in cases where the the stuff
 		// between the space the ptr is pointing at, and backslash of the marker-to-be-filtered 
 		// is non-text, but a combination of whitespace and certain markers of the special set
 		// _T("\c \p \m \mi \nb \b \ib \ie \po "), this stuff should be "swept up" along with
@@ -47024,17 +47501,18 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered variable,  and set the boolean value
 		// bParseSweptUpMatterBeforeMarkerToBeFiltered to TRUE to inform TokenizeText() that there 
 		// is swept up stuff to be handled.
-		// My first implementation of the IsNexFilterableMkrToBeFiltered() function considered any
-		// "empty" marker eligible for being in swept up stuff. That works OK except for cases where
-		// TokenizeText() is tokenizing a text that is mostly devoid of content and most or all the
-		// markers are "empty". That had the unfortunate effect of storing many markers and even
-		// verse numbers along with the filtered marker. This revision of 20Feb2024 now only will
-		// sweep up the markers in the _T("\\c \\p \\m \\mi \\nb \\b \\ib \\ie \\po ") set. Other 
-		// makers that are "empty" should have their own "empty" source phrases as "placeholders" 
-		// that are visible to the user - even though the user's only cue to that blank pile is any 
-		// nav text that may be given above the marker. The above markers won't have any nav text 
-		// showing when they are stored as filtered info along with a filtered marker, but when NOT 
-		// swept up they will be stored in m_markers and should display their nav text as:
+		// My first implementation of the original function named IsNexFilterableMkrToBeFiltered() 
+		// considered any "empty" marker eligible for being in swept up stuff. That works OK except for 
+		// cases where TokenizeText() is tokenizing a text that is mostly devoid of content and most or 
+		// all the markers are "empty". That had the unfortunate effect of storing many markers and even
+		// verse numbers along with the filtered marker. The revision of 20Feb2024, and this more recent
+		// revision of 23Dec2024 now only will sweep up the markers in the 
+		// _T("\\c \\p \\m \\mi \\nb \\b \\ib \\ie \\po ") set. Other makers that are "empty" should 
+		// have their own "empty" source phrases as "placeholders" that are visible to the user - even 
+		// though the user's only cue to that blank pile is any nav text that may be given above the 
+		// marker. The above markers won't have any nav text showing when they are stored as filtered 
+		// info along with a filtered marker, but when NOT swept up they will be stored in m_markers 
+		// and should display their nav text as:
 		// \c	"n:" [where n is the chapter number]
 		// \p	"paragraph"
 		// \m	"paragraph margin"
@@ -47045,24 +47523,49 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// \ie	"" [none]
 		// \po	"paragraph" [same nav text as \p]
 		//
-		// These variables are initialized below - just before the IsNextFilterableMkrToBeFiltered() 
+		// These variables are initialized below - just before the GatherWhiteSpaceAndSweepableMarkers() 
 		// function call - here in the outer while (ptr < pEnd) loop.
-		// When the IsNextFilterableMkrToBeFiltered() function returns TRUE, the nLenSweptUpStuff is 
-		// appended to itemLen so that the ptr will advance past any whitespace parsed above plus any
+		// When the GatherWhiteSpaceAndSweepableMarkers() function returns, the nLenSweptUpStuff is 
+		// then appended to itemLen so that the ptr will advance past any whitespace parsed above plus any
 		// swept up material that was returned by that call below.
 		int nLenSweptUpStuff = 0;
 		bool sweptStuffInclChOrVs = FALSE;
+		bool bIsNextFilterableMkrToBeFiltered = FALSE;
 		sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
-		if (IsNextFilterableMkrToBeFiltered(tempPtr, pEnd, sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, 
-			nLenSweptUpStuff, sweptStuffInclChOrVs))
+		// whm 23Dec2024 renamed the 
+		//if (IsNextFilterableMkrToBeFiltered(tempPtr, pEnd, sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered,
+		//	nLenSweptUpStuff, sweptStuffInclChOrVs))
+		// 
+		// whm 23Dec2024 modified. Renamed the IsNextFilterableMkrToBeFiltered() to GatherWhiteSpaceAndSweepableMarkers()
+		// so that it can be used to preserve any sweepable white space and markers that would be stored in the current
+		// source phrase's m_markers member rather than being placed within \~FILER ... \~FILTER* brackets and prefixed 
+		// to a following filtered marker.
+		GatherWhiteSpaceAndSweepableMarkers(tempPtr, pEnd, sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered,
+			nLenSweptUpStuff, sweptStuffInclChOrVs, bIsNextFilterableMkrToBeFiltered);
+
+		if (bIsNextFilterableMkrToBeFiltered)
 		{
 			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered = tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
 			bParseSweptUpMatterBeforeMarkerToBeFiltered = TRUE; // whm 10Feb2024 modified var name
 			itemLen += nLenSweptUpStuff; // advance ptr to point past the swept up stuff and point at following marker to be filtered
 		}
+		else
+		{
+			// whm 23Dec2024 addition. Any gathered white space and "sweepable" markers found by the 
+			// GatherWhiteSpaceAndSweepableMarkers() function call above can be stored within the current
+			// pSrcPhrase->m_markers member, and the itemLen value incremented accordingly.
+			// Set the bParseSweptUpMatterBeforeMarkerToBeFiltered flag FALSE since any swept up stuff isn't
+			// going to be stored with a filtered marker in the m_filteredInfo member.
+			bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
+			// Store any swept up white space and/or markers on the m_markers member
+			pSrcPhrase->m_markers += tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
+			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+			itemLen += nLenSweptUpStuff; // advance ptr to point past the swept up stuff and point at what follows
+		}
 
-		// whm 10Feb2024 comment: itemLen will point past whitespace, and past any swept up whitespace 
-		// and markers from the IsNextFilterableMkrToBeFiltered() call above.
+		// whm 23Dec2024 comment: itemLen will point past whitespace, and past any swept up whitespace 
+		// and markers from the GatherWhiteSpaceAndSweepableMarkers() call above. Those white space and
+		// or markers will have been stored in the if/else blocks above.
 		ptr += itemLen;
 
 		// BEW 10Jul14 added next 3 lines
@@ -47607,7 +48110,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokText() line  %d , starting IsChapterMkr TRUE block , chapter:verse= [%s], strPointAt= [%s]"),
 						__LINE__, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
@@ -47831,7 +48334,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 									{
 										// There is swept up material to prefix to the bracketed filtered marker
-										// That was determined by the IsNextFilterableMkrToBeFiltered() earlier
+										// That was determined by the GatherWhiteSpaceAndSweepableMarkers() call earlier
 										// in TokenizeText(). 
 										// The swept up material may contain whitespace, and/or other markers such as
 										// \c n, \v n \p and other empty markers that are contained in the variable:
@@ -48718,7 +49221,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 										{
 											// There is swept up material to prefix to the bracketed filtered marker
-											// That was determined by the IsNextFilterableMkrToBeFiltered() earlier
+											// That was determined by the GatherWhiteSpaceAndSweepableMarkers() call earlier
 											// in TokenizeText(). 
 											// The swept up material may contain whitespace, and/or other markers such as
 											// \c n, \v n \p and other empty markers that are contained in the variable:
@@ -50938,7 +51441,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
 								{
 									// There is swept up material to prefix to the bracketed filtered marker
-									// That was determined by the IsNextFilterableMkrToBeFiltered() earlier
+									// That was determined by the GatherWhiteSpaceAndSweepableMarkers() call earlier
 									// in TokenizeText(). 
 									// The swept up material may contain whitespace, and/or other markers such as
 									// \c n, \v n \p and other empty markers that are contained in the variable:
