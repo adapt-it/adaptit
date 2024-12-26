@@ -81,19 +81,14 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// this is a class defined in AI.h, it's a subclass of wxTextCtrl class, and has only
 	// one internal function, an OnChar() function. Do not confuse with our implementation
 	// of Paratext's AutoCorrect functionality - the latter is different thing
-	 
-	// BEW 21Mar23 modified, in the .h, I made the control pointers be public, (they were
-	// protected earlier) so I can get at them without accessors. The comment above is
-	// perhaps now out of date or inaccurate - it seems wrong to me to tie this dialog
-	// to anything in the AutoCorrect support
 	
 	m_pNewUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERNM); 
 	m_pNewFullnameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_FULLNAME);
 	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
-	m_pCheck_Useradmin = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
+	m_pCheck_Useradmin = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SET_USERADMIN);
 	m_pCheck_Useradmin->SetValue(FALSE); // start off unticked, RHSide checkbox
-	m_pCheck_Grant_Permissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSIONS);
-	m_pCheck_Grant_Permissions->SetValue(FALSE); // start off unticked, LHSide checkbox
+	m_pCheck_Grant_Permissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
+	m_pCheck_Grant_Permissions->SetValue(FALSE); // start off unticked, RHSide checkbox
 
 	wxString empty = wxEmptyString;
 	m_pNewUsernameCtrl->ChangeValue(empty);
@@ -164,10 +159,10 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	pApp->m_newUserDlg_newusername = strNewUser;
 	pApp->m_newUserDlg_newfullname = strNewFullname;
 	pApp->m_newUserDlg_newpassword = strNewPassword;
-	bool bPermission = m_pCheck_Useradmin->GetValue();
-	pApp->m_newUserDlg_newuseradmin = (bPermission == TRUE) ? 1 : 0;
+	bool bSetUseradmin = m_pCheck_Useradmin->GetValue();
+	pApp->m_newUserDlg_newuseradmin = (bSetUseradmin == TRUE) ? 1 : 0;
 	bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
-	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0; // this, for when grants field is implemented
+	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0;
 
 	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off. BEW 22Mar24, removed, has no useful function
 	event.Skip();

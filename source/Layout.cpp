@@ -659,7 +659,6 @@ int CLayout::GetDefaultActivePileWidth()
 // whm 11Nov2022 modified adding initializations for phrasebox sizing operations done in CPhraseBox::OnPhraseBoxChanged()
 void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
-
 	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only.
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
 #if defined(_DEBUG) //&& defined (_NEWDRAW)
@@ -678,7 +677,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		}
 	}
 #endif
-
+	wxLogNull nolog;
 //#if defined(_DEBUG) && defined(FLAGS)
 //	{
 //		CAdapt_ItApp* pApp = &wxGetApp();

@@ -6595,7 +6595,7 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
     // wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode()); 
-
+	wxLogNull nolog;
     CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
     CLayout* pLayout = GetLayout();
@@ -6912,7 +6912,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
     //wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
-
+	wxLogNull nolog;
     // refactored 2Apr09
 	//wxLogDebug(_T("OnKeyDown() %d called from PhraseBox"),event.GetKeyCode());
 	CAdapt_ItApp* pApp = &wxGetApp();

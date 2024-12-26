@@ -9853,7 +9853,7 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_USER_INFO, _("Adding a new user to the KBserver database. Type in the following:  1. a username  2.  a fullname  3. a password.  If the new user is permitted to add more users, click the checkbox Permit Adding More Users.   If you want the new user to have the authority to control all KBserver actions, click the checkbox Create User With All Permissions. You can tick both checkboxes, or one, or none. "), wxDefaultPosition, wxSize(480,80), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_USER_INFO, _("Adding a new user to the KBserver database. Type in the following:  1. a username  2.  a fullname  3. a password.  If the new user is to have full control, click the checkbox Grant All Privileges.   If you want the new user to have the limited control, click the checkbox Set Useradmin. If you want to not allow the new user to enter the KB Sharing Manager, leave both checkboxes unticked; the new user will still be listed in the user table, and a user with limited control or higher can elevate that user to limited control, or higher. "), wxDefaultPosition, wxSize(480,110), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
@@ -9902,13 +9902,13 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item13->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSIONS, _("Grant Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_SET_USERADMIN, _("Set Useradmin"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->SetToolTip( _("Create new user, grant permissions, lodge in Manager's user list") );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item13->Add( 22, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item15 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSION, _("Permit Adding More Users"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item15 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSION, _("Grant All Privileges"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item13->Add( 18, 20, 0, wxALIGN_CENTER|wxALL, 5 );

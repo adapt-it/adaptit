@@ -2557,7 +2557,9 @@ class CAdapt_ItApp : public wxApp
 	wxString m_curNormalFreeTransLangName; // user may want to send free trans to collaborating
 								// Paratext in a language different from all the preceding ones
 
-	// BEW 2Sep20 public Updaters for the above public variables.
+	// BEW 2Sep20 public Updaters for the above public variables. BEW 30Aug24 these updaters are used in
+	// several places, so don't remove them: eg. first one is used in class Authenticate2Dlg (uses
+	// user1_user2_lookup_func(), kb_sharing_stateless_setup_func() - 3 fields dlg, and AI.cpp 24,181,3,5
 	void UpdateCurNormalUsername(wxString str);
 	void UpdateCurNormalPassword(wxString str);
 	void UpdateCurNormalFullname(wxString str);
@@ -3919,7 +3921,9 @@ public:
 
 //#if defined(_KBSERVER)
 	// BEW 12Mar24 added next two, after Leon made kbadmin/kbauth unavailable and obsolete
-	// initialise to _T("gates") and _T("rs46nha#BZ") at end of OnInit()
+	// initialise to those off a 'normal' user with ALL PERMISSIONS granted. Must be granted, as
+	// MariaDB will not allow granting of some other user to have ALL PERMSSIONS if the active
+	// user does not already have them granted
 	wxString m_strDBusername;
 	wxString m_strDBpassword;
 	wxString m_strDBfullname;
@@ -3975,8 +3979,8 @@ public:
 	wxString m_newUserDlg_newusername;
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
-	int      m_newUserDlg_newuseradmin; // RHSide checkbox
-	int      m_newUserDlg_grant_permissions; // LHSide checkbox
+	int      m_newUserDlg_newuseradmin; // LHSide checkbox
+	int      m_newUserDlg_grant_permissions; // RHSide checkbox
 	int		 m_nAddUsersCount; // (was at 2722)used to prevent more than one entrance to NewUserCredentialsDlg 
 							   // per call of OnAddUsersToKBserver()
 	// BEW 13Feb24 added next two, in support of newer NewUserCredentialsDlg

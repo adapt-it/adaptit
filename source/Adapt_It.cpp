@@ -11250,6 +11250,21 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
         // BEW comment 16Mar24: dlg.m_finalPassword is empty, didn't expect that, but pApp->m_strPassword has accepted
         // the user's type value and copied it to pFrame's SetKBSvrPassword() accessor, so I use that value
 
+        // BEW 29Aug24 additions. Over the last decade or so, AI.h has accumulated various sets of parameters - for ipaddress
+        // username, fullname, and pwd for the username. Some (or all) are public sets, but have accessors anyway.
+        // Kbserver support entered the picture and a new set was added. This multiplication of storages is bad design,
+        // but removing some sets may have bad consequences, so I'll try set relevant ones to correct values from here.
+        // These 3 are public ones for 'normal' access, and have too accessors: which I'll ignore.
+        m_curNormalUsername = m_strUserID;
+        m_curNormalFullname = m_strFullname;
+        wxASSERT(!aPwd.IsEmpty());
+        m_curNormalPassword = aPwd;
+        // In case the following 3 get used somewhere...
+        m_curAuthUsername = m_strUserID;
+        m_curAuthPassword = aPwd;
+        m_curFullname = m_strFullname;
+
+
         // whm added 24Oct13. Save the UniqueUsername and InformalUsername
         // Note: The code block here should be the same as in helpers.cpp's
         // CheckUsername().
@@ -20062,6 +20077,8 @@ void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 // makes it clear what is going on in RemoveDatFileAndEXE() function
 void CAdapt_ItApp::DeleteOldEXEfile(wxString filename, wxString execFolderPath)
 {
+    wxLog::EnableLogging();
+
 #if defined (_DEBUG)
     wxLogDebug(_T("DeleteOldEXEfile() ENTERED line %d,  filename [%s], execFolderPath [%s]"),
         __LINE__, filename.c_str(), execFolderPath.c_str());
@@ -20498,7 +20515,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         wxString tempStr;
 		m_strNewUserLine.Empty(); // initialise
         m_bUseForeignOption = FALSE; // restore default 
-// refactored code..  -- get the top level structures sorted out
 
         if (m_bAddUser2UserTable == TRUE)
         {
@@ -20509,7 +20525,21 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
             wxString strUserAndPwd = wxEmptyString;
             wxString strDBcredentials = wxEmptyString; // want ipAddr, gates, rs... pwd
-            // These credentials apply,  kbserver's chosen ipAddr, then "gates", then pwd for gates (rs46nha#BZ), gates has ALL PERMISSIONS
+
+            // BEW changes 29Aug24, because we can use gates and the old pwd rs46nha#BZ anymore.
+            // this->m_strDBusername and this->m_strDBpassword have to be set to whatever is the all-permissions user
+            // that is listed in the Edit menu's Change Username dialog. ALL PERMISSIONS cannot be granted to some other
+            // user if that dialog's user does not already have ALL PERMISSIONS granted with "using grant option", and flushed.
+            // And the NewUserCredentialsDlg dlg(this->GetMainFrame()); below also has errors. If the left checkbox is unticked
+            // then the dialog handler does not see the username checkbox as having content, even though I type something there,
+            // and probably these issues are causing the attempt to get do_add_kbusers.py to fail at the system() call below.
+            this->m_strKbServerIpAddr.Empty();
+            this->m_strDBusername.Empty();
+            this->m_strDBpassword.Empty();
+            // The credentials needed, when setting up a new user using do_add_kbusers.py will be 'normal' ones, not 'foreign'
+            // ones, as the 'normal' ones will be in AI.h 
+
+
             strDBcredentials += this->m_strKbServerIpAddr + comma;
             strDBcredentials += this->m_strDBusername + comma;  // gates,
             strDBcredentials += this->m_strDBpassword + comma;  // rs46nha#BZ,
@@ -20563,17 +20593,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                         wxLogDebug(_T("ConfigureMovedDatFile() line %d  bDoGrants checkbox TRUE, commandLine= [%s]"),
                             __LINE__, commandLine.c_str());
 #endif                    
-                        // TODO currently -- maybe nothing here
+// TODO currently -- maybe nothing here
                     }
                     else
                     {
-
                         m_bGrantSomePermissions = FALSE; // input .dat file is: kb_users_add_list.dat (6 fields)
                                 // 3 for credentials, then 3 for username, fullname, password
-
-
-
-                        // TODO - maybe nothing here
+// TODO - maybe nothing here
                     }
                 } // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
                 else
@@ -20593,6 +20619,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                     //m_bCreateUserByMenuItem = FALSE; BEW 22Mar24, removed, has no useful function
                     return;
                 }
+
+
+
+
             } // end of TRUE block for test: if (m_nAddUsersCount == 0)
             else
             {
@@ -20606,8 +20636,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 wxString m_newUserDlg_newusername;
                 wxString m_newUserDlg_newfullname;
                 wxString m_newUserDlg_newpassword;
-                int      m_newUserDlg_newuseradmin; // RHSide checkbox
-                int      m_newUserDlg_grant_permissions; // LHSide checkbox
+                int      m_newUserDlg_grantpermissions; // RHSide checkbox
+                int      m_newUserDlg_setkbuseradmin; // LHSide checkbox
                 */
                 wxASSERT(!commandLine.IsEmpty());
 
@@ -20686,18 +20716,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // this. .py functions herein may require one or more additional ones, such as: do_remove_user.py
             // so as to remove a listed user in order to all re-adding of same user using do_add_kbusers.py
 
-
-
-
-
-
 // TODO  -- copy some code up from commented out stuff below, start with support for Add User button of Manager, and no grants wanted
-
-
 
         }  // end of else block for test: if (m_bAddUser2UserTable == TRUE)
 
-/*
 		if (m_bAddUser2UserTable == FALSE)
 		{
             // BEW 12Jan24 - use archived values stored at OnInit(), & this block if for the support of 
@@ -20709,15 +20731,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
  
 			//commandLine = this->m_chosenIpAddr + comma;
             commandLine = this->m_strKbServerIpAddr + comma;
-            // BEW 22Mar24 we don't want Change Username dlg values too be used, instead use
-            // the new global credentials Leon supplied: gates, pwd rs46..., and use hardcoded fullname "pearly"
-            tempStr = m_strDBusername; // i.e. "gates", was m_strUserID;
+            tempStr = m_strDBusername;
 			commandLine += tempStr + comma;
 			
             m_justAddedUsername = tempStr; // save this for adding after authenticating password
-
-            tempStr = m_strDBfullname; // i.e. "pearly", was m_strFullname; 
-
+            tempStr = m_strDBfullname;
+            // next line, the function asks by way of a wxMessageBox()
             bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted(); /// shows a dialog to ask for setting useradmin 1 or 0
             this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
             // If the ask returns FALSE, m_bUseForeignOption will stay FALSE, and the obtaining of the
@@ -20731,7 +20750,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             commandLine += pwd + comma;
             m_justAddedPassword = pwd; // save this for adding after authenticating password
 
-            commandLine += m_justAddedUsername + comma; // .py needs these two added (I think, maybe not now)
+            commandLine += m_justAddedUsername + comma; // .py needs these two added (I think)
             commandLine += m_justAddedPassword + comma;
 
             // BEW 22Mar24, we've only got the credentials done - we have to now supply a username, fullname and pwd,
@@ -20822,7 +20841,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                     // between these two options, do it here - via a simple dialog.  BEW 24Dec21
 
                     // BEW 3Jan22, put up the NewUsercredentiasDlg for user to input the
-                    // needed credentials. This dialog has a checkbox
+                    // needed credentials. This dialog has two checkboxes, RHS one for granting all permissions
                     NewUserCredentialsDlg dlg(this->GetMainFrame());
                     dlg.Center();
                     if (dlg.ShowModal() == wxID_OK)
@@ -20842,13 +20861,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
                         bool bCanAddUsers = dlg.m_pCheck_Useradmin->GetValue();
                         commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
-
-                        // BEW 25Mar24 Comment out next 3 lines, until Leon adds grants ('0' or '1') to user schema for kbserver
-                        //bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
-                        //int grantsValue = (bGrant_Permissions == TRUE) ? 1 : 0; // this, for when grants field is implemented
-                        //commandLine += grantsValue + comma;
-                        // (for the present, every user here will get ALL PERMISSIONS)
-                    }
+                     }
                     else
                     {
                         // User cancelled
@@ -20902,11 +20915,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 // The following gets the values from the KB Manager, for a click on Add User button
                 m_bUseForeignOption = TRUE;
 
-// TODO 19Feb24, fix, can't use GetThingieStart as it only sets up kbserver, KBUser and kbauth -- we'll have
-// a wxMessageBox come up to ask if ALL PERMISSIONS is wanted, and then we'll need to fork depending on user reply
-
-                //commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim); kbadmin/kbauth not supported
-
                 // BEW 29Dec23 m_strNewUserLine is a scratch string; it plays an important role when
                 // populating the 4 app arrays with username, fullname, password, and useradmin value, 
                 // when the user clicks int the Manager's user list to make some different user be
@@ -20932,7 +20940,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 // required a prior click on a user in the user list. Why? Clicking a user caused the old
                 // active user's credentials to be saved to 4 wxArrayStrings, m_mgrUsernameArr, etc. This
                 // made old username, fullname, password and useradmin values get archived - necessary, as
-                // not available any other way once code is actively creataing new values for user etc.
+                // not available any other way once code is actively creating new values for user etc.
 
                 // In the refactored design underlying Add User handler, we don't want the active user to
                 // have to click some other user first. Instead, we require that no listed user is clicked.
@@ -21020,12 +21028,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         wxLogDebug(_T("ConfigureMovedDatFile() line %d: CALLING CreateInputDatFile_AndCopyEXE(), uses wxTextFile: funcNumber = %d , commandline = %s "),
             __LINE__, funcNumber, commandLine.c_str());
 #endif
-
-
         bool bRenewedOK = CreateInputDatFile_AndCopyEXE(funcNumber, commandLine);
         wxUnusedVar(bRenewedOK);
         wxASSERT(bRenewedOK == TRUE);
-        // Latest input .dat file should now exist, and the applicable .exe executable moved to AI.exe folder too
+        // Latest input .dat file should now exist, and the applicable executable moved to ?CallExecute? folder too
 
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
@@ -21056,7 +21062,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 
-*/
+
 		break;
 	} // end of case credentials_for_user:
 	case lookup_user: // = 2
@@ -21633,7 +21639,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		commandLine += kbType + comma;
 		// CreateEntry() always creates with deleted flag _T('0')
-		commandLine += _T('0') + comma;
+// ****  do_create_entry.py does not want the '0' deleted flag in the input .dat file, it checks internally in kbserver entry table
+
+		//commandLine += _T('0') + comma;  // BEW commented out, 29Aug24
 
         // BEW 4Feb22 the 'now' datetime, as forXHTML, is required as the last field
         // of the command line - add it now
@@ -22795,6 +22803,7 @@ extern "C"
 bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 	wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult)  // last param is default FALSE
 {
+   
 	/*
 	// Don't use an enum, const int values are simpler, from AI.h 
 	const int noDatFile = 0;
@@ -22858,36 +22867,62 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
     bool bSuccessfulSwitch = FALSE; // initialise
 
-	switch (funcNumber)
-	{
-	case noDatFile:
+    switch (funcNumber)
+    {
+    case noDatFile:
     {
         ;
     }
-        break;
-	case credentials_for_user:
+    break;
+    case credentials_for_user:
     {
         int rv = 0;
+        //long rvalue = 0L;
+        //wxUnusedVar(rvalue);
         if (m_bGrantSomePermissions)
         {
             // Adding a new user, by GUI menu choice in Administrator menu, with checkbox for
-            // granting ALL PERMISSIONS ticked. This choice uses do_create_user_grant_all.py
+            // granting ALL PERMISSIONS ticked. This choice uses do_add_kbusers.py
             // and so to run it we must insert "python " before the do...py call
-            //const char* pstart = { "python do_add_kbusers.py" };
-            //const char* pstart = { "python do_create_user_grant_all.py"};
-            //char* pstart = "python do_create_user_grant_all.py";
-            const char* pstart = "python do_add_kbusers.py";
-            rv = system(pstart);
 
-            wxLogDebug(_T("CallExecute() line %d: (some) PERMISSIONS granted:  rv is: %d"), __LINE__, rv);
+            // const char* pstart = "python do_add_kbusers.py"; Try making a .exe, as 1st parame is wxString
+            wxString strCommand;
+            strCommand.Empty(); // init
+            wxString filename = _T("do_add_kbusers.py"); // next line, this->m_dataKBsharingPath has "\\"" at end already
+            wxString execFilePath = this->m_dataKBsharingPath + filename; // f1 in the wxCopyFile() call
+            // Put it in Unicode Debug folder when developing (or Unicode Release if not in __DEBUG mode)
+
+            // Get the function executable from the '_DATA_KB_SHARING' folder
+            // then copy it to where the AI executable is currently running; f1 goes to execFilePath 
+            // which is the ...\Unicode Debug\ folder when developing
+
+            wxString appInstallPath = this->m_appInstallPathOnly + PathSeparator;
+            wxString f1 = execFilePath;
+            wxString f2 = appInstallPath + filename;
+            // first is copied to second, default is bool overwrite = true
+            bool bGoodCopy = wxCopyFile(f1, f2);
+            if (bGoodCopy)
+            {
+                strCommand = f2;
+            }
+            const char* pstart = strCommand.c_str(); // "do_create_user_grant_all.py" in Unicode Debug folder
+            // OnAdddUsersToKBserver() caller has already converted input .dat file to raw utf8
+             
+            // BEW need a raw utf8 string, or all ascii bytes with not special chars, otherwise system() will fail
+            wxUnusedVar(pstart); // it's used in the system() call, but compile doesn't see it there
+            bool bExecutedSucceeded = FALSE; // init
+
+            rv = system("python pstart");
+
+            wxLogDebug(_T("CallExecute() line %d: (some) PERMISSIONS granted:  bExecutionSucceeded is: %d"), __LINE__, rv);
             if (rv == 0)
             {
+                bExecutedSucceeded = TRUE;
                 bSuccessfulSwitch = TRUE;
             }
-            // BEW 26Feb24 if the call of system() succeeded, the new user, new fulname, and new password
+            // BEW 26Feb24 if the call of wxExecute succeeded, the new user, new fulname, and new password
             // must here be set to what the commandLine provided, to reset m_strUserID, m_strFullname,
             // and m_strPassword. These values, comma separated, will be in add_kbusers_results.dat
-
         }
         else
         {
@@ -22902,8 +22937,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             }
         }
     }
-        break;
-	case lookup_user:
+    break;
+    case lookup_user:
     {
         // A bit of stuff that does nothing much
         wxASSERT(resultFile == m_resultDatFileName);
@@ -22923,12 +22958,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         {
             bSuccessfulSwitch = TRUE;
         }
-//#if defined (_DEBUG)
-//        int halt_here = 1;
-//#endif   
+        //#if defined (_DEBUG)
+        //        int halt_here = 1;
+        //#endif   
     }
-		break;
-	case list_users: // = 3
+    break;
+    case list_users: // = 3
     {
         wxASSERT(resultFile == m_resultDatFileName);
         bool bSame = resultFile == m_resultDatFileName;
@@ -22961,8 +22996,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s   bSuccessfulSwitch = %s"),
             __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str(), bSuccessfulSwitch == TRUE ? _T("TRUE") : _T("FALSE"));
     }
-		break;
-	case create_entry: // = 4
+    break;
+    case create_entry: // = 4
     {
         bReportResult = FALSE; // no need for the AI code to report anything, Leon's .dat results file gives anything needed
         wxASSERT(resultFile == m_resultDatFileName);
@@ -23027,8 +23062,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         }
         wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
     }
-		break;
-	case pseudo_delete: // = 5
+    break;
+    case pseudo_delete: // = 5
     {
         // Closing down a document involves calling PutPhraseBoxAtDocEnd(), which would
         // result in a call of do_pseudo_delete.py being made inappropriately. So the
@@ -23043,7 +23078,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             int rv = -1;
             rv = rv; // avoid warning
             bool bExecutedSucceeded = FALSE; // initialise
-            const char* pstart = "python do_pseudo_delete.py"; 
+            const char* pstart = "python do_pseudo_delete.py";
             rv = system(pstart);
             if (rv == 0)
             {
@@ -23059,8 +23094,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
         }
     }
-		break;
-	case pseudo_undelete: // = 6
+    break;
+    case pseudo_undelete: // = 6
     {
 
         int rv = -1;
@@ -23081,8 +23116,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         }
         wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
     }
-		break;
-	case lookup_entry: // = 7
+    break;
+    case lookup_entry: // = 7
     {
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
@@ -23093,8 +23128,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
         //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
     }
-		break;
-	case changed_since_timed: // = 8
+    break;
+    case changed_since_timed: // = 8
     {
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
@@ -23404,8 +23439,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
         const char* pstart = "do_change_permission.exe"; // char based
 
-        int flags = 68; // 68 is binary  01000011 ie, wxEXEC_SYNC (bit 2) wxEXEC_NOEVENTS (bit 7) and wxEXEC_HIDE_CONSOLE (bit 8)
-        //int flags = wxEXEC_SYNC & wxEXEC_BLOCK & wxEXEC_HIDE_CONSOLE; // hmm, wxEXEC_HIDE_CONSOLE doesn't do what it says
+        int flags = 0; // initialise
+        flags = flags | wxEXEC_SYNC | wxEXEC_BLOCK | wxEXEC_HIDE_CONSOLE;
         long rvalue = 0L; // initialise to success result (not startable returns -1 if synchonous, > 0 is probably a process ID, not error)
 
         rvalue = wxExecute(pstart, flags);   // BEW 10Feb23 this is char based, does the job, but flashes
@@ -40345,7 +40380,7 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 
 // TODO later on below somewhere. Check that user table does not have the user being added. ? do_lookup_user.py or .exe ?
 // and use ID value, with sql:  delete from user where id = nnnn;  and maybe or alternatively, DROP USER IF EXISTS username;
-// Why? our code for adding with full permissions assumes the user being added is not in the use table. If he is, expect problems.
+// Why? our code for adding with full permissions assumes the user being added is not in the user table. If he is, expect problems.
 // if not first removed before the .py call gets executed
     m_nAddUsersCount = 0; // init, if > 0 then prevent reentrance to calling NewUserCredentialsDlg
     // BEW 15Feb24, put up the NewUsercredentiasDlg for user to input the needed credentials
@@ -40376,12 +40411,12 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
             // at its start, "python" if it's the former. So far, we've just got the ipAddr value set.
             // commandLine already has the ipAddress set above, at its begining
             
-            // For logging in to kbserver, we need the "gates" user which has ALL PERMISSIONS, and his
-            // password "rs46nha#BZ" BEW try  "natashia" with pwd "buysmum"
-            commandLine += _T("gates") + comma;
-            tempStr = _T("rs46nha#BZ");
-            //commandLine += _T("natashia") + comma;
-            //tempStr = _T("buysmum");
+            // For logging in to kbserver
+            //commandLine += _T("natashia") + comma; // for credentialed DB-_username
+            //tempStr = _T("buysmum"); // for natashia's pwd
+            // BEW 30Aug24 dont set literals. Get these values from AI.h at 24,181++
+            commandLine += m_curNormalUsername + comma;
+            tempStr = m_curNormalPassword;
 
             commandLine += tempStr + comma;
             CMainFrame* pFrame = this->GetMainFrame();
@@ -40391,7 +40426,7 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
             // _T("kb_users_add_list.dat") 
 
             // Next, the new username fullname, and password, from the values returned from the dialog above 
-            // (the .py is 8 fields, and later will be 9)
+            // (the .py is 6 fields for do_add_kbusers.py)
 
             /* These are what the NewUserCredentialsDlg set as public access AI.h members for use here,
                 after its OnOK() function has completed successfully.

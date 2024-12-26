@@ -150,6 +150,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <Version>6.11</Version>
+      <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
       <Command>echo ********** Begin Post-Build Event Batch Process **********

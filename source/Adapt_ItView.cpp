@@ -3144,6 +3144,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 //  CPunctCorrespPagePrefs::OnOK()
 void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 {
+	wxLogNull nolog;
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// refactored 2Apr09
 	CLayout* pLayout = GetLayout();
@@ -16843,6 +16844,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		wxLogDebug(_T("MakeTgtStrInclPunct JUST OPENED line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
 	}
 #endif
+	wxLogNull nolog;
 	wxChar* pEnd = NULL; // init
 	bool bRemoveUnwantedLastChar = FALSE; // initialise
 

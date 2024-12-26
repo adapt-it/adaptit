@@ -18,7 +18,7 @@
 
 //#define _debugLayout
 // comment out next line to turn of the wxLogDebug calls in this file
-//#define LOG_USFM3
+#define LOG_USFM3
 #define maxLen 60
 //#define _AT_PTR
 //#define FIXORDER
@@ -46733,7 +46733,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 #endif
 #if defined (_DEBUG) && !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber >= 17)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -46754,7 +46754,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber == 6)
+		if (pSrcPhrase->m_nSequNumber == 2)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
@@ -47114,7 +47114,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 20);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 17)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -47145,7 +47145,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber == 440)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -47217,7 +47217,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined (LOGMKRS)
 				wxLogDebug(_T("TokText() line %d ELSE block for pointing at '[', sn for CSourcePhrase in TokenizeText()= %d , bWithinAttrSpan= %d"),
 					__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
-				if (pSrcPhrase->m_nSequNumber >= 5)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
@@ -47316,7 +47316,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber == 19)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -47344,7 +47344,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptrAt = wxString(ptr, 20);
 				wxLogDebug(_T("TokText()  BEFORE EMPTY MKRS LOOP ENTRY, line %d, sn= %d, m_markers= [%s], pointsAt= [%s] "),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-				if (pSrcPhrase->m_nSequNumber == 179)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
@@ -47412,7 +47412,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptrAt = wxString(ptr, 20);
 //				wxLogDebug(_T("TokText() tested ENTER EMPTY MKRS LOOP, line %d, BOOL bProcessEmptyMarker= %d, sn= %d, m_markers= [%s], pointsAt= [%s]"),
 //					__LINE__, (int)bProcessEmptyMarker, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 179)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
@@ -47429,6 +47429,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// Also, we can process ALL other empty markers in one if else block by calling
 				// LookupSFM() on the marker
 				// Also Change the boolean name from bProcessEmptyMarker to bEnterEmptyMkrProcessing.
+				if (pSrcPhrase->m_nSequNumber >= 2)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+				}
 
 				// Any beginMkr may be the last empty one in a contentless span, so the exit command
 				// needs to happen when IsEmptyMkr() is FALSE
@@ -47607,7 +47611,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokText() line  %d , starting IsChapterMkr TRUE block , chapter:verse= [%s], strPointAt= [%s]"),
 						__LINE__, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
@@ -47650,7 +47654,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokText() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -47670,7 +47674,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d , tokBuffer sets m_markers= [%s], ITERATES, chapter:verse= [%s], pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -47737,7 +47741,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], pointsAt= [%s]  Loop (Red or Nonbinding)"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -47787,9 +47791,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) //&& !defined (NOLOGS)
 								{
 									wxString strPointAt = wxString(ptr, 16);
-									//wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
-									//	__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 451)
+									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
+										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -48010,7 +48014,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString strPointAt = wxString(ptr, 16);
 								wxLogDebug(_T("TokText() line  %d, m_markers= [%s] , m_curChapter= [%s], chapter:verse= [%s], pointsAt= [%s] "), __LINE__,
 									pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -48039,7 +48043,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString strPointAt = wxString(ptr, 16);
 								wxLogDebug(_T("TokTxt() line  %d , aWholeMkr= [%s], m_markers= [%s], chapter:verse= [%s], pointsAt= [%s] "),
 									__LINE__, aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here; wxUnusedVar(halt_here);
 								}
@@ -48079,7 +48083,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									wxString strPointAt = wxString(ptr, 16);
 									wxLogDebug(_T("TokText() line  %d , chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
 										__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 5)
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here; wxUnusedVar(halt_here);
 									}
@@ -48156,7 +48160,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokText() line  %d ,Before verseMkr block: chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
 						__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here; wxUnusedVar(halt_here);
 					}
@@ -48250,7 +48254,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d , chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
 							__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here; wxUnusedVar(halt_here);
 						}
@@ -48291,7 +48295,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxLogDebug(_T("TokTxt() in IsVerseMkr TRUE block: line  %d , verseNum= [%s] , m_curChapter= [%s] , m_inform= [%s], m_chapterVerse= [%s], m_srcPhrase= [%s] ,strPointAt= [%s] "),
 							__LINE__, theVerseNumber.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(),
 							pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_srcPhrase.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 13)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -48310,7 +48314,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					spanAtPtr = wxString(ptr, itemLen + 1); // +1 because ptr may be pointing at one whitespace
 					wxLogDebug(_T("TText() line %d , Set m_marker [%s], in Verse Mkr Parsing TRUE block: pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_markers.c_str(), spanAtPtr.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
@@ -48431,7 +48435,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d , chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , pointsAt= [%s] "),
 							__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here; wxUnusedVar(halt_here);
 						}
@@ -48484,7 +48488,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d , chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
 							__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here; wxUnusedVar(halt_here);
 						}
@@ -48531,7 +48535,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokTxt() line  %d , sequNum = %d, LookupSFM() block, chapter:verse= [%s], strPointAt= [%s]"),
 						__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
@@ -48597,7 +48601,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxString strPointAt = wxString(ptr, 16);
 							wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
 								__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -49071,7 +49075,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString strPointAt = wxString(ptr, 16);
 								wxLogDebug(_T("TokText() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], pointsAt= [%s] "),
 									__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -49252,7 +49256,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)bIsToBeFiltered, strPointAt.c_str());
 						wxLogDebug(_T("TokTxt() line %d, m_marker= [%s], bIsToBeFiltered = %d , chapter:verse= [%s], strPointAt= [%s]"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
@@ -49337,7 +49341,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									wxLogDebug(_T("TokText() line  %d , m_marker= [%s], bIsToBeFiltered = %d , strPointAt= [%s] "),
 										__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
 								}
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -49587,7 +49591,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pSavedPtr = ptr; // this won't have moved in value
 #if defined (_DEBUG) && !defined (NOLOGS)
 						{
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
@@ -49620,7 +49624,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									wxString strPointAt = wxString(ptr, 16);
 									//wxLogDebug(_T("TokText() line  %d , m_markers= [%s] , chapter:verse= [%s], pointsAt= [%s] , 2ndLookup wholeMkr=[%s]"),
 									//	__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str(), wholeMkr.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 198)
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 									}
@@ -49834,7 +49838,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d, m_markers= [%s], chapter:verse= [%s], pointsAt= [%s] , after 2ndLookup"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
@@ -50042,7 +50046,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							bIsCharAttrMkr = FALSE; // init
 							// HERE following we just set booleans, we don't parse
 #if defined (_DEBUG) && !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 13)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								//wxString ptrPointsAt;
 								ptrPointsAt = wxString(ptr, 16);
@@ -50344,7 +50348,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// if (nPunctsSpan > 0) TRUE block below, count any whitespaces after ptr is updated, and 
 						// append them too
 #if defined (_DEBUG) && !defined (NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
@@ -50476,7 +50480,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//pSrcPhrase->m_inform = _("x-ref to source"); // NOTE: "x-ref to source" is m_inform for \rq ... \rq* rightMarginReference (TType 32)
 							pSrcPhrase->m_bBoundary = TRUE;
 #if defined (_DEBUG) && !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								//wxString ptrPointsAt;
 								ptrPointsAt = wxString(ptr, 16);
@@ -50555,7 +50559,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					if (bIsAMkr && bNotEndMkr && bInLine && bNotForFiltering && m_bIsWithinUnfilteredInlineSpan)
 					{
 #if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							wxLogDebug(_T("TokText(), line %d : m_bIsWithinUnfilteredInlineSpan = %d , sequNum = %d , wholeMkrAtPtr= %s , m_curTextType = %d, m_key= [%s]"),
 								__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
@@ -50601,7 +50605,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxChar* pAuxPointsAt;
 						pAuxPointsAt = pAux;
 #if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							//wxString ptrPointsAt;
 							ptrPointsAt = wxString(ptr, 16);
@@ -50783,7 +50787,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// a USFM marker!!
 					//if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 #if defined (_DEBUG) && !defined (NOLOGS)
-					if (pSrcPhrase->m_nSequNumber >= 26)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
@@ -50874,7 +50878,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// So we'll code in bleeding order - get the special cases out of the way
 						// first, and the general stuff handled last.
 #if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							wxLogDebug(_T("TokText(), FILTERING... line %d, sequNum= %d , m_bSpecialText= %d , m_curTextType= %d, m_key = [%s]"), __LINE__,
 								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
@@ -50991,7 +50995,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText(), FILTERING DONE: line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_precPunct = %s , m_markers = %s"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType,
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 16)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
@@ -51200,7 +51204,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText(), line %d, sequNum= %d, m_bSpecialText= %d , m_curTextType= %d, m_key= [%s], m_precPunct= [%s], m_markers = [%s], chapter:verse= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 								pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
@@ -51304,7 +51308,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxLogDebug(_T("TokText(), NON-SRC FILTERING ENDS, line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key= [%s], m_precPunct= [%s] , m_markers= [%s]"),
 									__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 									(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -51353,7 +51357,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText(), line= %d, sequNum= %d, m_bSpecialText= %d, m_key= [%s], chapter:verse= [%s], m_markers= [%s], pointsAt= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
@@ -51403,7 +51407,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptrPointsAt = wxString(ptr, 18);
 						wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
 							(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 7)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -51446,7 +51450,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxLogDebug(_T("TokText(), line %d, sequNum= %d , m_bSpecialText= %d , m_curTextType= %d, m_key= [%s], m_precPunct= [%s] , m_markers= [%s]"),
 							__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType,
 							pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
@@ -51654,7 +51658,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 //#if defined (_DEBUG)
 		//wxLogDebug(_T("TokenizeText: line %d  , entering ParseWord():  itemLen = %d , ptr->%s , sn= %d , precPunct= %s , m_markers= %s"),
 		//	__LINE__, itemLen, (wxString(ptr, 15)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-		//if (pSrcPhrase->m_nSequNumber >= 1)
+		//if (pSrcPhrase->m_nSequNumber >= 2)
 		//{
 		//	int halt_here = 1; wxUnusedVar(halt_here);
 		//}
@@ -51689,7 +51693,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		//	__LINE__, itemLen, (wxString(ptr, 12)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
 //#endif
 #if defined (_DEBUG) //&& !defined (NOLOGS)
-			if (pSrcPhrase->m_nSequNumber >= 440)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -51701,7 +51705,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxLogDebug(_T("TokText() AFTER PARSEWORD, line %d, sequNum = %d, itemLen= %d , m_bSpecialText= %d , m_curTextType= %d, m_key = [%s] , m_markers= [%s]"),
 					__LINE__, (int)pSrcPhrase->m_nSequNumber, itemLen, (int)pSrcPhrase->m_bSpecialText,
 					(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -51865,7 +51869,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined (NOLOGS)
 			wxLogDebug(_T("After ParseWord:  line %d , sequNum= %d, itemLen= %d , 16 chars at ptr= [%s]  Before ptr update"),
 				__LINE__, pSrcPhrase->m_nSequNumber, itemLen, wxString(ptr, 16).c_str());
-			if (pSrcPhrase->m_nSequNumber >= 1)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -51915,7 +51919,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxLogDebug(_T("\nTokText() NEW Propagation STARTS, line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_markers=%s"),
 					__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 					(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -52151,7 +52155,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	#if defined (_DEBUG) && !defined(NOLOGS)
 						wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
 							__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-						if (pSrcPhrase->m_nSequNumber >= 1)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -52183,7 +52187,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxString ptrAt = wxString(ptr, 20);
 			wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d, ptrAt= [%s]"),
 				__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, ptrAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 1)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -52264,7 +52268,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 				wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
 					__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -52326,7 +52330,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d, has poetryMkr %d"),
 								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText,
 								(int)pSrcPhrase->m_curTextType, (int)bContainsPoetryMarker);
-							if (pSrcPhrase->m_nSequNumber >= 1)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -52351,7 +52355,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText,
 							(int)pSrcPhrase->m_curTextType, atBuffStart.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 1)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -52390,7 +52394,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxString atPtr = wxString(ptr, 16);
 			wxLogDebug(_T("TokenizeText(), line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d"),
 				__LINE__, pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-			if (pSrcPhrase->m_nSequNumber >= 1)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -52404,7 +52408,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 12);
 					wxLogDebug(_T("TokTxt() line  %d , m_bIsWithinUnfilteredInlineSpan = %d , bSuppressBackwardSearchForWordBreakChar = %d , bContinueTwice = %d , strPointAt= [%s] "),
 						__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, (int)bSuppressBackwardSearchForWordBreakChar, (int)bContinueTwice, strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 1)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here; wxUnusedVar(halt_here);
 					}
@@ -52432,7 +52436,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString atPtr = wxString(ptr, 16);
 				wxLogDebug(_T("TokText() LEGACY Propg'n STARTS, line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d  in else at 21622"),
 					__LINE__, pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -52456,7 +52460,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 						wxLogDebug(_T("TokText() Calling IsTextTypeChangingEndMarker(pPrevSrcPhrase), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
 							__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-						if (pSrcPhrase->m_nSequNumber >= 1)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -52492,7 +52496,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString atPtr = wxString(ptr, 16);
 								wxLogDebug(_T("TokenizeText(), line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d"),
 									__LINE__, pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-								if (pSrcPhrase->m_nSequNumber >= 1)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -52663,7 +52667,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText() before: if (bIsChanger ..., line %d , sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s] , bIsChanger = %d , atPtr= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger, atPtr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 1)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -52731,7 +52735,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText,
 								(int)pSrcPhrase->m_curTextType, atPtr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 1)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -52746,7 +52750,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 								wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d"),
 									__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-								if (pSrcPhrase->m_nSequNumber >= 1)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -52782,7 +52786,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d  BEFORE \"end fn\" Block, bIsChanger = %d"),
 								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)bIsChanger); // whm 10Jul2023 added last param (int)bIsChanger)
-							if (pSrcPhrase->m_nSequNumber >= 1)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -52816,7 +52820,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined(NOLOGS)
 									wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , AFTER footnote end,  setting correct values, bIsChanger = %d"),
 										__LINE__, pSrcPhrase->m_nSequNumber, (int)bIsChanger);
-									if (pSrcPhrase->m_nSequNumber >= 1)
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -52887,7 +52891,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText,
 								(int)pSrcPhrase->m_curTextType, atPtr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 1)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -52985,7 +52989,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptrPointsAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokText(), line %d , sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , atPtr= [%s]"), __LINE__,
 					(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -53130,7 +53134,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString atPtr = wxString(ptr, 16);
 		wxLogDebug(_T("TokenizeText(), line %d , sn= %d , APPENDING to pList , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, atPtr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -53216,7 +53220,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokText(), line %d : while loop ENDS: sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_markers=%s, ptrPointsAt= [%s]"),
 			__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}

@@ -756,7 +756,7 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 {
     wxLogDebug(_T("CAdapt_ItCanvas::OnLButtonDown() triggered"));
-
+	wxLogNull nolog;
     CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = pApp->m_pLayout;
 	wxASSERT(pApp != NULL);
