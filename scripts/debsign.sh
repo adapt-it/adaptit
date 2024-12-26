@@ -15,7 +15,7 @@ echo -e "\nSearching for adaptit *.changes package files in ~/pbuilder/*_result 
 
 for i in $(find ~/pbuilder/*_result -type f -name "adaptit_*+*.changes")
 do
-  debsign --re-sign $i
+  debsign -k5C056567FD266AEF --re-sign $i
   LASTERRORLEVEL=$?
   if [ $LASTERRORLEVEL != 0 ]; then
      echo -e "\nCould not sign $i debsign error: $LASTERRORLEVEL"

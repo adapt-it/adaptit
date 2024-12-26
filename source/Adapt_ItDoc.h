@@ -414,8 +414,10 @@ public:
 						wxArrayString& filteredMkrsAndAssocTextNoBrackets,
 						wxArrayString& filteredMkrsArray);
 	wxString		GetMarkerFromWithinOneFilteredString(wxString filteredMkrString); // whm 8Feb2024 added
-	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
-						wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs);
+//	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
+//		wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs);
+	void			GatherWhiteSpaceAndSweepableMarkers(wxChar* ptr, wxChar* pEnd, // whm 23Dec2024 added
+		wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs, bool& bIsNextFilterableMkrToBeFiltered); 
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
 	wxString		ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr);
 	int				GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int aboveThisValue);

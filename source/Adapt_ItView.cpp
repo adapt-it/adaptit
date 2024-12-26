@@ -2596,7 +2596,9 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	{
 		// we got to the end of the document
 		nLastStrip = nTotalStrips - 1;
-		wxASSERT(nLastStrip > nFirstStrip);
+		// whm 15Dec2024 removed following wxASSERT because when a document is just a single
+		// strip, the nLastStrip and nFirstStrip may both have the same value (zero).
+		//wxASSERT(nLastStrip > nFirstStrip);
 	}
 }
 
