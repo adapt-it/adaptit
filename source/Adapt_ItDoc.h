@@ -431,7 +431,9 @@ public:
 
 					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 					// whitespace(s), and getting to the puncts may require parsing over one or more endEndMarkers
-	wxChar*			ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
+	//wxChar*			ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
+	wxChar*			ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, 
+						int& itemLen, wxString& wordSuffix, wxString spacelessPuncts);
 	bool			IsGenuineFollPunct(wxChar chPunct); // BEW 7Jun23 created, for use in ParsePostWordPuncts() in ParseWord()
 	void			CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, int& nBad); // BEW 7Jun23 created, for use in ParsePostWordPuncts()
 					// BEW added ParseDate 16Jun23 for parsing data like 02/26/01 or 02/26/2001, or 2010/05/24 , or 12/02 etc.

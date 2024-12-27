@@ -17212,9 +17212,10 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 		// the placement of the m_follOuterPunct. So, I'm checking to see if the stuff that
 		// follows the m_key part of m_srcSinglePattern m_srcPhrase + appendHere 
 		// value at this point is equal to the m_srcSinglePattern or not. If not, I'm
-		// extracting the m_srcPhrase from m_srcSinglePattern, differes from what has been
-		// composed above for appendHere. If they are not the same, I'm substituting what
-		// follows the m_key in m_srcSinglePattern in place of the appendHere value.
+		// extracting the m_srcPhrase from m_srcSinglePattern, to see if it differs from 
+		// what has been composed above for appendHere. If they are not the same, I'm 
+		// substituting what follows the m_key in m_srcSinglePattern in place of the appendHere 
+		// value.
 		// Testing results indicate that this improves the exports of source texts.
 		if (!appendHere.IsEmpty() && !pSrcPhrase->m_srcSinglePattern.IsEmpty())
 		{
