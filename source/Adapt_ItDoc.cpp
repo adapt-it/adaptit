@@ -47286,7 +47286,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber == 5)
+		if (pSrcPhrase->m_nSequNumber >= 6)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
@@ -50990,7 +50990,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined (NOLOGS)
 					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("TokText(), line %d : app->m_bParsingSource = %d"), __LINE__, (int)gpApp->m_bParsingSource);
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -51007,7 +51007,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							goto isnull;
 						}
-						else if (bKeepPtrFromAdvancing == TRUE)
+						// whm 27Dec2024 modified. The test for bKeepPtrFromAdvancing == TRUE here is a bad
+						// test at least by itself, because after a marker has been filtered the next marker
+						// is likely being pointed at by ptr at this point, and jumping to the parsing label
+						// at this point can easily happen, but should be prevented, otherwise ParseWord()
+						// will generate an error message about "unrecognized" markers.
+						// Rather than doing away entirely with the bKeepPtrFromAdvancing flag test, I'm
+						// adding another test *ptr != gSFescapechar to the else if test below.
+						else if (bKeepPtrFromAdvancing == TRUE && *ptr != gSFescapechar)
 						{
 							goto parsing; // this sends control to just preceding ParsePreWord(), and then ParseWord() follows
 						}
