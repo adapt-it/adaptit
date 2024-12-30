@@ -12296,6 +12296,20 @@ void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
 // one is deleted from pList. Only one line in the function needed changing:
 // pos_pSaved was previously set to pSaved->GetFirst(), and was changed to become
 // pos_pSaved = pSaved->GetLast().
+// 
+// whm 28Dec2024 modification. The above comment is not correct. Merged source words can now
+// be done across filtered information. And so now, when there are two or more merged source 
+// phrases that were merged across filtered information, a record of that filtered information
+// still exists within the min source phrases - those contained in the pBigOne's m_pSavedWords
+// member. In is not accurate to say that unmerging the merged words should now store the 
+// filtered information on the "first" or "last" word that forms the unmerged phrase. But, I 
+// think it is correct to say that the filtered information should be retained on the particular
+// source word that it was stored in originally before the merger was done. 
+// Therefore, this 28Dec2024 modification is a refactoring of this RestoreOriginalMinPhrases()
+// function, to re-establish the original state that those min phrases had before they were 
+// merged together. This means that filtered information, as well as the other information such
+// as such as free translations, notes, and back translations, will likewise be restored on 
+// the same source phrase where they were originally located before the merger took place.
 int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nStartingSequNum)
 {
 	// The following note is copied from Layout.cpp... it is very important
@@ -12338,6 +12352,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 	CSourcePhrase* pBigOne = (CSourcePhrase*)pos_pList->GetData();
 	wxASSERT(pBigOne != NULL);
 
+	/*
     // BEW added 01Aug05 for free translation support; the merged source phrase may be part
     // of a free translation, but it's original saved sourcephrase pointers may not have
     // any free translation defined on them (because the user did the free translating
@@ -12385,17 +12400,35 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
     // or phrase in the selection
 	bool bHasNote = pBigOne->m_bHasNote ? TRUE : FALSE; // the value is used below (retain in
 					// doc version 5, for same reason as for bHasFreeTrans)
+	*/
 
 	// set the first in the saved original srcPhrase objects to have sequ number as passed in
 	SPList::Node* pos_pSaved;
 	SPList* pSaved = pBigOne->m_pSavedWords;
-	// whm 27Jan2024 modified. We need to set pos_pSaved below to pSaved->GetLast() in order for the
-	// filtered info, notes, freetrans, backtrans etc to saved on the LAST min source phrase
-	// according to the new refactored design. The rest of the function I think can be left
+	// [Outdated] whm 27Jan2024 modified. We need to set pos_pSaved below to pSaved->GetLast() in 
+	// order for the filtered info, notes, freetrans, backtrans etc to saved on the LAST min source 
+	// phrase according to the new refactored design. The rest of the function I think can be left
 	// as is - even though I think it would be possible to do away with the creation of a
 	// dummy final source phrase if the items in the m_pSavedWords list were inserted BEFORE
 	// the position of the pBigOne. But, I'll not try to improve on that here, and just change
 	// the pos_pSaved position to point at the last item in the sub list rather than the first item.
+	// 
+	// whm 28Dec2024 modification. The above comment is not correct. Merged source words can now
+	// be done across filtered information. And so now, when there are two or more merged source 
+	// phrases that were merged across filtered information, a record of that filtered information
+	// still exists within the min source phrases - those contained in the pBigOne's m_pSavedWords
+	// member. It is not accurate to say that unmerging the merged words should now store the 
+	// filtered information on the "first" or "last" word that forms the unmerged phrase. But, I 
+	// think it is correct to say that the filtered information should be retained on the particular
+	// source word that it was stored in originally before the merger was done. We should truly
+	// restore the original min phrases.
+	// Therefore, this 28Dec2024 modification is a refactoring of this RestoreOriginalMinPhrases()
+	// function, to re-establish the original state that those min phrases had before they were 
+	// merged together. This means that filtered information, as well as the other information such
+	// as such as free translations, notes, and back translations, will likewise be restored on 
+	// the same source phrase where they were originally located before the merger took place.
+	// TODO: Do the refactoring necessary above and below!!!
+	/*
 	pos_pSaved = pSaved->GetLast(); //pos_pSaved = pSaved->GetFirst();
 	wxASSERT(pos_pSaved != NULL);
 	CSourcePhrase* pSP = (CSourcePhrase*)pos_pSaved->GetData();
@@ -12448,12 +12481,15 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		// preceding the selected span of CSourcePhrase instances
 		pSP->m_bStartFreeTrans = FALSE;
 	}
+
+	*/
+
 	// insert, starting from tail, after the pBigOne,
 	// thereby preserving original element order
 	pos_pSaved = pSaved->GetLast();
 	// now pos_pSaved points at the last item of pBigOne's pSaved list
 	wxASSERT(pos_pSaved != NULL);
-	bool bIsLast = TRUE;
+	//bool bIsLast = TRUE;
 
     // wx Note: Get a node called newInsertBeforePos which points to the next node beyond
     // savePos in pList and use its position in the Insert() call (which only inserts
@@ -12496,6 +12532,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		// previous node (which will actually be the just inserted source phrase)
 		newInsertBeforePos = newInsertBeforePos->GetPrevious();
 
+		/*
         // handle any free translation booleans needing to be set; a free translation is
         // either to be defined on all the original instances, or it is defined for none -
         // and if the merger was also the end of a free translation, then the end of the
@@ -12512,6 +12549,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 				pSP->m_bEndFreeTrans = FALSE;
 			bIsLast = FALSE; // prevent subsequent access to this block
 		}
+		*/
 
         // prior to version 2.0, unmerging cleared the m_adaption and m_targetStr members
         // on the restored original minimal sourcephrases. This is too severe a behaviour,
@@ -28269,6 +28307,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
 	while (pos_pSP != NULL)
 	{
 		pSrcPhrase = pos_pSP->GetData();
@@ -28285,7 +28324,8 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			else
 			{
-				srcStr = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
+				// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
+				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added 2nd parameter
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
@@ -28347,6 +28387,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			srcStr.Empty();
 		} // end of block for TRUE result from test of sequence number
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
 	} // end of loop
 
 	// Don't leak memory. In the next call, FALSE is bDoPartnerPileDeletionAlso; calls

@@ -332,9 +332,12 @@ protected:
 #endif
 	void			RemoveVenturaOptionalHyphens(wxString*& pstr);
 	bool			ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
-		SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase, wxString& fixesStr);
+		SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase, 
+		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
+		wxString& fixesStr);
 	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& WXUNUSED(pList),
 		SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
+		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
 		wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
 	bool			ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr);
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,

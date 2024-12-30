@@ -6663,9 +6663,13 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// the caller RebuildTargetText() to suppress the addition of an inter-word space before
 /// the next call of this function. This may be necessary when the Tstr returned from this
 /// function only contains punctuation and not m_targetStr content - due to the user
-/// selecting <no adaptation> on pSingleSrcPhrase. 
+/// selecting <no adaptation> on pSingleSrcPhrase.
+/// whm 28Dec2024 added a parameter pPrevSingleSrcPhrase making it the second parameter
+/// This is needed to track any filtered information which is stored on a previous source
+/// phrase. 
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount,
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
+							wxString Tstr, bool bDoCount,
 							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct)
 {
 	// to support [ and ] brackets which, if they occur, are the only content, bleed this
@@ -7195,7 +7199,8 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// string in an export from what's been stored in m_tgtMkrPattern.
 		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
-			wxString Sstr = FromSingleMakeSstr2(pSingleSrcPhrase); // whm 5Feb2024 removed unused paramters - and retired the older version
+			// whm 5Feb2024 removed unused paramters - and retired the older version
+			wxString Sstr = FromSingleMakeSstr2(pSingleSrcPhrase, pPrevSingleSrcPhrase); // whm 28Dec2024 added 2nd parameter
 					// need Sstr for the dialog; and we pass it to AutoPlaceSomeMarkers(), 
 					// but the latter currently does not use it internally (one day, it might)
 #if defined (_DEBUG)
@@ -8555,7 +8560,68 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 // represents the current state of the in-memory pSrcPhrases. 
 // whm 112Feb2024 This FromSingleMakeSstr2() is now the version we are using
 // throughout the application.
-wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
+// whm 26Dec2024 - 28Dec2024 modifications made to improve the ordering of 
+// exported material. Added a second parameter pPrevSingleSrcPhrase to the 
+// function header. We need to be able to track the previous source phrase
+// in pList in order to have access to filtered information which is now
+// stored on a previous source phrase. To correctly make up the source text
+// for a single source phrase, and include filtered information, we must be
+// able to access any of its filtered information which would have been
+// stored on a pPrevSingleSrcPhrase.
+// Here is a detailed example that demonstrates this need taken from a 
+// unittest text:
+// --------
+// \id TMP
+// \c 54
+// \ca 53\ca*
+// \s1 A Prayer for Protection from Enemies
+// \d \va 1\va* A poem by David, \va 2\va* after the men from Ziph went to Saul and told
+// him that David was hiding in their territory...
+// -------
+// Note that when parsed the word "from" is sn=5, the word "Enemies" is sn=6 and the 
+// word "A" is sn=7, and the \d marker gets stored in "A" at sn=7, but the \va 1\va* 
+// is filtered info that gets stored back on "Enemies" at sn=6. When FromSingleMakeSstr2() 
+// processes the pSingleSrcPhrase sn=6 (Enemies), it needs to properly process any filtered 
+// info that was parsed by TokenizeText(), so it needs to look back at the 
+// pPrevSingleSrcPhrase at sn=5 "from". Now in this case there is no filtered info 
+// there at sn=5, so the string returned by FromSingleMakeSstr2() for sn=6
+// would not contain any filtered info, but be simply the output string "Enemies"
+// Ok, when FromSingleMakeSstr2() proceeds to process the next pSingleSrcPhrase at sn=7
+// ("A"), it needs to properly process any filtered info that was parsed by TokenizeText(),
+// so it needs to look back at the pPrevSingleSrcPhrase at sn=6 "Enemies" and finds that
+// sn=6 "Enemies" stores the filtered information \va 1\va*, whereas the pSingleSrcPhrase
+// "A" at sn=7 also stores \d in its m_markers member. To produce the proper export string
+// the algorithm needs to restore the substring bits in this order:
+// 1. Content of sn=7's m_markers which is \d
+// 2. Content of sn=6's filteredInfo which is \va 1\va*
+// 3. The m_key value of sn=7 which is "A"
+// so that the resulting output string from FromSingleMakeSstr2() would be "\d \va 1\va* A"
+// Conclusion: Our FromSingleMakeSstr2() function needed a pPrevSingleSrcPhrase argument
+// passed in to be able to reconstruct the source text output for source phrases like sn=7
+// that require reference back to the previous source phrase to retrieve any filtered info
+// stored there.
+// The same sort of requirement for having a pPrevSingleSrcPhrase available should also
+// apply to the FromSingleMakeTstr() function which itself calls this FromSingleMakeSstr2()
+// function.
+// IMPORTANT: Within this FromSingleMakeSstr2() function we must be careful to distinguish
+// what things contribute from the current pSingleSrcPhrase and what things contribute from
+// the previous pPrevSingleSrcPhrase. When we build the return string, it will be composed
+// of elements from the current pSingleSrcPhrase, AND ALSO any filtered information that
+// was stored in the previous pPrevSingleSrcPhrase. I failed to account for this in my
+// previous refactoring of this FromSingleMakeSstr2() function. I tried various manipulations
+// of filtered information to try to get it correct, but there was always some data that
+// failed to get the ordering correct.
+// 
+// TODO: We must do tracing and testing of the FromMergerMakeSstr() and FromMergerMakeTstr() 
+// functions to determine any similar need for the same pPrevSingleSrcPhrase element in
+// those functions - even though there are restrictions on filtered information when mergers 
+// are involved. BEW's function headers for those FromMerger...() function indicate that
+// filtered information can only be stored on the first source phrase of a merger, and that
+// "Mergers are illegal across filtered info".
+// 
+//wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
+wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+	CSourcePhrase* pPrevSingleSrcPhrase) // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
@@ -8603,7 +8669,7 @@ wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber == 0) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	if (pSingleSrcPhrase->m_nSequNumber == 7) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}

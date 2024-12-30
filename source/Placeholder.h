@@ -74,6 +74,7 @@ class CPlaceholder : public wxEvtHandler
 							CAdapt_ItDoc*		pDoc,
 							CPile*				pInsertLocPile,
 							const int			nCount,
+							wxString			SelOrNoSel,
 							bool				bRestoreTargetBox = TRUE,
 							bool				bForRetranslation = FALSE,
 							bool bInsertBefore = TRUE);
