@@ -17145,7 +17145,7 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 // whm 12Feb2024 Revised to include the treatment of filtered information in this
 // AppendSrcPhraseEndingInfo() function instead of the earlier called 
 // AppendSrcPhraseBeginningInfo() function since the unfiltering of filtered 
-// information now should come last after my refactoring to store filtered ifno
+// information now should come last after my refactoring to store filtered info
 // on a previous pSrcPhrase.
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 	bool& bAddedSomething, bool& bAddedHiddenMetaData,
@@ -17212,9 +17212,10 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 		// the placement of the m_follOuterPunct. So, I'm checking to see if the stuff that
 		// follows the m_key part of m_srcSinglePattern m_srcPhrase + appendHere 
 		// value at this point is equal to the m_srcSinglePattern or not. If not, I'm
-		// extracting the m_srcPhrase from m_srcSinglePattern, differes from what has been
-		// composed above for appendHere. If they are not the same, I'm substituting what
-		// follows the m_key in m_srcSinglePattern in place of the appendHere value.
+		// extracting the m_srcPhrase from m_srcSinglePattern, to see if it differs from 
+		// what has been composed above for appendHere. If they are not the same, I'm 
+		// substituting what follows the m_key in m_srcSinglePattern in place of the appendHere 
+		// value.
 		// Testing results indicate that this improves the exports of source texts.
 		if (!appendHere.IsEmpty() && !pSrcPhrase->m_srcSinglePattern.IsEmpty())
 		{
@@ -17609,6 +17610,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// non-placeholder - whether or not it has had information moved to it. That's why the
 	// RebuildTargetText() function doesn't need all this extra apparatus.
 
+	// whm 28Dec2024 added a pPrevSrcPhrase. This is needed to be able to get filtered information
+	// restored in correct position from a pPrevSrcPhrase to the pSrcPhrase currently being
+	// processed in the while loop below. Filtered information is stored on a previous source
+	// phrase in the incoming pList data.
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
@@ -17896,8 +17903,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			}
 #endif
 
-			str = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters
-
+			// whm 5Feb2024 removed unused parameters
+			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added second parameter
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
@@ -18025,6 +18032,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			}
 			str.Empty();
 		} // end of else block, i.e., it's a single word sourcephrase
+
+		// whm 28Dec2024 added to keep track of previous source phrase data
+		pPrevSrcPhrase = pSrcPhrase;
+
 	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
 	pStatusBar->FinishProgress(_("Rebuilding Source Text"));
@@ -19154,6 +19165,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
+
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+
 	while (pos_pList != NULL)
 	{
 		SPList::Node* savePos = pos_pList;
@@ -19282,7 +19296,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
-				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
+				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter
+					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
@@ -19381,7 +19396,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 #endif
 
-
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
 
 	}// end of while (pos_pList != NULL)
 

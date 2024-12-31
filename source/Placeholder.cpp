@@ -229,10 +229,12 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	wxASSERT(pDoc != NULL);
 	int nCount = 1;
 	int nSequNum = -1;
+	wxString SelOrNoSel; SelOrNoSel.Empty();
 	if (m_pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of the selection list's 
 		// first element
+		SelOrNoSel = _T("Selection");
 		CCellList* pCellList = &m_pApp->m_selection; 
 		CCellList::Node* fpos = pCellList->GetFirst();
 		pInsertLocPile = fpos->GetData()->GetPile(); 
@@ -245,12 +247,16 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 		wxASSERT(pInsertLocPile != NULL);
-		m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		// whm 30Dec2024 commented out the RemoveSelection() call here. Instead, call it
+		// later within the InsertNullSrcPhrase() function right after the dialog is show.
+		// It is helpful to retain the selection when that dialog pops up.
+		//m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 	}
 	else
 	{
 		// no selection, so just insert preceding wherever the phraseBox 
 		// currently is located
+		SelOrNoSel = _T("NoSelection");
 		pInsertLocPile = m_pApp->m_pActivePile;
 		if (pInsertLocPile == NULL)
 		{
@@ -302,7 +308,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	}
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
-	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
+	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount, SelOrNoSel); // whm 30Dec2024 added SelOrNoSel paramter
     m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 
 	// jump to it (can't use old pile pointers, the recalcLayout call will have 
@@ -334,9 +340,11 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	CPile* pInsertLocPile;
 	nCount = 1; // the button or shortcut can only insert one
 	nSequNum = -1;
+	wxString SelOrNoSel; SelOrNoSel.Empty();
 	if (m_pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of the selection list's last element
+		SelOrNoSel = _T("Selection");
 		CCellList* pCellList = &m_pApp->m_selection;
 		CCellList::Node* cpos = pCellList->GetLast();
 		pInsertLocPile = cpos->GetData()->GetPile(); 
@@ -349,11 +357,15 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 		wxASSERT(pInsertLocPile != NULL);
-		m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		// whm 30Dec2024 commented out the RemoveSelection() call here. Instead, call it
+		// later within the InsertNullSrcPhrase() function right after the dialog is show.
+		// It is helpful to retain the selection when that dialog pops up.
+		//m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 	}
 	else
 	{
 		// no selection, so just insert after wherever the phraseBox currently is located
+		SelOrNoSel = _T("NoSelection");
 		pInsertLocPile = m_pApp->m_pActivePile;
 		if (pInsertLocPile == NULL)
 		{
@@ -461,7 +473,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	}
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
-	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never for
+	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,SelOrNoSel, // whm 30Dec2024 added SelOrNoSel parameter
+		TRUE,FALSE,FALSE); // here, never for
 	// Retransln if we inserted a dummy, now get rid of it and clear the global flag
     m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 	if (m_bDummyAddedTemporarily)
@@ -536,6 +549,7 @@ CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
 //   CRetranslation::PadWithNullSourcePhrasesAtEnd() - two places
 void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 										   CPile* pInsertLocPile,const int nCount,
+										   wxString SelOrNoSel, // whm 30Dec2024 added
 										   bool bRestoreTargetBox,bool bForRetranslation,
 										   bool bInsertBefore)
 {
@@ -579,6 +593,10 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	{
         // user is attempting to insert placeholder before a \id marker which should not be
         // allowed rather than a message, we'll just beep and return
+		if (SelOrNoSel == _T("Selection"))
+		{
+			m_pView->RemoveSelection(); // whm 30Dec2024 added
+		}
 		::wxBell();
 		return;
 	}
@@ -1010,8 +1028,16 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 
                 // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                 m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-                wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
-                    _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+				// whm revised dialog text below to be what BEW suggested in email of 30Dec2024, but with a substitution 
+				// of either "selection" or "phrasebox" which depends on the incoming paramter value SelOrNoSel.
+				wxString msg;
+				if (SelOrNoSel == _T("Selection"))
+					msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the selection? If you do, press Yes. If you press No, it will be put after the selection.");
+				else // SelOrNoSel is "NoSelection" or empty string
+					msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the phrasebox? If you do, press Yes. If you press No, it will be put after the phrasebox.");
+
+                wxMessageDialog dlg(NULL,msg,
+                    _("Adapt It needs more information"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if (dlg.ShowModal() == wxID_YES)
                 {
                     wxLogDebug(_T("User says bAssociatingRightwards is TRUE..."));
@@ -1235,6 +1261,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 			// wordbreak set near top
 			pLastOne->SetSrcWordBreak(defaultWordBreak);
 		}
+
 	} // end of TRUE block for test: if (!bForRetranslation)
 	else // next block is for Retranslation situation
 	{
@@ -1613,7 +1640,14 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 			}
 		}
 	}
-	
+
+	// whm 30Dec2024 added. We delayed the RemoveSelection() call until after any 
+	// display of the dialog asking "Yes" or "No" for placeholder insertion.
+	if (SelOrNoSel == _T("Selection"))
+	{
+		m_pView->RemoveSelection();
+	}
+
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
 m:	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
@@ -2565,6 +2599,11 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
     // points at arbitrary memory)
 	RemoveNullSourcePhrase(pRemoveLocPile, nCount);
 	
+	// whm 30Dec2024 removal of a placeholder can leave a very large gap between some piles
+	// in the display. Best to do a m_pApp->GetMainFrame()->SendSizeEvent() call here to get
+	// the display back in shape.
+	m_pApp->GetMainFrame()->SendSizeEvent();
+
     // we don't do the next block at a deeper level because removing a retranslation which
     // is long uses lower level functions to do automated placeholder removals, and we
     // don't want them counted a second time; so we do it here only, in the handler for a
@@ -4576,7 +4615,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = m_pApp;
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxUnusedVar(event);
 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
@@ -4616,6 +4655,9 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 		return;
 	}
 
+	// whm 30Dec2024 remove the following call of DoInsertPlaceholder() with the coding used in
+	// PhraseBox.cpp's OnSysKeyUp() handler detecting Shift+Alt+LeftArrow hotkey
+	/*
 	CPile* pInsertLocPile = pApp->m_pActivePile;
 	int nCount = 1; // The button or shortcut can only insert one
 	bool bRestoreTargetBox = TRUE;
@@ -4625,12 +4667,47 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 
 	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
 		bForRetranslation, bInsertBefore, bAssociateLeftwards);
+	*/
+	// whm 30Dec2024 the following coding is more robust than the coding commented out above.
+	// Insert of null sourcephrase but first save old sequ number in case required for toolbar's
+	// Back button
+
+	// Bill wanted the behaviour modified, so that if the box's m_bAbandonable flag is TRUE
+	// (ie. a copy of source text was done and nothing typed yet) then the current pile
+	// would have the box contents abandoned, nothing put in the KB, and then the placeholder
+	// inserion - the advantage of this is that if the placeholder is inserted immediately
+	// before the phrasebox's location, then after the placeholder text is typed and the user
+	// hits ENTER to continue looking ahead, the former box location will get the box and the
+	// copy of the source redone, rather than the user usually having to edit out an unwanted
+	// copy from the KB, or remember to clear the box manually. A sufficient thing to do here
+	// is just to clear the box's contents.
+	if (pApp->m_pTargetBox->m_bAbandonable)
+	{
+		pApp->m_targetPhrase.Empty();
+		if (pApp->m_pTargetBox != NULL
+			&& (pApp->m_pTargetBox->IsShown()))
+		{
+			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
+		}
+	}
+
+	// now do the 'insert before'
+	pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+	pApp->GetPlaceholder()->InsertNullSrcPhraseBefore();
+	// whm 30Dec2024 Insertion of of a placeholder can potentially disrupt some of the display.
+	// Best to do a m_pApp->GetMainFrame()->SendSizeEvent() call here to get the display back 
+	// in shape.
+	pApp->GetMainFrame()->SendSizeEvent();
+
+
+	return;
+
 }
 
 void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = m_pApp;
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxUnusedVar(event);
 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
@@ -4671,6 +4748,7 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 		return;
 	}
 
+	/*
 	CPile* pInsertLocPile = pApp->m_pActivePile;
 	int nCount = 1;  // The button or shortcut can only insert one
 	bool bRestoreTargetBox = TRUE;
@@ -4680,6 +4758,20 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 
 	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
 		bForRetranslation, bInsertBefore, bAssociateLeftwards);
+	*/
+	// whm 30Dec2024 the following coding is more robust than the coding commented out above.
+	// Insert of null sourcephrase but first save old sequ number in case required for toolbar's
+	// Back button.
+	// first save old sequ number in case required for toolbar's Back button
+	// If glossing is ON, we don't allow the insertion, and just return instead
+	pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+	pApp->GetPlaceholder()->InsertNullSrcPhraseAfter();
+	// whm 30Dec2024 Insertion of of a placeholder can potentially disrupt some of the display.
+	// Best to do a m_pApp->GetMainFrame()->SendSizeEvent() call here to get the display back 
+	// in shape.
+	pApp->GetMainFrame()->SendSizeEvent();
+	return;
+
 }
 
 

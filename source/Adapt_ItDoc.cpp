@@ -9883,6 +9883,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// \param		pos_callers	-> the iterator position locating the passed in pSrcPhrase
 ///                            pointer (its use herein is deprecated)
 /// \param		pSrcPhrase	<- pointer of the source phrase
+/// \param		pPrevSrcPhrase	<- pointer of the previous source phrase // whm 28Dec2024 added
 /// \param		fixesStr	-> (its use herein is deprecated, the caller adds to it if
 ///                            FALSE is returned)
 /// \param		pNewList	<- the parsed new source phrase instances
@@ -9910,6 +9911,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
+	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
 	wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
 	// BEW added 5Apr05
@@ -9932,7 +9934,8 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	// regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
 
-	srcPhrase = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
+	 // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
+	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added pPrevSrcPhrase parameter
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
@@ -21517,7 +21520,11 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 
 // BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 // whitespace(s), and getting to the puncts may require parsing first over one or more inlineBindingEndMarkers
-wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts)
+// whm 26Dec2024 added an additional reference parameter wxString& wordSuffix to the header of this function
+// which allows returning to the caller any word suffix that exists after the position of an inline binding end
+// marker. 
+wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, 
+	int& itemLen, wxString& wordSuffix, wxString spacelessPuncts)
 {
 	// pChar comes in, pointing at the first wxChar following whatever ParseAWord() parsed over, and the caller will have
 	// a len value which is not zero. We parse over binding endMkr if present, then over puncts (detached or not) - and there
@@ -21559,6 +21566,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	wxString augWholeMkr = wxEmptyString;
 	int numEndPuncts; numEndPuncts = 0; // init
 	wxString strEndPuncts; strEndPuncts = wxEmptyString; // init
+	bool bParsedAndStoredInlineBindingEndMkr = FALSE;
 	
 	int itemSpan = 0; // this is an item length valid only for the current iteration, the loop may iterate several times, and
 					  // each time set a new itemItemSpan when parsed data is stored in pSrcPhrase; but we need to accumulate
@@ -21575,6 +21583,12 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	// 3. Punctuation character(s) - may be more than one in sequence, but usually one; or the same but following the endMkr of 2.
 #if defined (_DEBUG) && !defined(NOLOGS)
 	if (pSrcPhrase->m_nSequNumber >= 8)
+	{
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
+	}
+#endif
+#if defined (_DEBUG)
+	if (pSrcPhrase->m_nSequNumber == 5)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
@@ -21598,6 +21612,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 			itemLenAccum += itemSpan;
 			ptr += itemSpan; // ptr has advanced
 			itemLen += itemSpan;
+			bParsedAndStoredInlineBindingEndMkr = TRUE;
 		}
 	} // end of TRUE block for test: if (*ptr = gSFescapeChar)
 	else
@@ -21651,6 +21666,35 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
 #endif
+
+	// whm 26Dec2024 added. We need to check if the immediate character following the parsing and storing of
+	// an inline binding end marker such as \nd* is a word-building character or not. If so, we iterate to 
+	// accumulate as many word-building chars as exist, and return them via the wordSuffix ref parameter, and
+	// also update the returned ptr value and itemLen to include the length of any encountered wordSuffix chars.
+	// Some code here borrowed from ParseAWord().
+	wordSuffix.Empty(); // Initialize
+	if (bParsedAndStoredInlineBindingEndMkr)
+	{
+		bParsedAndStoredInlineBindingEndMkr = FALSE;
+		// ptr will now be pointing at the first char past the inline binding end marker that was parsed
+		// and stored above. We iterate the ptr until we encounter pEnd or any non-word-building character
+		// and store any chars that qualify in the wordSuffix ref parameter for processing by the caller.
+		//wxChar* pAux2;
+		//pAux2 = ptr;  // use pAux for parsing over one or more following puncts; do all options for each iteration
+		wxChar zwsp = (wxChar)0x200B;
+		wxChar bar = _T('|');
+		bool bNotWhitespace = !IsWhiteSpace(ptr);
+		bool bCanProceed = CanParseForward(ptr, spacelessPuncts, pEnd);
+		while (bNotWhitespace && bCanProceed && (*ptr != gSFescapechar) && (*ptr != bar) && (*ptr != zwsp) && !(ptr == pEnd))
+		{
+			wordSuffix += *ptr;
+			ptr++;
+			itemLen++;
+			// By using IsWhiteSpace(ptr) I get automatic zwsp support
+			bNotWhitespace = !IsWhiteSpace(ptr);
+			bCanProceed = CanParseForward(ptr, spacelessPuncts, pEnd);
+		}
+	}
 
 	// Now ptr points at one of these options (longest first, shortest last):
 	// 1. One or more substrings of type: space + punct(s)
@@ -24547,6 +24591,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	if (bChangedPunctuation)
 	{
 		pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
+		CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
 		while (pos_pSP != NULL)
 		{
 			oldPos = pos_pSP;
@@ -24556,7 +24601,9 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 			// acts on ONE instance of pSrcPhrase only each time it loops, & it may add
 			// many to the list, or remove some, or leave number in the list unchanged
 			bSuccessful = ReconstituteAfterPunctuationChange(pView,
-				gpApp->m_pSourcePhrases, oldPos, pSrcPhrase, fixesStr);
+				gpApp->m_pSourcePhrases, oldPos, pSrcPhrase, 
+				pPrevSrcPhrase, // whm 28Dec2024 added
+				fixesStr);
 			if (!bSuccessful)
 			{
 				// adaptation abandoned, so add a chapter:verse reference to the fixesStr
@@ -24584,7 +24631,8 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 			//	//wxString progMsg = _("Retokenizing - File: %s  - %d of %d Total words and phrases");
 			//	//progMsg = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 			//}
-		}
+			pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
+		} // end of while (pos_pSP != NULL)
 	}
 
 	if (bChangedSfmSet)
@@ -26247,6 +26295,8 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// \param		pos_callers	-> the node location which stores the passed in pSrcPhrase
 /// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos_callers
 ///                            Node passed in as the previous parameter
+/// \param		pPrevSrcPhrase	<- the pointer to the previous CSourcePhrase instance on the pos_callers
+///                            Node passed in as the previous parameter
 /// \param		fixesStr	<- reference to the caller's storage string for accumulating
 ///							   a list of references to the locations where the rebuild
 ///							   potentially isn't quite fully right, for specific
@@ -26295,9 +26345,11 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// result should be a much better rebuild, keeping much more (or all) of the information
 /// without loss, and alerting the user to where we think a visual inspection should be
 /// done in order to verify the results are acceptable - and edit if not.
+/// whm 28Dec2024 added a CSourcePhrase*& pPrevSrcPhrase parameter to the function header.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList*& pList, SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase,
+	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
 	wxString& fixesStr)
 {
 	int nOriginalCount = pSrcPhrase->m_nSrcWords;
@@ -26335,42 +26387,42 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 		//#endif
 
-				// BEW 10Mar11, the protocol we use for mergers is the following:
-				// (a) we must change the punctuation & src & tgt language members not just of the
-				// merged instance, but also for each of the instances in it's m_pSavedWords
-				// sublist of originals. (Why? Because the user may sometime unmerge it, and we
-				// don't want to be restoring instances to be viewed, which reflect the old
-				// punctuation settings.)
-				// (b)Care must be exercised, merging creates another level of CSourcePhrase
-				// instances, so our algorithm must avoid calling Merge() (see SourcePhrase.cpp)
-				// on the instances in the saved sublist, such as m_pSavedWords. But we also want
-				// to keep the converted target text, where it exists, so....
-				// (c)We use FromMergerMakeSstr() to get a source text string, srcPhrase, with all
-				// the markers, unfilterings, punctuations etc in their proper place;
-				// (d) We use TokenizeTextString(), passing in pResultList to get returned newly
-				// created CSourcePhrase instances returned, having passed in srcPhrase wxString;
-				// (e) provided, and only provided, the number of elements in pResultList equals
-				// the element count of pSrcPhrase->m_pSavedWords, we iterate in parallel over
-				// both the latter and the CSourcePhrase instances in pResultList, and copy over
-				// from the latter the changed text and punctuation strings, to the former; we
-				// also obtain from the pResultList's instances, each m_targetStr contents, and
-				// using the new punctuation settings (ie. making a RemovePunctuation() call with
-				// the appropriate punctuation string passed in)calculate a new m_adaption value
-				// for each instance, and we then transfer the m_adaption values back to the same
-				// members on the equivalent CSourcePhrase instances within the
-				// pSrcPhrase->m_pSavedWords list (the m_targetStr values won't have changed)
-				// (f) pSrcPhrase->m_pSavedWords's contents are now up-to-date for the changed
-				// punctuation settings. The owning merged CSourcePhrase instance's m_srcPhrase
-				// member will not have changed (punctuation settings changes don't add or remove
-				// or alter the location of punctuation and word building characters in the source
-				// text, it just redefines where the boundaries are between "the words" and the
-				// punctuation characters at the start and end of them. So, to get the new value
-				// for the m_adaption member of the merger (ie. of pSrcPhrase), all we need do is
-				// pass pSrcPhrase->m_srcPhrase through RemovePunctuation() using the final
-				// parameter from_target_text so as to do it with the target language's new
-				// punctuation settings (which may, or may not, have changed).
-				// Once (f) is completed, the whole original merged pSrcPhrase has been
-				// successfully updated to the new punctuation settings.
+		// BEW 10Mar11, the protocol we use for mergers is the following:
+		// (a) we must change the punctuation & src & tgt language members not just of the
+		// merged instance, but also for each of the instances in it's m_pSavedWords
+		// sublist of originals. (Why? Because the user may sometime unmerge it, and we
+		// don't want to be restoring instances to be viewed, which reflect the old
+		// punctuation settings.)
+		// (b)Care must be exercised, merging creates another level of CSourcePhrase
+		// instances, so our algorithm must avoid calling Merge() (see SourcePhrase.cpp)
+		// on the instances in the saved sublist, such as m_pSavedWords. But we also want
+		// to keep the converted target text, where it exists, so....
+		// (c)We use FromMergerMakeSstr() to get a source text string, srcPhrase, with all
+		// the markers, unfilterings, punctuations etc in their proper place;
+		// (d) We use TokenizeTextString(), passing in pResultList to get returned newly
+		// created CSourcePhrase instances returned, having passed in srcPhrase wxString;
+		// (e) provided, and only provided, the number of elements in pResultList equals
+		// the element count of pSrcPhrase->m_pSavedWords, we iterate in parallel over
+		// both the latter and the CSourcePhrase instances in pResultList, and copy over
+		// from the latter the changed text and punctuation strings, to the former; we
+		// also obtain from the pResultList's instances, each m_targetStr contents, and
+		// using the new punctuation settings (ie. making a RemovePunctuation() call with
+		// the appropriate punctuation string passed in)calculate a new m_adaption value
+		// for each instance, and we then transfer the m_adaption values back to the same
+		// members on the equivalent CSourcePhrase instances within the
+		// pSrcPhrase->m_pSavedWords list (the m_targetStr values won't have changed)
+		// (f) pSrcPhrase->m_pSavedWords's contents are now up-to-date for the changed
+		// punctuation settings. The owning merged CSourcePhrase instance's m_srcPhrase
+		// member will not have changed (punctuation settings changes don't add or remove
+		// or alter the location of punctuation and word building characters in the source
+		// text, it just redefines where the boundaries are between "the words" and the
+		// punctuation characters at the start and end of them. So, to get the new value
+		// for the m_adaption member of the merger (ie. of pSrcPhrase), all we need do is
+		// pass pSrcPhrase->m_srcPhrase through RemovePunctuation() using the final
+		// parameter from_target_text so as to do it with the target language's new
+		// punctuation settings (which may, or may not, have changed).
+		// Once (f) is completed, the whole original merged pSrcPhrase has been
+		// successfully updated to the new punctuation settings.
 		SPList* pOwnedList = pSrcPhrase->m_pSavedWords; // for convenience's sake
 
 		// placeholders can't be merged, and so won't be in the merger, so this block can
@@ -26600,7 +26652,8 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// if TRUE, it is one which is stored in the m_pSavedWords list of an unowned
 		// CSourcePhrase and so is not visible in the layout
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
-			pView, pList, pos_callers, pSrcPhrase, fixesStr, pResultList, FALSE);
+			pView, pList, pos_callers, pSrcPhrase, 
+			pPrevSrcPhrase, fixesStr, pResultList, FALSE); // whm 28Dec2024 added pPrevSrcPhrase parameter
 
 		//#ifdef _DEBUG
 		//		wxLogDebug(_T("  17950 After ...One..., RETURNED bWasOK = %d  ,  pSrcPhrase sn = %d  m_srcPhrase = %s"),
@@ -43430,7 +43483,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_adaption=[%s], m_markers=[%s] , pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 1)
+					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -43443,9 +43496,30 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
 				}
 #endif
-
-				ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
+				// whm 26Dec2024 added wordSuffix ref parameter to the ParsePostWordPunctsAndEndMkrs() function to 
+				// cover the situation where an inline binding end marker such as \nd* occurs in the middle of a word.
+				// The wordSuffix ref parameter will return any such word-building suffix part of the word that
+				// occurs directly after the inline binding end marker. Otherwise, as Roland F reported some of
+				// his words that had, for example, \nd<word-first-part>\nd*<word-suffix-part><space-between-words>
+				// were getting broken up resulting in the <word-suffix-part> being parsed as a separate source phrase.
+				// We utilize any returned wordSuffix to update the m_key and m_srcPhrase members with to include this
+				// suffix.
+				wxString wordSuffix; wordSuffix.Empty();
+				ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
 				len += itemLen;
+				// whm 26Dec2024 added. Use any non-empty wordSuffix parameter value as a suffix to the m_key and
+				// m_srcPhrase member so that that suffix part of the word doesn't get used to create a separate
+				// source phrase.
+				if (!wordSuffix.IsEmpty())
+				{
+					pSrcPhrase->m_key += wordSuffix;
+					pSrcPhrase->m_srcPhrase += wordSuffix;
+					int wordLen = wordSuffix.Length();
+					ptr += wordLen;
+					len += wordLen;
+					wordSuffix.Empty();
+				}
+				// 
 				//wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __LINE__, pSrcPhrase->m_markers.c_str(), len, wxString(ptr, 20).c_str());
 				{
 					// BEW 18Jul23, it's possible that the returned ptr is pointing at a beginMkr, like \f for instance.
@@ -47224,7 +47298,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber == 99)
+		if (pSrcPhrase->m_nSequNumber >= 6)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
@@ -48374,6 +48448,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									pSrcPhrase->m_precPunct += precWordDelim;
 								}
 								ptr += itemLen;
+								// whm 28Dec2024 removed the following bKeepPtrFromAdvancing TRUE assignment as it causes
+								// a path through TokenizeText() that results in the creation of an spurious empty source
+								// phrase. Making this change revealed a need to handle better the restoration order of 
+								// filtered information in exported source text - in FromSingleMakeSstr2(), where we need to
+								// delay the restoration of filtered info until a following source phrase is being processed,
+								// that is, we need to have a PREVIOUS source phrase named pPrevSingleSrcPhrase hanging
+								// around during export execution that can be referenced while processing the data of a 
+								// current pSingleSrcPhrase (like what is done when tokenizing filtered information, but in
+								// reverse as we process exports). This is so that filtered info for a pPrevSingleSrcPhrase 
+								// item can be placed in the exported output AFTER the m_markers of the pSingleSrcPhrase. 
+								// For example, in the _Bob_Eaton_va_vp_filtering_with_id_lineA.xml unittest doc, when 
+								// restoring the doc during source export, the filtered info at sn=6 (\va 1\va*) needs to 
+								// go AFTER the m_markers data of sn=7 (\d ) for proper ordering. This may also help to
+								// correct the undesirable reordering of verse numbers and other markers that Roland F
+								// reports he has been experiencing when inserting placeholders in Kuni texts.
 								bKeepPtrFromAdvancing = TRUE; // causes ParsePreWord() to be skipped - might help or might not
 								break;
 							}
@@ -49267,7 +49356,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// any puncts that immediately follow the filtered info that really should be stored on
 									// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function - the function
 									// now internally protects from pPrevSrcPhrase being NULL.
-									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
+									// 
+									// whm 26Dec2024 added wordSuffix ref parameter to ParsePostWordPunctsAndEndMkrs() call to cover
+									// the situation where an inline binding end marker such as \nd* occurs in the middle of a word.
+									// The wordSuffix ref parameter will return any such word-building suffix part of the word that
+									// occurs directly after the inline binding end marker. Otherwise, as Roland F reported some of
+									// his words that had, for example, \nd<word-first-part>\nd*<word-suffix-part><space-between-words>
+									// were getting broken up resulting in the <word-suffix-part> being parsed as a separate source phrase.
+									// We utilize any returned wordSuffix to update the m_key and m_srcPhrase members with this suffix.
+									wxString wordSuffix; wordSuffix.Empty();
+									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
+									//ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
 
 									// We don't know  what lies beyond the endmarker, but it's handled further down.
 									// if after some whitespace there is a backslash, then continue; to iterate the loop.
@@ -50922,7 +51021,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) && !defined (NOLOGS)
 					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("TokText(), line %d : app->m_bParsingSource = %d"), __LINE__, (int)gpApp->m_bParsingSource);
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -50939,7 +51038,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							goto isnull;
 						}
-						else if (bKeepPtrFromAdvancing == TRUE)
+						// whm 27Dec2024 modified. The test for bKeepPtrFromAdvancing == TRUE here is a bad
+						// test at least by itself, because after a marker has been filtered the next marker
+						// is likely being pointed at by ptr at this point, and jumping to the parsing label
+						// at this point can easily happen, but should be prevented, otherwise ParseWord()
+						// will generate an error message about "unrecognized" markers.
+						// Rather than doing away entirely with the bKeepPtrFromAdvancing flag test, I'm
+						// adding another test *ptr != gSFescapechar to the else if test below.
+						else if (bKeepPtrFromAdvancing == TRUE && *ptr != gSFescapechar)
 						{
 							goto parsing; // this sends control to just preceding ParsePreWord(), and then ParseWord() follows
 						}
@@ -51472,7 +51578,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// any puncts that immediately follow the filtered info that really should be stored on
 							// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function, and internally
 							// ParsePostWordPunctsAndEndMkrs() has protection against pPrevSrcPhrase being NULL.
-							ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
+							// 
+							// whm 26Dec2024 added wordSuffix ref parameter to ParsePostWordPunctsAndEndMkrs() call to cover
+							// the situation where an inline binding end marker such as \nd* occurs in the middle of a word.
+							// The wordSuffix ref parameter will return any such word-building suffix part of the word that
+							// occurs directly after the inline binding end marker. Otherwise, as Roland F reported some of
+							// his words that had, for example, \nd<word-first-part>\nd*<word-suffix-part><space-between-words>
+							// were getting broken up resulting in the <word-suffix-part> being parsed as a separate source phrase.
+							// We can utilize any returned wordSuffix to update the m_key and m_srcPhrase members with this suffix.
+							wxString wordSuffix; wordSuffix.Empty();
+							ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
+							//ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
 
 							// We don't know  what lies beyond the endmarker, but it's handled further down.
 							// if after some whitespace there is a backslash, then continue; to iterate the loop.
@@ -51981,7 +52097,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_srcPhrase = [%s] , m_curTextType = %d, m_key = [%s] , m_markers= [%s], at=[%s]"), __LINE__,
 			//	(int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), (int)pSrcPhrase->m_curTextType,
 			//	pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 28) // whm break
+			if (pSrcPhrase->m_nSequNumber >= 5) // whm break
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -52029,7 +52145,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokText(), line %d, sequNum= %d , m_bSpecialText= %d , m_curTextType= %d, m_key= [%s], m_precPunct= [%s] , ptrPointsAt= [%s]"),
 			__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType,
 			pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), ptrPointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 2)
+		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -52241,6 +52357,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// no residue as the matched ones are removed. Setting it is only do-able here, so once its done, it
 			// needs to stay unchanged. (It's updateable perhaps if the user manually makes puncts changes.)
 			wxString strWordAndExtras = wxEmptyString;
+			wxString strWordAndExtrasPlusIBEM = wxEmptyString; // whm 26Dec2024 added
 			if (itemLen > 0 && bTokenizingTargetText == FALSE && pSrcPhrase->m_srcSinglePattern.IsEmpty())
 			{
 				// Here we handle setting m_srcSinglePattern, for the text being source text.
@@ -52252,7 +52369,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// the MakeWordAndExtras() to detect if ptr is pointing at a begin marker and, if so, skip that
 				// marker when returning its processed string to strWordAndExtras below.
 				strWordAndExtras = MakeWordAndExtras(ptr, itemLen);
+				strWordAndExtrasPlusIBEM = strWordAndExtras; // if inlineBindingEndMarker is present preserve it here
 				strWordAndExtras.Trim(); // remove any final whitespace(s)
+				strWordAndExtrasPlusIBEM.Trim(); // '' '' '' ''
 				// BEW 3May23, I get the wanted values, for each pSrcPhrase, but need a storage location on pSrcPhrase.
 				// 4May23 I've implemented document VERSION_NUMBER 10
 				// 
@@ -52267,6 +52386,47 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				//if (docVersion >= 10 && pSrcPhrase->m_nSrcWords < 2)
 				if (pSrcPhrase->m_nSrcWords < 2)
 				{
+					// whm 26Dec2024 added. Check if ParseWord() processed an inline binding end marker that
+					// got left embedded in the middle of the strWordAndExtras. This could happen as with
+					// Roland F's data which could have something like " Evezøza\\nd*-qa" where the -qa is
+					// actually the last part/suffix of the word being parsed, and it has an embedded \nd*
+					// inline binding end marker embedded within it.
+					// ParseWord()'s call of ParsePostWordPunctsAndEndMkrs() stored the inline binding end marker
+					// within pSrcPhrase's m_inlindBindingEndMarkers member, but we may need to remove the 
+					// inline binding end marker from the strWordAndExtras string itself here, since whenever
+					// a word has an inline binding end marker embedded within the word so that the word has
+					// a suffix of word building chars following the inline nonbinding end marker, it will
+					// remain within the strWordAndExtras at this point. We check for this possibility here 
+					// and remove it if present in strWordAndExtras.
+					// The ParseWord() function also returns a value of TRUE in its bIsInlineBindingMkr ref
+					// parameter when it has processed a word involving an inline binding marker/end marker.
+					if (bIsInlineBindingMkr)
+					{
+						wxString mkr; mkr.Empty();
+						wxString endMkrStr; endMkrStr.Empty();
+						// The possible inlineBindingEndMarkers are: 
+						// _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* 
+						// \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* 
+						// \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* 
+						// \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ")
+						//	which are stored in the App's m_inlineBindingEndMarkers set. 
+						wxArrayString mkrsArr; mkrsArr.Empty();
+						wxString inlineBindingEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+						mkrsArr.Empty();
+						GetMarkersAndEndMarkersFromString(&mkrsArr, inlineBindingEndMkrs, endMkrStr);
+						int nTot = (int)mkrsArr.GetCount();
+						for (int i = 0; i < nTot; i++)
+						{
+							mkr = mkrsArr.Item(i);
+							mkr.Trim(); // do not use augmented marker form here
+							// if the strWordAndExtras has the mkr, replace it with empty string
+							if (strWordAndExtras.Find(mkr) != wxNOT_FOUND)
+							{
+								strWordAndExtras.Replace(mkr, wxEmptyString);
+							}
+						}
+					}
+					// 
 					// whm 18Feb2024 added. Check if ParseWord() processed an old bar code
 					if (bProcessedOldBarCode)
 					{
@@ -52352,7 +52512,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 
 					// It's not a merger, so store in pSrcPhrase's new m_srcSinglePattern member
-					pSrcPhrase->m_srcSinglePattern = strWordAndExtras; // the pSrcPhrase->m_key value will start the string
+					// 
+					// whm 26Dec2024 modification. We should preserve in m_srcSinglePattern any form of the ParseWord()
+					// function call that has an embedded inline binding end marker within it. This may make it possible
+					// to reconstruct the correct position of an embedded inline binding end marker when exporting the
+					// source text.
+					if (bIsInlineBindingMkr)
+					{
+						pSrcPhrase->m_srcSinglePattern = strWordAndExtrasPlusIBEM; // may have an embedded inlineBindingEndMarker
+					} 
+					else
+					{
+						pSrcPhrase->m_srcSinglePattern = strWordAndExtras; // the pSrcPhrase->m_key value will start the string
+					}
 					// BEW 10May23, exporting src text will call RebuildSourceText() and for user-edited m_key value we need
 					// to have available the m_oldKey value (for comparison) so as to know if an edit of m_srcSinglePattern
 					// is needed in the rebuild. Today I added support for pSrcPhrase->m_oldKey to the document's xml. 

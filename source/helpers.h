@@ -378,7 +378,9 @@ wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase,
 wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
 wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
-wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
+							wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct);
 bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
@@ -389,7 +391,10 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
-wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
+//wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+			CSourcePhrase* pPrevSingleSrcPhrase);
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
