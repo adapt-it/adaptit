@@ -2508,7 +2508,9 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event))
 	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
 	bool bOK1;
 	m_pHelpController->SetTempDir(_T(".")); // whm added 15Jan09 enables caching of helps for faster startups
-	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX)); // whm added wxPATH_UNIX which is OK on Windows and seems to be needed for Ubuntu Intrepid
+	//bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX)); // whm added wxPATH_UNIX which is OK on Windows and seems to be needed for Ubuntu Intrepid
+	// whm 1Jan2024 changed. Roland F reported failure of AddBook() warning below, so to be safe I've changed the AddBook() call above to use wxPATH_NATIVE instead wxPATH_UNIX.
+	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_NATIVE));
 	if (!bOK1)
 	{
 		wxString strMsg;
