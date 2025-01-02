@@ -17612,8 +17612,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	// whm 28Dec2024 added a pPrevSrcPhrase. This is needed to be able to get filtered information
 	// restored in correct position from a pPrevSrcPhrase to the pSrcPhrase currently being
-	// processed in the while loop below. Filtered information is stored on a previous source
-	// phrase in the incoming pList data.
+	// processed in the while loop below  - unused - may use in future. Filtered information is 
+	// stored on a previous source phrase in the incoming pList data.
 	CSourcePhrase* pPrevSrcPhrase = NULL;
 
 	while (pos_pList != NULL)
@@ -17904,7 +17904,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #endif
 
 			// whm 5Feb2024 removed unused parameters
-			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added second parameter
+			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added second parameter - unused - may use in future
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
@@ -18033,7 +18033,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			str.Empty();
 		} // end of else block, i.e., it's a single word sourcephrase
 
-		// whm 28Dec2024 added to keep track of previous source phrase data
+		// whm 28Dec2024 added to keep track of previous source phrase data - unused - may use in future
 		pPrevSrcPhrase = pSrcPhrase;
 
 	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
@@ -19166,7 +19166,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
 
 	while (pos_pList != NULL)
 	{
@@ -19296,7 +19296,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
-				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter
+				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
 					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
@@ -19396,7 +19396,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 #endif
 
-		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
 
 	}// end of while (pos_pList != NULL)
 

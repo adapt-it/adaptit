@@ -6664,7 +6664,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// the next call of this function. This may be necessary when the Tstr returned from this
 /// function only contains punctuation and not m_targetStr content - due to the user
 /// selecting <no adaptation> on pSingleSrcPhrase.
-/// whm 28Dec2024 added a parameter pPrevSingleSrcPhrase making it the second parameter
+/// whm 28Dec2024 added a parameter pPrevSingleSrcPhrase making it the second parameter.
+///  - unused - may use in future.
 /// This is needed to track any filtered information which is stored on a previous source
 /// phrase. 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -7200,7 +7201,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
 			// whm 5Feb2024 removed unused paramters - and retired the older version
-			wxString Sstr = FromSingleMakeSstr2(pSingleSrcPhrase, pPrevSingleSrcPhrase); // whm 28Dec2024 added 2nd parameter
+			wxString Sstr = FromSingleMakeSstr2(pSingleSrcPhrase, pPrevSingleSrcPhrase); // whm 28Dec2024 added 2nd parameter - unused - may use in future
 					// need Sstr for the dialog; and we pass it to AutoPlaceSomeMarkers(), 
 					// but the latter currently does not use it internally (one day, it might)
 #if defined (_DEBUG)
@@ -8562,12 +8563,12 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 // throughout the application.
 // whm 26Dec2024 - 28Dec2024 modifications made to improve the ordering of 
 // exported material. Added a second parameter pPrevSingleSrcPhrase to the 
-// function header. We need to be able to track the previous source phrase
-// in pList in order to have access to filtered information which is now
-// stored on a previous source phrase. To correctly make up the source text
-// for a single source phrase, and include filtered information, we must be
-// able to access any of its filtered information which would have been
-// stored on a pPrevSingleSrcPhrase.
+// function header - unused - may use in future. We need to be able to track 
+// the previous source phrase in pList in order to have access to filtered 
+// information which is now stored on a previous source phrase. To correctly 
+// make up the source text for a single source phrase, and include filtered 
+// information, we must be able to access any of its filtered information 
+// which would have been stored on a pPrevSingleSrcPhrase.
 // Here is a detailed example that demonstrates this need taken from a 
 // unittest text:
 // --------
@@ -8621,7 +8622,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 // 
 //wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
 wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-	CSourcePhrase* pPrevSingleSrcPhrase) // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+	CSourcePhrase* pPrevSingleSrcPhrase) // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 

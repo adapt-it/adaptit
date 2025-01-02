@@ -28307,7 +28307,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
 	while (pos_pSP != NULL)
 	{
 		pSrcPhrase = pos_pSP->GetData();
@@ -28325,7 +28325,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			else
 			{
 				// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added 2nd parameter
+				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added 2nd parameter - unused - may use in future
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
@@ -28387,7 +28387,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			srcStr.Empty();
 		} // end of block for TRUE result from test of sequence number
-		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
 	} // end of loop
 
 	// Don't leak memory. In the next call, FALSE is bDoPartnerPileDeletionAlso; calls

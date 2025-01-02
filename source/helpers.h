@@ -378,7 +378,7 @@ wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase,
 wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
 wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
-// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
 							wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct);
@@ -392,7 +392,7 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
 //wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
-// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
 			CSourcePhrase* pPrevSingleSrcPhrase);
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17

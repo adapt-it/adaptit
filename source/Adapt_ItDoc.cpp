@@ -9883,7 +9883,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// \param		pos_callers	-> the iterator position locating the passed in pSrcPhrase
 ///                            pointer (its use herein is deprecated)
 /// \param		pSrcPhrase	<- pointer of the source phrase
-/// \param		pPrevSrcPhrase	<- pointer of the previous source phrase // whm 28Dec2024 added
+/// \param		pPrevSrcPhrase	<- pointer of the previous source phrase // whm 28Dec2024 added - unused - may use in future
 /// \param		fixesStr	-> (its use herein is deprecated, the caller adds to it if
 ///                            FALSE is returned)
 /// \param		pNewList	<- the parsed new source phrase instances
@@ -9911,7 +9911,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
-	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
+	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 	wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
 	// BEW added 5Apr05
@@ -9935,7 +9935,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	int numElements = 1; // default
 
 	 // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added pPrevSrcPhrase parameter
+	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
@@ -21522,7 +21522,7 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 // whitespace(s), and getting to the puncts may require parsing first over one or more inlineBindingEndMarkers
 // whm 26Dec2024 added an additional reference parameter wxString& wordSuffix to the header of this function
 // which allows returning to the caller any word suffix that exists after the position of an inline binding end
-// marker. 
+// marker.
 wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, 
 	int& itemLen, wxString& wordSuffix, wxString spacelessPuncts)
 {
@@ -24591,7 +24591,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	if (bChangedPunctuation)
 	{
 		pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
-		CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+		CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
 		while (pos_pSP != NULL)
 		{
 			oldPos = pos_pSP;
@@ -24602,7 +24602,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 			// many to the list, or remove some, or leave number in the list unchanged
 			bSuccessful = ReconstituteAfterPunctuationChange(pView,
 				gpApp->m_pSourcePhrases, oldPos, pSrcPhrase, 
-				pPrevSrcPhrase, // whm 28Dec2024 added
+				pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 				fixesStr);
 			if (!bSuccessful)
 			{
@@ -24631,7 +24631,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 			//	//wxString progMsg = _("Retokenizing - File: %s  - %d of %d Total words and phrases");
 			//	//progMsg = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 			//}
-			pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
+			pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
 		} // end of while (pos_pSP != NULL)
 	}
 
@@ -26346,10 +26346,11 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// without loss, and alerting the user to where we think a visual inspection should be
 /// done in order to verify the results are acceptable - and edit if not.
 /// whm 28Dec2024 added a CSourcePhrase*& pPrevSrcPhrase parameter to the function header.
+/// Currently pPrevSrcPhrase is unused - may use in future
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList*& pList, SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase,
-	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
+	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 	wxString& fixesStr)
 {
 	int nOriginalCount = pSrcPhrase->m_nSrcWords;
@@ -26653,7 +26654,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// CSourcePhrase and so is not visible in the layout
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
 			pView, pList, pos_callers, pSrcPhrase, 
-			pPrevSrcPhrase, fixesStr, pResultList, FALSE); // whm 28Dec2024 added pPrevSrcPhrase parameter
+			pPrevSrcPhrase, fixesStr, pResultList, FALSE); // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
 
 		//#ifdef _DEBUG
 		//		wxLogDebug(_T("  17950 After ...One..., RETURNED bWasOK = %d  ,  pSrcPhrase sn = %d  m_srcPhrase = %s"),
