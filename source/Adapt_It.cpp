@@ -35447,6 +35447,7 @@ enum Reparse reparseDoc)
         // page in Preferences.
         bool	m_bMkr_xt_WasFilteredBeforeFilteringChange;
         bool	m_bMkr_xt_WasUnfilteredBeforeFilteringChange;
+        wxUnusedVar(m_bMkr_xt_WasUnfilteredBeforeFilteringChange); // prevent gcc warning
 
         // whm 29Feb204 added. We need to determine the filter status of the \x and \xt markers
         // before the edit in the filter page, so we can use this information to adjust the

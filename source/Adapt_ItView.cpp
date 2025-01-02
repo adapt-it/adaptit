@@ -1277,6 +1277,7 @@ CPile* CAdapt_ItView::GetNextPile_forFreeTrans()
 	wxLogDebug(_T("GetNextPile_forFreeTrans() in View, check first sequNum, line= %d, sequNum= %d"),
 		__LINE__, pApp->m_nSN_forFreeTrans);
 	CSourcePhrase* pSP = NULL;
+	wxUnusedVar(pSP); // avoid gcc warning
 
 	iStart = pApp->m_nSN_forFreeTrans;
 	PileList* pilesPtr = GetLayout()->GetPileList();

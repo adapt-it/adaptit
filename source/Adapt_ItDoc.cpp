@@ -36236,6 +36236,7 @@ CSourcePhrase* CAdapt_ItDoc::GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* p
 	// in which when no parameter is given (in calls from TokenizeText etc) a ->Find(pPrevSrcPhrase)
 	// is used below. When bXMLInput is TRUE, m_pSourcePhrases->Item(nSequNum) is used instead.
 	CSourcePhrase* pTestSP = NULL;
+	wxUnusedVar(pTextSP); // avoid gcc warning
 	if (bXMLInput == TRUE)
 	{
 		// When called from XML input routines start by determining the pos_pSPList of the last
