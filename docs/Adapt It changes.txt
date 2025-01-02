@@ -1,4 +1,37 @@
 ﻿----------------------------------------------
+Version 6.11.5  27 December 2024
+----------------------------------------------
+Feature changes and new features in 6.11.5
+--------------------------------------------------------------------------------------
+* The two Insert Placeholder toolbar commands are now more robust and include the 
+popping up of a small dialog that asks the user for more clarification when AI is
+unable to determine the exact location for a newly inserted placeholder at textual
+boundaries. 
+----------------------------------------------
+Bug fixes in 6.11.5 update
+---------------------------------------------
+* Fixed an issue that prevented auto-inserted target entries from being highlighted in
+purple background color.
+* Fixed an issue where certain inline binding markers like \nd ...\nd* being placed
+word-medial would cause the input parsing of the text to break that word into two source
+phrases.
+* Fixed an issue that would result in certain filtered information not getting
+included in the exported source text, namely filtered info that included \va ...\va* 
+markers.
+* Fixed issues with the Insert Placeholder commands on the Toolbar. In certain 
+circumstances the insertion of placeholders could result in the undesired movement of
+boundary markers such as the \c n chapter marker, \v n verse marker, \s1 section head
+marker, etc. The insert placeholder code now presents a small dialog when needed to 
+clarify the position of placeholder insertion when the selection or phrasebox is 
+located at certain textual boundaries.
+* Fixed an issue that could happen when un-merging a previously merged source phrase.
+Previously, when a merged source phrase contained filtered information on one of the
+merged elements, that filtered information could get duplicated on more than one of
+the individual source phrases when the phrase was un-merged.
+* Fixed a crash that occurred when retrieving a document that was stored in the 
+document history, that document being created with an older document version.
+
+----------------------------------------------
 Version 6.11.1  7 June 2024
 ----------------------------------------------
 Feature changes and new features in 6.11.1
