@@ -4829,7 +4829,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	}
 
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases; // whm 9Jan2025 uncommented
 	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
 	// and the caller tests that it is not word1~word2 conjoined by fixed space -
 	// the latter is stored as a pseudo merger, and is handled within FromSingleMakeTstr()
@@ -4855,7 +4855,10 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
     // first CSourcePhrase instance
 	// BEW 22Jun15, now only use markersPrefix, if at all, for begin-markers; we no longer
 	// restore any of the filtered data
-	wxString markersPrefix; markersPrefix.Empty();
+	// whm 9Jan2025 renewed the restoration of filtered data, with appropriate variable name change:
+	//wxString markersPrefix; markersPrefix.Empty(); // whm 9Jan2025 renamed markersPrefix to filteredInfoSuffix
+	wxString filteredInfoSuffix; filteredInfoSuffix.Empty();
+
 	wxString Sstr; // Sstr needed only if internally we must use the placement
 				   // dialog; we don't need to return it to the caller
 
@@ -4865,7 +4868,6 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	//wxString noteMkr(_T("\\note"));
 	//wxString noteEndMkr = noteMkr + _T("*");
 	//wxString backTransMkr(_T("\\bt"));
-	markersPrefix.Empty();
 	Sstr.Empty();
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected string-final
 													 // m_endMarkers content here
@@ -4897,17 +4899,23 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	wxString otherFiltered; // leftovers after \x ...\x* is removed from filtered info
 
 	// the first one, pMergedSrcPhrase as passed in, has to provide the stuff for the
-	// markersPrefix wxString...
+	// filteredInfoSuffix wxString...
 	GetMarkersAndFilteredStrings(pMergedSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
-	{
+	//{
 		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 		// data should be in the export
-		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
-	}
+		//
+		// whm 9Jan2025 we've restored the inclusion of filtered data in exports including target exports.
+		// therefore, I've commented out the following .Empty() statements.
+		// freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
+	//}
 	// remove any filter bracketing markers if filteredInfoStr has content
 	// BEW 22Jun15 this is no longer needed either
-	/*
+	//
+	// whm 9Jan2025 we've restored the inclusion of filtered data in exports including target exports.
+	// therefore, I've un-commented the following block that removes filter brackets from the string
+	// /*
 	if (!filteredInfoStr.IsEmpty())
 	{
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
@@ -4916,9 +4924,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		// filtered information
 		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);
 	}
-	*/
+	// */
 	// BEW 22Jun15 the legacy comment following no longer applies, we remove code that computes
 	// filtered information. prefix string will, at most, only have unfiltered markers
+	// 
+	// whm 9Jan2025 restored the legacy behavior of preserving filtered information
     // Legacy comment: for the first CSourcePhrase, we store any filtered info within the prefix
     // string, and any content in m_markers, if present, must be put at the start
     // of Tstr and Sstr; remove LHS whitespace when done
@@ -4930,9 +4940,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// crossReference info left in it - these info types are handled by a separate call,
 	// the one below to GetUnfilteredCrossRefsAndMMarkers()
 	// BEW 22Jun15, this call no longer needs to be done
-	//markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pMergedSrcPhrase,
-	//						pSrcPhrases, otherFiltered, collBackTransStr,
-	//						freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+	// whm 9Jan2025 restored legacy behavior, so I've restored the following call, changing
+	// markersPrefix to filteredInfoSuffix.
+	filteredInfoSuffix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pMergedSrcPhrase,
+							pSrcPhrases, otherFiltered, collBackTransStr,
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
 	// BEW 11Oct10, the initial stuff is now more complex, so we just can't insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
@@ -4945,12 +4957,13 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// BEW 22Jun15, the following function was refactored so that filtered info is not returned
 	// It is used in From MergerMakeTstr(), FromSingleMakeTstr() and FromSingleMakeSstr() and
 	// in each case, it must not return filtered info, so the internal tweaks apply in all calls
+	// whm 9Jan2025 restored the function below to use legacy form which returned filtered info.
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
 												bAttachFilteredInfo, bAttach_m_markers);
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	filteredInfoSuffix.Trim(FALSE); // markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
+	filteredInfoSuffix.Trim(); // markersPrefix.Trim();
+	filteredInfoSuffix << aSpace; // markersPrefix << aSpace;
 
 	// for Sstr, which we only show to the user so he/she has the source to guide what is
 	// done in the target by manual editing in the placement dialog, we don't include any
@@ -5131,11 +5144,12 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr_forLoop,
 						endMarkersStr_forLoop, freeTransStr, noteStr, collBackTransStr,
 						filteredInfoStr);
-			{
-				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
-				// data should be in the export
-				freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
-			}
+			// whm 9Jan2025 restored the inclusion of filtered data
+			//{
+			//	// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
+			//	// data should be in the export
+			//	freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
+			//}
 			// for the non-first pSrcPhrase instances, we'll use markersStr and
 			// endMarkersStr in the code below the next block
 
@@ -5558,13 +5572,24 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 
 	// now add the prefix string material not shown in the Place... dialog,
 	// if it is not empty
-	if (!markersPrefix.IsEmpty())
+	// whm 9Jan2025 modified. Earlier, the previously named markersPrefix string is actually 
+	// used to store filtered information, so it was renamed appropriately filteredInfoSuffix. 
+	// It also should be suffixed rather that prefixed to the Tstr since as filtered info, was
+	// actually stored at the current pMergedSrcPhrase from a following source phrase. 
+	// Note: Renamed markersPrefix to filteredInfoSuffix
+	if (!filteredInfoSuffix.IsEmpty() && filteredInfoSuffix != aSpace)
 	{
-		markersPrefix.Trim();
-		if (!markersPrefix.IsEmpty())
+		//markersPrefix.Trim();
+		//if (!markersPrefix.IsEmpty())
+		//{
+		//	markersPrefix += aSpace; // ensure a final space after markers
+		//	Tstr = markersPrefix + Tstr;
+		//}
+		Tstr.Trim();
+		if (!filteredInfoSuffix.IsEmpty())
 		{
-			markersPrefix += aSpace; // ensure a final space after markers
-			Tstr = markersPrefix + Tstr;
+			Tstr += aSpace;
+			Tstr += filteredInfoSuffix;
 		}
 	}
 	Tstr.Trim();
@@ -5861,9 +5886,11 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	// store here any string of filtered information stored on pMergedSrcPhrase (in
 	// m_filteredInfo only though)
 	wxString Sstr; Sstr.Empty();
-	wxString markersPrefix; markersPrefix.Empty();
+	//wxString markersPrefix; markersPrefix.Empty(); // whm 9Jan2025 renamed markersPrefix to filteredInfoSuffix
+
 	wxString Gstr = pMergedSrcPhrase->m_gloss; // could be empty
 	//bHasFilteredMaterial = HasFilteredInfo(pMergedSrcPhrase);
+	wxString filteredInfoSuffix; filteredInfoSuffix.Empty();
 
 	// markers needed, since doc version 5 may store some filtered stuff without using them
 	wxString freeMkr(_T("\\free"));
@@ -5871,7 +5898,6 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	wxString noteMkr(_T("\\note"));
 	wxString noteEndMkr = noteMkr + _T("*");
 	wxString backTransMkr(_T("\\bt"));
-	markersPrefix.Empty(); // clear it out
 
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
 	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
@@ -5885,46 +5911,29 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	wxString filteredInfoStr;
 
 	// the first one, pMergedSrcPhrase as passed in, has to provide the stuff for the
-	// markersPrefix wxString...
+	// filteredInfoSuffix wxString...
 	GetMarkersAndFilteredStrings(pMergedSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
-	/* BEW removed 11Oct10 because even if it has content, we'll ignore it anyway
+	// whm 9Jan2025 restored to legacy behavior
+	// /* BEW removed 11Oct10 because even if it has content, we'll ignore it anyway
 	// remove any filter bracketing markers if filteredInfoStr has content
 	if (!filteredInfoStr.IsEmpty())
 	{
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
 	}
-	*/
+	// */
 	if (!endMarkersStr.IsEmpty())
 	{
 		bFinalEndmarkers = TRUE;
 		finalSuffixStr = endMarkersStr;
 	}
 
-	/* BEW removed 11Oct10
-    // from the merger we store any filtered info within the prefix
-    // string, but any content in m_markers, if present, must be put at the start
-	// of Gstr and Sstr; remove LHS whitespace when done; ignore free translation, note
-	// and collected back translation even if they exist here
-	if (!filteredInfoStr.IsEmpty())
-	{
-		// this data has any markers and endmarkers already 'in place'
-		if (markersPrefix.IsEmpty())
-		{
-			markersPrefix << filteredInfoStr;
-		}
-		else
-		{
-			markersPrefix.Trim();
-			markersPrefix += aSpace + filteredInfoStr;
-		}
-	}
-	*/
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	filteredInfoSuffix.Trim(FALSE); // markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
-
+	filteredInfoSuffix.Trim(); // markersPrefix.Trim();
+	filteredInfoSuffix << aSpace; // markersPrefix << aSpace;
+	// whm 9Jan2025 commented out the block below as it duplicates the block near the end of this function
+	/*
 	if (!markersStr.IsEmpty())
 	{
         // this data has any markers and endmarkers already 'in place', and we'll
@@ -5936,6 +5945,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 		Sstr << markersStr;
 		Gstr = markersStr + Gstr;
 	}
+	*/
 
     // loop over each of the original CSourcePhrase instances in the merger, the first has
     // to be given special treatment; compose Sstr, but Gstr is passed in, and at most only
@@ -6138,17 +6148,29 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 
 	// now add the prefix string material not shown in the Place... dialog,
 	// if it is not empty
-	if (!markersPrefix.IsEmpty())
+	// whm 9Jan2025 modified. Earlier, the previously named markersPrefix string is actually 
+	// used to store filtered information, so it was renamed appropriately filteredInfoSuffix. 
+	// It also should be suffixed rather that prefixed to the Tstr since as filtered info, was
+	// actually stored at the current pMergedSrcPhrase from a following source phrase. 
+	// Note: Renamed markersPrefix to filteredInfoSuffix
+	if (!filteredInfoSuffix.IsEmpty() && filteredInfoSuffix != aSpace)
 	{
-		markersPrefix.Trim();
-		if (!markersPrefix.IsEmpty())
+		//markersPrefix.Trim();
+		//if (!markersPrefix.IsEmpty())
+		//{
+		//	markersPrefix += aSpace; // ensure a final space
+		//	Gstr = markersPrefix + Gstr;
+		//}
+		Gstr.Trim();
+		if (!filteredInfoSuffix.IsEmpty())
 		{
-			markersPrefix += aSpace; // ensure a final space
-			Gstr = markersPrefix + Gstr;
+			Gstr += aSpace;
+			Gstr += filteredInfoSuffix;
 		}
 	}
-	Gstr.Trim();
-	Gstr << aSpace; // have a final space
+	Gstr.Trim(FALSE);
+	Gstr.Trim(); //  Gstr << aSpace; // have a final space
+	// don't have a final space, the caller will add one if it is needed
 	return Gstr;
 }
 
@@ -6668,6 +6690,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 ///  - unused - may use in future.
 /// This is needed to track any filtered information which is stored on a previous source
 /// phrase. 
+/// whm 9Jan2025 refactored to restore the inclusion of filtered information in the export.
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
 							wxString Tstr, bool bDoCount,
@@ -6685,18 +6708,19 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		return Tstr;
 	}
 	// BEW 22Jun15, the following are no longer used, so prevent compiler warnings
-	wxUnusedVar(bDoCount);
-	wxUnusedVar(bCountInTargetText);
+	// whm 9Jan2025 restored
+	//wxUnusedVar(bDoCount);
+	//wxUnusedVar(bCountInTargetText);
 
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases; // whm 9Jan2025 uncommented
 	bool bHasOuterFollPunct = FALSE;
 	bool bIsAmbiguousForEndmarkerPlacement = FALSE;
 #if defined (_DEBUG)
 	{
 		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() START line %d, m_srcPhrase= [%s] , m_targetStr= [%s] , sequNum = %d, Tstr= [%s]"),
 			__LINE__, pSingleSrcPhrase->m_srcPhrase.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), pSingleSrcPhrase->m_nSequNumber, Tstr.c_str() );
-		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		if (pSingleSrcPhrase->m_nSequNumber >= 129)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -6744,22 +6768,24 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	}
 	*/
     // BEW 22Jun15, store here, if anything, only begin-markers for non-filtered data
-	wxString markersPrefix; markersPrefix.Empty();
+	//wxString markersPrefix; markersPrefix.Empty(); // whm 9Jan2025 renamed markersPrefix to filteredInfoSuffix
+	wxString filteredInfoSuffix; filteredInfoSuffix.Empty();
 
 	// BEW 22Jun15, these are no longer needed
-	//wxString freeMkr(_T("\\free"));
-	//wxString freeEndMkr = freeMkr + _T("*");
-	//wxString noteMkr(_T("\\note"));
-	//wxString noteEndMkr = noteMkr + _T("*");
-	//wxString backTransMkr(_T("\\bt"));
-	markersPrefix.Empty(); // clear it out
+	// whm 9Jan2025 restored as we now export filtered info
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
 
 	wxString aSpace = _T(" ");
 	wxString markersStr;
 	wxString endMarkersStr;
-	// The next five are retained because they are in the signature of functions which
+	// [BEW] The next five are retained because they are in the signature of functions which
 	// may be called elsewhere, but here we clear these if any content is returned in them
+	// whm 9Jan2025 we now utilize again the following
 	wxString freeTransStr;
 	wxString noteStr;
 	wxString collBackTransStr;
@@ -6774,13 +6800,15 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// get the other string information we want, putting it in the scratch strings
 	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
-	{
-		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
-		// data should be in the export
-		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
-	}
+	// whm 9Jan2025 restored to legacy behavior
+	//{
+	//	// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
+	//	// data should be in the export
+	//	freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
+	//}
 	// BEW 22Jun15, next calls are no longer needed.
-	/*
+	// whm 9Jan2025 restored block below
+	// /*
 	// remove any filter bracketing markers if filteredInfoStr has content
 	if (!filteredInfoStr.IsEmpty())
 	{
@@ -6790,10 +6818,14 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		// filtered information
 		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);
 	}
-	*/
+	// */
     // BEW 22Jun15, for the one and only CSourcePhrase, we store in prefixSing any content in m_markers, if present, must be put at the start
     // of Tstr; remove LHS whitespace when done
-    // BEW 8Sep10, changed the order to be: 1. filtered info, 2. collected bt 3.
+	// whm 9Jan2025 restored the following legacy comment:
+	// for the one and only CSourcePhrase, we store any filtered info within the prefix
+	// string, and any content in m_markers, if present, must be put at the start
+	// of Tstr; remove LHS whitespace when done
+	// BEW 8Sep10, changed the order to be: 1. filtered info, 2. collected bt 3.
 	// note 4. free trans, to help with OXES parsing - we want any free trans to
 	// immediately precede the text it belongs to, and OXES likes any annotations (ie. our
 	// notes) to be listed in sequence after the start of the verse but before the trGroup
@@ -6807,9 +6839,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// crossReference info left in it - these info types are handled by a separate call,
 	// the one below to GetUnfilteredCrossRefsAndMMarkers(), so
 	// BEW 22Jun15 there is now no need to make this call
-	//markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
-	//						pSrcPhrases, otherFiltered, collBackTransStr,
-	//						freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+	// whm 9Jan2025 uncommented and restored the following legacy call, changing markersPrefix
+	// to filteredInfoSuffix.
+	filteredInfoSuffix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
+							pSrcPhrases, otherFiltered, collBackTransStr,
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
 
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
@@ -6824,12 +6858,13 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// information types, so wrap with a test - but we want some of this next stuff (the
 	// m_markers and m_endMarkers is wanted, for example), so tests will be done internally
 	// BEW 22Jun15, refactored internally so it returns only markers, but no filtered info
+	// whm 9Jan2024 restored the following function call to again return filtered information.
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
 												bAttachFilteredInfo, bAttach_m_markers);
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	filteredInfoSuffix.Trim(FALSE); // markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
+	filteredInfoSuffix.Trim(); // markersPrefix.Trim();
+	filteredInfoSuffix << aSpace; // markersPrefix << aSpace;
 
 	// The task now, whether for conjoined pairs or a normal single target text word, is to
 	// remove preceding and following punctuation into storage strings temporarily. This
@@ -7105,7 +7140,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	{
         // this data has any markers 'in place' & things like verse number etc if relevant,
         // and any crossReference material will be after the verse number (other unfiltered
-        // filtered info to come from what is in markersPrefix will be preceding the \v )
+        // filtered info to come from what is in filteredInfoSuffix will be preceding the \v )
 		Tstr = strInitialStuff + Tstr;
 	}
 #if defined (_DEBUG)
@@ -7433,13 +7468,24 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	} // end of else block for test: if (!bHasOuterFollPunct && !bIsAmbiguousForEndmarkerPlacement)
 
     // now add the prefix string material if it is not empty
-	if (!markersPrefix.IsEmpty())
+	// whm 9Jan2025 modified. Earlier, the previously named markersPrefix string is actually 
+	// used to store filtered information, so it was renamed appropriately filteredInfoSuffix. 
+	// It also should be suffixed rather that prefixed to the Tstr since as filtered info, was
+	// actually stored at the current pMergedSrcPhrase from a following source phrase. 
+	// Note: Renamed markersPrefix to filteredInfoSuffix
+	if (!filteredInfoSuffix.IsEmpty() && filteredInfoSuffix != aSpace)
 	{
-		markersPrefix.Trim();
-		if (!markersPrefix.IsEmpty())
+		//markersPrefix.Trim();
+		//if (!markersPrefix.IsEmpty())
+		//{
+		//	markersPrefix << aSpace; // ensure a final space after any markers
+		//	Tstr = markersPrefix + Tstr;
+		//}
+		Tstr.Trim();
+		if (!filteredInfoSuffix.IsEmpty())
 		{
-			markersPrefix << aSpace; // ensure a final space after any markers
-			Tstr = markersPrefix + Tstr;
+			Tstr += aSpace;
+			Tstr += filteredInfoSuffix;
 		}
 	}
 	Tstr.Trim(FALSE);
@@ -8624,6 +8670,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
 	CSourcePhrase* pPrevSingleSrcPhrase) // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 {
+	wxUnusedVar(pPrevSingleSrcPhrase); // whm remove if/when pPrevSingleSrcPhrase gets used in future
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	//bool bEndPunctsModified = FALSE; // init

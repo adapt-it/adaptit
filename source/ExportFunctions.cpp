@@ -17267,6 +17267,7 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 
 // BEW created 11Oct10
 // BEW 22Jun15, refactored so that it returns no filtered information
+// whm 9Jan2025 restored to legacy form that returns filtered information
 wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr,
 				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers)
 {
@@ -17285,26 +17286,27 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 				markersPrefix.Trim();
 				markersPrefix += aSpace + markersStr;
 			}
-		}
-	}
-	wxUnusedVar(bAttachFilteredInfo);
-	// BEW 22Jun15, do not return filtered info
-	/*
-			if (!xrefStr.IsEmpty()  && bAttachFilteredInfo)
+			//}
+		//}
+		//wxUnusedVar(bAttachFilteredInfo);
+		// BEW 22Jun15, do not return filtered info
+		// whm 9Jan2025 restored the return of filtered info to this function, so
+		// uncommented the blocks below
+		// /*
+			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
-			// a xref follows a verse number, so make sure there is an intervening
-			// space
-			markersPrefix.Trim();
-			markersPrefix += aSpace + xrefStr;
+				// a xref follows a verse number, so make sure there is an intervening
+				// space
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
 			}
-
 		}
 		else
 		{
 			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
-			markersPrefix.Trim();
-			markersPrefix += aSpace + xrefStr;
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
 			}
 		} // end of else block for test: if (bAttach_m_markers)
 	}
@@ -17317,7 +17319,7 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 			markersPrefix += aSpace + xrefStr;
 		}
 	}
-	*/
+	// */ // whm 9Jan2025 restored the return of filtered info
 	return markersPrefix;
 }
 
