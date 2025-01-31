@@ -51,7 +51,7 @@ jobs:
           docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} -e DEBFULLNAME -e DEBEMAIL build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
 
       - name: Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: |
             adaptit/artifacts/*.dsc
