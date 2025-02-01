@@ -53,7 +53,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.distro }}
+          name: ${{ matrix.release }}
           path: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
