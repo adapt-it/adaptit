@@ -50,9 +50,10 @@ jobs:
           echo "Doing package build"
           docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} -e DEBFULLNAME -e DEBEMAIL build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
 
-      - name: ${{ matrix.distro }}
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
+          name: ${{ matrix.distro }}
           path: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
