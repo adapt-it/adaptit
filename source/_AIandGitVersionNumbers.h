@@ -40,7 +40,7 @@
 // **** NOTE: Version numbers and dates are defined in both string and integer forms below.  ****
 // **** Be sure to keep them in sync when changing version numbers/dates for a new release!! ****
 
-// when changing these string values make sure to also change the corresponding int values below
+// When changing these string values make sure to also change the corresponding int values below
 #define AI_VERSION_MAJOR_STR "6"
 #define AI_VERSION_MINOR_STR "11"
 #define AI_VERSION_BUILD_PART_STR "5"
