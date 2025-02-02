@@ -2202,7 +2202,7 @@ const wxString defaultProfileItems[] =
     // in some cases to alert the programmer of any significant differences/inconsistencies.
     //
     // whm 6Jan12 Note: Changed the version number in the first string of the defaultProfileItems[]
-    // array below to use the appVerStr constant defined near the beginning of the Adapt_It.h file.
+    // array below to use the appVerStr constant defined near the beginning of the _AIandGitVersionNumbers.h file.
     _T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"") + appVerStr + _T("\":adminModified=\"No\"")
     _T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
     _T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
