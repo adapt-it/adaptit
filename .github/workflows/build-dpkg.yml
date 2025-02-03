@@ -56,7 +56,6 @@ jobs:
         with:
           # A release already has sources so skip dpkg created *.tar.gz.
           # whm 16May2022 added *.tar.gz to files
-          name: ${{ matrix.release }}
           files: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
