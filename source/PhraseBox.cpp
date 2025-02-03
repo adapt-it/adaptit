@@ -8385,6 +8385,13 @@ bool CPhraseBox::IsPhraseBoxVisibleInClientWindow()
 		CAdapt_ItView* pView = gpApp->GetView();
 		int nFirstStrip;
 		int nLastStrip;
+		// whm 2Feb2025 added. Sometimes on Linux when exiting AI, this IsPhraseBoxVisibleInClientWindow() is
+		// called, but the pView has already become NULL, so I'll protect against possible Segmentation fault
+		// here
+		if (pView == NULL)
+		{
+			return bPhraseBoxIsVisible; // will be FALSE when pView is NULL
+		}
 		pView->GetVisibleStrips(nFirstStrip, nLastStrip);
 		// Get the strip index of the active pile, may be NULL
 		CPile* pile = pView->GetPile(gpApp->m_nActiveSequNum);
