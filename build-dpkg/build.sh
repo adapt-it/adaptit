@@ -9,7 +9,7 @@ mk-build-deps --install --tool="${install_tool}" debian/control
 
 if [ "${LOCAL}" ]; then
   echo "Adding +${LOCAL} to package revision"
-  debchange --local=+${LOCAL} "Build for ${LOCAL}"
+  debchange --distribution ${LOCAL} --force-distribution --local=+${LOCAL} "Build for ${LOCAL}"
   # Remove unwanted trailing 1 from distribution suffix
   sed -i -e "1s/+${LOCAL}1/+${LOCAL}/" debian/changelog
 fi
