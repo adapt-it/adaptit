@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "adaptit-*"
+    branches:
+      - 'master'
   workflow_dispatch:
     inputs:
       releases:
@@ -50,13 +52,23 @@ jobs:
           echo "Doing package build"
           docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} -e DEBFULLNAME -e DEBEMAIL build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.release }}
+          path: |
+            adaptit/artifacts/*.dsc
+            adaptit/artifacts/*.deb
+            adaptit/artifacts/*.changes
+            adaptit/artifacts/*.buildinfo
+            adaptit/artifacts/*.ddeb
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           # A release already has sources so skip dpkg created *.tar.gz.
           # whm 16May2022 added *.tar.gz to files
-          name: ${{ matrix.release }}
           files: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
