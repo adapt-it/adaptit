@@ -62,6 +62,7 @@ jobs:
             adaptit/artifacts/*.changes
             adaptit/artifacts/*.buildinfo
             adaptit/artifacts/*.ddeb
+            adaptit/artifacts/*.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v1
