@@ -9392,7 +9392,24 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 #endif
 			pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
 			// Now use the user's actual phrasebox contents, with any puncts he may have typed
-			pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
+
+			// whm 4Mar2025 testing modification. It doesn't appear to me that we need a second call of
+			// the View's MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase) here
+			// as it is already called within the StoreText() call above, and within that first
+			// MakeTargetStringIncludingPunctuation() call, proper values assigned to pActiveSrcPhrase->m_targetStr 
+			// are done, and any manually typed final punctuation stored within pActiveSrcPhrase->m_follPunct, etc
+			// without any duplication. BEW reported that manually typed final punctuation was not appearing in
+			// the display when user clicks away to a different location, but the manually typed punct were being
+			// stored in the doc's xml. My tracing through the code shows that calling 
+			// MakeTargetStringIncludingPunctuation() a second time here wipes out the manually typed punctuation
+			// from being stored in the pActiveSrcPhrase->m_targetStr member - because its call count is > 1 in
+			// this case - and code that would actually "make the target string including punctuation" gets skipped
+			// when the call count is > 1.
+			// Therefore, I'm commenting out the following MakeTargetStringIncludingPunctuation() call and testing
+			// the effect.
+			// Test Results: This change appears to fix the issue of final punctuation not appearing in the display,
+			// but should be tested and verified by BEW to ensure that it doesn't cause other undesired side-effects.
+			// pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
 
 #if defined (_DEBUG)
 			{
