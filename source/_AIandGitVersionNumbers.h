@@ -43,17 +43,17 @@
 // When changing these string values make sure to also change the corresponding int values below
 #define AI_VERSION_MAJOR_STR "6"
 #define AI_VERSION_MINOR_STR "11"
-#define AI_VERSION_BUILD_PART_STR "5"
+#define AI_VERSION_BUILD_PART_STR "6"
 #define AI_VERSION_MAJOR 6
 #define AI_VERSION_MINOR 11
-#define AI_VERSION_BUILD_PART 5
+#define AI_VERSION_BUILD_PART 6
 
 // when changing these string values make sure to also change the corresponding int values below
-#define VERSION_DATE_DAY_STR "2"
-#define VERSION_DATE_MONTH_STR "2"
+#define VERSION_DATE_DAY_STR "7"
+#define VERSION_DATE_MONTH_STR "3"
 #define VERSION_DATE_YEAR_STR "2025"
-#define VERSION_DATE_DAY 2
-#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_DAY 7
+#define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2025
 
 // set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog

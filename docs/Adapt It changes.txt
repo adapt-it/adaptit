@@ -1,4 +1,16 @@
 ﻿----------------------------------------------
+Version 6.11.6  7 March 2025
+----------------------------------------------
+Feature changes and new features in 6.11.6
+--------------------------------------------------------------------------------------
+* No feature changes in this update
+----------------------------------------------
+Bug fixes in 6.11.6 update
+---------------------------------------------
+* Fixed an issue that prevented manually typed punctuation from being retained in the
+target text line when the user clicked to move the phrase box to a different location.
+
+----------------------------------------------
 Version 6.11.5  2 February 2025
 ----------------------------------------------
 Feature changes and new features in 6.11.5
