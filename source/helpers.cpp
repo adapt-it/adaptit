@@ -8717,7 +8717,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber == 7) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	if (pSingleSrcPhrase->m_nSequNumber == 122) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -8850,6 +8850,21 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 		if (filteredInfoStr.IsEmpty() && !pSingleSrcPhrase->m_srcSinglePattern.IsEmpty())
 		{
 			srcStr << pSingleSrcPhrase->m_srcSinglePattern;
+			// whm 10Oct2025 addition for safety. If for some reason, the afterStr determined above is
+			// NOT a substring of m_srcSinglePattern, then store the afterStr here after the
+			// pSingleSrcPhrase->m_srcSinglePattern value has been stored just above. This situation
+			// probably indicates a failure to properly set the value of 
+			// pSingleSrcPhrase->m_srcSinglePattern elsewhere in the doc's parsing.
+			// In JamesJ's MAT data final puncts ")." was the content of afterStr, but these final
+			// puncts were not suffixed to the m_srcSinglePattern, which resulted in the loss of these
+			// final puncts from the source export. Hence, as a safety measure I'm testing for afterStr
+			// not being a part of the m_srcSinglePattern and if not, adding afterStr to the srcStr.
+			// whm 21Oct2025 update. I decided the following test is not reliable and can result in
+			// duplication of some data. Hence, I've commented it out.
+			//if (pSingleSrcPhrase->m_srcSinglePattern.Find(afterStr) == wxNOT_FOUND)
+			//{
+			//	srcStr << afterStr;
+			//}
 		}
 		else
 		{

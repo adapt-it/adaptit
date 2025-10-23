@@ -52,6 +52,10 @@ wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
 // my refactoring to store it on a previous pSrcPhrase.
 wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 					 bool& bAddedSomething); // BEW created 11Oct10 
+
+bool HasSameTextAndPunctButPunctDiffersInTextLocation(wxString str1, wxString str2); // whm added 21Oct2025
+wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, wxArrayInt& arrPunctPos); // whm added 21Oct2025
+
 //wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 	bool& bAddedSomething, bool& bAddedHiddenMetaData,

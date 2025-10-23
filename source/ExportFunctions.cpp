@@ -17136,6 +17136,142 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 	return appendHere;
 }
 
+// whm 21Oct2025 added this boolean function to more accurately help restore source
+// text when (final) m_follPunct is to be restored in source text exports BEFORE an 
+// InlineBindingEndMarker instead of AFTER it. 
+// This function compares the content of str1 and str2. It returns FALSE in most cases
+// except when all 3 of the following are TRUE:
+//    str1 and str2 has the same non-punctuation text content
+//    str1 and str2 has the same punctuation content
+//    the punctuation content in str1 differs in location from str2
+// For example, this function would return TRUE for the following values of str1 and str2
+//    str1 is "\\add*."
+//    str2 is ".\\add*"
+// In this example, the text of str1 and str2 are the same "\\add*", and the punctuation
+// is the same ".", but the punctuation "." is in a different location, after the text in str1
+// but before the text in str2.
+bool HasSameTextAndPunctButPunctDiffersInTextLocation(wxString str1, wxString str2)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	bool bRetValue = FALSE;
+	// Remove all punctuation from str1 and str2.
+	// Save the punctuation char(s) and save their position they were found in str1 and str2.
+	// Save the text-only content of str1 and str2.
+	// Continue the testing only if the text content of
+	// str1 and str2 are both non-empty, and str1 and str2 both have the same text content.
+	// Compare the removed punctuation from str1 with the removed punctuation of str2, and
+	// return TRUE ONLY IF the position of the str1 punctuation differed from the position of
+	// the str2 punctuation.
+	wxString str1TextOnlyContent; str1TextOnlyContent.Empty();
+	wxString str2TextOnlyContent; str2TextOnlyContent.Empty();
+	wxString str1PunctuationOnlyContent; str1PunctuationOnlyContent.Empty();
+	wxString str2PunctuationOnlyContent; str2PunctuationOnlyContent.Empty();
+	int lenStr1 = str1.Length();
+	int lenStr2 = str2.Length();
+	// If either str1 or str2 are empty string return FALSE
+	if (lenStr1 == 0 || lenStr2 == 0)
+		return bRetValue; // FALSE;
+	int srcIndex = 0;
+
+	wxString inStr1 = str1;
+	wxString inStr2 = str2;
+	wxString* pStr1 = &inStr1;
+	wxString* pStr2 = &inStr2;
+	if (pStr1->Length() == 0 || pStr2->Length() == 0)
+		return bRetValue; // FALSE;
+	// Remove all punctuataion from pStr1 and pStr2.
+	// Note: The RemovePunctuation() calls below internally call SmartTokenize() which remove all
+	// punctuation from all individual words for any input string that is made up of multiple words
+	// delimited by spaces.
+	pView->RemovePunctuation(pDoc, pStr1, srcIndex);
+	str1TextOnlyContent = *pStr1;
+	pView->RemovePunctuation(pDoc, pStr2, srcIndex);
+	str2TextOnlyContent = *pStr2;
+	if (str1TextOnlyContent != str2TextOnlyContent)
+		return bRetValue; // FALSE;
+	// If we get here str1 and str2 have the same non-empty content
+	// 
+	// Now extract the punctuation-only content of str1 and str2 storing the punct char(s) in wxStrings
+	// in the same ordering as the punct char(s) are found within str1 and str2. Also use a wxArrayInt
+	// to store the position of each punct char within its original str1 and str2
+	wxArrayInt arrStr1PunctsIndexPos;
+	wxArrayInt arrStr2PunctsIndexPos;
+	str1PunctuationOnlyContent = ExtractSpacelessPunctCharsFromString(str1, srcIndex, arrStr1PunctsIndexPos);
+	str2PunctuationOnlyContent = ExtractSpacelessPunctCharsFromString(str2, srcIndex, arrStr2PunctsIndexPos);
+	// If str1 and str2 have different punct content (are different length) return FALSE
+	if (str1PunctuationOnlyContent.Length() != str2PunctuationOnlyContent.Length())
+	{
+		return bRetValue; // FALSE;
+	}
+	// If we get this far, both str1 and str2 have the same number of punct chars and
+	// so we can scan through the arrays and compare their position values in a single for loop. 
+	// Are the punct chars in the same or different position within str1 and str2? The
+	// index position of each punct char is stored within the arrStr1PunctsIndexPos
+	// and arrStr2PunctsIndexPos arrays.
+	// Now test is to see if str1PunctuationOnlyContent has the same punct chars as are
+	// found in str2PunctuationOnlyContent, and if so, test if the puncts chars are 
+	// ordered the same or differently. We returned FALSE above if str1PunctuationOnlyChars
+	// was a different length from str2PunctuationOnlyChars. Here in the following tests
+	// we return FALSE if the positions of the punct chars in the two arrays are the same for
+	// each punction character. We return TRUE only if the positions of the punct chars in
+	// the two arrayis are DIFFERENT - even though the inventory of punctuation chars is the
+	// same.
+	wxString comparePunctStr1 = str1PunctuationOnlyContent;
+	wxString comparePunctStr2 = str2PunctuationOnlyContent;
+	int nLen = str1PunctuationOnlyContent.Length(); // both punct strings are same len at this point
+	bool bPunctCharHasDifferentPosn = FALSE;
+	for (int i = 0; i < nLen; i++)
+	{
+		if (arrStr1PunctsIndexPos.Index(i) == arrStr2PunctsIndexPos.Index(i))
+		{
+			bPunctCharHasDifferentPosn = FALSE;
+		}
+		else
+		{
+			bPunctCharHasDifferentPosn = TRUE;
+			break;
+
+		}
+	}
+	bRetValue = bPunctCharHasDifferentPosn;
+	return bRetValue;
+}
+
+// whm 21Oct2025 added. This function scans through each char of the input string str and
+// if the char is a punct char as defined in SrcOrTgtIndex, it stores the punctuation char
+// in the returned string in order of occurrence within the str. If no punct chars are encountered
+// the function returns an empty wxString. This function also records the position index of the
+// punctuation char found within the arrPunctPos array which is returned to the caller.
+wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, wxArrayInt & arrPunctPos)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString returnStr = wxEmptyString;
+	arrPunctPos.Empty(); 
+	int lenStr = str.Length();
+	if (lenStr == 0) return returnStr;
+	wxString spacelessPunctsStr; spacelessPunctsStr.Empty();
+	if (SrcOrTgtIndex > 0) // BEW 29May24 moved this determination of spacelessPunctsStr to here, instead of after SmartTokenize()
+	{
+		spacelessPunctsStr = pApp->m_strSpacelessTargetPuncts;
+	}
+	else
+	{
+		spacelessPunctsStr = pApp->m_strSpacelessSourcePuncts;
+	}
+
+	for (int i = 0; i < lenStr; i++)
+	{
+		if (spacelessPunctsStr.Find(str[i]) != wxNOT_FOUND)
+		{
+			arrPunctPos.Add(i); // store the position index of this punct char in arrPunctPos array
+			returnStr << str[i];
+		}
+	}
+	return returnStr;
+}
+
 // A useful utility which takes the information in m_markers m_inlineBindingMarkers,
 // m_precPunct, m_endMarkers, m_follOuterPunct, and m_inlineNonbindingEndMarkers, in that
 // order, and any of such which is non-empty is appended, with no spaces added anywhere (to
@@ -17224,7 +17360,13 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 			if (posFollStuff == 0 && lenSrcPh > 0)
 			{
 				wxString postSrcPhraseStuff = pSrcPhrase->m_srcSinglePattern.Mid(lenSrcPh);
-				if (postSrcPhraseStuff != appendHere)
+				// whm 10Oct2025 modified test below to add !postSrcPhraseStuff.IsEmpty()
+				// otherwise some instances have been observed where appendHere has final
+				// punctuation and/or end marker(s), but these were lost because postSrcPhraseStuff
+				// was empty. If postSrcPhraseStuff is empty, it's best to bypass the assigning
+				// of postSrcPhraseStuff to appendHere.
+				if (!postSrcPhraseStuff.IsEmpty() && postSrcPhraseStuff != appendHere
+					&& !HasSameTextAndPunctButPunctDiffersInTextLocation(postSrcPhraseStuff, appendHere))
 				{
 					appendHere = postSrcPhraseStuff;
 				}
@@ -17652,7 +17794,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 
 #if defined(_DEBUG)
-			if (pSrcPhrase->m_nSequNumber == 31)
+			if (pSrcPhrase->m_nSequNumber == 153)
 			{
 				int halt_here = 0; wxUnusedVar(halt_here);
 			}
