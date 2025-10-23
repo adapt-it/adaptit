@@ -50506,7 +50506,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// likely be a text word. Therefore there should be a break call at this point
 											// in order for ParseWord() to be able to parse the word(s) following this 
 											// inline binding marker. This addition fixed the garbled parsing of the \fk
-											// marker
+											// marker.
 											//
 											// whm 6Oct2025 added now that the inline binding marker has been
 											// processed/stored, we need to reset the bKeepPtrFromAdvancing to FALSE
