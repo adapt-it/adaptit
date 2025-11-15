@@ -17085,6 +17085,59 @@ bool CAdapt_ItApp::BibleditIsRunning()
     return bIsRunning;
 }
 
+// whm 23Oct2025 added definition to BEW's declaration, as
+// I see a need for this function during the tokenizing of a
+// text. If we are processing a marker such as \xt that occurrs
+// within a footnote, and \xt is normally designated to be
+// filtered out, but footnotes \f ... \f* are not designated 
+// to be filtered out, then we don't want to filter out any
+// \xt marker that is encountered within the span of a
+// footnote. There may be other markers appearing within
+// a footnote that also should not be filtered. This function
+// determines if a given source phrase is within the span
+// of a footnote including the source phrase that marks the
+// beginning of a footnote (pSP->m_bFootnote is TRUE), or 
+// the end of a footnote (pSP->m_bFootnoteEnd is TRUE.
+// Caution: This function should only be called during parsing once
+// any begin markers - such as \f have been processed, since
+// if pSrcPhrase turns out to be the beginning of a footnote
+// we would want it to return TRUE for that case.
+// It might be best to use this function, or perhaps even better,
+// to set the value of a Doc class flag such as m_bWithinFootnote 
+// to TRUE during parsing when a \f begin marker is processed, and
+// to FALSE AFTER having parsed its corresponding \f* end marker.
+// We need to be able to inform other Doc functions when they
+// are operating within a footnote span.
+// whm 6Nov2025 This function is currently unused in code
+bool CAdapt_ItApp::IsWithinFootnote(CSourcePhrase* pSrcPhrase, SPList* pSPList)
+{
+    if (pSrcPhrase == NULL)
+        return FALSE;
+    int nSPCount = pSPList->GetCount();
+    if (pSrcPhrase->m_nSequNumber >= nSPCount)
+        return FALSE;
+    // if we get to here, we can scan from the incoming pSrcPhrase's
+    // m_nSequNumber backwards towards 0. If we encounter a m_bFootnote == TRUE 
+    // before we encounter any m_bFootnoteEnd member being TRUE, then we
+    // can assume that pSrcPhrase is within a footnote span,
+    // otherwise, pSrcPhrase is NOT within a footnote span.
+    CSourcePhrase* pSP = NULL;
+    for (int i = pSrcPhrase->m_nSequNumber; i >= 0; i--)
+    {
+        SPList::Node* posStart = pSPList->Item(i);
+        pSP = posStart->GetData();
+        if (pSP->m_bFootnoteEnd == TRUE)
+        {
+            break;
+        }
+        if (pSP->m_bFootnote == TRUE)
+        {
+            return TRUE;
+        }
+    }
+    return false;
+}
+
 int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName)
 {
     int nTotal = 0;
@@ -35453,11 +35506,9 @@ enum Reparse reparseDoc)
         // before the edit in the filter page, so we can use this information to adjust the
         // filter status of the \xt marker properly after the filtering changes have been done
         // by the TokenizeText() call below.
-        wxString xMkr = _T("\\x ");
-        wxString xtMkr = _T("\\xt ");
         int indexOfXTmarker;
         //int indexOfXmarker;
-        indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+        indexOfXTmarker = FindArrayStringUsingSubString(_T("\\xt "), pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
         //indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
         //wxUnusedVar(indexOfXmarker);
         m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
@@ -35601,10 +35652,10 @@ enum Reparse reparseDoc)
             // preserved and its checkbox in the USFM and Filtering tab of Preferences 
             // accurately reflects its actual current filter status, especially after filter
             // changes that involve \x and/or \xt.
-            bool bMkr_X_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(xMkr) != wxNOT_FOUND;
-            bool bMkr_X_WasJustFiltered = markersChangedToBeFiltered.Find(xMkr) != wxNOT_FOUND;
-            bool bMkr_XT_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND;
-            bool bMkr_XT_WasJustFiltered = markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND;
+            bool bMkr_X_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(_T("\\x ")) != wxNOT_FOUND;
+            bool bMkr_X_WasJustFiltered = markersChangedToBeFiltered.Find(_T("\\x ")) != wxNOT_FOUND;
+            bool bMkr_XT_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(_T("\\xt ")) != wxNOT_FOUND;
+            bool bMkr_XT_WasJustFiltered = markersChangedToBeFiltered.Find(_T("\\xt ")) != wxNOT_FOUND;
             bool bFilterChangeInvolvedXorXT = FALSE;
             // First deal with the more comples situation - when \x was just filtered or 
             // unfiltered and possibly \xt was also filtered or unfiltered at the same time.
@@ -35621,10 +35672,10 @@ enum Reparse reparseDoc)
                         // To ensure the \xt marker's checkbox is unticked, insert the \xt
                         // marker in the markersChangedToBeUnfiltered if not already there,
                         // so that the ResetUSFMFilterStructs() will untick the \xt checkbox.
-                        if (markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
-                            markersChangedToBeUnfiltered += xtMkr;
-                        if (markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
-                            markersChangedToBeFiltered.Replace(xtMkr, wxEmptyString);
+                        if (markersChangedToBeUnfiltered.Find(_T("\\xt ")) == wxNOT_FOUND)
+                            markersChangedToBeUnfiltered += _T("\\xt ");
+                        if (markersChangedToBeFiltered.Find(_T("\\xt ")) != wxNOT_FOUND)
+                            markersChangedToBeFiltered.Replace(_T("\\xt "), wxEmptyString);
                     }
                     //else if (bMkr_XT_WasJustFiltered)
                     //{
@@ -35638,10 +35689,10 @@ enum Reparse reparseDoc)
                         // To ensure the \xt marker's checkbox remains ticked, insert the \xt 
                         // marker in the markersChangedToBeFiltered if not already there, so 
                         // that the ResetUSFMFilterStructs() will tick the \xt checkbox.
-                        if (markersChangedToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
-                            markersChangedToBeFiltered += xtMkr;
-                        if (markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
-                            markersChangedToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                        if (markersChangedToBeFiltered.Find(_T("\\xt ")) == wxNOT_FOUND)
+                            markersChangedToBeFiltered += _T("\\xt ");
+                        if (markersChangedToBeUnfiltered.Find(_T("\\xt ")) != wxNOT_FOUND)
+                            markersChangedToBeUnfiltered.Replace(_T("\\xt "), wxEmptyString);
                     }
                     bFilterChangeInvolvedXorXT = TRUE;
                 }
@@ -35659,10 +35710,10 @@ enum Reparse reparseDoc)
                         // To ensure the \xt marker's checkbox is ticked, insert the \xt
                         // marker in the markersChangedToBeFiltered if not already there,
                         // so that the ResetUSFMFilterStructs() will tick the \xt checkbox.
-                        if (markersChangedToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
-                            markersChangedToBeFiltered += xtMkr;
-                        if (markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
-                            markersChangedToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                        if (markersChangedToBeFiltered.Find(_T("\\xt ")) == wxNOT_FOUND)
+                            markersChangedToBeFiltered += _T("\\xt ");
+                        if (markersChangedToBeUnfiltered.Find(_T("\\xt ")) != wxNOT_FOUND)
+                            markersChangedToBeUnfiltered.Replace(_T("\\xt "), wxEmptyString);
                     }
                     //else if (bMkr_XT_WasJustUnfiltered)
                     //{
@@ -35676,10 +35727,10 @@ enum Reparse reparseDoc)
                         // To ensure the \xt marker's checkbox remains unticked, insert the \xt 
                         // marker in the markersChangedToBeUnfiltered if not already there, so 
                         // that the ResetUSFMFilterStructs() will untick the \xt checkbox.
-                        if (markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
-                            markersChangedToBeUnfiltered += xtMkr;
-                        if (markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
-                            markersChangedToBeFiltered.Replace(xtMkr, wxEmptyString);
+                        if (markersChangedToBeUnfiltered.Find(_T("\\xt ")) == wxNOT_FOUND)
+                            markersChangedToBeUnfiltered += _T("\\xt ");
+                        if (markersChangedToBeFiltered.Find(_T("\\xt ")) != wxNOT_FOUND)
+                            markersChangedToBeFiltered.Replace(_T("\\xt "), wxEmptyString);
                     }
                     bFilterChangeInvolvedXorXT = TRUE;
                 }

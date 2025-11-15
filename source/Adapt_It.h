@@ -5629,8 +5629,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
-
-	bool    IsWithinFootnote(CSourcePhrase* pSrcPhrase); // BEW added 30Aug22
+	// whm 23Oct2025 added a definition for BEW's IsWithinFootnote() function below
+	// and also added a second parameter
+	bool    IsWithinFootnote(CSourcePhrase* pSrcPhrase, SPList* pSPList); // BEW added 30Aug22
 
 //#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12

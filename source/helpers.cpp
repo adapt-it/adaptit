@@ -2922,6 +2922,44 @@ wxString MakeReverse(wxString inputStr)
 	return reversed;
 }
 
+// whm 12Nov2025 added. This function returns an empty string if the scan for a marker reaches pBuffStart
+// before a marker was found.
+// It returns the last marker processed just before the current ptr location. The last marker
+// could be a begin or end marker.
+// This function is an override of the function BEW created below that gets the last marker from
+// the m_markers member.
+wxString GetLastMarker(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString backslash = gSFescapechar;
+	bIsEndMkr = FALSE; // assume marker is not an end marker unless it tests otherwise below
+	wxChar* ptr;
+	ptr = pChar;
+	bool bKeepScanning = TRUE;
+	bool bParsedOverNonbindingEndMarker = FALSE; // whm 30Mar2024 added
+	wxString wholeMkr = wxEmptyString;
+	while (ptr >= pBufStart && bKeepScanning)
+	{
+		// Check for prior markers
+		if (*ptr == backslash)
+		{
+			// We're at a backslash so parse the marker and get wholeMkr
+			int mkrLen;
+			mkrLen = ParseMarker(ptr);
+			wholeMkr = wxString(ptr, mkrLen);
+			wholeMkr.Trim();
+			if (!wholeMkr.IsEmpty())
+			{
+				bIsEndMkr = wholeMkr.Find(_T('*')) != wxNOT_FOUND;
+				bKeepScanning = FALSE;
+			}
+		}
+		// keep scanning backwards in the buffer
+		ptr--; // point at previous char
+	} // end of while (ptr >= pBufStart && bKeepScanning)
+	return wholeMkr;
+}
+
 // return an empty string if there are no SF markers in markers string, else return the
 // last of however many are stored in markers (if space follows the marker, the space is
 // not returned with the marker); return the empty string if there is no marker present

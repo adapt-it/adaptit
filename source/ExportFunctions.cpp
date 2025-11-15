@@ -17299,6 +17299,15 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	// initial space, which shouldn't hurt even when there is filtered info returned
 	filteredInfo.Trim(FALSE); // trim of any leading space
 
+#if defined(_DEBUG)
+	if (pSrcPhrase->m_nSequNumber >= 43)
+	{
+		int halt_here = 1;
+		wxUnusedVar(halt_here);
+	}
+#endif
+
+
 	// whm 6Mar2024 moved the RestoreUSFM3AttributeMetadata() function call to here within the
 	// AppendSrcPhraseEndingInfo() function placing it just before the appending of any
 	// m_inlineNonbindingEndMarkers. When the HasBarInPunctsPattern() function detects the
@@ -17365,8 +17374,13 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 				// punctuation and/or end marker(s), but these were lost because postSrcPhraseStuff
 				// was empty. If postSrcPhraseStuff is empty, it's best to bypass the assigning
 				// of postSrcPhraseStuff to appendHere.
+				// whm 12Nov2025 modified. I had wrongly put ! in front of the 
+				// HasSameTextAndPunctButPunctDiffersInTextLocation() function test. When that
+				// function returns TRUE is when we need to assign postSrcPhraseStuff to appendHere
+				// since the m_srcPhrase info regarding its non-text stuff should be used in our
+				// rebuild of source text.
 				if (!postSrcPhraseStuff.IsEmpty() && postSrcPhraseStuff != appendHere
-					&& !HasSameTextAndPunctButPunctDiffersInTextLocation(postSrcPhraseStuff, appendHere))
+					&& HasSameTextAndPunctButPunctDiffersInTextLocation(postSrcPhraseStuff, appendHere))
 				{
 					appendHere = postSrcPhraseStuff;
 				}

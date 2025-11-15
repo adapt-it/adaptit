@@ -405,6 +405,7 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_bIsWithinUnfilteredInlineSpan = FALSE; // initialization, for things like
 											 // \xt embedded within unfiltered footnote
 	m_bIsWithinCrossRef_X_Span = FALSE; // whm 4Mar2024 added
+	m_bIsWithinFootnote_F_Span = FALSE; // whm 6Nov2025 added
 	m_strUnfilteredInlineBeginMarker = wxEmptyString; // for temporary store of, say,
 							// \f awaiting ptr coming to \f* where the above bool
 							// needs to be made FALSE if it was TRUE
@@ -6565,7 +6566,10 @@ void CAdapt_ItDoc::GatherWhiteSpaceAndSweepableMarkers(wxChar* ptr, wxChar* pEnd
 					// TokenizeText() will put it into the current source phrase's member.
 				}
 			}
-			else if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+			// whm 6Nov2025 modified to use the new IsACurrentFilterMarker() function in 
+			// the else if test below.
+			//else if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+			else if (IsACurrentFilterMarker(augWholeMkr))
 			{
 				// The marker we're pointing at is a marker designated to be filtered
 				// We don't parse it here but the caller will do it; here we just set
@@ -10221,6 +10225,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// a cross-reference span \x ...\x*, and be able to adequately handle the dual
 	// purpose nature of the \xt ...\xt* marker.
 	m_bIsWithinCrossRef_X_Span = FALSE;
+	m_bIsWithinFootnote_F_Span = FALSE; // whm 6Nov2025 added
 
 	// define some useful flags which will govern the code blocks to be entered
 	bool bUnfilteringRequired = TRUE;
@@ -10657,15 +10662,34 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// that gets called by TokenizeTextString() that it is parsing the an \x ...\x* span
 							// and if so TokenizeText() should save any embedded \xt marker as a regular cross-ref
 							// marker in the m_markers member, rather than as a stand-alone \xt begin marker which
-							// gets stored within the m_inlineNonbindingMArkers member.
+							// gets stored within the m_inlineNonbindingMarkers member.
 							if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
 							{
 								m_bIsWithinCrossRef_X_Span = TRUE;
+							}
+							// whm 6Nov2025 added. Similar to the \x marker handling above, if the marker-being-unfiltered
+							// is \f or \fe we want to set the Doc's m_bIsWithinFootnote_F_Span flag to TRUE before
+							// the TokenizeTextString() call below, and then set that same flag to FALSE after the
+							// TokenizeTextString() call. This will inform the TokenizeText() function that it is
+							// parsing the \f ... \f* or \fe ... \fe* span, and if so TokenizeText() should save any
+							// embedded \xt marker in the m_inlineNonbindingMarkers member. Presumably, an \xt marker
+							// would never be both within a m_bIsWithinFootnote_F_Span and a m_bIsWithinCrossRef_X_Span
+							// at the same time during parsing.
+							if (augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0
+								|| augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+							{
+								m_bIsWithinFootnote_F_Span = TRUE;
 							}
 							int count = pView->TokenizeTextString(pSublist, extractedStr, pSrcPhrase->m_nSequNumber);
 							if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
 							{
 								m_bIsWithinCrossRef_X_Span = FALSE;
+							}
+							// whm 6Nov2025 added. See comment above.
+							if (augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0
+								|| augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+							{
+								m_bIsWithinFootnote_F_Span = FALSE;
 							}
 							// pSublist now has the tokenized unfiltered data
 							if (!pSublist->IsEmpty())
@@ -10817,7 +10841,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									pSP_SubList->m_bBoundary = TRUE;
 									// rely on the foonote TextType having been propagated
 									if (pSP_SubList->m_curTextType == footnote)
+									{
 										pSP_SubList->m_bFootnoteEnd = TRUE;
+										// whm 6Nov2025 added. Ensure that the Doc flag m_bIsWithinFootnote_F_Span is FALSE.
+										m_bIsWithinFootnote_F_Span = FALSE;
+									}
 								}
 							} // end of while (pos_SubList != NULL)
 
@@ -11386,6 +11414,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					{
 						m_bIsWithinCrossRef_X_Span = FALSE;
 					}
+					// whm 6Nov2025 added. Check for the end of a footnote/endnote, and if found set the 
+					// m_bIsWithinFootnote_F_Span flag back to FALSE.
+					if (endMarkersStr.Find(_T("\\f*")) != wxNOT_FOUND || endMarkersStr.Find(_T("\\fe*")) != wxNOT_FOUND)
+					{
+						m_bIsWithinFootnote_F_Span = FALSE;
+					}
 				}
 
 				continue;
@@ -11401,6 +11435,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				if (endMarkersStr.Find(_T("\\x*")) != wxNOT_FOUND)
 				{
 					m_bIsWithinCrossRef_X_Span = FALSE;
+				}
+				// whm 6Nov2025 added. Check for the end of a footnote/endnote, and if found set the 
+				// m_bIsWithinFootnote_F_Span flag back to FALSE.
+				if (endMarkersStr.Find(_T("\\f*")) != wxNOT_FOUND || endMarkersStr.Find(_T("\\fe*")) != wxNOT_FOUND)
+				{
+					m_bIsWithinFootnote_F_Span = FALSE;
 				}
 			}
 
@@ -12649,7 +12689,7 @@ g:				bIsUnknownMkr = FALSE;
 				else if (nFound != wxNOT_FOUND
 					&& (markersStr.Mid(nFound, 2) == _T("\\f") || markersStr.Mid(nFound, 2) == _T("\\x")))
 				{
-					// Either \f or \x is the current wholMkr being examined, and
+					// Either \f or \x is the current wholeMkr being examined, and
 					// there is a marker directly following \f or \x which is of the form \f? or \x?,
 					// where \f? might be one of the 2 or 3 letter footnote markers \\fq \\fl \\ft \\fdc 
 					// \\fe \\fv \\fp \\fqa \\fr \\fk \\fm, (other than 1-letter \f itself),
@@ -14391,6 +14431,12 @@ bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase,
 			{
 				m_bIsWithinCrossRef_X_Span = FALSE;
 			}
+			// whm 6Nov2025 added. If we are at a \f* or \fe* endmarker we reset the 
+			// m_bIsWithinFootnote_F_Span flag to FALSE.
+			if (wholeEndMkr == _T("\\f*") || _T("\\fe*"))
+			{
+				m_bIsWithinFootnote_F_Span = FALSE;
+			}
 			return TRUE;
 		}
 		return FALSE; // no match
@@ -14403,8 +14449,51 @@ bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase,
 // BEW 24Oct14 no changes needed for support of USFM nested markers
 // BEW 15Apr20 extended & refactored to support \ef* and \ex* USFM3
 // extended footnotes and extended cross-references
-bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
+// 
+// whm 12Nov2025 modified. Reworked this function for simplicity and safety sake. 
+// It need not do wxString[0] access which is dangerous and subject to index error if the 
+// string is empty. Nor does it need to call MakeReverse() twice to do its job when a 
+// simple wxString::Find(_T('*')) can do the job more easily and safely. 
+// Also added pEnd parameter so we can call IsEndMarker().
+// See IsFootnoteOrCrossReferenceMarker() function that follows this one below for 
+// a similar simplification. 
+bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar, wxChar* pEnd)
 {
+	// whm 12Nov2025 modified - the original is commented out at the end of this function
+	wxString wholeMkr = GetWholeMarker(pChar);
+	wxString augWholeMkr; augWholeMkr.Empty();
+	if (wholeMkr.IsEmpty())
+		return FALSE;
+	else
+	{
+		if (!IsEndMarker(pChar, pEnd))
+			return FALSE;
+		else
+		{
+			augWholeMkr = wholeMkr + _T(" ");
+			if (augWholeMkr == _T("\\x* ") || augWholeMkr == _T("\\xe* "))
+			{
+				// Note: The caller should set the Doc's flag m_bIsWithinCrossRef_X_Span = TRUE, 
+				// rather than doing it here.
+				// BEW had the following flag set to FALSE, so I'll retain it here
+				m_bIsWithinUnfilteredInlineSpan = FALSE; // BEW added 2Dec22, as few places restore it to FALSE
+				return TRUE;
+			}
+			else if (augWholeMkr == _T("\\f* ") || augWholeMkr == _T("\\fe* "))
+			{
+				// Note: The caller should set the Doc's flag m_bIsWithinFootnote_F_Span = TRUE, 
+				// rather than doing it here.
+				// BEW had the following flag set to FALSE, so I'll retain it here
+				m_bIsWithinUnfilteredInlineSpan = FALSE; // BEW added 2Dec22, as few places restore it to FALSE
+				return TRUE;
+			}
+		}
+	}
+	// It's none of these
+	return FALSE;
+
+	// the original code is below
+	/* 
 	wxString endMkr = GetWholeMarker(pChar);
 	if (gpApp->gCurrentSfmSet == PngOnly)
 	{
@@ -14473,19 +14562,44 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 				}
 			}
 		}
-		/* legacy code
-				endMkr = MakeReverse(reversed);
-				int length = endMkr.Len();
-				if (length > 2)
-					return FALSE; // what remains is more than \x or \f, so disqualified
-				if ((endMkr.Find(_T("\\x")) == 0) || (endMkr.Find(_T("\\f")) == 0))
-					return TRUE; // what remains is either \x or \f, so it qualifies
-		*/
+		// legacy code
+		//		endMkr = MakeReverse(reversed);
+		//		int length = endMkr.Len();
+		//		if (length > 2)
+		//			return FALSE; // what remains is more than \x or \f, so disqualified
+		//		if ((endMkr.Find(_T("\\x")) == 0) || (endMkr.Find(_T("\\f")) == 0))
+		//			return TRUE; // what remains is either \x or \f, so it qualifies
+		//
+	}
+	// It's none of these
+	return FALSE;
+	*/
+}
+
+// whm 12Nov2025 added as a parallel function to above IsFootnoteOrCrossReferenceEndMarker()
+bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceMarker(wxChar* pChar)
+{
+	wxString wholeMkr = GetWholeMarker(pChar);
+	wxString augWholeMkr; augWholeMkr.Empty();
+	if (wholeMkr.IsEmpty())
+		return FALSE;
+	else
+	{
+		augWholeMkr = wholeMkr + _T(" ");
+		if (augWholeMkr == _T("\\x ") || augWholeMkr == _T("\\xe "))
+		{
+			// Note: The caller should set the Doc's flag m_bIsWithinCrossRef_X_Span = TRUE, rather than doing it here
+			return TRUE;
+		}
+		else if (augWholeMkr == _T("\\f ") || augWholeMkr == _T("\\fe "))
+		{
+			// Note: The caller should set the Doc's flag m_bIsWithinFootnote_F_Span = TRUE, rather than doing it here
+			return TRUE;
+		}
 	}
 	// It's none of these
 	return FALSE;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing to an opening quote mark
@@ -16356,6 +16470,7 @@ bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxStr
 // that should get stored in pSrcPhrase's m_follOuterPunct -- otherwise it gets wrongly 
 // assigned to a following empty CSourcePhrase instance.
 // BEW 16Apr20 refactored for better support of USFM3 and cleaner algorithm
+// whm 12Nov2025 Note: This ParseInlineEndMarkers() function is not currently used anywhere in code.
 int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 	CSourcePhrase*& pSrcPhrase, wxString& inlineNonBindingEndMkrs, int len,
 	bool& bBindingEndMkrFound, bool& bNonbindingEndMkrFound,
@@ -16393,7 +16508,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 		// set and so be stored in m_endMarkers also
 
 		// BEW 15Apr20 for \f* \x* \ef* \ex*
-		bIs_f_x_fe_xe_endMkr = IsFootnoteOrCrossReferenceEndMarker(ptr);
+		bIs_f_x_fe_xe_endMkr = IsFootnoteOrCrossReferenceEndMarker(ptr, pEnd);
 		if (bIs_f_x_fe_xe_endMkr)
 		{
 			// Get it stored
@@ -16403,6 +16518,13 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 			wxString endMkrs = pSrcPhrase->GetEndMarkers();
 			endMkrs += endMkr;
 			pSrcPhrase->SetEndMarkers(endMkrs);
+
+			// whm 6Nov2025 added. Above IsFootnoteOrCrossReferenceEndMarker() also detects the \fe* endnote end marker.
+			// If \f* or \fe* is detected we need to reset the Doc's m_bIsWithinFootnote_F_Span flag to FALSE
+			if (endMkr == _T("\\f*") || endMkr == _T("\\fe*"))
+			{
+				m_bIsWithinFootnote_F_Span = FALSE;
+			}
 
 			// Update len value, and set ptr to point at the next character 
 			// immediately after the end marker - it might be whitespace, punctuation,
@@ -17105,6 +17227,56 @@ int CAdapt_ItDoc::ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPun
 	int parsedPunctsLen;
 	parsedPunctsLen = ParseFinalPuncts(pChar, pEnd, punctsSet);
 	return parsedPunctsLen;
+}
+
+// whm 6Nov2025 added the following as a more "strict" version of the original ParseFinalPuncts() function 
+// defined later below.
+// This ParseStrictlyFinalPuncts() parses punctuation chars that are strictly only "final" punctuation forms.
+// We start from the whole spacelessPuncts list and exclude the chars that are not strictly "final" puncts.
+// The spacelessPuncts we start with are: ?.,;:"!()<>{}[]“”‘’~«»
+// From spacelessPuncts we exclude the ANSI straight quote marks '\"' (ch 145) and '\"' (ch 147) since these
+// are ambiguous and can legitimately function as either "opening" or "closing/final" forms. We want to include
+// only the punctuation chars that are strictly final forms.
+// From spacelessPuncts we permit the "closing/final" forms, but exclude the following "opening" punctuation forms:
+// _T('<') left wedge
+// _T('[') left wedge
+// _T('(') left wedge
+// _T('{') left wedge
+// _T('') left wedge
+// _T('“') or L'\x201C' unicode left Double Quotation Mark
+// _T('‘') or L'\x2018' unicode left Single Quotation Mark
+// _T('«') or L'\x00AB' unicode left-pointing double chevron
+// We also should I think exclude the following tilde which isn't a strict "final" punct
+// _T('~') tilde - not a strict "final" punct
+// The function also stops parsing whenever the following tests return TRUE:
+// IsEnd(ptr) - coming to the end of the buffer stops the parse
+// IsWhiteSpace(ptr) - encountering a space stops the parse
+// *ptr == gSFescapechar - encountering another marker stops the parse
+int CAdapt_ItDoc::ParseStrictlyFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
+{
+	int length = 0;
+	wxChar* ptr = pChar; // iterator
+	if (ptr < pEnd && (spacelessPuncts.Find(*ptr) == wxNOT_FOUND))
+	{
+		// ptr is not pointing at a punctuation character, so return 0
+		return length;
+	}
+	else
+	{
+		// There is at least one non-excluded punctuation character, so parse over each in a loop
+		// until the loop exit condition is met. A while loop suffices. Punctuation characters
+		// which are not word-final, have to be excluded, so the loop will exit if one such is at ptr
+		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
+			&& (*ptr != _T('[')) && (*ptr != _T('(')) && (*ptr != _T('{')) && (*ptr != gSFescapechar)
+			&& (*ptr != _T('\"')) && (*ptr != _T('\''))
+			&& (*ptr != _T('<')) && (*ptr != L'\x201C') && (*ptr != L'\x2018') && (*ptr != L'\x00AB') && (*ptr != _T('~'))
+			)
+		{
+			length++;
+			ptr++;
+		}
+	}
+	return length;
 }
 
 // BEW 29May23 if I'm to support data like  "laughter"\\f*... etc, where these puncts,
@@ -18501,6 +18673,77 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if augWholeMkr represents a marker that should be currently
+///				filtered. Criteria for determining current filter status are:
+///				Return TRUE if any of the following are TRUE:
+///				1. If a call to IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr,...) returns TRUE
+///				2. If the incoming augWholeMkr is _T("\\xt "), and m_bIsWithinFootnote_F_Span is TRUE,
+///					and either \f or \fe is currently being filtered.
+///				3. If the incoming augWholeMkr is _T("\\xt "), and m_bIsWithinCrossRef_X_Span is TRUE,
+///					and \x is currently being filtered.
+///				If 1, 2, and 3 above are all FALSE, execute a Find command within the App's gCurrentFilterMarkers
+///				global string. If the Find() returns a positive int, the augWholeMkr is present within the
+///				gCurrentFilterMarkers and return TRUE, otherwise if augWholeMkr is not found within the
+///				gCurrentFilterMarkers, then return FALSE. 
+///				
+/// \param		augWholeMkr		-> a wxString containing a begin USFM marker augmented with a final space
+/// \remarks
+/// Called from: the Doc's TokenizeText(), ...
+/// Note this function replaces a previous function: IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
+///	which was inadequate only indicating relaibly what the default filter="0" or filter="1" settings 
+///	are within the AI_USFM.xml control file, and not a filter markers current status as indicated by
+///	the status maps of the USFM and Filtering Preferences page set by the user. This function also
+/// handles the special situation by the (now) deprecated USFM marker \xt. Within this function, the
+/// \xt marker takes on the current filter status of its enclosing inline span \x ...\x*, \f ...\f*,
+///	or \fe ...\fe*. That is, if the enclosing inline span is being filtered, the \xt is also filtered
+/// and this function returns TRUE. If the enclosing inline span is NOT currently being filtered, then
+/// the \xt is also NOT filtered and this function returns FALSE.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsACurrentFilterMarker(wxString augWholeMkr)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bool bIsToBeFiltered = FALSE;
+	// Test if augWholeMkr is an Adapt It special marker \free, \note, or \bt[xxx]. If so, these are
+	// always filtered, and bIsToBeFiltered will be set to TRUE
+	bool bIsForeignBackTransMkr = FALSE; // whm Note: This bIsForeignBackTransMkr is not currently used
+	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
+	if (bIsToBeFiltered) 
+		return bIsToBeFiltered;
+	// if we get here, the augWholeMkr was a marker other than \free \note or \bt...
+	if (augWholeMkr == _T("\\xt "))
+	{
+		bool b_x_isToBeFiltered = FALSE;
+		bool b_f_isToBeFiltered = FALSE;
+		bool b_fe_isToBeFiltered = FALSE;
+		b_x_isToBeFiltered = (pApp->gCurrentFilterMarkers.Find(_T("\\x ")) != wxNOT_FOUND);
+		b_f_isToBeFiltered = (pApp->gCurrentFilterMarkers.Find(_T("\\f ")) != wxNOT_FOUND);
+		b_fe_isToBeFiltered = (pApp->gCurrentFilterMarkers.Find(_T("\\fe ")) != wxNOT_FOUND);
+		if (m_bIsWithinCrossRef_X_Span)
+		{ 
+			if (b_x_isToBeFiltered)
+				bIsToBeFiltered = TRUE;
+			else
+				bIsToBeFiltered = FALSE;
+		}
+		else if (m_bIsWithinFootnote_F_Span)
+		{
+			if (b_f_isToBeFiltered || b_fe_isToBeFiltered)
+				bIsToBeFiltered = TRUE;
+			else
+				bIsToBeFiltered = FALSE;
+		}
+		return bIsToBeFiltered;
+	}
+	else
+	{
+		// augWholeMkr is some marker other than \xt. For all non-\xt markers we can simply determine
+		// their filter status by testing if the marker is found within the App's gCurrentFilterMarkers
+		bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
+		return bIsToBeFiltered;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if the pUsfmAnalysis represents a filtering marker by default
 ///				FALSE otherwise. Note this return value DOES NOT indicate what the
 ///				current filtering status of a marker is, only what its DEFAULT value
@@ -18521,6 +18764,13 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 /// filter="1" settings are within the AI_USFM.xml control file. 
 /// The most reliable method is by examining whether the sfm marker exists within the 
 /// gCurrentFilterMarkers string to determine the current filtering status of a marker.
+/// 
+/// whm 6Nov2025 Note: See a new function bool IsACurrentFilterMarker(wxString augWholeMkr)
+/// which checks for presence of augWholeMkr in the App's gCurrentFilterMarkers, but handles
+/// the problematic \xt marker also by checking the Doc flags m_bIsWithinFootnote_F_Span, and
+/// m_bIsWithinCrossRef_X_Span, and ensures that the filter status of the \xt marker takes on
+/// the filter status of any enclosing span it occurs within whether \x ...\x* or \f ...\f*,
+/// or \fe ...\fe*.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 {
@@ -20592,6 +20842,10 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 /// BEW 24Oct14, no changes needed for support of USFM nested markers - because these
 /// three marker types are never nested, and so \+free, \+note, \+bt etc will never
 /// occur in valid USFM marked up text
+/// whm 6Nov2025 Note: The bIsForeignBackTransMkr reference parameter is never checked 
+/// or tested for within the code after the function call is made. Hence, it could be
+/// removed from the function, simplifying the function and eliminating the need to
+/// declare a bool bIsForeignBackTransMkr = FALSE statement before each function call.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr)
 {
@@ -21802,6 +22056,11 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 							itemSpan = mkrLen;
 							endMkrs = pSrcPhrase->GetEndMarkers();
 							endMkrs << nextWholeMkr;
+							// whm 6Nov2025 added. Reset m_bIsWithinFootnote_F_Span to FALSE.
+							if (nextWholeMkr == _T("\\f*") || nextWholeMkr == _T("\\fe*"))
+							{
+								m_bIsWithinFootnote_F_Span = FALSE;
+							}
 							pSrcPhrase->SetEndMarkers(endMkrs); 
 							pAux += itemSpan;
 							ptr += itemSpan; // ptr has advanced
@@ -21913,6 +22172,8 @@ unknown:				bool bIsAnEndMkr;
 								int theMkrLen; theMkrLen = wholeEndMkr.Length();
 								wxString m_endmkrs; m_endmkrs = pSrcPhrase->GetEndMarkers();
 								m_endmkrs << wholeEndMkr;
+								// whm 6Nov2025 Note: Wince wholeEndMkr here is for an unknown marker it wouldn't ever be
+								// \f* or \fe*, so we need not reset the m_bIsWithinFootnote_F_Span flag here.
 								pSrcPhrase->SetEndMarkers(m_endmkrs);
 								ptr += theMkrLen;
 								itemLenAccum += theMkrLen;
@@ -22343,6 +22604,14 @@ void CAdapt_ItDoc::CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, i
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED(nNewCount),
 	TextType& propagationType, bool& bTypePropagationRequired)
 {
+	// whm 6Nov2025 added. Save the values of the Doc flags so that we can restore them
+	// to the same values just before we exit DoMarkerHousekeeping()
+	bool Save_m_bIsWithinCrossRef_X_Span = m_bIsWithinCrossRef_X_Span;
+	bool Save_m_bIsWithinFootnote_F_Span = m_bIsWithinFootnote_F_Span;
+	// Initialize the Doc's flags to FALSE for the purposes of this function.
+	m_bIsWithinCrossRef_X_Span = FALSE; // init
+	m_bIsWithinFootnote_F_Span = FALSE; // init
+
 	// The following comments were in the legacy versions, when this function was only used
 	// after the source text was edited...
 	// Typically, when this function is entered, the TextType may need adjusting or
@@ -22865,9 +23134,31 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 									// support USFM markers here is simply to let a marker of form
 									// \+tag be passed in as-is, it will fail to be matched, which
 									// would result in wxNOT_FOUND being returned, and no filtering
-									// would be done due to it
-									int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
-									if (curPos >= 0)
+									// would be done due to it.
+									// 
+									// whm 6Nov2025 modifications We need to use our new function named
+									// IsACurrentFilterMarker() to accurately assess the filter status of
+									// the \xt marker whose filter status should track the filter status of
+									// whatever inline span that the \xt is found in. To do this here we need
+									// to appropriately set the Doc flags m_bIsWithinFootnote_F_Span and
+									// m_bIsWithinCrossRef_X_Span that indicate if we are tracking
+									// through a footnote/endnote span or a cross reference span.
+									// Note: Below the IsACurrentFilterMarker() call below, we also set
+									// the Doc flags back to FALSE when the corresponding end marker are
+									// encountered.
+									if (mkrPlusSpace == _T("\\f ") || mkrPlusSpace == _T("\\fe "))
+									{
+										m_bIsWithinFootnote_F_Span = TRUE;
+									}
+									else if (mkrPlusSpace == _T("\\x "))
+									{
+										m_bIsWithinCrossRef_X_Span = TRUE;
+									}
+
+									bool bIsToBeFiltered = IsACurrentFilterMarker(mkrPlusSpace);
+									//int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
+									//if (curPos >= 0)
+									if (bIsToBeFiltered)
 									{
 										// its a marker, currently unfiltered, which should be
 										// filtered
@@ -22879,6 +23170,18 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 											// 'now to be filtered' (a 1 value)
 											(gpApp->m_FilterStatusMap)[mkr] = _T("1");
 										}
+									}
+
+									// whm 6Nov2025 added.
+									// After the filter status check above, we should check for the corresponding end markers
+									// and if present, we reset the Doc flag(s) to FALSE
+									if (mkrPlusSpace == _T("\\f* ") || mkrPlusSpace == _T("\\fe* "))
+									{
+										m_bIsWithinFootnote_F_Span = FALSE;
+									}
+									else if (mkrPlusSpace == _T("\\x* "))
+									{
+										m_bIsWithinCrossRef_X_Span = FALSE;
 									}
 
 									// set default pSrcPhrase attributes
@@ -22997,9 +23300,31 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 							// support USFM markers here is simply to let a marker of form
 							// \+tag be passed in as-is, it will fail to be matched, which
 							// would result in wxNOT_FOUND being returned, and no filtering
-							// would be done due to it
-							int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
-							if (curPos >= 0)
+							// would be done due to it.
+							// 
+							// whm 6Nov2025 modifications We need to use our new function named
+							// IsACurrentFilterMarker() to accurately assess the filter status of
+							// the \xt marker whose filter status should track the filter status of
+							// whatever inline span that the \xt is found in. To do this here we need
+							// to appropriately set the Doc flags m_bIsWithinFootnote_F_Span and
+							// m_bIsWithinCrossRef_X_Span that indicate if we are tracking
+							// through a footnote/endnote span or a cross reference span.
+							// Note: Below the IsACurrentFilterMarker() call below, we also set
+							// the Doc flags back to FALSE when the corresponding end marker are
+							// encountered.
+							if (mkrPlusSpace == _T("\\f ") || mkrPlusSpace == _T("\\fe "))
+							{
+								m_bIsWithinFootnote_F_Span = TRUE;
+							}
+							else if (mkrPlusSpace == _T("\\x "))
+							{
+								m_bIsWithinCrossRef_X_Span = TRUE;
+							}
+
+							bool bIsToBeFiltered = IsACurrentFilterMarker(mkrPlusSpace);
+							//int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
+							//if (curPos >= 0)
+							if (bIsToBeFiltered)
 							{
 								// its a marker, currently unfiltered, which should be
 								// filtered
@@ -23011,6 +23336,18 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 									// 'now to be filtered' (a 1 value)
 									(gpApp->m_FilterStatusMap)[mkr] = _T("1");
 								}
+							}
+
+							// whm 6Nov2025 added.
+							// After the filter status check above, we should check for the corresponding end markers
+							// and if present, we reset the Doc flag(s) to FALSE
+							if (mkrPlusSpace == _T("\\f* ") || mkrPlusSpace == _T("\\fe* "))
+							{
+								m_bIsWithinFootnote_F_Span = FALSE;
+							}
+							else if (mkrPlusSpace == _T("\\x* "))
+							{
+								m_bIsWithinCrossRef_X_Span = FALSE;
 							}
 
 							// set default pSrcPhrase attributes
@@ -23077,6 +23414,11 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		// propagated, it could have been TRUE or FALSE when this function was called
 		gbSpecialText = FALSE; // assume we want 'inspired text' colouring
 	}
+
+	// whm 6Nov2025 added. Restore the values of the Doc flags to the same values they had
+	// on entry to this function. This is a safety measure.
+	m_bIsWithinCrossRef_X_Span = Save_m_bIsWithinCrossRef_X_Span;
+	m_bIsWithinFootnote_F_Span = Save_m_bIsWithinFootnote_F_Span;
 
 	// at the end of the (sub)list, we may have a different TextType than for the
 	// sourcephrase which follows, if so, we will need to propagate the type if a standard
@@ -23819,6 +24161,8 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pPrev
 		{
 			pThis->m_bFootnote = TRUE;
 			bIsFootnote = TRUE;
+			// whm 6Nov2025 added. We need to set the Doc's m_bIsWithinFootnote_F_Span to TRUE
+			m_bIsWithinFootnote_F_Span = TRUE;
 		}
 
 		// Version 3.x sets m_curTextType and m_inform according to the attributes
@@ -25207,6 +25551,11 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhra
 		{
 			m_bIsWithinCrossRef_X_Span = TRUE;
 		}
+		// whm 6Nov2025 added.
+		if (wholeMkr == _T("\\f") || wholeMkr == _T("\\fe"))
+		{
+			m_bIsWithinFootnote_F_Span = TRUE;
+		}
 
 		// do lookup of the marker
 		SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily,
@@ -25249,8 +25598,11 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhra
 				wxString shortMkr = bareMkr.Left(1); // take only the first character
 				// whm 4Mar2024 added && m_bIsWithinCrossRef_X_Span to test below to exclude 
 				// the stand-alone \xt marker when not within \x ...\x* span
+				// whm 6Nov2025 added "|| m_bIsWithinFootnote_F_Span" to second test line in the
+				// following test. The presence of \xt within a footnote or endnote should not
+				// halt scanning.
 				if (((shortMkr == _T("f") 
-					|| shortMkr == _T("x")) && shortMkr != bareMkr && m_bIsWithinCrossRef_X_Span)
+					|| shortMkr == _T("x")) && shortMkr != bareMkr && (m_bIsWithinCrossRef_X_Span || m_bIsWithinFootnote_F_Span))
 					|| ((shortMkr == _T("f")) && (bareMkr != _T("fe"))))
 				{
 					// its an embedded content marker of a kind which does not halt scanning
@@ -25350,9 +25702,12 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 		// it's potentially a marker which might be one for filtering out
 		wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
 											   // eg. \h finding \hr
-		// wh 5Mar2024 added test here for an \x marker. If found here we are within an \x ...\x* span
+		// whm 5Mar2024 added test here for an \x marker. If found here we are within an \x ...\x* span
 		if (mkrPlusSpace == _T("\\x "))
 			m_bIsWithinCrossRef_X_Span = TRUE;
+		// whm 6Nov2025 added test here for \f or \fe marker. If found here we are within an \f ...\f* or \fe ...\fe* span
+		if (mkrPlusSpace == _T("\\f ") || mkrPlusSpace == _T("\\fe "))
+			m_bIsWithinFootnote_F_Span = TRUE;
 		int nFound = filterList.Find(mkrPlusSpace);
 		if (nFound == wxNOT_FOUND)
 		{
@@ -25398,6 +25753,9 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 					endMkr = gSFescapechar + endMkr; // add the initial backslash
 					if (endMkr == _T("\\x*"))
 						m_bIsWithinCrossRef_X_Span = FALSE;
+					// whm 6Nov2025 added. Set the m_bIsWithinFootnote_F_Span flag FALSE
+					if (endMkr == _T("\\f*") || endMkr == _T("\\fe*"))
+						m_bIsWithinFootnote_F_Span = FALSE;
 				}
 				gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
 				// whm 24Oct2023 modification. Although the test below works OK for
@@ -25410,22 +25768,33 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 				wxString wholeAugmentedMarker = wholeMkr + _T(" ");
 				if (wholeAugmentedMarker == _T("\\x "))
 					m_bIsWithinCrossRef_X_Span = TRUE;
+				// whm 6Nov2025 added test below for footnote \f and endnote \fe
+				if (wholeAugmentedMarker == _T("\\f ") || wholeAugmentedMarker == _T("\\fe "))
+					m_bIsWithinFootnote_F_Span = TRUE;
 				//if (analysis->filter)
 				// whm 5Mar2024 added the following test below. If the wholeAugmentedMarker is _T("\\xt ")
 				// AND m_bIsWithinCrossRef_X_Span == TRUE, then \xt is a medial marker within an UNFILTERED
 				// \x ...\x* span, and this \xt also should remain UNFILTERED and we return wxNOT_FOUND.
-				if (wholeAugmentedMarker == _T("\\xt ") && m_bIsWithinCrossRef_X_Span == TRUE)
+				// whm 6Nov2025 further modified the following test to include || m_bIsWithinFootnote_F_Span
+				if (wholeAugmentedMarker == _T("\\xt ") && (m_bIsWithinCrossRef_X_Span == TRUE || m_bIsWithinFootnote_F_Span == TRUE))
 				{
 					// This \xt should remain unfiltered along with the unfiltered \x ...\x* span it is
 					// currently found within.
+					// whm 6Nov2025 comment. Also, this \xt should remain unfiltered along with the unfiltered \f ... \f* or
+					// \fe ...\fe* span it is currently found within.
 					return wxNOT_FOUND;
 				}
+				// whm 6Nov2025 modified comment below.
 				// The test above will bleed out an \xt marker that is part of an unfiltered \x ...\x* span.
-				// But if the wholeAugmentedMarker is _T("\\xt ") and m_bIsWithinCrossRef_X_Span == FALSE,
-				// then we know that the \xt marker in this case is a stand-alone marker not within an 
-				// \x ...\x* span and is filterable, so we return its offset (it should also be found within
-				// the App's gCurrentFilterMarkers, so we allow the next test to execute for \xt as a stand-alone
-				// marker.
+				// But if the wholeAugmentedMarker is _T("\\xt ") and m_bIsWithinCrossRef_X_Span == FALSE 
+				// OR m_bIsWithinFootnote_F_Span == FALSE, then we know that the \xt marker in this case would be
+				// a non-USFM compliant instance of \xt since it doesn't exist within an \x ...\x* span nor within
+				// an \f ...\f* span, nor an \fe ...\fe* span. This shouldn't happen in well formed USFM compliant
+				// text, but if it should occur, we can consider such an instance of \xt to be filterable, so we 
+				// return its offset (it should also be found within the App's gCurrentFilterMarkers, and we allow 
+				// the next test to execute for \xt as a stand-alone marker.
+				// In this case, I think we need not use the new function IsACurrentFilterMarker() in place of the
+				// gCurrentFilterMarkers.Find() in the line below.
 				if (gpApp->gCurrentFilterMarkers.Find(wholeAugmentedMarker) != wxNOT_FOUND)
 					return offset; // it's filterable, so return its offset
 				else
@@ -34283,10 +34652,20 @@ bool CAdapt_ItDoc::IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orE
 	// function from the following test. Examining the App's gCurrentFilterMarkers string for the 
 	// existence of a given marker within that string, is the only way to get an accurate 
 	// test of whether the given marker is currently being filtered or not.
+	// whm 6Nov2025 modification update. This IsPostwordFilteringRequired() function is NOT called
+	// anywhere in current code so it doesn't matter much whether it uses the new IsACurrentFilterMarker()
+	// function. I've made use of it at any rate below.
+	// 
+	// Use the new function IsACurrentFilterMarker() which more
+	// accurately determines the filter status of the (now) deprecated \xt marker
+	// The coding below could probably be simplified, but I think the new function should work OK
+	// in this case.
 	//if (IsAFilteringSFM(pUsfmAnalysis) &&
 	//	(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1) &&
 	//	pUsfmAnalysis->inLine)
-	if (gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1 &&
+	//if (gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1 &&
+	//	pUsfmAnalysis->inLine)
+	if (IsACurrentFilterMarker(augmentedWholeMkr) &&
 		pUsfmAnalysis->inLine)
 	{
 		bIsFilterStuff = TRUE; // this is the more general value than for xref, ftnote, endnote
@@ -36737,8 +37116,29 @@ wxString CAdapt_ItDoc::GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fro
 // saving procedure in order for the usfmstruct to be updated upon document save.
 // whm 26Mar2024 revised to update the filterstatus of usfmstruct strings where the filterstatus
 // is the 4th field - the strings now having 3 colon delimiters for 4 fields.
+// 
+// whm 6Nov2025 Held off on substituting the new IsACurrentFilterMarker() function in this 
+// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function, because the function needs to also 
+// set and reset the Doc global flags m_bIsWithinCrossRef_X_Span and m_bIsWithinFootnote_F_Span while
+// it iterates through the lines of the .usfmstruct file that is being updated, in order for the new
+// function to detect accurately whether any \xt marker occurs within a \f ...\f* span, a \fe ...\fe*
+// span, or an \x ...\x* span - then reset the flags to FALSE at the end of the update process, so they
+// get initialized for any subsequent TokenizeText() operation that might also call IsACurrentFilterMarker().
+// TODO: whm needs to go through the function and ensure that the  m_bIsWithinCrossRef_X_Span and 
+// m_bIsWithinFootnote_F_Span w doc flags get set appropriately for the accurate working of IsACurrentFilterMarker().
+// TODO: whm need to initialize the Doc flags at the beginning of this function. Determine if we should save 
+// the values of the Doc flags at the beginning of this function, so that we can restore them to their value 
+// at entry at the time we exit - or simply initialize them both to FALSE. 
 void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath)
 {
+	// whm 6Nov2025 added. Save the state of the Doc flags, so we can restore them to their previous value
+	// just before we exit this function.
+	bool bSave_m_bIsWithinFootnote_F_Span = m_bIsWithinFootnote_F_Span;
+	bool bSave_m_bIsWithinCrossRef_X_Span = m_bIsWithinCrossRef_X_Span;
+	// Initialize the Doc's flags to FALSE for the purposes of this function.
+	m_bIsWithinCrossRef_X_Span = FALSE; // init
+	m_bIsWithinFootnote_F_Span = FALSE; // init
+
 	// The incoming parameter has the full path to the usfm struct file that we will update.
 	// Open the file as a wxTextFile
 	wxTextFile file(usfmStructFileNameAndPath);
@@ -36768,7 +37168,7 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 		wxString strBetweenSecondAndThirdColons = wxEmptyString; // the MD5 has sum
 		wxString strAfterThirdColon = wxEmptyString; // the filter status
 		int nLines = file.GetLineCount();
-		// Empth the m_UsfmStructArr array, and reload it with the updated filter status
+		// Empty the m_UsfmStructArr array, and reload it with the updated filter status
 		// information
 		m_UsfmStructArr.Clear();
 		for (ct = 0; ct < nLines; ct++)
@@ -36825,7 +37225,25 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 					// so make sure we call Find() looking for a space augmented marker.
 					wxString augmentedMkr = mkr + space;
 					bool bMkrIsFiltered;
-					if (gpApp->gCurrentFilterMarkers.Find(augmentedMkr) >= 0)
+
+					// whm 6Nov2025 added. Check the augmentedMkr and set the Doc flags appropriately 
+					// to indicate when we are within a crossRef span or a footnote/endnote span.
+					if (augmentedMkr == _T("\\f ") || augmentedMkr == _T("\\fe "))
+					{
+						m_bIsWithinFootnote_F_Span = TRUE;
+					}
+					else if (augmentedMkr == _T("\\x "))
+					{
+						m_bIsWithinCrossRef_X_Span = TRUE;
+					}
+						
+					// whm 6Nov2025 Modified. Use the new function IsACurrentFilterMarker() to check the
+					// filter status of the augmentedMkr. The new function will handle more accurately the
+					// case of the \xt marker, and assign it the same filter status that its enclosing span
+					// of cross reference \x ...\x* has, or the same filter status that its enclosing span
+					// of footnote/endnote \f ...\f* or \fe ...\fe* has.
+					//if (gpApp->gCurrentFilterMarkers.Find(augmentedMkr) >= 0) // comment this out when TODO is done.
+					if (IsACurrentFilterMarker(augmentedMkr)) // enable this line when TODO is done.
 					{
 						bMkrIsFiltered = TRUE;
 					}
@@ -36834,6 +37252,19 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 						bMkrIsFiltered = FALSE;
 						// The filter status is 0, add/update the lineStr accordingly
 					}
+
+					// whm 6Nov2025 added.
+					// After the filter status check above, we should check for the corresponding end markers
+					// and if present, we reset the Doc flag(s) to FALSE
+					if (augmentedMkr == _T("\\f* ") || augmentedMkr == _T("\\fe* "))
+					{
+						m_bIsWithinFootnote_F_Span = FALSE;
+					}
+					else if (augmentedMkr == _T("\\x* "))
+					{
+						m_bIsWithinCrossRef_X_Span = FALSE;
+					}
+
 
 					int posSecondColon = strAfterFirstColon.Find(colon);
 					if (posSecondColon != wxNOT_FOUND)
@@ -36928,6 +37359,11 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 		// write changes back to the file.
 		file.Write();
 	} // end of else block of if (!bOK)
+	// whm 6Nov2025 added. Restore the previous state of the Doc flags before we exit this function.
+	// I'm not sure if this restoration of the previous state of the Doc flags is necessary, but I
+	// don't think it would hurt, and might prevent an issue with the flag values.
+	m_bIsWithinFootnote_F_Span = bSave_m_bIsWithinFootnote_F_Span;
+	bSave_m_bIsWithinCrossRef_X_Span = bSave_m_bIsWithinCrossRef_X_Span;
 }
 
 // This function takes an existing string filterStr of filtered material and if there are
@@ -38746,13 +39182,14 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 	nPeriodsInWhitesLen = 0;
 	int nFollowingWhitesLen = 0;
 	int itemLen = 0;
+	wxString wholeMkr; wholeMkr.Empty();
 	wxString chapterMkr = _T("\\c");
 	wxString verseMkr = _T("\\v");
 	if (IsMarker(p))
 	{
 		itemLen = ParseMarker(p);
-		wxString mkr = wxString(p, itemLen);
-		if (mkr == chapterMkr || mkr == verseMkr)
+		wxString wholeMkr = wxString(p, itemLen);
+		if (wholeMkr == chapterMkr || wholeMkr == verseMkr)
 		{
 			// it's a \c or \v marker so parse the following space and number
 			p += itemLen;
@@ -38785,7 +39222,37 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 	// periods following the marker. If not, however, we need to check further after
 	// the whitesStr location if there are any periods before the following EOLs or
 	// a backslash (of a marker).
-	if (whitesStr.Find(eolCR) != wxNOT_FOUND && whitesStr.Find(eolLF) != wxNOT_FOUND)
+	// 
+	// whm 12Nov2025 modification. In some data examples, I've encountered the existence
+	// of a displaced period which follows a \ft marker within a footnote, for example,
+	// the following text occurs near the end of a footnote:
+	// Intangay \xt Yes 54:4-5; 62:4-5; Hos 2:16-20\ft .\f*
+	// and three periods are a frequent occurrence within footnotes:
+	// \f + \fr 23:5 \fk ... kotak dit pinotulisan [3 periods are valid periods]
+	// and that data even has a few instances of 3 periods used within a cross reference:
+	// \x - \xo 11:6 \xk kuasa dot monombol dot tawan\ft , ugu-ko i nabi Elia: \xt 1Raj 
+	// 17:1 \xk kuasa dot posiliw dit weeg jumadi dot raa\ft , ugu-ko i Musa: \xt Kel 
+	// 7:17-19 \xk ... kuasa dot porikot dot nunu nopo ot kasansara'an sid pomogunan. 
+	// \xt 1Sam 4:8 \xt* \x*
+	// These types of period should not be considered a bogus period, but should be stored on 
+	// m_follPunct. When the periods are displaced by a begin marker such as \ft, the end
+	// marker and the periods should be stored on a separate new, empty source phrase.
+	// 
+	// Here in IsEmptyMkr() while \ft is an "empty" marker, we should not consider any period
+	// that follows the \ft marker as "bogus", but as legitimate final punctuation. Hence,
+	// I'm adding an initial test to the following that tests for whether the Doc's 
+	// m_bIsWithinFootnote_F_Span || m_bIsWithinCrossRef_X_Span is TRUE, and if TRUE, we set 
+	// bNeedToCheckForPeriods = FALSE and increment p with any nWhitesLenIncludingBogusPeriods 
+	// value.
+	if (m_bIsWithinFootnote_F_Span || m_bIsWithinCrossRef_X_Span)
+	{
+		// We are currently within a footnote, and should not consider any period as bogus
+		bNeedToCheckForPeriods = FALSE;
+		// nWhitesLen is not changed in this block, but we increment p to point past it
+		p += nWhitesLenIncludingBogusPeriods;
+	}
+	// whm 12Nov2025 made the if test above, and this an else if test
+	else if (whitesStr.Find(eolCR) != wxNOT_FOUND && whitesStr.Find(eolLF) != wxNOT_FOUND)
 	{
 		// There is at least one EOL char present within the whitesStr after the marker,
 		// so we need not check for periods since, if they exist, they would be on a
@@ -38856,6 +39323,12 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 void CAdapt_ItDoc::IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd, int& nPeriods)
 {
 	int numP = 0;
+	if (m_bIsWithinFootnote_F_Span || m_bIsWithinCrossRef_X_Span)
+	{
+		// Don't iterate past periods when within a footnote or cross reference
+		nPeriods = numP; // zero
+		return;
+	}
 	while (ptr < pEnd && *ptr == _T('.'))
 	{
 		ptr++;
@@ -39028,6 +39501,7 @@ bool CAdapt_ItDoc::IsOpenParenBraceBracketWordInternal(wxChar* pChar, wxChar* pE
 */
 
 int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
+	wxChar* pBufStart, // whm 12Nov2025 added
 	wxChar* pEnd,
 	CSourcePhrase* pSrcPhrase,
 	wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
@@ -39035,7 +39509,8 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 	bool& bIsInlineNonbindingMkr,
 	bool& bIsInlineBindingMkr,
-	bool bTokenizingTargetText)
+	bool bTokenizingTargetText,
+	bool& bForceEmptySrcPhrase)
 {
 	// BEW 30Sep19 With the separation of ParsePreWord() from legacy ParseWord, each
 	// of these has some unreferenced variables. To avoid compiler variables, use 
@@ -39433,52 +39908,259 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// 1. punctuation which needs to be stored in m_precPunct, or
 	// 2. an inlineBindingMkr, such as \k or \w etc, or
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
-	// whm 4Oct2025 addition. In the Kimaragang MAT data, the inline binding marker \add
-	// is placed just before a comma, i.e., "\add , it najanji..." and the comma is
-	// actually an orphaned "final punctuation" of previous SP. Current code in ParseWord() 
-	// handles the storage of final punctuation of a current source phrase, but does so 
-	// following an end marker - but here the final punct follows a inline binding begin marker \add. 
-	// So I'm adding a 4th item to this list of what ptr might be pointing at now:
-	// 4. final punctuation - when bInlineBindingMkr is TRUE - which needs to be stored in
-	// either:
-	// (1) The current source phrase's m_prePunct, even though it is detected as a "final punct" - it 
-	// must be restored to a position BEFORE the word/sp where it is stored, or
-	// (2) The previous source phrase's m_follOuterPunct.
-	// I implemented (1). This ends up moving the comma to a position BEFORE the /add marker, but I think
-	// that runtime adjustment might be a better logical place for the comma.
-	// Number (2) would involve a lot of extra work, and would likely end up putting the comma in the
-	// same location as (1).
+	// 
+	// whm 4Oct2025 addition. 
+	// whm 6Nov2025 additional modifications to include handling final puncts after \ft marker.
+	// There are other possibilities seen in the Kimaragang MAT data.
+	// 4. displaced final punctuation such as ",", or ").", or "." following a BEGIN marker 
+	// such as \add - additions, or an embedded footnote text BEGIN marker \ft.
+	// These instances happen quite often in the Kimaragang MAT data and we not being parsed 
+	// correctly.
+	// 4a. One example of displaced comma "," is in MAT 2:4 "...Raja Maanalamat\add , it 
+	// najanji mâantad do Kinoringan\add*?” ka." where the inline binding begin marker \add 
+	// is placed just before a comma. In this case the comma appears to be logically orphaned 
+	// "final punctuation" of the previous source phrase that is considered now as "additional
+	// text signaled by the \add begin marker. This addition is actually located at the end of
+	// a quoted question. The \add ... \add* is an inline binding marker span.
+	// The current code in ParseWord() handles the storage of final punctuation of a current 
+	// source phrase, but does so following an end marker - but here the final punct "," 
+	// follows the inline binding begin marker \add
+	// 4b. Three more examples of displaced final punctuation including ")." and "." are in MAT 9:15:
+	// 1) "\f + ... patayo (intangay \xt Yes 53:8\ft ). Om minangan..." [where ")." follows the \ft footnote 
+	//    text marker]
+	// 2) "...sinumuung (intangay \xt Yoh 16:1620\ft ). Sid Kitab..." [also where ")." follows the \ft footnote
+	//    text marker]
+	// 3) "... Intangay \xt Yes 54:4-5; 62:4-5; Hos 2:16-20\ft .\f*" [where ".\f*" follows the \ft marker 
+	//    right at the end of the footnote]
+	// In these situations within footnotes, the USFM marker \ft generally indicates the continuation of 
+	//    footnote text, but in the above examples - after a \xt cross reference list - the \ft marker is 
+	//    is used just to indicate the final punctuation of the sentence.
+	// For this scenario, the \ft begin marker actually indicates that we need a new empty source phrase 
+	// (key is ""), on which we can store the "\ft " marker in m_markers, and the final punctuation ")." in 
+	// m_follPunct. The source phrase remains empty since there is no actual \ft footnote text existing that
+	// preceeds the "final" punctuation ")." or "."	
+	// Perhaps, there is a generic way I will try below to handle displaced final punctuation that 
+	// immediately follows a begin marker, usually occurring within an inline span of text such 
+	// as within an \add ...\add* - additions, or \f ...\ft...\f* - footnote span.
+	// The basic parsing problem in these cases is that we are parsing an instance of final punctuation 
+	// that is interrupted/displaced from the source phrase that it belongs to, by a BEGIN marker
+	// that associated with the next source phrase. 
+	// Note: I've tried storing this displaced final punctuation in a subsequent non-empty source phrase 
+	// with its m_key being the next actual word of text. However, that proves to be highly problematic 
+	// in the routines that have to rebuild the source text and get the ordering of elements correct. 
+	// My conclusion is that I think we will need to put the BEGIN marker and the final punctuation
+	// in a newly created EMPTY source phrase - which stores these elements only but has a m_key of "".
+	// 
+	// Employ a new function that parses any instance of strictly final punctuation at ptr
 	int numPunctsNowPresent = 0;
-	if (bIsInlineBindingMkr)
+	numPunctsNowPresent = ParseStrictlyFinalPuncts(ptr, pEnd, spacelessPuncts);
+	if (numPunctsNowPresent > 0 && (ptr + numPunctsNowPresent) < pEnd)
 	{
-		numPunctsNowPresent = ParseFinalPuncts(ptr, pEnd, spacelessPuncts);
-		if (numPunctsNowPresent > 0 && (ptr + numPunctsNowPresent) < pEnd)
+		// Get the last (begin) marker that was parsed and was stored in this pSrcPhrase
+		// immediately before the current ptr location.
+		// Note: The last marker could be stored in m_markers or m_inlineBindingMarkers, or
+		// in m_inlineNonbindingMarkers.
+		// whm 12Nov2025 modified. Use a new override function: 
+		//	wxString GetLastMarkerProcessed(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr)
+		// this since the GetLastMarker() function only looks in m_markers.
+		bool bLastMkrWasBeginMkr = FALSE;
+		bool bIsEndMkr = FALSE;
+		wxString lastMarker = GetLastMarker(ptr, pBufStart, bIsEndMkr);
+		if (!lastMarker.IsEmpty())
 		{
-			// store the final punctuation in m_precPunct
-			// whm 5Oct2025 note: The best storage would be a m_prevOuterPunct or something like
-			// that, but we don't have such a SP member. We could, if necessary store it in a
-			// previous source phrase's m_follOuterPunct
+			bLastMkrWasBeginMkr = !bIsEndMkr;
+		}
+		// Handle both situations below similarly
+		if ((bLastMkrWasBeginMkr && m_bIsWithinFootnote_F_Span) || bIsInlineBindingMkr ||  bIsInlineNonbindingMkr)
+		{
+			// lastMarker most likely was an \ft marker within a footnote, and it is 
+			// a begin marker that is followed by final punctuation. This final punctuation
+			// should be stored within the current pSrcPhrase->m_follPunct member.
+			// Since we are within ParsePreWord() the current pSrcPhrase->m_key member
+			// should be empty. This is a situation that occurs a number of times in the
+			// Kimaragang data where final punctuation follows an \ft marer within a footnote,
+			// for example, "\ft ). Om..." where the \ft normally indicates footnote text follows,
+			// however, is some cases in the Kimaragang data the only "text" that follows is final
+			// punctuation. We need to both store this final punctuation, and since there is no
+			// actual text associated with this final punctuation, we need to close off this
+			// pSrcPhrase as an empty source phrase m_key == "". Otherwise we run into problems
+			// later in parsing, and also the rebuilding of source text benefits from having this
+			// instance of displaced final punctuation stored as a separate empty source phrase.
+			// this situation is similar to the if (bIsInlineBindingMkr) case below.
+
+			// This situation likely arises in situations where the inline binding marker \add 
+			// ("additions to the text") is inserted into text in a location that immediately precedes 
+			// some final punctuation.
+			// The happens in the Kimaragang data, for example: "Raja Maanalamat\add , it najanji..."
+			// where the comma is displaced from the previous word Maanlamat by the \add begin marker.
+			// Here, as in the above case with \ft followed by final puncts, the \add needs to be stored
+			// as a begin marker in m_inlineBindingMarker, but the final punctuation really is "final"
+			// to the preceding source phrase that has the m_key of "Maanalamat". I think the best way to
+			// deal with this sort of situation is to force these cases of "final puncts" that are displaced
+			// by a BEGIN marker, to be stored on a separate empty source phrase.
+			// store the final punctuation in m_follPunct
+			//	[obsolete comment] whm 5Oct2025 note: The best storage would be a m_prevOuterPunct or 
+			//	something like that, but we don't have such a SP member. We could, if necessary store 
+			//	it in a previous source phrase's m_follOuterPunct
+
 			wxString finalPunctInPrePosn;
 			finalPunctInPrePosn.Empty();
 			finalPunctInPrePosn = wxString(ptr, numPunctsNowPresent);
-			pSrcPhrase->m_precPunct += finalPunctInPrePosn;
+			pSrcPhrase->m_follPunct += finalPunctInPrePosn;
 			ptr += numPunctsNowPresent;
 			len += numPunctsNowPresent;
 			// check for whitespace following the punct char. We'll store this whitespace
-			// within the m_precPunct member.
+			// within the m_follPunct member.
 			itemLen = ParseWhiteSpace(ptr);
 			if (itemLen > 0)
 			{
 				wxString whiteSp;
 				whiteSp.Empty();
 				whiteSp = wxString(ptr, itemLen);
-				pSrcPhrase->m_precPunct += whiteSp;
-				// check if still need to incr len???
+				pSrcPhrase->m_follPunct += whiteSp;
 			}
 			ptr += itemLen;
 			len += itemLen;
-		}
+			
+			// whm 12Nov2025 added. Now that the pointer is pointing past the punctuation and
+			// any white space following it, we need to check if there is an end marker such as
+			// \f* a footnote end marker that is pointed at. Such end markers can also go on this
+			// empty source phrase we are creating, otherwise they may result in a second empty
+			// source phrase being created following this one just for the end marker like \f*.
+			// Now process any markers that ptr may be pointing at.
+			itemLen = 0;
+			wxString wholeMkr; wholeMkr.Empty();
+			wholeMkr = GetWholeMarker(ptr);
+			if (!wholeMkr.IsEmpty())
+			{
+				int wholeMkrLen = wholeMkr.Length();
+				wxString augWholeMkr = wholeMkr + _T(" ");
+				bool bIs_f_x_fe_xe_Mkr = FALSE;
+				bool bIs_f_x_fe_xe_endMkr = FALSE;
+				bool bIsInlineBindingMarker = FALSE;
+				bool bIsInlineNonbindingMarker = FALSE;
+				bool bIsInlineBindingEndMarker = FALSE;
+				bool bIsInlineNonbindingEndMarker = FALSE;
+				bIsInlineBindingMarker = gpApp->m_inlineBindingMarkers.Find(augWholeMkr) != wxNOT_FOUND;
+				bIsInlineNonbindingMarker = gpApp->m_inlineNonbindingMarkers.Find(augWholeMkr) != wxNOT_FOUND;
+				bIsInlineBindingEndMarker = gpApp->m_inlineBindingEndMarkers.Find(augWholeMkr) != wxNOT_FOUND;
+				bIsInlineNonbindingEndMarker = gpApp->m_inlineNonbindingEndMarkers.Find(augWholeMkr) != wxNOT_FOUND;
+				// First we'll deal with end markers, then later below with begin markers
+				bIsEndMkr = FALSE; // need to intialize this flag again here
+				bIsEndMkr = IsEndMarker(ptr, pEnd);
+				if (bIsEndMkr)
+				{
+					wholeEndMkr = wholeMkr;
+					bIs_f_x_fe_xe_endMkr = IsFootnoteOrCrossReferenceEndMarker(ptr, pEnd);
+					if (bIs_f_x_fe_xe_endMkr)
+					{
+						// Get it stored
+						// it's one of \f* \fe* \x* or \xe*; these are all stored in m_endMarkers
+						//int length = wholeEndMkr.Len();
+						wxString endMkrs = pSrcPhrase->GetEndMarkers();
+						endMkrs += wholeEndMkr; // end markers don't need a following space in m_endMarkers
+						pSrcPhrase->SetEndMarkers(endMkrs);
 
+						// Update len value, and set ptr to point at the next character 
+						// immediately after the end marker - it might be whitespace, punctuation,
+						// a further endMarker, ] (bracket), or the beginning of the next word to
+						// be parsed - this function returns to a loop, which will iterate this
+						// function and break out when len does not advance because there are no
+						// more final puncts or endmarkers to deal with for the current pSrcPhrase
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+						if (wholeEndMkr == _T("\\f*") || wholeEndMkr == _T("\\fe*"))
+						{
+							pSrcPhrase->m_bFootnoteEnd = TRUE;
+							m_bIsWithinFootnote_F_Span = FALSE;
+						}
+						if (wholeEndMkr == _T("\\x*") || wholeEndMkr == _T("\\xe*"))
+						{
+							m_bIsWithinCrossRef_X_Span = FALSE;
+						}
+
+						m_bIsWithinUnfilteredInlineSpan = FALSE; // BEW added 2Dec22, as few places restore it to FALSE
+					}
+					else if (bIsInlineBindingEndMarker)
+					{
+						wxString strBinding = pSrcPhrase->GetInlineBindingEndMarkers();
+						strBinding += wholeEndMkr; // end markers don't need a following space in m_inlineBindingEndMarkers
+						pSrcPhrase->SetInlineBindingEndMarkers(strBinding);
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+					}
+					else if (bIsInlineNonbindingEndMarker)
+					{
+						wxString strNonbinding = pSrcPhrase->GetInlineNonbindingEndMarkers();
+						strNonbinding += wholeEndMkr; // end markers don't need a following space in m_inlineNonbindingEndMarkers
+						pSrcPhrase->SetInlineNonbindingEndMarkers(strNonbinding);
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+					}
+				}
+				else
+				{
+					// Here we deal with the begin markers
+					bIs_f_x_fe_xe_Mkr = IsFootnoteOrCrossReferenceMarker(ptr);
+					if (bIs_f_x_fe_xe_Mkr)
+					{
+						// Get it stored
+						// it's one of \f \fe \x or \xe; these are all stored in m_markers
+						wxString mkrs = pSrcPhrase->m_markers;
+						mkrs += augWholeMkr; // use the augWholeMkr for storage in m_markers
+						pSrcPhrase->m_markers = mkrs;
+
+						// Update len value for just the wholeMkrLen, and set ptr to point at the 
+						// next character immediately after the marker - it might be whitespace, 
+						// punctuation, a further endMarker, ] (bracket), or the beginning of the 
+						// next word to be parsed.
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+						if (wholeEndMkr == _T("\\f") || wholeEndMkr == _T("\\fe"))
+						{
+							pSrcPhrase->m_bFootnote = TRUE;
+							m_bIsWithinFootnote_F_Span = TRUE;
+						}
+						if (wholeEndMkr == _T("\\x") || wholeEndMkr == _T("\\xe"))
+						{
+							m_bIsWithinCrossRef_X_Span = TRUE;
+						}
+						// whm carried over the following flag initialization from BEW's addition
+						m_bIsWithinUnfilteredInlineSpan = FALSE; // BEW added 2Dec22, as few places restore it to FALSE
+					}
+					else if (bIsInlineBindingMarker)
+					{
+						wxString strBinding = pSrcPhrase->GetInlineBindingMarkers();
+						strBinding += augWholeMkr; // use the augWholeMkr for storage in m_inlineBindingMarkers
+						pSrcPhrase->SetInlineBindingMarkers(strBinding);
+						// Update len value for just the wholeMkrLen, and set ptr to point at the 
+						// next character immediately after the marker - it might be whitespace, 
+						// punctuation, a further endMarker, ] (bracket), or the beginning of the 
+						// next word to be parsed.
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+					}
+					else if (bIsInlineNonbindingMarker)
+					{
+						wxString strNonbinding = pSrcPhrase->GetInlineNonbindingMarkers();
+						strNonbinding += augWholeMkr; // use the augWholeMkr for storage in m_inlineNonbindingMarkers
+						pSrcPhrase->SetInlineNonbindingMarkers(strNonbinding);
+						// Update len value for just the wholeMkrLen, and set ptr to point at the 
+						// next character immediately after the marker - it might be whitespace, 
+						// punctuation, a further endMarker, ] (bracket), or the beginning of the 
+						// next word to be parsed.
+						len += wholeMkrLen;
+						ptr += wholeMkrLen;
+					}
+				}
+			}
+
+			// We need to force this source phrase to be closed off as an "empty" one,
+			// so we assign a TRUE value to the bForceEmptySrcPhrase formal parameter and
+			// return the len
+			bForceEmptySrcPhrase = TRUE;
+			return len;
+		}
 	}
 	// 
 	// The first to check for is punctuation, then inlineBindingMkr; however, if the
@@ -41086,6 +41768,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										wxString myEndMkrs = pSrcPhrase->GetEndMarkers(); // gets contents of m_endMarkers
 										myEndMkrs << wholeMkr; // append the new whole endMkr
 										pSrcPhrase->SetEndMarkers(myEndMkrs); // update m_endMarkers storage
+										// whm 6Nov2025 added. In case wholeMkr is \f* or \fe* we need to reset the flag
+										// m_bIsWithinFootnote_F_Span to FALSE.
+										if (wholeMkr == _T("\\f*") || wholeMkr == _T("\\fe*"))
+										{
+											m_bIsWithinFootnote_F_Span = FALSE;
+										}
 										len += wholeMkrLen;
 										ptr += wholeMkrLen; // ptr now points at where pAux points
 										wxASSERT(ptr == pAux);
@@ -41337,14 +42025,30 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		theMkr = GetWholeMarker(ptr);
 		wxString augTheMkr;
 		augTheMkr = theMkr + _T(' ');
-		// whm 13Mar2024 added. If the marker (augThMkr) at this point is to be filtered, we should
+		// whm 13Mar2024 added. If the marker (augTheMkr) at this point is to be filtered, we should
 		// return the len immediately from ParseWord(). Otherwise, the ParseWord() will start storing
 		// the marker and end marker in pSrcPhrase which is not appropriate for a marker that should
 		// be filtered.
-		if (gpApp->gCurrentFilterMarkers.Find(augTheMkr) != wxNOT_FOUND)
+		
+		// whm 6Nov2025 modified the following code block to use the new function:
+		// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+		// manditory filtering of \free, \note, and \bt... and also ensures that
+		// any instance of the (now) deprecated \xt marker takes on the filter status
+		// of the marker span that encloses the \xt marker, that is, if \xt is here
+		// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+		// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+		// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+		// it is found. For other markers, the filter status is determined by simply calling:
+		// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+		if (IsACurrentFilterMarker(augTheMkr))
 		{
 			return len;
 		}
+
+		//if (gpApp->gCurrentFilterMarkers.Find(augTheMkr) != wxNOT_FOUND)
+		//{
+		//	return len;
+		//}
 		bool bIsCharAttributeMkr;
 		bIsCharAttributeMkr = FALSE; // init
 		bIsCharAttributeMkr = bIsCharAttributeMkr; // avoid gcc warning set but not used warning
@@ -42268,7 +42972,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString pointsAt = wxString(ptr, 20);
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , pointsAt= [%s]"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 121)
+				if (pSrcPhrase->m_nSequNumber >= 124)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -42524,7 +43228,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 16);
 						wxLogDebug(_T("ParseWord() line %d, Before IsAnsiDigit() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 154)
+						if (pSrcPhrase->m_nSequNumber >= 124)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -42727,6 +43431,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										wxString currEndMkrs = pSrcPhrase->GetEndMarkers();
 										currEndMkrs << wholeMkr;
 										pSrcPhrase->SetEndMarkers(currEndMkrs);
+										// whm 6Nov2025 added. In case wholeMkr is \f* or \fe* we need to reset the flag
+										// m_bIsWithinFootnote_F_Span to FALSE.
+										if (wholeMkr == _T("\\f*") || wholeMkr == _T("\\fe*"))
+										{
+											m_bIsWithinFootnote_F_Span = FALSE;
+										}
 										// We parsed and stored an endMkr, so update ptr and len for its width as well
 										ptr += wholeMkrLen;
 										len += wholeMkrLen;
@@ -43844,6 +44554,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								endMarkers = pSrcPhrase->GetEndMarkers(); // might be empty at first iteration
 								endMarkers << aWholeMkr;
 								pSrcPhrase->SetEndMarkers(endMarkers);
+								// whm 6Nov2025 added. In case aWholeMkr is \f* or \fe* we need to reset the flag
+								// m_bIsWithinFootnote_F_Span to FALSE.
+								if (aWholeMkr == _T("\\f*") || aWholeMkr == _T("\\fe*"))
+								{
+									m_bIsWithinFootnote_F_Span = FALSE;
+								}
 
 								// Update ptr and len
 								len += mkrLen;
@@ -44037,6 +44753,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										endMkrs = pSrcPhrase->GetEndMarkers();
 										endMkrs << aWholeMkr;
 										pSrcPhrase->SetEndMarkers(endMkrs);
+										// whm 6Nov2025 added. In case aWholeMkr is \f* or \fe* we need to reset the flag
+										// m_bIsWithinFootnote_F_Span to FALSE.
+										if (aWholeMkr == _T("\\f*") || aWholeMkr == _T("\\fe*"))
+										{
+											m_bIsWithinFootnote_F_Span = FALSE;
+										}
 
 										// Update ptr and len
 										len += mkrLen;
@@ -44280,6 +45002,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								curEndMkrs = pSrcPhrase->GetEndMarkers(); // could be empty
 								curEndMkrs += myEndMkr;
 								pSrcPhrase->SetEndMarkers(curEndMkrs);
+								// whm 6Nov2025 added. In case myEndMkr is \f* or \fe* we need to reset the flag
+								// m_bIsWithinFootnote_F_Span to FALSE.
+								if (myEndMkr == _T("\\f*") || myEndMkr == _T("\\fe*"))
+								{
+									m_bIsWithinFootnote_F_Span = FALSE;
+								}
 								bStoredEndMkr = TRUE;
 								int wholeMkrLen = myEndMkr.Length();
 								len += wholeMkrLen;
@@ -44320,6 +45048,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 									curEndMkrs = pSrcPhrase->GetEndMarkers(); // could be empty
 									curEndMkrs += myEndMkr;
 									pSrcPhrase->SetEndMarkers(curEndMkrs); // puts it in pSrcPhrase->m_endMarkers
+									// whm 6Nov2025 added. In case myEndMkr is \f* or \fe* we need to reset the flag
+									// m_bIsWithinFootnote_F_Span to FALSE.
+									if (myEndMkr == _T("\\f*") || myEndMkr == _T("\\fe*"))
+									{
+										m_bIsWithinFootnote_F_Span = FALSE;
+									}
 									bStoredBindingEndMkr = FALSE;
 									bStoredNonbindingEndMkr = FALSE;
 
@@ -45084,6 +45818,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 												wxString myEndMkrs = pSrcPhrase->GetEndMarkers();
 												myEndMkrs << wholeMkr;
 												pSrcPhrase->SetEndMarkers(myEndMkrs);
+												// whm 6Nov2025 added. In case wholeMkr is \f* or \fe* we need to reset the flag
+												// m_bIsWithinFootnote_F_Span to FALSE.
+												if (wholeMkr == _T("\\f*") || wholeMkr == _T("\\fe*"))
+												{
+													m_bIsWithinFootnote_F_Span = FALSE;
+												}
 												len = saveLength + wholeMkrLen;
 												ptr += wholeMkrLen; // ptr now points where pAux points
 												if (bWhiteAfterEndMkr || bIsANewline || bIsABeginMkr)
@@ -46009,6 +46749,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								wxString currEndMkrs = pSrcPhrase->GetEndMarkers();
 								currEndMkrs += strToAdd;
 								pSrcPhrase->SetEndMarkers(currEndMkrs);
+								// whm 6Nov2025 added. In case wholeMkr is \f* or \fe* we need to reset the flag
+								// m_bIsWithinFootnote_F_Span to FALSE.
+								if (wholeMkr == _T("\\f*") || wholeMkr == _T("\\fe*"))
+								{
+									m_bIsWithinFootnote_F_Span = FALSE;
+								}
 								// update len, ptr, etc
 								len += mkrLen;
 								ptr += mkrLen;
@@ -46257,6 +47003,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										lastCurrEndMkrs += wholeMkr;
 										// Store in the most neutral place, which would be m_endMarkers
 										pSrcPhrase_lastCompleted->SetEndMarkers(lastCurrEndMkrs);
+										// whm 6Nov2025 comment. No need to reset the m_bIsWithinFootnote_F_Span flag
+										// here since a "bogus end marker" would not be \f* or \fe*.
 										// update len, ptr, to point past the bogus (stored)endMkr, which
 										// was identified when parsing for the current pSrcPhrase
 										len += mkrLen;
@@ -47682,7 +48430,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 6);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber == 1141) // whm break
+		if (pSrcPhrase->m_nSequNumber >= 165) // whm break
 		//if (mypointsAt.Find(_T(" later")) != wxNOT_FOUND) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -48009,6 +48757,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 					{
+						// whm 6Nov2025 added. Check for any \f* or \fe* in the transferred end markers, and if so
+						// ensure that the Doc flag m_bIsWithinFootnote_F_Span is FALSE
+						wxString tempEndMkrs = pSrcPhrase->GetEndMarkers();
+						if (tempEndMkrs.Find("\\f*") != wxNOT_FOUND || tempEndMkrs.Find("\\fe*") != wxNOT_FOUND)
+						{
+							m_bIsWithinFootnote_F_Span = FALSE;
+						}
 						// there are endmarkers which belong on the previous instance, so
 						// transfer them
 						if (pPrevSrcPhrase != NULL)
@@ -48061,7 +48816,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber == 19)
+				if (pSrcPhrase->m_nSequNumber == 164)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -48098,7 +48853,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 			// whm 17Jan2024 Removed the EnterEmptyMkrsLoop() function and its call above, 
 			// and instead called directly the IsEmptyMkr() function here as well as set a
-			// bIsToBeFiltered boolean basen on whether the marker is within the 
+			// bIsToBeFiltered boolean based on whether the marker is within the 
 			// gCurrentFilterMarkers string. If the marker is within gCurrentFilterMarkers
 			// then we exclude it from proceding into the bProcessEmptyMarker TRUE block 
 			// below. Otherwise, paragraph markers which are normally empty like \p can
@@ -48111,14 +48866,27 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxString aWholeMkr = wxString(ptr, awholemkrlen);
 			wxString augWholeMkr;
 			augWholeMkr = aWholeMkr + _T(' ');
-			// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-			// or \bt... marker - which are obligatorily filtered.
-			bool bIsForeignBackTransMkr = FALSE;
-			bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
-			if (!bIsToBeFiltered)
-			{
-				bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
-			}
+
+			// whm 6Nov2025 modified the following code block to use the new function:
+			// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+			// manditory filtering of \free, \note, and \bt... and also ensures that
+			// any instance of the (now) deprecated \xt marker takes on the filter status
+			// of the marker span that encloses the \xt marker, that is, if \xt is here
+			// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+			// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+			// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+			// it is found. For other markers, the filter status is determined by simply calling:
+			// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+			bIsToBeFiltered = IsACurrentFilterMarker(augWholeMkr);
+
+			//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+			//// or \bt... marker - which are obligatorily filtered.
+			//bool bIsForeignBackTransMkr = FALSE;
+			//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
+			//if (!bIsToBeFiltered)
+			//{
+			//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
+			//}
 			int nEmptyMkrPeriodsInWhitesLen = 0; // used only in next line below and inside the if (bProcessEmptyMarker) below
 			int nEmptyWhitesFollowingMkr = 0; // used only in next line below and inside the if (bProcessEmptyMarker) below
 			if (IsEmptyMkr(ptr, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen)
@@ -48557,14 +49325,26 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						if (!aWholeMkr.IsEmpty())
 						{
 							wxString myAugMkr = aWholeMkr + _T(' ');
-							// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-							// or \bt... marker - which are obligatorily filtered.
-							bool bIsForeignBackTransMkr = FALSE;
-							bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(myAugMkr) != wxNOT_FOUND);
-							if (!bIsToBeFiltered)
-							{
-								bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(myAugMkr, bIsForeignBackTransMkr);
-							}
+							// whm 6Nov2025 modified the following code block to use the new function:
+							// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+							// manditory filtering of \free, \note, and \bt... and also ensures that
+							// any instance of the (now) deprecated \xt marker takes on the filter status
+							// of the marker span that encloses the \xt marker, that is, if \xt is here
+							// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+							// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+							// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+							// it is found. For other markers, the filter status is determined by simply calling:
+							// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+							bIsToBeFiltered = IsACurrentFilterMarker(myAugMkr);
+
+							//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+							//// or \bt... marker - which are obligatorily filtered.
+							//bool bIsForeignBackTransMkr = FALSE;
+							//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(myAugMkr) != wxNOT_FOUND);
+							//if (!bIsToBeFiltered)
+							//{
+							//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(myAugMkr, bIsForeignBackTransMkr);
+							//}
 							if (bIsToBeFiltered)
 							{
 #if defined (_DEBUG) //&& !defined (NOLOGS)
@@ -48741,6 +49521,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//pSrcPhrase->m_bFootnoteEnd = FALSE; // these 3 not needed here
 							//pSrcPhrase->m_bFirstOfType = TRUE;
 							//pSrcPhrase->m_bBoundary = TRUE;
+							// whm 6Nov2025 added. We should set the Doc flag m_bIsWithinFootnote_F_Span to TRUE.
+							m_bIsWithinFootnote_F_Span = TRUE;
 						}
 						//wxChar period;
 						//period = _T('.');
@@ -49381,14 +50163,29 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
-							// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-							// or \bt... marker - which are obligatorily filtered.
-							bool bIsForeignBackTransMkr = FALSE;
-							bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
-							if (!bIsToBeFiltered)
-							{
-								bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
-							}
+							// whm 6Nov2025 modified the following code block to use the new function:
+							// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+							// manditory filtering of \free, \note, and \bt... and also ensures that
+							// any instance of the (now) deprecated \xt marker takes on the filter status
+							// of the marker span that encloses the \xt marker, that is, if \xt is here
+							// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+							// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+							// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+							// it is found. For other markers, the filter status is determined by simply calling:
+							// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+							bIsToBeFiltered = IsACurrentFilterMarker(augWholeMkr);
+
+							//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+							//// or \bt... marker - which are obligatorily filtered.
+							//bool bIsForeignBackTransMkr = FALSE;
+							//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
+							//if (!bIsToBeFiltered)
+							//{
+							//	// whm 6Nov2025 Note: In the IsMarkerFreeTransOrNoteOrBackTrans() function, the 
+							//	// bIsForeignBackTransMkr parameter is never referenced or checked in code, 
+							//	// therefore it could be removed from the function.
+							//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
+							//}
 						}
 #if defined (_DEBUG) && !defined (NOLOGS)
 						{
@@ -49410,7 +50207,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// The marker is not \v (could be \m or \li1 or \q1 or \p or \x etc)
 							// BEW 23Aug23, at this point, tokBuffer might be empty, and if so
 							// we must not unilaterally add a space.
-							// Also, the code for checking it bToBeFiltered for TRUE is above,
+							// Also, the code for checking it bIsToBeFiltered for TRUE is above,
 							// so we don't want to add wholeMkr to m_markers something which
 							// is going to be filtered out, so refactor here with care...
 							if (bIsToBeFiltered)
@@ -50143,14 +50940,26 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// nested markers with the + So we have to check for
 							// the + and remove it before doing the Find()
 							
-							// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-							// or \bt... marker - which are obligatorily filtered.
-							bool bIsForeignBackTransMkr = FALSE;
-							bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != wxNOT_FOUND);
-							if (!bIsToBeFiltered)
-							{
-								bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr, bIsForeignBackTransMkr);
-							}
+							// whm 6Nov2025 modified the following code block to use the new function:
+							// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+							// manditory filtering of \free, \note, and \bt... and also ensures that
+							// any instance of the (now) deprecated \xt marker takes on the filter status
+							// of the marker span that encloses the \xt marker, that is, if \xt is here
+							// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+							// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+							// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+							// it is found. For other markers, the filter status is determined by simply calling:
+							// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+							bIsToBeFiltered = IsACurrentFilterMarker(augmentedWholeMkr);
+
+							//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+							//// or \bt... marker - which are obligatorily filtered.
+							//bool bIsForeignBackTransMkr = FALSE;
+							//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != wxNOT_FOUND);
+							//if (!bIsToBeFiltered)
+							//{
+							//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr, bIsForeignBackTransMkr);
+							//}
 
 							// In the next call, 3rd param bool bRemoveAll is  default FALSE
 							// causing it to search for first incidence of aPlus and remove
@@ -51072,17 +51881,29 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// is also now "figure" which is shorter for nav text and more mnemonic
 					// for users.
 
-					// BEW 30Sep19 the one-line test with three subtest below
-					// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
-					// that ptr does not advance until control reaches the filtering code lower down
-					// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-					// or \bt... marker - which are obligatorily filtered.
-					bool bIsForeignBackTransMkr = FALSE;
-					bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != wxNOT_FOUND);
-					if (!bIsToBeFiltered)
-					{
-						bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr, bIsForeignBackTransMkr);
-					}
+					// whm 6Nov2025 modified the following code block to use the new function:
+					// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+					// manditory filtering of \free, \note, and \bt... and also ensures that
+					// any instance of the (now) deprecated \xt marker takes on the filter status
+					// of the marker span that encloses the \xt marker, that is, if \xt is here
+					// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+					// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+					// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+					// it is found. For other markers, the filter status is determined by simply calling:
+					// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+					bIsToBeFiltered = IsACurrentFilterMarker(augmentedWholeMkr);
+
+//					// BEW 30Sep19 the one-line test with three subtest below
+//					// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
+//					// that ptr does not advance until control reaches the filtering code lower down
+//					// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+//					// or \bt... marker - which are obligatorily filtered.
+//					bool bIsForeignBackTransMkr = FALSE;
+//					bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != wxNOT_FOUND);
+//					if (!bIsToBeFiltered)
+//					{
+//						bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr, bIsForeignBackTransMkr);
+//					}
 #if defined (_DEBUG) && !defined(NOLOGS)
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
@@ -51140,13 +51961,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// charAttributeEndMkr string. These have to have no ptr advancement when
 								// ptr points at a beginMkr from the charAttributeMkr set, because it might
 								// be a marker for filtering out (it is, by default), and filtering happens
-								// affter the inner loop's LookupSFM() call, and if not for filtering out,
+								// after the inner loop's LookupSFM() call, and if not for filtering out,
 								// then it has to be dealt with even further down in the inner loop where
 								// the tests for attribute makers are handled, because they contain bar ( | )
 								// data following the beginMkr, for hiding in pSrcPhrase's m_punctsPattern member
 								offset = -1;
 								offset = pApp->m_inlineNonbindingMarkers.Find(myAugWholeMkr);
-								if (offset >= 0 && !m_bIsWithinCrossRef_X_Span)
+								// whm 6Nov2025 added test !m_bIsWithinFootnote_F_Span to the test below
+								if (offset >= 0 && !m_bIsWithinCrossRef_X_Span && !m_bIsWithinFootnote_F_Span)
 								{
 									// It's one of the small set of non-binding inline mkrs
 									wxString inlineNonbindingMkrs;
@@ -51372,6 +52194,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							{
 								m_bIsWithinCrossRef_X_Span = TRUE; // whm 4Mar2024 added
 							}
+							// whm 6Nov2025 added. We also need to kknow when we are within a \f ...\f* span or within
+							// a \fe ...\fe* span in order to be able to treat \xt properly within such spans
+							if (wholeMkrAtPtr == fMkr || wholeMkrAtPtr == feMkr)
+							{
+								m_bIsWithinFootnote_F_Span = TRUE; // whm 6Nov2025 added
+							}
 
 							if (bIsToBeFiltered)
 							{
@@ -51433,6 +52261,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							// Need to set m_bFootnote
 							pSrcPhrase->m_bFootnote = TRUE;
+							// whm 6Nov2025 added. We need to set the Doc's m_bIsWithinFootnote_F_Span to TRUE
+							m_bIsWithinFootnote_F_Span = TRUE;
 						}
 						itemLen = 0;
 
@@ -51540,6 +52370,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									wxString endMkrs = pSrcPhrase->GetEndMarkers();
 									endMkrs += _T("\\f*");
 									pSrcPhrase->SetEndMarkers(endMkrs);
+
+									// whm 6Nov2025 added. Since we're adding a footnote end marker to endMkrs we must
+									// be at the end of a footnote, so set the Doc flag m_bIsWithinFootnote_F_Span to FALSE.
+									m_bIsWithinFootnote_F_Span = FALSE;
+
 									itemLen += 3; // for width of of the questions added above (should now be 3 + 3 = 6)
 									ptr += 3; // make agree
 
@@ -51676,9 +52511,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// whm modified the declarations and assignments below to declare the bool variables on
 					// one line and do the assignments on a second line
 					// whm 26Feb2024 eliminated the App globals m_bExt_ex_NotFiltered and m_bMkr_x_NotFiltered,
-					// and renamed local bools bFirstTest and bSecondTest to b_ex_markerNotFiltered and
+					// and renamed local bools bFirstTest and bSecondTest instead of b_ex_markerNotFiltered and
 					// // b_x_markerMotFiltered respectively.
 					// 
+					// whm 6Nov2025 Note: The tests that call .Find() on gCurrentFilterMarkers below are
+					// for specific markers \ex and \x which doesn't require the use of the new function
+					// IsACurrentFilterMarker() since it would only be useful when determining the filter
+					// status of \xt in a particular context.
 					bool bFirstTest;
 					//bFirstTest = (wholeMkr == _T("\\ex") && gpApp->m_bExt_ex_NotFiltered == TRUE);
 					bFirstTest = (wholeMkr == _T("\\ex") && gpApp->gCurrentFilterMarkers.Find(_T("\\ex ")) == wxNOT_FOUND); // \ex is not filtered
@@ -52174,7 +53013,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxLogDebug(_T("TokText(), NON-SRC FILTERING ENDS, line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key= [%s], m_precPunct= [%s] , m_markers= [%s]"),
 									__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 									(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 5)
+								if (pSrcPhrase->m_nSequNumber >= 165)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -52471,6 +53310,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 #endif
+			// whm 6Nov2025 added the bForceEmptySrcPhrase flag below. bForceEmptySrcPhrase may 
+			// need to be rarely set TRUE from within ParsePreWord() when the code there detects
+			// that there is final punctuation that follows certain begin markers such as \ft or
+			// \add, and the insertion of these begin markers displace some "final punctuation"
+			// from text that preceeds the begin marker. In such cases bForceEmptySrcPhrase will
+			// be set to TRUE by ParsePreWord(), and when TRUE at the time ParsePreWord() returns, 
+			// the goto finishup jump will be executed which bypasses ParseWord() and ends up
+			// creating the current pSrcPhrase with an empty m_key and empty m_srcPhrase.
+			bool bForceEmptySrcPhrase = FALSE; 
+
+
 			// BEW 25Jul23 ParsePreWord() causes \fig (a char attribute mkr) - and maybe other begin mkrs
 			// to be parsed over. But members of gpApp->m_charAttributeMkrs must not have ptr advance, because
 			// ParseWord(), as its first task, is to check for ptr pointing at gSFescapechar, and if so,
@@ -52480,8 +53330,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			if (!bKeepPtrFromAdvancing)
 			{
 				// skip, if the bool was TRUE
-				itemLen = ParsePreWord(ptr, pEnd, pSrcPhrase, spacelessPuncts, pApp->m_inlineNonbindingMarkers,
-					pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText);
+				itemLen = ParsePreWord(ptr, pBufStart, pEnd, pSrcPhrase, spacelessPuncts, pApp->m_inlineNonbindingMarkers,
+					pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText,
+					bForceEmptySrcPhrase);
 
 #if defined (_DEBUG) && !defined (NOLOGS)
 				// whm 16Jun2023 separated the declaration of wxChar* auxPtr from its assignment/initialization below, to 
@@ -52518,6 +53369,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					ptr = ptr + (size_t)itemLen;
 					itemLen = 0; // re-initialize, for ParseWord()
 				}
+
+				// whm 6Nov2025 added.
+				if (bForceEmptySrcPhrase)
+				{
+					// See comment above where bForceEmptySrcPhrase is declared.
+					bForceEmptySrcPhrase = FALSE;
+					goto finishup;
+				}
+
 #if defined (_DEBUG) //&& !defined (NOLOGS)
 				{
 					wxString pointsAt;
@@ -53324,6 +54184,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pSrcPhrase->m_inform = _("end fn"); // localizable
 								pSrcPhrase->m_bFootnoteEnd = TRUE;
 								m_bIsWithinUnfilteredInlineSpan = FALSE; // BEW 14Dec22 added
+								// whm 6Nov2025 added. We need to set the Doc flag m_bIsWithinFootnote_F_Span to FALSE;
+								m_bIsWithinFootnote_F_Span = FALSE;
 							}
 
 						} // end of TRUE block for test: if (pUsfmAnalysis != NULL)
@@ -53365,6 +54227,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 				bTextTypeChanges = TRUE; // BEW 14Dec22 added
 				m_bIsWithinUnfilteredInlineSpan = TRUE; // BEW 14Dec22 added
+				// whm 6Nov2025 added. We should ensure that the Doc flag m_bIsWithinFootnote_F_Span is TRUE
+				m_bIsWithinFootnote_F_Span = TRUE;
 				//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d  in block: pSrcPhrase->m_bFootnote == TRUE"),
 				//	__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 			}
@@ -53754,6 +54618,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									pPrevSrcPhrase->m_bBoundary = TRUE;
 
 									m_bIsWithinUnfilteredInlineSpan = FALSE;
+									// whm 6Nov2025 added. We should ensure the Doc flag m_bIsWithinFootnote_F_Span is FALSE
+									m_bIsWithinFootnote_F_Span = FALSE;
 									pSrcPhrase->m_bFirstOfType = TRUE;
 									pSrcPhrase->m_curTextType = verse;
 									pSrcPhrase->m_bSpecialText = FALSE;
@@ -53787,6 +54653,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										pPrevSrcPhrase->m_inform = _("end endnote");
 										pPrevSrcPhrase->m_bBoundary = TRUE;
 										m_bIsWithinUnfilteredInlineSpan = FALSE;
+										// whm 6Nov2025 added. We should ensure that the Doc flag m_bIsWithinFootnote_F_Span is FALSE;
+										m_bIsWithinFootnote_F_Span = FALSE;
 										pSrcPhrase->m_bFirstOfType = TRUE;
 										pSrcPhrase->m_curTextType = verse;
 										pSrcPhrase->m_bSpecialText = FALSE;

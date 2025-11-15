@@ -340,6 +340,7 @@ void      EmptyMarkersAndFilteredStrings(
 								  wxString& collBackTransStr,
 								  wxString& filteredInfoStr); 
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
+wxString  GetLastMarker(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr); // whm 12Nov2025 added
 wxString  GetLastMarker(wxString markers);
 wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
 								// use in CAdapt_ItApp::EnsureProperCapitalization()

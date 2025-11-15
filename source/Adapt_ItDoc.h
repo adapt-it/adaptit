@@ -275,6 +275,7 @@ protected:
 	// \xt marker within an unfiltered \f ... \f* span
 	bool			m_bIsWithinUnfilteredInlineSpan; // whm 4Mar2024 added
 	bool			m_bIsWithinCrossRef_X_Span;
+	bool			m_bIsWithinFootnote_F_Span; // whm 6Nov2025 added
 	wxString		m_strUnfilteredInlineBeginMarker;
 	// BEW 9Sep16 added next four
 	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
@@ -491,7 +492,8 @@ public:
 	bool			IsUnknownMarker(wxChar* pChar);
 	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
 	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
-	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);
+	bool			IsFootnoteOrCrossReferenceMarker(wxChar* pChar); // whm 12Nov2025 added
+	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar, wxChar* pEnd); // whm 12Nov2025 revised and added 2nd pEnd parameter
 	//bool			IsFootnoteOrCrossReferenceEndMarker(wxString str); //overload, str must start with endmarker
 	bool			IsFilteredBracketMarker(wxChar* pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar* pChar, wxChar* pEnd);
@@ -503,6 +505,7 @@ public:
 	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsClosingDoubleChevron(wxChar* pChar); // BEW 6Oct16 added, but no IsOpeningDoubleChevron() done yet
 	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
+	bool			IsACurrentFilterMarker(wxString augWholeMkr); // whm 6Nov2025 added to replace obsoleted one below.
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis); // whm 24Oct2023 see definition comments for warnings about use of this function!!
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
@@ -607,6 +610,7 @@ public:
 							wxString& spacelessPuncts, int len, bool& bExitOnReturn,
 							bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
 
+	int				ParseStrictlyFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // whm 6Nov2025 added
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
 	int				ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 25Jul23 added
 
@@ -652,6 +656,7 @@ public:
 	// ptr can be updated correctly from an int len counter internally, which uses int
 	// itemLen for parsing over things like puncts, beginMarkers, etc.
 	int ParsePreWord(wxChar* pChar,
+		wxChar* pBufStart, // whm 12Nov2025 added
 		wxChar* pEnd,
 		CSourcePhrase* pSrcPhrase,
 		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
@@ -659,7 +664,8 @@ public:
 		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 		bool& bIsInlineNonbindingMkr,
 		bool& bIsInlineBindingMkr,
-		bool bTokenizingTargetText);
+		bool bTokenizingTargetText,
+		bool& bForceEmptySrcPhrase);
 
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
