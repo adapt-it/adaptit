@@ -10675,7 +10675,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// embedded \xt marker in the m_inlineNonbindingMarkers member. Presumably, an \xt marker
 							// would never be both within a m_bIsWithinFootnote_F_Span and a m_bIsWithinCrossRef_X_Span
 							// at the same time during parsing.
-							if (augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0
+							if ((augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
 								|| augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
 							{
 								m_bIsWithinFootnote_F_Span = TRUE;
@@ -48801,6 +48801,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// to be created
 		// BEW 11Jun23 don't remove the bool in the test. When SWBK is set with content ( from >= 1)
 		// it will always be empty. sn = 0 is different, it helps only there
+		bool bForceEmptySrcPhrase = FALSE; // whm 15Nov2025 initialize here to avoid gcc error of jumping past initialization
 		wxString strPointsAt;
 		bool bIsToBeFiltered;
 		bIsToBeFiltered = FALSE; // BEW 18Aug23 init to FALSE, otherwise it's 205 which is bogus TRUE
@@ -53318,7 +53319,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// be set to TRUE by ParsePreWord(), and when TRUE at the time ParsePreWord() returns, 
 			// the goto finishup jump will be executed which bypasses ParseWord() and ends up
 			// creating the current pSrcPhrase with an empty m_key and empty m_srcPhrase.
-			bool bForceEmptySrcPhrase = FALSE; 
+			// whm 15Nov2025 moved the actual declaration and initialization up to beginning of 
+			// while (ptr < pEnd) loop to avoid gcc error of goto finishup; jumping past initialization.
+			bForceEmptySrcPhrase = FALSE; 
 
 
 			// BEW 25Jul23 ParsePreWord() causes \fig (a char attribute mkr) - and maybe other begin mkrs
