@@ -42095,7 +42095,10 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			//wxASSERT(*ptr == chBar);
 			// TODO: test to see if a "\\+fig " or \\+jmp " begin marker ever occurs here. If so, the
 			// marker should be stored in m_markers instead of the m_inlineNonbindingMarkers member.
+			// whm 17Nov2025 further update. Code execution here can also be with ptr pointing at the \xt
+			// marker, and augTheMkr being "\\xt ". 
 			pSrcPhrase->SetInlineNonbindingMarkers(augTheMkr);
+			
 			// NOTE: When we get to the last word of the attribute marker's caption text we'll need to
 			// call the SetInlineNonbindingEndMarkers() function, but that will happen elsewhere.
 			// 
@@ -42972,7 +42975,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString pointsAt = wxString(ptr, 20);
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , pointsAt= [%s]"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 124)
+				if (pSrcPhrase->m_nSequNumber >= 144)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -43270,7 +43273,11 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						// \id 2CO NT1160 Nyindrou - Kowak/Martin 02/26/01 12:04 PM
 						// which has 3 of the 7 pSrcPhrases starting with a digit.
 						{
-							len = 0;
+							// whm 18Nov2025 modified to correct parsing error. Removed the len = 0 line below. 
+							// Reason: len may have a positive value - of 4 for example, from parsing a marker 
+							// and space such as "\\xt " occurring and being stored before this IsAnsiDigit() 
+							// block is entered.
+							//len = 0;
 							wxString strContent;
 							strContent = wxEmptyString;
 							// What's shared by all pSrcPhrases in the \id line? Certainly not the sequNumber - the comment
@@ -48817,7 +48824,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber == 164)
+				if (pSrcPhrase->m_nSequNumber == 161)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -53306,7 +53313,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 			//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			//	pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 154)
+			if (pSrcPhrase->m_nSequNumber >= 145)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -53427,7 +53434,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		//	__LINE__, itemLen, (wxString(ptr, 12)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
 //#endif
 #if defined (_DEBUG) //&& !defined (NOLOGS)
-			if (pSrcPhrase->m_nSequNumber >= 440)
+			if (pSrcPhrase->m_nSequNumber >= 145)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -54947,7 +54954,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString atPtr = wxString(ptr, 16);
 		wxLogDebug(_T("TokenizeText(), line %d , sn= %d , APPENDING to pList , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, atPtr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 144)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
