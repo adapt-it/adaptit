@@ -9914,7 +9914,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// and return FALSE to have the caller put an appropriate entry in fixesStr
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
-	SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
+	SPList*& pList, SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
 	CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 	wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
@@ -9939,7 +9939,8 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	int numElements = 1; // default
 
 	 // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
+	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
+		pList); // whm 19Nov2025 added pList
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
@@ -26812,7 +26813,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// Set srcPhrase string: this member has all the source punctuation, if any on this
 		// word or phrase, as well as markers etc, as FromMergerMakeSstr() is docv5 aware
 		//srcPhrase = pSrcPhrase->m_srcPhrase;
-		srcPhrase = FromMergerMakeSstr(pSrcPhrase);
+		srcPhrase = FromMergerMakeSstr(pSrcPhrase, pOwnedList); // whm 19Nov2025 added pOwnedList
 		// Set targetStr only to the punctuated m_targetStr member, because we only want
 		// to deal with words, tgt punctuation and possibly fixed space marker (~) when we
 		// come to reparsing the target text with target punctutation chars to see if
@@ -35035,7 +35036,21 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			m_offsetToMatchingEndMkr = FindEndMarkerWithinSpan(beginMkrBackslashPtr, m_strAttrEndMkr,
 				m_nEndAttrMarkerLen, m_pSrcPhraseBeingCreated);
 
-			if (m_offsetToFirstBar == wxNOT_FOUND)
+			// whm 18Nov2025 Modifications. Provided a sanity check in the FindBarWithinSpan() function that
+			// causes the function to return wxNOT_FOUND if the scan encounters an \x* end marker within a 
+			// cross ref span, or encounters an \f* or \fe* end marker within a footnote/endnote span.
+			// We need a sanity check here too to catch any situation in which the returned offsets don't 
+			// make sense, i.e., when the m_offsetToMatchingEndMkr is less than the m_offsetToFirstBar we
+			// should return FALSE from IsAttributeMarker(). 
+			// An instance in JamesJ's data shows that it is possible to have IsAttributeMarker() called when 
+			// the ptr is pointing at an \xt marker within a footnote, for example: "\xt Dan 7:13-14\ft . Sid...". 
+			// In this case, the next bar code in the data was a long way off with an m_offsetToFirstBar 
+			// value of 3288. But, the FindEndMarkerWithinSpan() returned upon encountering the \ft marker, 
+			// with a returned offset value of just 15. The offset of the end marker is less than the offset
+			// of the begin marker. Such offset values end up causing a crash within the else block 
+			// below at the line: wxString strHoldThis = wxString(barCharPtr, endMkrPtr);
+			// due to out-of-range error. I'll add the || test to the original test below.
+			if (m_offsetToFirstBar == wxNOT_FOUND || m_offsetToMatchingEndMkr <= m_offsetToFirstBar)
 			{
 				// While the begin-marker is one that potentially can take attributes,
 				// this one has none. So there is nothing to hide. Return FALSE.
@@ -35176,6 +35191,10 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString& attrMkr, wxString& matchedMkr, 
 #if defined (_DEBUG) && !defined(NOLOGS)
 					wxLogDebug(_T("%s() line %d  ch:vs= [%s] , <> For attributes caching, returning TRUE."),
 						__FUNCTION__, __LINE__, gpApp->m_chapterVerseAttrSpan.c_str());
+					if (m_pSrcPhraseBeingCreated != NULL && m_pSrcPhraseBeingCreated->m_nSequNumber == 8224)
+					{
+						int breakHere = 1; wxUnusedVar(breakHere); // avoid warning variable initialized but not referenced
+					}
 #endif
 				}
 				return TRUE;
@@ -35280,6 +35299,9 @@ wxString  CAdapt_ItDoc::ConvertToEndMarker(wxString strBeginMkrAndSpace)
 /// is not there, crash and no apparent reason why. So I must make it a safe loop.
 /// Exit if a beginMkr is encountered; or if some other endmarker (as last resort)
 /// than the matching one, is encountered
+/// whm 18Nov2025 modified to provide a sanity check to abort and return wxNOT_FOUND
+/// if the scan encounters an \x* end marker within a cross ref span, or encounters
+/// a \f* or \fe* end marker within a footnote/endnote span.
 int   CAdapt_ItDoc::FindBarWithinSpan(wxChar* auxPtr, wxString matchingEndMkr, int endMkrLen)
 {
 	int offset = wxNOT_FOUND; // initialize to -1
@@ -35290,6 +35312,30 @@ int   CAdapt_ItDoc::FindBarWithinSpan(wxChar* auxPtr, wxString matchingEndMkr, i
 	// Start looking for the backslash of the matchingEndMkr
 	while (TRUE) {
 		wxString strEnd = wxString(ptr, endMkrLen);
+
+		// whm 18Nov2025 modified. We need a sanity check in this routine that will halt the scan
+		// and return FALSE if we encounter an \x* end marker while m_bIsWithinCrossRef_X_Span is TRUE, 
+		// or if we encounter an \f* end marker while m_bIsWithinFootnote_F_Span is TRUE.
+		wxString MkrInScan; MkrInScan.Empty();
+		bool bIsEndMkr = FALSE;
+		if (IsMarker(ptr))
+		{
+			int MkrLen = ParseMarker(ptr);
+			MkrInScan = wxString(ptr, MkrLen);
+			bIsEndMkr = MkrInScan.Find(_T('*')) != wxNOT_FOUND;
+			// Return FALSE if the MkrInScan is \x* or \f* or \fe*
+			if (bIsEndMkr && 
+				((MkrInScan == _T("\\x*") && m_bIsWithinCrossRef_X_Span)
+				|| (MkrInScan == _T("\\f*") && m_bIsWithinFootnote_F_Span) 
+				|| (MkrInScan == _T("\\fe*") && m_bIsWithinFootnote_F_Span)))
+			{
+					// We've reached a cross reference endmarker within a cross reference span
+					// or a footnote/endnote endmarker within a footnote/endnote span without 
+					// finding a bar, so return wxNOT_FOUND
+					return wxNOT_FOUND;
+			}
+		}
+
 		bool bIsEnd = IsEnd(ptr);
 		if (bIsEnd)
 		{

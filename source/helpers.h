@@ -382,7 +382,8 @@ wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, boo
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
 							wxString Tstr, bool bDoCount, 
-							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct);
+							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct,
+							SPList* pList); // whm 19Nov2025 added pList parameter
 bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
@@ -395,12 +396,16 @@ wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 r
 //wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-			CSourcePhrase* pPrevSingleSrcPhrase);
+			CSourcePhrase* pPrevSingleSrcPhrase,
+			SPList* pList); // whm 19Nov2025 added pList parameter
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
-wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
+wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, SPList* pList); // whm 19Nov2025 added pList
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
+// whm 19Nov2025 added the IsInlineMarkerSpanEnclosedInParentheses() function below
+bool	  IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList);
 wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
-							bool& bAddedSomething); // like ExportFunctions.cpp's
+							bool& bAddedSomething,
+							SPList* pList); // like ExportFunctions.cpp's
 			// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
 			// filtered information, nor the m_markers member; because this
 			// function is used in FromMergerMakeSstr() which accesses those

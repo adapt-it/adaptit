@@ -28321,12 +28321,13 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
 				// it's a genuine merger
-				srcStr = FromMergerMakeSstr(pSrcPhrase);
+				srcStr = FromMergerMakeSstr(pSrcPhrase, pSublist); // whm 19Nov2025 added pSublist
 			}
 			else
 			{
 				// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added 2nd parameter - unused - may use in future
+				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter - unused - may use in future
+					pSrcPhrases); // whm 19Nov2025 added pSrcPhrases
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and

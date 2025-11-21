@@ -17999,7 +17999,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
-			str = FromMergerMakeSstr(pSrcPhrase);
+			str = FromMergerMakeSstr(pSrcPhrase, pList); // whm 19Nov2025 added pList
 
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
@@ -18062,7 +18062,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #endif
 
 			// whm 5Feb2024 removed unused parameters
-			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added second parameter - unused - may use in future
+			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, pList); // whm 28Dec2024 added second parameter - unused - may use in future
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
@@ -19455,7 +19455,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
 				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
-					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
+					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct,
+					pList); // whm 19Nov2025 added pList parameter
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
