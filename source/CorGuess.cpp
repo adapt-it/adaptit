@@ -101,7 +101,7 @@ void StrReplace( wxChar* pszS, wxChar* pszReplace, int iLoc, int iNum ) // 1.6.1
 //	wxStrcpy( pszS + iLoc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
 	wxStrcat( pszS, pszReplace ); // 1.6.1aj Copy replace in // 1.6.1bb Get rid of pointer arithmetic
 	wxStrcat( pszS, pszTail ); // 1.6.1aj Put tail back on // 1.6.1bb 
-	delete pszTail;
+	delete[] pszTail;   // whm 6Dec2025 changed delete to delete[] to avoid gcc warning [-Wmismatched-new-delete]
 	}
 
 int iCorrespondenceBack( wxChar* psz1, wxChar* psz2 ) // Return length of correspondence from start // 1.6.1dm Revise correspondence back func
@@ -585,7 +585,7 @@ bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel )
 				*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source // 1.6.1be Change back to pointer arithmetic
 				bSuffReplace( pszSrcShortened, ppszTar, iLevel ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 40 or more // 1.6.1dk Pass in level
 				wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
-				delete pszSrcShortened; // 1.6.1aj 
+				delete[] pszSrcShortened; // 1.6.1aj  // whm 6Dec2025 changed delete to delete[] to avoid gcc warning [-Wmismatched-new-delete]
 				return true;
 				}
 			}
@@ -614,7 +614,7 @@ bool Guesser::bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel )
 				wxStrcpy( pszSrcShortened, pszSrc + iLenPrefSrc ); // Copy source to shortened source
 				bPrefReplace( pszSrcShortened, ppszTar, iLevel ); // 1.6.1aj Try replace pref on shortened source, but only if guess level 40 or more // 1.6.1dk Pass in level
 				StrReplace( *ppszTar, pcorPref->pszTar, 0, 0 ); // 1.6.1aj Prepend target pref to front of target
-				delete pszSrcShortened; // 1.6.1aj 
+				delete[] pszSrcShortened; // 1.6.1aj  // whm 6Dec2025 changed delete to delete[] to avoid gcc warning [-Wmismatched-new-delete]
 				return true;
 				}
 			}

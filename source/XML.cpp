@@ -9810,8 +9810,10 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		// make a CBString with a copy of the buffer contents (however
 		// many we actually got, that is, actualNumBytes worth)
 		CBString xmlStr(pBuff); // xmlStr will now manage the copied byte data
+		// whm 6Dec2025 changed delete pBuff call below to delete[] pBuff to avoid 
+		// g++ error [-Wmismatched-new-delete]
 		if (pBuff != NULL) // whm 11Jun12 added NULL test
-			delete pBuff; // temp buff is no longer needed
+			delete[] pBuff; // temp buff is no longer needed 
 
 		// first task is to find if we are dealing with <gloss> only, <definition> 
 		// only, or a file which has both those kinds of elements; and how many of

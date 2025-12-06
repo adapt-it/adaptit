@@ -561,22 +561,26 @@ public:
 	void storefree();
 	void storechar(SSINT ch);
 	void storeelement(int search);
-	void groupinclude(register int group);
-	void groupexclude(register int group);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    void groupinclude(int group); //void groupinclude(register int group);
+    void groupexclude(int group); //void groupexclude(register int group);
 	int srchlen(tbltype tpl);
 	bool wedgeinline();
 	void flushstringbuffer(int search);
 	void storestring(int search, char * string, int sLen);
 	void inputaline();
-	void output(register SSINT ch);
-	void storch(register int store, SSINT ch);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    void output(SSINT ch); //void output(register SSINT ch);
+    void storch(int store, SSINT ch); //void storch(register int store, SSINT ch);
 	void tblskip(SSINT **tblpnt);
 	void PushStore();
 	void PopStore();
 	void resolve_predefined(int index);
 	void BackCommand(SSINT **cppTable, bool utf8);
-	int valnum(register SSINT * operand, char *opbuf, int buflen, long int *value, char first);
-	int storematch(SSINT **tblpnt);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    //int valnum(register SSINT* operand, char* opbuf, int buflen, long int* value, char first);
+    int valnum(SSINT* operand, char* opbuf, int buflen, long int* value, char first);
+    int storematch(SSINT **tblpnt);
 	void LengthStore(SSINT **cppTable);
 	int IfSubset(SSINT **tblpnt);
 	void FwdOmitCommand(SSINT **cppTable, bool *pbOmitDone, bool fwd, bool utf8);
@@ -592,7 +596,8 @@ public:
 	void bailout(int WXUNUSED(exit_code), int WXUNUSED(ctrlc_flag));
 	void completterset();
 	int gmatch(int group);
-	int cmatch(register cngtype cp, int ofs);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int cmatch(cngtype cp, int ofs); //int cmatch(register cngtype cp, int ofs);
 	int leftexec(int ofs);
 	int anyutf8check(SSINT * mcptr);
 	int anycheck(SSINT mc);
@@ -618,8 +623,9 @@ public:
 	int wungetc(int ch, WFILE * stream);
 	int wfflush(WFILE * stream);
 	SSINT *ssbytcpy(SSINT *d, SSINT *s, int n);
-	int odd(register int i);
-	int a_to_hex(register char ch);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int odd(int i); //int odd(register int i);
+    int a_to_hex(char ch); //int a_to_hex(register char ch);
 	char *bytset(char *d, char c, int n);
 	SSINT *ssbytset(SSINT *d, SSINT c, int n);
 	SSINT *execute(int mlen, SSINT * tpx, int beginflag);
@@ -636,7 +642,8 @@ public:
 	int hex_decode(char * pstr);
 	int ucs4_decode(char * pstr);
 	void decimal_decode(int * number);
-	void octal_decode(register int *number);
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    void octal_decode(int* number); //void octal_decode(register int* number);
 	void buildkeyword();
 	void stornoarg(char comand, char dummy1, char dummy2);
 	void storarg(char comand, char sym_args, char table_head);

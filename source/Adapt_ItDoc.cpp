@@ -10677,7 +10677,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// would never be both within a m_bIsWithinFootnote_F_Span and a m_bIsWithinCrossRef_X_Span
 							// at the same time during parsing.
 							if ((augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
-								|| augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+								|| (augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
 							{
 								m_bIsWithinFootnote_F_Span = TRUE;
 							}
@@ -10686,9 +10686,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								m_bIsWithinCrossRef_X_Span = FALSE;
 							}
-							// whm 6Nov2025 added. See comment above.
-							if (augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0
-								|| augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+							// whm 6Nov2025 added. See comment above. 
+							// whm 6Dec2025 added parentheses to avoid g++ warning as done above prior to TokenizeTextString()
+							if ((augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+								|| (augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
 							{
 								m_bIsWithinFootnote_F_Span = FALSE;
 							}
@@ -42535,7 +42536,30 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			if (!pSrcPhrase->m_precPunct.IsEmpty())
 			{
 				// just in case there is preceding punctuation that somehow got to be present
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+				// 
+				// whm 5Dec2025 addition. It is possible that m_precPunct may have initial
+				// whitespace in the form of "\r\n" here. We must NOT store any such EOLs in
+				// pSrcPhrase->m_srcPhrase which if present would cause the main window's
+				// display of source text to not appear in the source text line unless the
+				// user clicks in the target text line - where it then mysteriously appears 
+				// as a choice for target text copy. The mystery happens because the source
+				// text line is displaced down one line due to embedded EOL and not visible
+				// on the normal source text line which appears blank.
+				// Tracing showed that m_precPunct was assigned "\r\n" as its sole content
+				// within TokenizeText() bIsToBeFiltered block, at the statement:
+				//    pSrcPhrase->m_precPunct += strACount;
+				// which assigned "\r\n" to m_precPunct which in later code was assigned to
+				// the m_srcPhrase member's content. The EOL whitespace should be assigned 
+				// instead to the m_markers member. I made that change there this date.
+				wxString precPnct = pSrcPhrase->m_precPunct;
+				// Remove any embedded EOLs within m_precPunct
+				// Replace all individual \r and \n in separate calls in case of a sole \r or \n is 
+				// present within the m_precPunct member.
+				precPnct.Replace("\r", wxEmptyString, TRUE); // TRUE - replace all \r EOLs
+				precPnct.Replace("\n", wxEmptyString, TRUE); // TRUE - replace all \n EOLs
+				// Remove any remaining leading whitespace
+				precPnct.Trim(FALSE);
+				pSrcPhrase->m_srcPhrase = precPnct;
 			}
 			pSrcPhrase->m_srcPhrase += m_cachedWordBeforeBar; //pSrcPhrase->m_srcPhrase += theWord;
 			// We are done with the hiding of the metadata, and we have set m_key, and m_srcPhrase
@@ -50193,567 +50217,69 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 					//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), 
 					//	__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
-					if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
+
+					// whm 3Dec2025 addition. Begin markers that are char attribute markers
+					// may be pointed at by ptr here at this code location. The block below
+					// doesn't adequately deal with char attribute markers, which are handled
+					// farther below. I'm adding an additional test here to set the 
+					// bIsCharAttrMkr flag to TRUE for any char attribute markers that arrive
+					// here and add an initial test if (!bIsCharAttrMkr) surrounding the if 
+					// test below: if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
+					wholeMkr = GetWholeMarker(ptr);
+					wxASSERT(!wholeMkr.IsEmpty());
+					augWholeMkr = wholeMkr + _T(' ');
+					lookupStr = augWholeMkr;
+					bIsCharAttrMkr = gpApp->m_charAttributeMkrs.Find(augWholeMkr) != wxNOT_FOUND;
+					if (!bIsCharAttrMkr) // whm 3Dec2025 added this outer test
 					{
-						wholeMkr = GetWholeMarker(ptr);
-						wxASSERT(!wholeMkr.IsEmpty());
-						augWholeMkr = wholeMkr + _T(' ');
-						lookupStr = augWholeMkr;
-#if defined (_DEBUG) 
-						// Verify
-						int verifyOffset;
-						verifyOffset = wholeMkr.Find(tagOnly);
-						wxASSERT(verifyOffset >= 0);
-#endif
-						if (!wholeMkr.IsEmpty())
+						if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
 						{
-							// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
-							// that ptr does not advance until control reaches the filtering code lower down
+#if defined (_DEBUG) 
+							// Verify
+							int verifyOffset;
+							verifyOffset = wholeMkr.Find(tagOnly);
+							wxASSERT(verifyOffset >= 0);
+#endif
+							if (!wholeMkr.IsEmpty())
+							{
+								// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
+								// that ptr does not advance until control reaches the filtering code lower down
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 							//wxLogDebug(_T("TokText() line %d wholeMkr= [%s], gpApp->gCurrentFilterMarkers= [%s]"),
 							//	__LINE__, wholeMkr.c_str(), gpApp->gCurrentFilterMarkers.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 1060)
-							{
-								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-							}
+								if (pSrcPhrase->m_nSequNumber >= 1060)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+								}
 #endif
-							// whm 6Nov2025 modified the following code block to use the new function:
-							// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
-							// manditory filtering of \free, \note, and \bt... and also ensures that
-							// any instance of the (now) deprecated \xt marker takes on the filter status
-							// of the marker span that encloses the \xt marker, that is, if \xt is here
-							// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
-							// is TRUE, then the \xt marker is assigned a filter status that matches the filter
-							// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
-							// it is found. For other markers, the filter status is determined by simply calling:
-							// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
-							bIsToBeFiltered = IsACurrentFilterMarker(augWholeMkr);
+								// whm 6Nov2025 modified the following code block to use the new function:
+								// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the
+								// manditory filtering of \free, \note, and \bt... and also ensures that
+								// any instance of the (now) deprecated \xt marker takes on the filter status
+								// of the marker span that encloses the \xt marker, that is, if \xt is here
+								// being processed and either m_bIsWithinFootnote_F_Span or m_bIsWithinCrossRef_X_Span
+								// is TRUE, then the \xt marker is assigned a filter status that matches the filter
+								// status of the corresponding \x ...\x*, or \f ...\f*, or \fe ...\fe* span in which
+								// it is found. For other markers, the filter status is determined by simply calling:
+								// bIsToBeFiltered = gCurrentFilterMarkers.Find(augWholeMkr)
+								bIsToBeFiltered = IsACurrentFilterMarker(augWholeMkr);
 
-							//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
-							//// or \bt... marker - which are obligatorily filtered.
-							//bool bIsForeignBackTransMkr = FALSE;
-							//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
-							//if (!bIsToBeFiltered)
-							//{
-							//	// whm 6Nov2025 Note: In the IsMarkerFreeTransOrNoteOrBackTrans() function, the 
-							//	// bIsForeignBackTransMkr parameter is never referenced or checked in code, 
-							//	// therefore it could be removed from the function.
-							//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
-							//}
-						}
-#if defined (_DEBUG) && !defined (NOLOGS)
-						{
-							wxString strPointAt = wxString(ptr, 16);
-							wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
-								__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
-							{
-								int halt_here = 1; wxUnusedVar(halt_here);
-							}
-						}
-#endif						
-						//wxChar period;
-						//period = _T('.');
-						wxString strTest;
-						strTest = wxEmptyString;
-						if (wholeMkr != verseMkr)
-						{
-							// The marker is not \v (could be \m or \li1 or \q1 or \p or \x etc)
-							// BEW 23Aug23, at this point, tokBuffer might be empty, and if so
-							// we must not unilaterally add a space.
-							// Also, the code for checking it bIsToBeFiltered for TRUE is above,
-							// so we don't want to add wholeMkr to m_markers something which
-							// is going to be filtered out, so refactor here with care...
-							if (bIsToBeFiltered)
-							{
-								// We must not do anything here that results in wholeMkr being added to tokBuffer
-								// or to m_markers; parsing must not advance ptr until the filtering has been done
-								int debugBreak = 0; wxUnusedVar(debugBreak);
-								// TODO anything to do here? I don't think so -- e.g. \x must still be pointed at
-								// when control reaches the filtering code, a long way below
-								// 
-								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-								// whm 12Mar2024 added filtering block here below for testing. 
-								// I think this needs to have the full filtering block at this
-								// location. The other main filtering block that precedes this is the filtering 
-								// block that is within the while loop:
-								//    while (ptr < pEnd && *ptr == gSFescapechar && !IsRedOrBindingOrNonbindingBeginMkr(ptr, pEnd))
-								// above, but that loop excludes char attribute markers like \jmp. The filtering code
-								// here should be similar to what is done later below at about 49752
-								// This is the block for filtering a span of source text out,
-								// to store it in m_filteredInfo in the CSourcePhrase instance
-								// which commences the filter span.
-
-								// If the span is associated with an attribute having
-								// marker such as \w ( inlineBindingMkr, for a glossary entry)
-								// or \fig ( for a figure in the printed text), and some others,
-								// TokenizeText() will have gathered and cached metadata for hiding
-								// the information from bar ( | ) to the matching endmarker, and
-								// appending a copy of the endmarker as well, for use later for
-								// locating where to restore the metadata in an export needing it.
-								//
-								// But when filtering, we will want to have the attributes 
-								// metadata "in place", rather than having it hidden in the
-								// span's last CSourcePhrase instance's m_punctsPattern member.
-								// So we must test for filtering of the small set of attributes-having
-								// markers, and if we are wanting to filter one, then we'll grab the
-								// whole span before m_punctsPattern has a chance to hide anything,
-								// and since filtering removes the need for the cached metadata to
-								// persist, we clear out that cached stuff and its temporary on-the-heap
-								// CSourcePhrase instance as well, so that there's no confusion from 
-								// that stuff hanging around unused. 
-								// So we'll code in bleeding order - get the special cases out of the way
-								// first, and the general stuff handled last.
-
-								// bIsToBeFiltered is TRUE, so determine if the marker is one from
-								// the set of attributes-having markers, and that tokenizing source
-								// text is in operation
-								wxString whichMkr = wxEmptyString;
-								//wxUnusedVar(whichMkr); // wwhichMkr in the call below is the one checkedd for
-								bool bItsSourceText = !m_bTokenizingTargetText;
-
-								// Ready for the filtering code...
-								if (bItsSourceText)
-								{
-									wxString temp = wxEmptyString;
-									itemLen = 0; // initialize
-
-									// Obtain the string to be filtered out
-									itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
-
-									// whm 16Mar2024 added. Get the filtered string and compare it with 
-									// the rBuffer text that was input into TokenizeText(). If they are 
-									// the same, then the entire rBuffer string was filtered, leaving
-									// the current pSrcPhrase an empty orphan that can we need to remove
-									// below at the end of this block after storing the filtered 
-									// information.
-									bool bUnneededSrcPhrase = FALSE;
-									wxString filteredStr = wxString(ptr, itemLen);
-									if (filteredStr == rBuffer)
-									{
-										bUnneededSrcPhrase = TRUE;
-									}
-
-									// get filtered text bracketed by \~FILTER and \~FILTER*
-									temp = GetFilteredItemBracketed(ptr, itemLen);
-
-									// BEW 30Sep19, storing will be to the next pSrcPhrase's
-									// m_filteredInfo member. It doesn't yet exist, so we
-									// cache temp, and set bDelayStoringFilteredInfo to TRUE,
-									// and then at next iteration of the outer loop, we
-									// append the cached data to m_filteredInfo. If the loop
-									// exits before the next pSrcPhrase can be created, it is
-									// created after the loop finishes, and a pile ptr added
-									// to Layout's m_pileList, so that a green wedge and
-									// m_inform text ("Filtered Info Carrier") are displayed
-									// in the nav text region at doc end
-									strCacheDelayedFilteredContent = temp; // temp is local and can now die
-									//bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
-									// if strCacheDelayedFilteredContent wxString is non-empty when control gets
-									// to doc end, the an extra pSrcPhrase will be automatically created to have
-									// a place to store it - see Doc lines 20,702++ for where that's done
-
-									// BEW 16Dec22 move the AddToFilteredInfo() call to here, since strCacheDelayedFilteredContent
-									// has its content now, there is no point in delaying storage till the next
-									// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
-									// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
-									// pPrevSrcPhrase, it should then work better if later the beginMkr is removed from
-									// the gCurrentFilterMarkers list
-									if (pPrevSrcPhrase != NULL)
-									{
-										// whm 18Mar2024 added for getting a suitable non-placeholder SP to store filtered info
-										pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
-
-										if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
-										{
-											// There is swept up material to prefix to the bracketed filtered marker
-											// That was determined by the GatherWhiteSpaceAndSweepableMarkers() call earlier
-											// in TokenizeText(). 
-											// The swept up material may contain whitespace, and/or other markers such as
-											// \c n, \v n \p and other empty markers that are contained in the variable:
-											// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
-											// Here we prefix that swept up material to strCacheDelayedFilteredContent
-											// before the pPrevSrcPhrase->AddToFilteredInto() call below.
-											strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered
-												+ strCacheDelayedFilteredContent;
-											// We now reset the variables
-											sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
-											bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
-										}
-										//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-										pPrevSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-									}
-									// ptr has to be updated by itemLen characters added; wholeMkr got
-									// removed along with its content; and will be stored to m_filteredInfo
-									ptr += itemLen;
-									strCacheDelayedFilteredContent = wxEmptyString; // Gotta clear it, otherwise, if it's
-										// not empty when parse gets to doc end, it will be added again on a "Filtered Info Carrier"
-										// programmatically added extra pSrcPhrase
-									itemLen = 0; // BEW added 24Aug23
-
-									if (bUnneededSrcPhrase)
-									{
-										// TokenizeText() was probably called from OnEditSourceText() and the entire
-										// contents of the rBuffer was stored in a pPrecSrcPhrase, so the current
-										// pSrcPhrase is not needed, and pList will be empty. So, we delete the
-										// pSrcPhrase here from the heap, and return an empty 
-										if (pList->GetCount() == 0)
-										{
-											DeleteSingleSrcPhrase(pSrcPhrase);
-											// Nothing more to do in TokenizeText() so return with 0 elements processed
-											return 0;
-										}
-									}
-
-									// whm 21Feb2024 added. Call ParsePostWordPunctsAndEndMkrs() function here to deal with
-									// any puncts that immediately follow the filtered info that really should be stored on
-									// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function - the function
-									// now internally protects from pPrevSrcPhrase being NULL.
-									// 
-									// whm 26Dec2024 added wordSuffix ref parameter to ParsePostWordPunctsAndEndMkrs() call to cover
-									// the situation where an inline binding end marker such as \nd* occurs in the middle of a word.
-									// The wordSuffix ref parameter will return any such word-building suffix part of the word that
-									// occurs directly after the inline binding end marker. Otherwise, as Roland F reported some of
-									// his words that had, for example, \nd<word-first-part>\nd*<word-suffix-part><space-between-words>
-									// were getting broken up resulting in the <word-suffix-part> being parsed as a separate source phrase.
-									// We utilize any returned wordSuffix to update the m_key and m_srcPhrase members with this suffix.
-									wxString wordSuffix; wordSuffix.Empty();
-									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
-									//ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
-
-									// We don't know  what lies beyond the endmarker, but it's handled further down.
-									// if after some whitespace there is a backslash, then continue; to iterate the loop.
-									// Otherwise, probably words follow
-									int aCount;
-									aCount = 0;
-									aCount = ParseWhiteSpace(ptr); // parse any white space following it,
-																	// return 0  if not pointing at whitespace
-									//wxUnusedVar(aCount); // avoid compiler warning
-									// BEW 24Aug23 dont advance ptr, but make aCount available if wanted below
-									tokBuffer.Empty();
-
-									// BEW 23Aug23, it's probably unhelpful to iterate this inner loop using continue; in every
-									// context. For instance, if after any whites there is not a backslash, but rather words to
-									// be parsed, (or if \x to \x* just got filtered out - which is likely to be followed by words)
-									// we would want to break from the loop. But if after whites is a backslash, then continue;
-									// would be appropriate. So sort these possibilities out...
-									{ //scope block
-										wxChar* pAux = ptr + aCount; // typically aCount is 1, for the one space prior to words
-											// unless there is a lurking backslash, which would require iterating the inner loop
-										if ((*pAux == gSFescapechar) || (*ptr == gSFescapechar))
-										{
-											// BEW 28Aug23 There is a lurking backslash!  So advance ptr to it, otherwise, control
-											// when continue is called, goes to the while loop at 40835 which tests for a beginMkr
-											// at start of inner loop, but ptr still pointing at space or newline, the loop will
-											// exit immediately; bContinueTwice will be FALSE, bKeepPtrFromAdvancing will be FALSE,
-											// and so control goes to ParsePreWord() and then ParseWord() where the initial backslash
-											// of the marker causes ParseAWord() to fail, and the text that should be parsed is not
-											// parsed, and instead "empty-key" shows. This error sequence starts here, if ptr
-											// points at space or newline and we don't parse over that whitespace.
-											if (*pAux == gSFescapechar)
-											{
-												wxString strACount;
-												strACount = wxString(ptr, aCount);
-												pSrcPhrase->m_precPunct += strACount;
-												ptr += aCount; // point ptr at the beginMkr, (we are not here trying to get a new pSrcPhrase)
-											}
-											continue; // iterate the inner loop - 6th continue in TokenizeText()
-										}
-										else
-										{
-											// words probably follow, so break from the loop
-											// send control to ParsePreWord() and then ParseWord()
-											goto parsing;
-										}
-									} // end scopeblock
-
-								} // end of TRUE block for test: if (bItsSourceText)
-								else
-								{
-									// It's not source text...
-									wxString temp = wxEmptyString;
-
-									// Ready for the filtering code...
-									itemLen = 0; // initialize
-
-									// Obtain the string to be filtered out
-									itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
-
-									// BEW 30Sep19,  The legacy code follows...
-
-									// get filtered text bracketed by \~FILTER and \~FILTER*
-									bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
-										augWholeMkr, bIsForeignBackTrans);
-									if (bIsForeignBackTrans)
-									{
-										// it's a back translation type of marker of foreign origin (extra
-										// chars after the t in \bt) so we just tuck it away in
-										// m_filteredInfo
-										temp = GetFilteredItemBracketed(ptr, itemLen);
-									}
-									else if (bIsFreeTransOrNoteOrBackTrans)
-									{
-										// whm 27Jan2024 TODO: Should the following call's 4th param be pPrevSrcPhrase???
-										// TODO:
-										SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
-										wxString aTempStr(ptr, itemLen);
-										temp = aTempStr; // don't need to wrap with \~FILTER etc, get just
-															// enough for the code below to set the value between |@ and @|
-									}
-									else
-									{
-										// other filterable markers go in m_filteredInfo, and have to be
-										// wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
-										temp = GetFilteredItemBracketed(ptr, itemLen);
-									}
-
-									// We may be at some free translation's anchor pSrcPhrase, having just
-									// set up the filter string to be put into m_markers; and if so, this
-									// string will contain a count of the number of following words to
-									// which the free translation applies; and this count will be
-									// bracketted by |@ (bar followed by @) at the start and @|<space> at
-									// the end, so we can search for these and if found, we extract the
-									// number string and remove the whole substring because it is only
-									// there to inform the parse operation and we don't want it in the
-									// constructed document. We use the count to determine which pSrcPhrase
-									// later encountered is the one to have its m_bEndFreeTrans member set
-									// TRUE.
-									int nFound = temp.Find(_T("|@"));
-									if (nFound != -1)
-									{
-										// there is some free translation to be handled
-										int nFound2 = temp.Find(_T("@| "));
-										wxASSERT(nFound2 - nFound < 10); // characters between can't be
-																			// too big a number
-										wxString aNumber = temp.Mid(nFound + 2, nFound2 - nFound - 2);
-										nFreeTransWordCount = wxAtoi(aNumber);
-										wxASSERT(nFreeTransWordCount >= 13);
-
-										// now remove the substring
-										temp.Remove(nFound, nFound2 + 3 - nFound);
-
-										// now check for a word count value of zero -- we would get this if
-										// the user, in the project which supplied the exported text data,
-										// free translated a section of source text but did not supply any
-										// target text (if a target text export was done -- the same can't
-										// happen for source text of course). When such a \free field
-										// occurs in the data, there will be no pSrcPhrase to hang it on,
-										// because the parser will just collect all the empty markers into
-										// m_markers; so when we get a count of zero we should throw away
-										// the propagated free translation & let the user type another if
-										// he later adapts this section
-										if (nFreeTransWordCount == 0)
-										{
-											temp.Empty();
-										}
-									} // end of TRUE block for test: if (nFound != -1)
-
-									// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
-									// support of notes, backtranslations and free translations, so we have
-									// to set these at appropriate places in the parse.
-									if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
-									{
-										// other filtered stuff needs to be saved here (not later), it has
-										// been wrapped with \~FILTER and \~FILTER*; there is no need to
-										// use a delimiting space between the filter markers
-										// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
-										// to the pPrevSrcPhrase and not pSrcPhrase.
-										//pSrcPhrase->AddToFilteredInfo(temp);
-										// whm 18Mar2024 Within target text there are no placeholders so there
-										// is no need to call GetPreviousNonPlaceholderSrcPhrase() here
-										if (pPrevSrcPhrase != NULL)
-											pPrevSrcPhrase->AddToFilteredInfo(temp);
-									}
-									if (wholeMkr == _T("\\note"))
-									{
-										pSrcPhrase->m_bHasNote = TRUE;
-									}
-									if (bFreeTranslationIsCurrent)
-									{
-										// a free translation section is current
-										if (wholeMkr == _T("\\free"))
-										{
-											// we've arrived at the start of a new section of free
-											// translation -- we should have already turned it off, but
-											// since we obviously haven't we'll do so now
-											if (nFreeTransWordCount != 0)
-											{
-												bFreeTranslationIsCurrent = TRUE; // turn on this flag to
-													// inform parser in subsequent iterations that a new
-													// one is current
-												if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
-												{
-													pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
-																							// previous section
-												}
-
-												// indicate start of new section
-												pSrcPhrase->m_bHasFreeTrans = TRUE;
-												pSrcPhrase->m_bStartFreeTrans = TRUE;
-											}
-											else
-											{
-												// we are throwing this section away, so turn off the flag
-												bFreeTranslationIsCurrent = FALSE;
-												if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
-												{
-													pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
-																							// previous section
-												}
-											}
-										}
-										else
-										{
-											// for any other marker, if the section is not already turned
-											// off, then just propagate the free translation section to
-											// this sourcephrase too
-											pSrcPhrase->m_bHasFreeTrans = TRUE;
-										}
-									} // end of the TRUE block for test: if (bFreeTranslationIsCurrent)
-									else
-									{
-										// no free translation section is currently in effect, so check to
-										// see if one is about to start
-										if (wholeMkr == _T("\\free"))
-										{
-											bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform
-													// parser in subsequent iterations that one is current
-											pSrcPhrase->m_bHasFreeTrans = TRUE;
-											pSrcPhrase->m_bStartFreeTrans = TRUE;
-										}
-									}  // end of the else block for test: if (bFreeTranslationIsCurrent)
-
-									ptr += itemLen;
-
-									// legacy code ends
-								}  // end of else block for test: if (bItsSourceText) 
-								// whm 12Mar2024 added filtering block here above for testing. 
-								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-							
-							}  // end of filtering TRUE block for test: if (bIsToBeFiltered)
-							else
-							{
-								// This block can parse, but with care - don't append a latin space
-								// to an empty pSrcPhrase->m_markers; also wholeMkr is not going to be filtered out
-								tokBuffer.Trim(FALSE); // remove any initial white space
-								if (pSrcPhrase->m_markers.IsEmpty())
-								{
-									if (!tokBuffer.IsEmpty())
-									{
-										// There is something to add to m_markers, do so and clear tokBuffer
-										pSrcPhrase->m_markers = tokBuffer;
-									
-										int mmkrsLen;
-										mmkrsLen = pSrcPhrase->m_markers.Length();
-										ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
-
-										tokBuffer.Empty();
-									}
-								}
-								else
-								{
-									// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
-									// or it might be empty. If empty, no harm in unilaterally appending
-									
-									// BEW 6Jul23 Don't lose the marker, add it to m_markers if non-empty
-									// ptr should have earlier been advanced to point past pSrcPhrase->m_markers
-									// so just advance ptr by how long tokBuffer is.
-									// 
-									// whm 6Jan2024 modification.
-									// Testing (of Hezekiah text file) indicates the when input text has a \b stanza break or 
-									// a \tr table row marker, the marker gets doubled within m_markers.
-									// When \b was previously put in m_marker above as "\\b\r\n" the tokBuffer at this point
-									// also has something like "\\b\r\n\\nc " revealing that the m_markers content would
-									// be doubled if the following line "augments" (+=) m_markers with tokBuffer content. 
-									// 
-									// whm 6Jan2024 Testing shows that doing an augment operation += sometimes results
-									// in a marker getting duplicated within m_markers.
-									// To eliminate any such duplication including any duplication of whitespace
-									// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
-									// remove any duplicate markers found in m_markers. If the first marker in 
-									// m_markers has following whitespace, and any following duplicate marker also 
-									// has the same whitespace, the whitespace of the duplicate is also removed. 
-									// If the initial marker has no following whitespace, but a duplicate marker 
-									// does have some following whitespace, only the duplicate marker is
-									// removed - leaving its white space. However, if leaving the duplicate marker's
-									// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
-									// m_markers, then the doubled EOL and doubled spaces are changed to single
-									// instances in m_markers.
-									//  
-									// whm 9Jan2024 testing in Hezekiah when parsing and red marker \ms1 is being
-									// parsed here, the \ms1 marker has not yet been added to tokBuffer, and 
-									// moreover the content of tokBuffer was same as m_markers both having "\\b\r\n"
-									// in them. To avoid dropping the \ms1 marker and properly increment the ptr below
-									// The solution needs to do the following:
-									// 1. Empty tokBuffer if it is not empty and has the same duplicate content as 
-									//    m_markers.
-									// 2. Add the marker to the tokBuffer so that the content of tokBuffer is solely
-									//    the wholeMkr - which ptr is currently pointing at. This will then result
-									//    in a proper increment value for ptr that just advances past the marker.
-									// The above solution I think will also help reduce or eliminate marker duplication
-									// within the m_markers member. However, I'm leaving the call of 
-									// RemoveDuplicateMarkersFromMkrString() below in place, as it doesn't cause
-									// any change in m_markers if there is no duplication.
-									if (!tokBuffer.IsEmpty() && tokBuffer == pSrcPhrase->m_markers)
-									{
-										tokBuffer.Empty();
-									}
-									tokBuffer = augWholeMkr; // need the augmented marker here to provide space following marker
-
-									// whm 5Oct2025 modifications. In some circumstances the tokBuffer here
-									// may have an inlineBindingMarker such as \add (from JamesJ's MAT data)
-									// and inlineBindingMarkers should be stored NOT in m_markers, but in 
-									// m_inlineBindingMarkers using AppendToInlineBindingMarkers().
-									// TODO: detect wither our marker is an inlineBindingMarker type and store
-									// it appropriately.
-
-									pSrcPhrase->m_markers += tokBuffer;
-									pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
-									// whm 23Jan2024 modification/correction. Just above, tokBuffer is filled with the augWholeMkr
-									// so that the contents of tokBuffer now ends with a space. The original code below then
-									// gets the length of tokBuffer - including the space - into tbLen. Then tbLen is used to
-									// increment the ptr, but that is wrong for any following EOL sequence of \r\n, and it leaves
-									// the ptr pointing at the \n instead of past the whitespace at the following word or marker.
-									// Therefore, I've modified the code below to increment ptr properly by the actual length of
-									// the wholeMkr and then by the actual length of following whitespace. This failure had many
-									// negative ramifications for a text full of empty contentless markers in which most markers 
-									// are followed by EOL \r\n chars rather than words or single spaces.
-									//int tbLen;
-									//tbLen = tokBuffer.Length(); // whm 9Jan2024 note: tbLen will now always be the length of the marker
-									//ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
-									int nMkrLen = (int)wholeMkr.Length();
-									ptr += nMkrLen;
-									int nWhitesLen = ParseWhiteSpace(ptr);
-									ptr += nWhitesLen;
-
-									// whm 12Jan2024 modification. tokBuffer should be emptied once it has been assigned
-									// to m_markers.
-									tokBuffer.Empty();
-
-									// whm 5Oct2025 addition. At this point after ptr had advanced, it could 
-									// be pointing at another marker or non-marker text. If ptr is now 
-									// pointing at a marker following the marker above, we should call 
-									// continue here to catch that marker, otherwise when ptr is not pointing
-									// at a marker, the goto parsing jump is more appropriate. This is similar
-									// to what is done farther below after advancing the ptr.
-									// If we were to continue going through the code below, we would potentially
-									// get to the point where a wholeMkr = GetWholeMarker(ptr) statement is
-									// called when ptr isn't pointing at a marker, and augmentedWholeMkr becomes
-									// a space, which ends up making for a false positive result when 
-									// offset = gpApp->m_charAttributeMkrs.Find(augmentedWholeMkr) since
-									// it would find a match at the first space in the set. This eventually 
-									// let to a warning message about unexpected markers in JamesJ's data.
-									if (IsMarker(ptr))
-										continue;
-									else
-										goto parsing;
-								}
-
+								//// whm 20Jan2024 added check if augWholeMkr is an AI custom marker \free \note 
+								//// or \bt... marker - which are obligatorily filtered.
+								//bool bIsForeignBackTransMkr = FALSE;
+								//bIsToBeFiltered = (pApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND);
+								//if (!bIsToBeFiltered)
+								//{
+								//	// whm 6Nov2025 Note: In the IsMarkerFreeTransOrNoteOrBackTrans() function, the 
+								//	// bIsForeignBackTransMkr parameter is never referenced or checked in code, 
+								//	// therefore it could be removed from the function.
+								//	bIsToBeFiltered = IsMarkerFreeTransOrNoteOrBackTrans(augWholeMkr, bIsForeignBackTransMkr);
+								//}
 							}
 #if defined (_DEBUG) && !defined (NOLOGS)
 							{
 								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokText() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], pointsAt= [%s] "),
+								wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
 									__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
@@ -50761,171 +50287,794 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								}
 							}
 #endif						
-							// whm 17Jan2024 Note: The old bogus period handling routine below was not
-							// reached here because ptr is still pointing at the backslash of the
-							// marker at this point.
-							// Here is not an appropriate place to call IteratePtrPastBogusPeriods(ptr) 
-							// either for the same reason. I will call IteratePtrPastBogusPeriods()
-							// later after the marker and following space have been parsed and the 
-							// ptr is updated to point to whatever follows the "\\p " marker and following
-							// space.
-							// Hence, I have removed the if block below that attempted to remove bogus
-							// periods. 
-							// Also we wait until the marker has been parsed and ptr updated just
-							// past the space following the marker before assigning the precWordDelim 
-							// character
-
-							/*
-							wxChar* pAux;
-							pAux = ptr;
-							if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period && !pSrcPhrase->m_markers.IsEmpty())
+							//wxChar period;
+							//period = _T('.');
+							wxString strTest;
+							strTest = wxEmptyString;
+							if (wholeMkr != verseMkr)
 							{
-								// Matched space followed by a period - a period after a beginMkr is unlikely,
-								// except in contentless source text originating from Paratext, where ... or ..
-								// sometimes appears after the marker. So check out for ..., and failing that, 
-								// for .. and if either is found, eliminate either by advancing ptr the necessary
-								// distance, don't update len, and continue in the parsing.
-								// whm 9Jan2024 the code below fails to detect the "\\p ..\r\n" sequence because
-								// pAux is pointing at the first period and so the strTest strings end up being
-								// suffixed by parts of the EOL sequence as "..\r\n" in the first test and "..\r"
-								// in the second test. Then each test: strTest == strThreePeriods and
-								// strTest == strTwoPeriods both fail due to presence of \rn and \r suffixed to
-								// strTest. We could do a .Trim() of strTest, but I think a while loop would work
-								// better and catch any number of periods after the \p marker
-								//strTest = wxString(pAux, 4); // for space followed by ...
-								//if (strTest == strThreePeriods)
-								//{
-								//	// At pAux, <space>...  so remove all four, because whitespace will follow the ...
-								//	ptr += 4;
-								//}
-								//else
-								//{
-								//	strTest = wxString(pAux, 3);
-								//	if (strTest == strTwoPeriods)
-								//	{
-								//		// At pAux, <space>..  so remove all three, because whitespace will follow the ..
-								//		ptr += 3;
-								//	}
-								//}
-								while (pAux < pEnd && *pAux == period && !IsWhiteSpace(pAux))
+								// The marker is not \v (could be \m or \li1 or \q1 or \p or \x etc)
+								// BEW 23Aug23, at this point, tokBuffer might be empty, and if so
+								// we must not unilaterally add a space.
+								// Also, the code for checking it bIsToBeFiltered for TRUE is above,
+								// so we don't want to add wholeMkr to m_markers something which
+								// is going to be filtered out, so refactor here with care...
+								if (bIsToBeFiltered)
 								{
-									pAux++;
-									ptr++;
+									// We must not do anything here that results in wholeMkr being added to tokBuffer
+									// or to m_markers; parsing must not advance ptr until the filtering has been done
+									int debugBreak = 0; wxUnusedVar(debugBreak);
+									// TODO anything to do here? I don't think so -- e.g. \x must still be pointed at
+									// when control reaches the filtering code, a long way below
+									// 
+									// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+									// whm 12Mar2024 added filtering block here below for testing. 
+									// I think this needs to have the full filtering block at this
+									// location. The other main filtering block that precedes this is the filtering 
+									// block that is within the while loop:
+									//    while (ptr < pEnd && *ptr == gSFescapechar && !IsRedOrBindingOrNonbindingBeginMkr(ptr, pEnd))
+									// above, but that loop excludes char attribute markers like \jmp. The filtering code
+									// here should be similar to what is done later below at about 49752
+									// This is the block for filtering a span of source text out,
+									// to store it in m_filteredInfo in the CSourcePhrase instance
+									// which commences the filter span.
+
+									// If the span is associated with an attribute having
+									// marker such as \w ( inlineBindingMkr, for a glossary entry)
+									// or \fig ( for a figure in the printed text), and some others,
+									// TokenizeText() will have gathered and cached metadata for hiding
+									// the information from bar ( | ) to the matching endmarker, and
+									// appending a copy of the endmarker as well, for use later for
+									// locating where to restore the metadata in an export needing it.
+									//
+									// But when filtering, we will want to have the attributes 
+									// metadata "in place", rather than having it hidden in the
+									// span's last CSourcePhrase instance's m_punctsPattern member.
+									// So we must test for filtering of the small set of attributes-having
+									// markers, and if we are wanting to filter one, then we'll grab the
+									// whole span before m_punctsPattern has a chance to hide anything,
+									// and since filtering removes the need for the cached metadata to
+									// persist, we clear out that cached stuff and its temporary on-the-heap
+									// CSourcePhrase instance as well, so that there's no confusion from 
+									// that stuff hanging around unused. 
+									// So we'll code in bleeding order - get the special cases out of the way
+									// first, and the general stuff handled last.
+
+									// bIsToBeFiltered is TRUE, so determine if the marker is one from
+									// the set of attributes-having markers, and that tokenizing source
+									// text is in operation
+									wxString whichMkr = wxEmptyString;
+									//wxUnusedVar(whichMkr); // wwhichMkr in the call below is the one checkedd for
+									bool bItsSourceText = !m_bTokenizingTargetText;
+
+									// Ready for the filtering code...
+									if (bItsSourceText)
+									{
+										wxString temp = wxEmptyString;
+										itemLen = 0; // initialize
+
+										// Obtain the string to be filtered out
+										itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
+
+										// whm 16Mar2024 added. Get the filtered string and compare it with 
+										// the rBuffer text that was input into TokenizeText(). If they are 
+										// the same, then the entire rBuffer string was filtered, leaving
+										// the current pSrcPhrase an empty orphan that can we need to remove
+										// below at the end of this block after storing the filtered 
+										// information.
+										bool bUnneededSrcPhrase = FALSE;
+										wxString filteredStr = wxString(ptr, itemLen);
+										if (filteredStr == rBuffer)
+										{
+											bUnneededSrcPhrase = TRUE;
+										}
+
+										// get filtered text bracketed by \~FILTER and \~FILTER*
+										temp = GetFilteredItemBracketed(ptr, itemLen);
+
+										// BEW 30Sep19, storing will be to the next pSrcPhrase's
+										// m_filteredInfo member. It doesn't yet exist, so we
+										// cache temp, and set bDelayStoringFilteredInfo to TRUE,
+										// and then at next iteration of the outer loop, we
+										// append the cached data to m_filteredInfo. If the loop
+										// exits before the next pSrcPhrase can be created, it is
+										// created after the loop finishes, and a pile ptr added
+										// to Layout's m_pileList, so that a green wedge and
+										// m_inform text ("Filtered Info Carrier") are displayed
+										// in the nav text region at doc end
+										strCacheDelayedFilteredContent = temp; // temp is local and can now die
+										//bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
+										// if strCacheDelayedFilteredContent wxString is non-empty when control gets
+										// to doc end, the an extra pSrcPhrase will be automatically created to have
+										// a place to store it - see Doc lines 20,702++ for where that's done
+
+										// BEW 16Dec22 move the AddToFilteredInfo() call to here, since strCacheDelayedFilteredContent
+										// has its content now, there is no point in delaying storage till the next
+										// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
+										// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
+										// pPrevSrcPhrase, it should then work better if later the beginMkr is removed from
+										// the gCurrentFilterMarkers list
+										if (pPrevSrcPhrase != NULL)
+										{
+											// whm 18Mar2024 added for getting a suitable non-placeholder SP to store filtered info
+											pPrevSrcPhrase = GetPreviousNonPlaceholderSrcPhrase(pPrevSrcPhrase); // , pList);
+
+											if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
+											{
+												// There is swept up material to prefix to the bracketed filtered marker
+												// That was determined by the GatherWhiteSpaceAndSweepableMarkers() call earlier
+												// in TokenizeText(). 
+												// The swept up material may contain whitespace, and/or other markers such as
+												// \c n, \v n \p and other empty markers that are contained in the variable:
+												// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
+												// Here we prefix that swept up material to strCacheDelayedFilteredContent
+												// before the pPrevSrcPhrase->AddToFilteredInto() call below.
+												strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered
+													+ strCacheDelayedFilteredContent;
+												// We now reset the variables
+												sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+												bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
+											}
+											//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+											pPrevSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+										}
+										// ptr has to be updated by itemLen characters added; wholeMkr got
+										// removed along with its content; and will be stored to m_filteredInfo
+										ptr += itemLen;
+										strCacheDelayedFilteredContent = wxEmptyString; // Gotta clear it, otherwise, if it's
+											// not empty when parse gets to doc end, it will be added again on a "Filtered Info Carrier"
+											// programmatically added extra pSrcPhrase
+										itemLen = 0; // BEW added 24Aug23
+
+										if (bUnneededSrcPhrase)
+										{
+											// TokenizeText() was probably called from OnEditSourceText() and the entire
+											// contents of the rBuffer was stored in a pPrecSrcPhrase, so the current
+											// pSrcPhrase is not needed, and pList will be empty. So, we delete the
+											// pSrcPhrase here from the heap, and return an empty 
+											if (pList->GetCount() == 0)
+											{
+												DeleteSingleSrcPhrase(pSrcPhrase);
+												// Nothing more to do in TokenizeText() so return with 0 elements processed
+												return 0;
+											}
+										}
+
+										// whm 21Feb2024 added. Call ParsePostWordPunctsAndEndMkrs() function here to deal with
+										// any puncts that immediately follow the filtered info that really should be stored on
+										// pPrevSrcPhrase. Note that we pass pPrevSrcPhrase here into the function - the function
+										// now internally protects from pPrevSrcPhrase being NULL.
+										// 
+										// whm 26Dec2024 added wordSuffix ref parameter to ParsePostWordPunctsAndEndMkrs() call to cover
+										// the situation where an inline binding end marker such as \nd* occurs in the middle of a word.
+										// The wordSuffix ref parameter will return any such word-building suffix part of the word that
+										// occurs directly after the inline binding end marker. Otherwise, as Roland F reported some of
+										// his words that had, for example, \nd<word-first-part>\nd*<word-suffix-part><space-between-words>
+										// were getting broken up resulting in the <word-suffix-part> being parsed as a separate source phrase.
+										// We utilize any returned wordSuffix to update the m_key and m_srcPhrase members with this suffix.
+										wxString wordSuffix; wordSuffix.Empty();
+										ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
+										//ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pPrevSrcPhrase, itemLen, spacelessPuncts);
+
+										// We don't know  what lies beyond the endmarker, but it's handled further down.
+										// if after some whitespace there is a backslash, then continue; to iterate the loop.
+										// Otherwise, probably words follow
+										int aCount;
+										aCount = 0;
+										aCount = ParseWhiteSpace(ptr); // parse any white space following it,
+																		// return 0  if not pointing at whitespace
+										//wxUnusedVar(aCount); // avoid compiler warning
+										// BEW 24Aug23 dont advance ptr, but make aCount available if wanted below
+										tokBuffer.Empty();
+
+										// BEW 23Aug23, it's probably unhelpful to iterate this inner loop using continue; in every
+										// context. For instance, if after any whites there is not a backslash, but rather words to
+										// be parsed, (or if \x to \x* just got filtered out - which is likely to be followed by words)
+										// we would want to break from the loop. But if after whites is a backslash, then continue;
+										// would be appropriate. So sort these possibilities out...
+										{ //scope block
+											wxChar* pAux = ptr + aCount; // typically aCount is 1, for the one space prior to words
+												// unless there is a lurking backslash, which would require iterating the inner loop
+											if ((*pAux == gSFescapechar) || (*ptr == gSFescapechar))
+											{
+												// BEW 28Aug23 There is a lurking backslash!  So advance ptr to it, otherwise, control
+												// when continue is called, goes to the while loop at 40835 which tests for a beginMkr
+												// at start of inner loop, but ptr still pointing at space or newline, the loop will
+												// exit immediately; bContinueTwice will be FALSE, bKeepPtrFromAdvancing will be FALSE,
+												// and so control goes to ParsePreWord() and then ParseWord() where the initial backslash
+												// of the marker causes ParseAWord() to fail, and the text that should be parsed is not
+												// parsed, and instead "empty-key" shows. This error sequence starts here, if ptr
+												// points at space or newline and we don't parse over that whitespace.
+												// 
+												// whm 5Dec2025 modification. Since aCount here is the length of parsed whitespace, 
+												// it most likely would be composed of EOL(s) and/or space char(s).
+												// Such whitespace should not, I think, be stored along with punctuation in 
+												// m_precPunct, but should be stored or added to m_markers. 
+												// Reason: It often is the case after filtering a cross ref span like:
+												// "\\x - \\xo 7:6-7 \\xt Yes 29:13 (LXX) \\xt* \\x*"
+												// that such cross references would be encountered at the end of a line, and so 
+												// after being filtered out by the code above, the ptr would now be pointing at 
+												// something like: "\r\n\\p\r\n\\v 8 " and in this block pAux would be pointing at 
+												// the \p marker: "\\p\r\n\\v 8 " Hence, the whitespace that was parsed over above at 
+												// the aCount = ParseWhiteSpace(ptr); statement would be the usual EOL sequence "\r\n". 
+												// It becomes a problem if we store "\r\n" within the m_precPunct member as this member
+												// should contain punctuation. It also is in many places assigned to the m_srcPhrase
+												// member which causes the display to show a blank space instead of the actual m_srcPhrase
+												// content (the content is written on screen below the source text line and is overwritten
+												// by the target line blank space.
+												// Therefore, I think the whitespace (EOL in the above example) should be added to the
+												// m_markers member - where later code will deposit the "\\p\r\n\\v 8 " part into the
+												// m_markers member anyway. The change is made in the block below:
+												if (*pAux == gSFescapechar)
+												{
+													wxString strACount;
+													strACount = wxString(ptr, aCount);
+													//pSrcPhrase->m_precPunct += strACount;
+													pSrcPhrase->m_markers += strACount; // whm 5Dec2025 changed m_precPunct to m_markers
+													ptr += aCount; // point ptr at the beginMkr, (we are not here trying to get a new pSrcPhrase)
+												}
+												continue; // iterate the inner loop - 6th continue in TokenizeText()
+											}
+											else
+											{
+												// words probably follow, so break from the loop
+												// send control to ParsePreWord() and then ParseWord()
+												goto parsing;
+											}
+										} // end scopeblock
+
+									} // end of TRUE block for test: if (bItsSourceText)
+									else
+									{
+										// It's not source text...
+										wxString temp = wxEmptyString;
+
+										// Ready for the filtering code...
+										itemLen = 0; // initialize
+
+										// Obtain the string to be filtered out
+										itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
+
+										// BEW 30Sep19,  The legacy code follows...
+
+										// get filtered text bracketed by \~FILTER and \~FILTER*
+										bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
+											augWholeMkr, bIsForeignBackTrans);
+										if (bIsForeignBackTrans)
+										{
+											// it's a back translation type of marker of foreign origin (extra
+											// chars after the t in \bt) so we just tuck it away in
+											// m_filteredInfo
+											temp = GetFilteredItemBracketed(ptr, itemLen);
+										}
+										else if (bIsFreeTransOrNoteOrBackTrans)
+										{
+											// whm 27Jan2024 TODO: Should the following call's 4th param be pPrevSrcPhrase???
+											// TODO:
+											SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
+											wxString aTempStr(ptr, itemLen);
+											temp = aTempStr; // don't need to wrap with \~FILTER etc, get just
+																// enough for the code below to set the value between |@ and @|
+										}
+										else
+										{
+											// other filterable markers go in m_filteredInfo, and have to be
+											// wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
+											temp = GetFilteredItemBracketed(ptr, itemLen);
+										}
+
+										// We may be at some free translation's anchor pSrcPhrase, having just
+										// set up the filter string to be put into m_markers; and if so, this
+										// string will contain a count of the number of following words to
+										// which the free translation applies; and this count will be
+										// bracketted by |@ (bar followed by @) at the start and @|<space> at
+										// the end, so we can search for these and if found, we extract the
+										// number string and remove the whole substring because it is only
+										// there to inform the parse operation and we don't want it in the
+										// constructed document. We use the count to determine which pSrcPhrase
+										// later encountered is the one to have its m_bEndFreeTrans member set
+										// TRUE.
+										int nFound = temp.Find(_T("|@"));
+										if (nFound != -1)
+										{
+											// there is some free translation to be handled
+											int nFound2 = temp.Find(_T("@| "));
+											wxASSERT(nFound2 - nFound < 10); // characters between can't be
+																				// too big a number
+											wxString aNumber = temp.Mid(nFound + 2, nFound2 - nFound - 2);
+											nFreeTransWordCount = wxAtoi(aNumber);
+											wxASSERT(nFreeTransWordCount >= 13);
+
+											// now remove the substring
+											temp.Remove(nFound, nFound2 + 3 - nFound);
+
+											// now check for a word count value of zero -- we would get this if
+											// the user, in the project which supplied the exported text data,
+											// free translated a section of source text but did not supply any
+											// target text (if a target text export was done -- the same can't
+											// happen for source text of course). When such a \free field
+											// occurs in the data, there will be no pSrcPhrase to hang it on,
+											// because the parser will just collect all the empty markers into
+											// m_markers; so when we get a count of zero we should throw away
+											// the propagated free translation & let the user type another if
+											// he later adapts this section
+											if (nFreeTransWordCount == 0)
+											{
+												temp.Empty();
+											}
+										} // end of TRUE block for test: if (nFound != -1)
+
+										// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
+										// support of notes, backtranslations and free translations, so we have
+										// to set these at appropriate places in the parse.
+										if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
+										{
+											// other filtered stuff needs to be saved here (not later), it has
+											// been wrapped with \~FILTER and \~FILTER*; there is no need to
+											// use a delimiting space between the filter markers
+											// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
+											// to the pPrevSrcPhrase and not pSrcPhrase.
+											//pSrcPhrase->AddToFilteredInfo(temp);
+											// whm 18Mar2024 Within target text there are no placeholders so there
+											// is no need to call GetPreviousNonPlaceholderSrcPhrase() here
+											if (pPrevSrcPhrase != NULL)
+												pPrevSrcPhrase->AddToFilteredInfo(temp);
+										}
+										if (wholeMkr == _T("\\note"))
+										{
+											pSrcPhrase->m_bHasNote = TRUE;
+										}
+										if (bFreeTranslationIsCurrent)
+										{
+											// a free translation section is current
+											if (wholeMkr == _T("\\free"))
+											{
+												// we've arrived at the start of a new section of free
+												// translation -- we should have already turned it off, but
+												// since we obviously haven't we'll do so now
+												if (nFreeTransWordCount != 0)
+												{
+													bFreeTranslationIsCurrent = TRUE; // turn on this flag to
+														// inform parser in subsequent iterations that a new
+														// one is current
+													if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
+													{
+														pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+																								// previous section
+													}
+
+													// indicate start of new section
+													pSrcPhrase->m_bHasFreeTrans = TRUE;
+													pSrcPhrase->m_bStartFreeTrans = TRUE;
+												}
+												else
+												{
+													// we are throwing this section away, so turn off the flag
+													bFreeTranslationIsCurrent = FALSE;
+													if (pPrevSrcPhrase != NULL && pPrevSrcPhrase->m_bEndFreeTrans == FALSE)
+													{
+														pPrevSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+																								// previous section
+													}
+												}
+											}
+											else
+											{
+												// for any other marker, if the section is not already turned
+												// off, then just propagate the free translation section to
+												// this sourcephrase too
+												pSrcPhrase->m_bHasFreeTrans = TRUE;
+											}
+										} // end of the TRUE block for test: if (bFreeTranslationIsCurrent)
+										else
+										{
+											// no free translation section is currently in effect, so check to
+											// see if one is about to start
+											if (wholeMkr == _T("\\free"))
+											{
+												bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform
+														// parser in subsequent iterations that one is current
+												pSrcPhrase->m_bHasFreeTrans = TRUE;
+												pSrcPhrase->m_bStartFreeTrans = TRUE;
+											}
+										}  // end of the else block for test: if (bFreeTranslationIsCurrent)
+
+										ptr += itemLen;
+
+										// legacy code ends
+									}  // end of else block for test: if (bItsSourceText) 
+									// whm 12Mar2024 added filtering block here above for testing. 
+									// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+								}  // end of filtering TRUE block for test: if (bIsToBeFiltered)
+								/*
+								// whm 3Dec2025 removed the following else if (IsAttributeMarker(ptr)) test
+								// and instead I decided to enclose this whole section within an outer test:
+								// if (!bIsCharAttrMkr).
+								// whm 21Nov2025 added the following else if (IsAttributeMarker(ptr)) block
+								// after noticing that when ptr is pointing at a inline binding marker like
+								// \w that Doc's m_bWithinMkrAttributeSpan doesn't get set properly to TRUE
+								// below, and \w would get saved in m_markers below rather than in the
+								// m_inlineBindingMarkers member via SetInlineBindingMarker
+								else if (IsAttributeMarker(ptr))
+								{
+									// Within this else if block bIsToBeFiltered will be FALSE
+									// TODO: add attribute marker code here, move some from below up to here???
+									int halt_here = 1;
+									wxUnusedVar(halt_here);
+									bool bHidingNeeded = FALSE;
+									wxString whichMkr;
+									// Test code below - copied from the code after bHidingNeeded = IsAttributeMarker(ptr) below
+									bHidingNeeded = TRUE;
+
+									offset = wxNOT_FOUND;
+									offset = gpApp->m_charAttributeMkrs.Find(augWholeMkr);
+									if (offset != wxNOT_FOUND)
+									{
+										// It is a beginMkr of the charAttribute type
+										bIsInlineBindingMkr = FALSE;
+										bIsInlineNonbindingMkr = FALSE;
+										bIsCharAttrMkr = TRUE;
+										//bFoundOne = TRUE; // unused
+										bKeepPtrFromAdvancing = TRUE;
+										// The only charAttributeMkr (i.e an begin-marker) we are considering
+										// here is \fig  There are a few reasons:
+										// (0) must handle before any parsing moves ptr beyond pointing at backslash
+										// (1) these markers do not change the TextType, except for \fig which
+										// needs to cause a type change at the pSrcPhrase which commences the caption's
+										// span of CSourcePhrases (to 'noType' enum value), and therefore the
+										// member m_bSpecialText needs to be set TRUE, if \fig was the marker
+										// found. The current pSrcPhrase needs its m_bSpecialText set TRUE if
+										// the felicity conditions are satisfied, because it is the first of
+										// the caption's span in USFM 3.0 (but not in earlier versions of USFM)
+										// (2) The end of the span of caption CSourcePhrase instances needs to
+										// be reset to verse (default) when \fig* is later encountered.
+										// IsTextTypeChangingEndMarker(pSrcPhrase) does that job below in the
+										// 'propagation' code, after ParseWord() has done its job.
+										// (3) Other markups that involve inline span involve m_marker and
+										// m_endMarker members; these are \f and \x and \fe, and they are
+										// handled adequately from TokenizeText's legacy code.
+										//
+										// whm 28Feb2024 comment. BEW's comments above now apply to \jmp and \xt
+										// as well as to \fig in code below. I've also renamed the bool bIsFigure to
+										// bIsFigJmpOrXt.
+										wxString aMkr = wxEmptyString;
+										bool bIsCharacterAttrMkr = IsAttributeBeginMarker(ptr, aMkr);
+										bool bIsFigJmpOrXt = (aMkr == _T("\\fig") || (aMkr == _T("\\jmp")) || (aMkr == _T("\\xt"))); // bool bIsFigure = (aMkr == _T("\\fig"));
+										whichMkr = aMkr;
+
+										//if (bIsCharacterAttrMkr && bIsFigure && !bKeepPtrFromAdvancing) // BEW 25Jul23 added 3rd subtest
+										if (bIsCharacterAttrMkr && bIsFigJmpOrXt) //if (bIsCharacterAttrMkr && bIsFigure) // whm 31Oct2023 removed 3rd subtest
+										{
+											// Set m_inform and m_bSpecialText, because this marker
+											// is \fig at the beginning of a figure's caption text
+											// whm 31Oct2023 I initially on 23Sep2023 commented out the following
+											// 4 lines which change some of the attributes for the \fig marker which
+											// is by default filtered. Although these are normally set properly in
+											// the AI_USFM.xml, when unfiltering the \fig marker, non-default values
+											// are needed. Although the desired non-default values could be set by
+											// calling other functions, that may not have been done, so as of this
+											// date I'm re-enabling the assignments below.
+											//
+											// whm 28Feb2024 comment update. The AI_USFM.xml already sets the
+											// special="1" (TRUE), and navigationText to "figure", "jump link",
+											// and "tgt-ref" respectively. Hence, the only unique changes here are:
+											// 1. The m_bFirstOfType is set to TRUE.
+											// 2. The textType of \xt is set from crossReference to noType
+											pSrcPhrase->m_inform = pUsfmAnalysis->navigationText; // set it to "figure" or "jump link"
+											pSrcPhrase->m_bSpecialText = TRUE;
+											pSrcPhrase->m_bFirstOfType = TRUE;
+											pSrcPhrase->m_curTextType = noType;
+											// BEW 21Jul23 - I dunno if this legacy comment still applies - testing will tell
+											// ParsePreWord() will need a tweak to handle \fig as
+											// a special (bleed out) case; ParseWord() will need
+											// no change, and then the propagation code following
+											// ParseWord() will need tweaking also to handle \fig
+											// as a (bleeding) special case
+										}
+										// When it's not \fig, it can be one of several others, so bIsCharAttrMkr can be
+										// made use of when in ParsePhreWord(), and after that, in ParseWord()
+
+									} // end of else block of test: if (offset != wxNOT_FOUND)
 								}
-								precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
-														 // whitespace char follows the periods string
-								pSrcPhrase->SetSrcWordBreak(precWordDelim);
-#if defined (_DEBUG) //&& !defined (NOLOGS)
+								*/
+								else
+								{
+									// whm 5Oct2025 Observation: In some circumstances the tokBuffer here
+									// may have an inlineBindingMarker such as \add (from JamesJ's MAT data)
+									// and inlineBindingMarkers should be stored NOT in m_markers, but in 
+									// m_inlineBindingMarkers using AppendToInlineBindingMarkers().
+									// To correct this issue I placed an outer test if (!bIsCharAttrMkr) around
+									// this whole section that prevents inlineBindingMarker type markers
+									// from reaching this block.
+
+									// This block can parse, but with care - don't append a latin space
+									// to an empty pSrcPhrase->m_markers; also wholeMkr is not going to be filtered out
+									tokBuffer.Trim(FALSE); // remove any initial white space
+									if (pSrcPhrase->m_markers.IsEmpty())
+									{
+										if (!tokBuffer.IsEmpty())
+										{
+											// There is something to add to m_markers, do so and clear tokBuffer
+											pSrcPhrase->m_markers = tokBuffer;
+										
+											int mmkrsLen;
+											mmkrsLen = pSrcPhrase->m_markers.Length();
+											ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
+
+											tokBuffer.Empty();
+										}
+									}
+									else
+									{
+										// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
+										// or it might be empty. If empty, no harm in unilaterally appending
+										
+										// BEW 6Jul23 Don't lose the marker, add it to m_markers if non-empty
+										// ptr should have earlier been advanced to point past pSrcPhrase->m_markers
+										// so just advance ptr by how long tokBuffer is.
+										// 
+										// whm 6Jan2024 modification.
+										// Testing (of Hezekiah text file) indicates the when input text has a \b stanza break or 
+										// a \tr table row marker, the marker gets doubled within m_markers.
+										// When \b was previously put in m_marker above as "\\b\r\n" the tokBuffer at this point
+										// also has something like "\\b\r\n\\nc " revealing that the m_markers content would
+										// be doubled if the following line "augments" (+=) m_markers with tokBuffer content. 
+										// 
+										// whm 6Jan2024 Testing shows that doing an augment operation += sometimes results
+										// in a marker getting duplicated within m_markers.
+										// To eliminate any such duplication including any duplication of whitespace
+										// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
+										// remove any duplicate markers found in m_markers. If the first marker in 
+										// m_markers has following whitespace, and any following duplicate marker also 
+										// has the same whitespace, the whitespace of the duplicate is also removed. 
+										// If the initial marker has no following whitespace, but a duplicate marker 
+										// does have some following whitespace, only the duplicate marker is
+										// removed - leaving its white space. However, if leaving the duplicate marker's
+										// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
+										// m_markers, then the doubled EOL and doubled spaces are changed to single
+										// instances in m_markers.
+										//  
+										// whm 9Jan2024 testing in Hezekiah when parsing and red marker \ms1 is being
+										// parsed here, the \ms1 marker has not yet been added to tokBuffer, and 
+										// moreover the content of tokBuffer was same as m_markers both having "\\b\r\n"
+										// in them. To avoid dropping the \ms1 marker and properly increment the ptr below
+										// The solution needs to do the following:
+										// 1. Empty tokBuffer if it is not empty and has the same duplicate content as 
+										//    m_markers.
+										// 2. Add the marker to the tokBuffer so that the content of tokBuffer is solely
+										//    the wholeMkr - which ptr is currently pointing at. This will then result
+										//    in a proper increment value for ptr that just advances past the marker.
+										// The above solution I think will also help reduce or eliminate marker duplication
+										// within the m_markers member. However, I'm leaving the call of 
+										// RemoveDuplicateMarkersFromMkrString() below in place, as it doesn't cause
+										// any change in m_markers if there is no duplication.
+										if (!tokBuffer.IsEmpty() && tokBuffer == pSrcPhrase->m_markers)
+										{
+											tokBuffer.Empty();
+										}
+										tokBuffer = augWholeMkr; // need the augmented marker here to provide space following marker
+
+										pSrcPhrase->m_markers += tokBuffer;
+										pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
+										// whm 23Jan2024 modification/correction. Just above, tokBuffer is filled with the augWholeMkr
+										// so that the contents of tokBuffer now ends with a space. The original code below then
+										// gets the length of tokBuffer - including the space - into tbLen. Then tbLen is used to
+										// increment the ptr, but that is wrong for any following EOL sequence of \r\n, and it leaves
+										// the ptr pointing at the \n instead of past the whitespace at the following word or marker.
+										// Therefore, I've modified the code below to increment ptr properly by the actual length of
+										// the wholeMkr and then by the actual length of following whitespace. This failure had many
+										// negative ramifications for a text full of empty contentless markers in which most markers 
+										// are followed by EOL \r\n chars rather than words or single spaces.
+										//int tbLen;
+										//tbLen = tokBuffer.Length(); // whm 9Jan2024 note: tbLen will now always be the length of the marker
+										//ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
+										int nMkrLen = (int)wholeMkr.Length();
+										ptr += nMkrLen;
+										int nWhitesLen = ParseWhiteSpace(ptr);
+										ptr += nWhitesLen;
+
+										// whm 12Jan2024 modification. tokBuffer should be emptied once it has been assigned
+										// to m_markers.
+										tokBuffer.Empty();
+
+										// whm 5Oct2025 addition. At this point after ptr had advanced, it could 
+										// be pointing at another marker or non-marker text. If ptr is now 
+										// pointing at a marker following the marker above, we should call 
+										// continue here to catch that marker, otherwise when ptr is not pointing
+										// at a marker, the goto parsing jump is more appropriate. This is similar
+										// to what is done farther below after advancing the ptr.
+										// If we were to continue going through the code below, we would potentially
+										// get to the point where a wholeMkr = GetWholeMarker(ptr) statement is
+										// called when ptr isn't pointing at a marker, and augmentedWholeMkr becomes
+										// a space, which ends up making for a false positive result when 
+										// offset = gpApp->m_charAttributeMkrs.Find(augmentedWholeMkr) since
+										// it would find a match at the first space in the set. This eventually 
+										// let to a warning message about unexpected markers in JamesJ's data.
+										if (IsMarker(ptr))
+											continue;
+										else
+											goto parsing;
+									}
+
+								}
+#if defined (_DEBUG) && !defined (NOLOGS)
 								{
 									wxString strPointAt = wxString(ptr, 16);
-									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
-										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+									wxLogDebug(_T("TokText() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], pointsAt= [%s] "),
+										__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 5)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
 								}
 #endif						
-							} // end of TRUE block for test: if (pAux < pEnd && *ptr == _T(' ') && *(ptr + 1) == period)
-							*/
+								// whm 17Jan2024 Note: The old bogus period handling routine below was not
+								// reached here because ptr is still pointing at the backslash of the
+								// marker at this point.
+								// Here is not an appropriate place to call IteratePtrPastBogusPeriods(ptr) 
+								// either for the same reason. I will call IteratePtrPastBogusPeriods()
+								// later after the marker and following space have been parsed and the 
+								// ptr is updated to point to whatever follows the "\\p " marker and following
+								// space.
+								// Hence, I have removed the if block below that attempted to remove bogus
+								// periods. 
+								// Also we wait until the marker has been parsed and ptr updated just
+								// past the space following the marker before assigning the precWordDelim 
+								// character
 
-						} // end of TRUE block for test: if (wholeMkr != verseMkr && !bIsToBeFiltered)
-
-					} // end of TRUE block for test: if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
-					// whm 20Jan2024 added else block here for treating an unknown marker that is not an empty marker
-					else
-					{
-						// The pUsfmAnalysis was NULL at the previous LookupSFM() call so, we are dealing with an 
-						// unknown marker which is NOT an empty marker (otherwise it would have been detected as an
-						// empty marker much earlier in TokenizeText() where the if (IsEmptyMkr(), ptr...) call was
-						// made.
-						if (*ptr == gSFescapechar)
-						{
-							wholeMkr = GetWholeMarker(ptr);
-							wxASSERT(!wholeMkr.IsEmpty());
-							augWholeMkr = wholeMkr + _T(' ');
-							if (!bIsToBeFiltered)
-							{
-								tokBuffer += augWholeMkr; // add our unknown marker tokBuffer
-								tokBuffer.Trim(FALSE); // remove any initial white space
-								
-								if (pSrcPhrase->m_markers.IsEmpty())
+								/*
+								wxChar* pAux;
+								pAux = ptr;
+								if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period && !pSrcPhrase->m_markers.IsEmpty())
 								{
-									// There is something to add to m_markers, do so and clear tokBuffer
-									pSrcPhrase->m_markers = tokBuffer;
-
-									int mmkrsLen;
-									// whm 21Feb2024 revised calc of mmkrsLen below. In this block m_markers
-									// is known to be empty (if test above ensures it). While the assignment of
-									// tokBuffer to m_markers above ensures that the marker is followed by a
-									// space (augWholeMkr was used to fill tokBuffer), the calculation of the 
-									// mmkrsLen below should be based not on that m_markers.Lenght() - which 
-									// was augmented with _T' ') above, but on the actual length of wholeMkr. 
-									// This needs to be so, because an unknown marker may occur on a line by 
-									// itself and not be followed by a space, but by an EOL. Using m_markers
-									// in the calc would, in such cases, make the actual length longer by the
-									// added _T(' ') to m_markers, and then move the pointer past the
-									// \r of any \r\n EOL that follows. The ParseWhiteSpace() call below the
-									// if - else block we are in will then catch the full EOL - or even a space
-									// if indeed there was a space following the unknown marker.
-									//mmkrsLen = pSrcPhrase->m_markers.Length();
-									mmkrsLen = wholeMkr.Length();
-									ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
-
-									tokBuffer.Empty();
-								}
-								else
-								{
-									// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
-									if (!tokBuffer.IsEmpty() && tokBuffer == pSrcPhrase->m_markers)
+									// Matched space followed by a period - a period after a beginMkr is unlikely,
+									// except in contentless source text originating from Paratext, where ... or ..
+									// sometimes appears after the marker. So check out for ..., and failing that, 
+									// for .. and if either is found, eliminate either by advancing ptr the necessary
+									// distance, don't update len, and continue in the parsing.
+									// whm 9Jan2024 the code below fails to detect the "\\p ..\r\n" sequence because
+									// pAux is pointing at the first period and so the strTest strings end up being
+									// suffixed by parts of the EOL sequence as "..\r\n" in the first test and "..\r"
+									// in the second test. Then each test: strTest == strThreePeriods and
+									// strTest == strTwoPeriods both fail due to presence of \rn and \r suffixed to
+									// strTest. We could do a .Trim() of strTest, but I think a while loop would work
+									// better and catch any number of periods after the \p marker
+									//strTest = wxString(pAux, 4); // for space followed by ...
+									//if (strTest == strThreePeriods)
+									//{
+									//	// At pAux, <space>...  so remove all four, because whitespace will follow the ...
+									//	ptr += 4;
+									//}
+									//else
+									//{
+									//	strTest = wxString(pAux, 3);
+									//	if (strTest == strTwoPeriods)
+									//	{
+									//		// At pAux, <space>..  so remove all three, because whitespace will follow the ..
+									//		ptr += 3;
+									//	}
+									//}
+									while (pAux < pEnd && *pAux == period && !IsWhiteSpace(pAux))
 									{
+										pAux++;
+										ptr++;
+									}
+									precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
+															 // whitespace char follows the periods string
+									pSrcPhrase->SetSrcWordBreak(precWordDelim);
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+									{
+										wxString strPointAt = wxString(ptr, 16);
+										wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
+											__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+										if (pSrcPhrase->m_nSequNumber >= 5)
+										{
+											int halt_here = 1; wxUnusedVar(halt_here);
+										}
+									}
+#endif							
+								} // end of TRUE block for test: if (pAux < pEnd && *ptr == _T(' ') && *(ptr + 1) == period)
+								*/
+
+							} // end of TRUE block for test: if (wholeMkr != verseMkr && !bIsToBeFiltered)
+
+						} // end of TRUE block for test: if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
+						// whm 20Jan2024 added else block here for treating an unknown marker that is not an empty marker
+						else
+						{
+							// The pUsfmAnalysis was NULL at the previous LookupSFM() call so, we are dealing with an 
+							// unknown marker which is NOT an empty marker (otherwise it would have been detected as an
+							// empty marker much earlier in TokenizeText() where the if (IsEmptyMkr(), ptr...) call was
+							// made.
+							if (*ptr == gSFescapechar)
+							{
+								wholeMkr = GetWholeMarker(ptr);
+								wxASSERT(!wholeMkr.IsEmpty());
+								augWholeMkr = wholeMkr + _T(' ');
+								if (!bIsToBeFiltered)
+								{
+									tokBuffer += augWholeMkr; // add our unknown marker tokBuffer
+									tokBuffer.Trim(FALSE); // remove any initial white space
+									
+									if (pSrcPhrase->m_markers.IsEmpty())
+									{
+										// There is something to add to m_markers, do so and clear tokBuffer
+										pSrcPhrase->m_markers = tokBuffer;
+
+										int mmkrsLen;
+										// whm 21Feb2024 revised calc of mmkrsLen below. In this block m_markers
+										// is known to be empty (if test above ensures it). While the assignment of
+										// tokBuffer to m_markers above ensures that the marker is followed by a
+										// space (augWholeMkr was used to fill tokBuffer), the calculation of the 
+										// mmkrsLen below should be based not on that m_markers.Lenght() - which 
+										// was augmented with _T' ') above, but on the actual length of wholeMkr. 
+										// This needs to be so, because an unknown marker may occur on a line by 
+										// itself and not be followed by a space, but by an EOL. Using m_markers
+										// in the calc would, in such cases, make the actual length longer by the
+										// added _T(' ') to m_markers, and then move the pointer past the
+										// \r of any \r\n EOL that follows. The ParseWhiteSpace() call below the
+										// if - else block we are in will then catch the full EOL - or even a space
+										// if indeed there was a space following the unknown marker.
+										//mmkrsLen = pSrcPhrase->m_markers.Length();
+										mmkrsLen = wholeMkr.Length();
+										ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
+
 										tokBuffer.Empty();
 									}
-									tokBuffer = augWholeMkr; // need the augmented marker here to provide space following marker
+									else
+									{
+										// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
+										if (!tokBuffer.IsEmpty() && tokBuffer == pSrcPhrase->m_markers)
+										{
+											tokBuffer.Empty();
+										}
+										tokBuffer = augWholeMkr; // need the augmented marker here to provide space following marker
 
-									pSrcPhrase->m_markers += tokBuffer;
-									pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
-									int tbLen;
-									tbLen = tokBuffer.Length(); // whm 9Jan2024 note: tbLen will now always be the length of the marker
-									ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
+										pSrcPhrase->m_markers += tokBuffer;
+										pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
+										int tbLen;
+										tbLen = tokBuffer.Length(); // whm 9Jan2024 note: tbLen will now always be the length of the marker
+										ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
 
-									// whm 12Jan2024 modification. tokBuffer should be emptied once it has been assigned
-									// to m_markers.
-									tokBuffer.Empty();
-								}
+										// whm 12Jan2024 modification. tokBuffer should be emptied once it has been assigned
+										// to m_markers.
+										tokBuffer.Empty();
+									}
 
-								// parse the whitespace following the marker to prepare for going to parsing
-								int spAfterMkr = ParseWhiteSpace(ptr);
-								if (spAfterMkr > 0)
-								{
-									precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
-									// whitespace char follows the marker
-									pSrcPhrase->SetSrcWordBreak(precWordDelim);
-									pSrcPhrase->m_precPunct += precWordDelim;
-								}
-								ptr += spAfterMkr;
-								// It's an unknown marker
-								// Set GUI important values on pSrcPhrase (current)
-								// whm 21Feb2024 added. Within this unknown marker processing
-								// the atMkr value is empty, so we need to assign the wholeMkr
-								// determined above to it
-								atMkr = wholeMkr;
-								pSrcPhrase->m_inform = _T("?") + atMkr + _T("?");
-								pSrcPhrase->m_bSpecialText = TRUE;
-								pSrcPhrase->m_curTextType = none;
-								// whm 21Feb2024 modified. If ptr is now pointing at a marker
-								// following the unknown marker above, we should call continue
-								// here to catch that marker, otherwise when ptr is not pointing
-								// at a marker, the goto parsing jump is more appropriate.
-								// Going only to parsing here would skip a following marker like
-								// \p.
-								if (IsMarker(ptr))
-									continue;
-								else
-									goto parsing;
-							}
-						}
-					}
+									// parse the whitespace following the marker to prepare for going to parsing
+									int spAfterMkr = ParseWhiteSpace(ptr);
+									if (spAfterMkr > 0)
+									{
+										precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
+										// whitespace char follows the marker
+										pSrcPhrase->SetSrcWordBreak(precWordDelim);
+										pSrcPhrase->m_precPunct += precWordDelim;
+									}
+									ptr += spAfterMkr;
+									// It's an unknown marker
+									// Set GUI important values on pSrcPhrase (current)
+									// whm 21Feb2024 added. Within this unknown marker processing
+									// the atMkr value is empty, so we need to assign the wholeMkr
+									// determined above to it
+									atMkr = wholeMkr;
+									pSrcPhrase->m_inform = _T("?") + atMkr + _T("?");
+									pSrcPhrase->m_bSpecialText = TRUE;
+									pSrcPhrase->m_curTextType = none;
+									// whm 21Feb2024 modified. If ptr is now pointing at a marker
+									// following the unknown marker above, we should call continue
+									// here to catch that marker, otherwise when ptr is not pointing
+									// at a marker, the goto parsing jump is more appropriate.
+									// Going only to parsing here would skip a following marker like
+									// \p.
+									if (IsMarker(ptr))
+										continue;
+									else
+										goto parsing;
+								} // end of if (!bIsToBeFiltered)
+							} // end of if (*ptr == gSFescapechar)
+						}  // end of else block for if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
+					} // end of if (!bIsCharAttrMkr) // whm 3Dec2025 added this outer test
 
 					// BEW 30Sep19 the one-line test with three subtest below
 
@@ -51346,7 +51495,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// and m_inlineNonbindingMarkers, repectively
 									int offset = wxNOT_FOUND;
 									offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
-									if (offset >= 0 && pSrcPhrase->m_markers.IsEmpty())
+									// whm 5Dec2025 modification of following test. I'm removing the second part of
+									// the following test since I have data where the marker here is \w (an inline
+									// binding marker) is being parsed, AND m_markers is NOT empty, but contains
+									// "\\p\r\n\\v 8 ". The second test for m_markers being empty prevents the \w
+									// from being stored as an inline binding marker via SetInlineBindingMarkers()
+									// below.
+									//if (offset >= 0 && pSrcPhrase->m_markers.IsEmpty())
+									if (offset >= 0)
 									{
 										// It's one of the several markers like \k \it etc, textType 
 										// 'none' - binding ones
@@ -51367,11 +51523,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// and an inline binding marker like \fk has been parsed over with the ptr
 											// pointing after the following space at what follows, and what follows should
 											// likely be a text word. Therefore there should be a break call at this point
-											// in order for ParseWord() to be able to parse the word(s) following this 
-											// inline binding marker. This addition fixed the garbled parsing of the \fk
-											// marker.
+											// in order for ParsePreWord() and ParseWord() to be able to parse the word(s) 
+											// following this inline binding marker. This addition fixed the garbled parsing 
+											// of the \fk marker.
 											//
-											// whm 6Oct2025 added now that the inline binding marker has been
+											// whm 6Oct2025 added. Now that the inline binding marker has been
 											// processed/stored, we need to reset the bKeepPtrFromAdvancing to FALSE
 											bKeepPtrFromAdvancing = FALSE;
 											//
@@ -51770,112 +51926,114 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 							int offset = wxNOT_FOUND;
 							offset = gpApp->m_charAttributeMkrs.Find(augmentedWholeMkr); // \w, \fig, etc
-							if (offset >= 0)
+							// whm 3Dec2025 modification. Removed the outer if (offset >= 0) test as it prevents the else inner test
+							// from ever detecting markers NOT in gpApp->m_charAttributeMkrs.
+							//if (offset >= 0)
+							//{
+							if (offset != wxNOT_FOUND)
 							{
-								if (offset != wxNOT_FOUND)
+								// it's one of the beginMkrs in the character attributes set
+								bIsInlineBindingMkr = FALSE;
+								bIsInlineNonbindingMkr = FALSE;
+								bIsCharAttrMkr = TRUE; // set the doc member bool, filterable
+								// whm 12Mar2024 addition. Below is a break statement to break out 
+								// of the inner loop, to get to ParsePreWord() etc.,  so since the
+								// current autmentedWholeMkr is an char attribute marker that include:
+								// _T("\\fig \\jmp \\+jmp \\w \\xt \\rb \\qt-s \\qt-e "), we don't
+								// want ParsePreWord() to execute for these, so as done elsewhere
+								// (such as as 48260) we should set the bKeepPtrFromAdvancing to TRUE.
+								bKeepPtrFromAdvancing = TRUE;
+							}
+							else
+							{
+								// It's not one of the markers in gpApp->m_charAttributeMkrs, so check out
+								// the formatting markers fast access string
+								offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
+								if (offset >= 0)
 								{
-									// it's one of the beginMkrs in the character attributes set
-									bIsInlineBindingMkr = FALSE;
+									// It's one of the several markers like \k \it etc, textType 
+									// 'none' - binding ones
+									bIsInlineBindingMkr = TRUE;
 									bIsInlineNonbindingMkr = FALSE;
-									bIsCharAttrMkr = TRUE; // set the doc member bool, filterable
-									// whm 12Mar2024 addition. Below is a break statement to break out 
-									// of the inner loop, to get to ParsePreWord() etc.,  so since the
-									// current autmentedWholeMkr is an char attribute marker that include:
-									// _T("\\fig \\jmp \\+jmp \\w \\xt \\rb \\qt-s \\qt-e "), we don't
-									// want ParsePreWord() to execute for these, so as done elsewhere
-									// (such as as 48260) we should set the bKeepPtrFromAdvancing to TRUE.
-									bKeepPtrFromAdvancing = TRUE;
+									bIsCharAttrMkr = FALSE;
 								}
 								else
 								{
-									// It's not one of the markers in gpApp->m_charAttributeMkrs, so check out
-									// the formatting markers fast access string
-									offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
-									if (offset >= 0)
+									// It's not 'binding' type, check if it's 'non-binding' type
+									offset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
+									if (offset != wxNOT_FOUND)
 									{
-										// It's one of the several markers like \k \it etc, textType 
-										// 'none' - binding ones
-										bIsInlineBindingMkr = TRUE;
-										bIsInlineNonbindingMkr = FALSE;
+										// It's a nonbinding type
+										bIsInlineBindingMkr = FALSE;
+										bIsInlineNonbindingMkr = TRUE;
 										bIsCharAttrMkr = FALSE;
-									}
-									else
-									{
-										// It's not 'binding' type, check if it's 'non-binding' type
-										offset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
-										if (offset != wxNOT_FOUND)
-										{
-											// It's a nonbinding type
-											bIsInlineBindingMkr = FALSE;
-											bIsInlineNonbindingMkr = TRUE;
-											bIsCharAttrMkr = FALSE;
 
-											// BEW 6May23, we have to retest for inline binding beginMkr here.
-											// Why? Because the source text parse may have come to an
-											// inline nonbinding beginMkr (which very conceivably would precede
-											// a following inline binding beginMkr. I have such data, and it
-											// led to the inline binding beginMkr being placed by ParsePreWord()
-											// in the default location, m_markers, which it definitely does NOT belong.
-											// ParsePreWord will handle the inline binding beginMkr correctly if we
-											// here determine that something like the \k of  \k .... \k* (keyword)
-											// is the next beginMkr and so bIsInlineBindingMkr will be set TRUE.
-											// (ParsePreWord() is not marker-order-sensitive, fortunately)
-											int inlineNBMrkLen = augmentedWholeMkr.Length(); // for, say, \wj<space> that's 4
-											wxChar* pAux = (ptr + inlineNBMrkLen); // pAux might now be pointing at a binding beginMkr
-											if (*pAux == gSFescapechar)
+										// BEW 6May23, we have to retest for inline binding beginMkr here.
+										// Why? Because the source text parse may have come to an
+										// inline nonbinding beginMkr (which very conceivably would precede
+										// a following inline binding beginMkr. I have such data, and it
+										// led to the inline binding beginMkr being placed by ParsePreWord()
+										// in the default location, m_markers, which it definitely does NOT belong.
+										// ParsePreWord will handle the inline binding beginMkr correctly if we
+										// here determine that something like the \k of  \k .... \k* (keyword)
+										// is the next beginMkr and so bIsInlineBindingMkr will be set TRUE.
+										// (ParsePreWord() is not marker-order-sensitive, fortunately)
+										int inlineNBMrkLen = augmentedWholeMkr.Length(); // for, say, \wj<space> that's 4
+										wxChar* pAux = (ptr + inlineNBMrkLen); // pAux might now be pointing at a binding beginMkr
+										if (*pAux == gSFescapechar)
+										{
+											wxString myBeginMkr = GetWholeMarker(pAux);
+											// use bool CAdapt_ItDoc::IsEndMarker2(wxChar* pChar)
+											if (!myBeginMkr.IsEmpty())
 											{
-												wxString myBeginMkr = GetWholeMarker(pAux);
-												// use bool CAdapt_ItDoc::IsEndMarker2(wxChar* pChar)
-												if (!myBeginMkr.IsEmpty())
+												bool bIsNotEndMkr = !IsEndMarker2(pAux);
+												if (bIsNotEndMkr)
 												{
-													bool bIsNotEndMkr = !IsEndMarker2(pAux);
-													if (bIsNotEndMkr)
+													// It's a beginMkr
+													wxString augBeginMkr = myBeginMkr + _T(' '); // for fast-access test
+													int offset3 = wxNOT_FOUND; wxUnusedVar(offset3); // avoid compiler warning variable initialized but not referenced
+													bool bIsMyInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augBeginMkr);
+													if (bIsMyInlineBindingMkr)
 													{
-														// It's a beginMkr
-														wxString augBeginMkr = myBeginMkr + _T(' '); // for fast-access test
-														int offset3 = wxNOT_FOUND; wxUnusedVar(offset3); // avoid compiler warning variable initialized but not referenced
-														bool bIsMyInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augBeginMkr);
-														if (bIsMyInlineBindingMkr)
-														{
-															// TRUE, it belongs to the marker set that has \k \it etc
-															bIsInlineBindingMkr = TRUE;
-														}
-														// If bIsInlineBindingMkr was not set TRUE here, then ParsePreWord() would
-														// probably "lose it", and it would get picked up as a member of m_markers,
-														// leading to m_srcSinglePattern not having it, when it should
+														// TRUE, it belongs to the marker set that has \k \it etc
+														bIsInlineBindingMkr = TRUE;
 													}
+													// If bIsInlineBindingMkr was not set TRUE here, then ParsePreWord() would
+													// probably "lose it", and it would get picked up as a member of m_markers,
+													// leading to m_srcSinglePattern not having it, when it should
 												}
 											}
 										}
-										// BEW 9Jan2023 I need to check the m_RedBeginMarkers set, that's where \rq is. m_RedEndMarkers has \rq*
-										// There are a heap of markers in these red sets, they are not necessarily inLine; but a not 'verse or 'poetry'
+									}
+									// BEW 9Jan2023 I need to check the m_RedBeginMarkers set, that's where \rq is. m_RedEndMarkers has \rq*
+									// There are a heap of markers in these red sets, they are not necessarily inLine; but a not 'verse or 'poetry'
+									else
+									{
+										offset = pApp->m_RedBeginMarkers.Find(augmentedWholeMkr);
+										if (offset != wxNOT_FOUND)
+										{
+											// these markers are not for 'sacred' text, but for things like \rq etc, they store like \f would
+											bIsInlineBindingMkr = FALSE;
+											bIsInlineNonbindingMkr = FALSE;
+											// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
+											bIsCharAttrMkr = FALSE;
+										}
 										else
 										{
-											offset = pApp->m_RedBeginMarkers.Find(augmentedWholeMkr);
-											if (offset != wxNOT_FOUND)
-											{
-												// these markers are not for 'sacred' text, but for things like \rq etc, they store like \f would
-												bIsInlineBindingMkr = FALSE;
-												bIsInlineNonbindingMkr = FALSE;
-												// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
-												bIsCharAttrMkr = FALSE;
-											}
-											else
-											{
-												// It's not a character formatting mkr
-												// It's not a 'binding' type of mkr
-												// It's not a 'non-binding' type of mkr
-												// It's not one of the Red set
-												// So let the legacy code decide what to do
-												bIsInlineBindingMkr = FALSE;
-												bIsInlineNonbindingMkr = FALSE;
-												bIsCharAttrMkr = FALSE;
-											}
+											// It's not a character formatting mkr
+											// It's not a 'binding' type of mkr
+											// It's not a 'non-binding' type of mkr
+											// It's not one of the Red set
+											// So let the legacy code decide what to do
+											bIsInlineBindingMkr = FALSE;
+											bIsInlineNonbindingMkr = FALSE;
+											bIsCharAttrMkr = FALSE;
 										}
-									} // end of the else block for test: if (offset >= 0) - for char format mkrs
+									}
+								} // end of the else block for test: if (offset >= 0) - for char format mkrs
 
-								} // end of else block for testing for one in m_inlineNonbindingMarkers
-							} // end of TRUE block for test: if (offset >= 0) - for gpApp->m_charAttributeMkrs
+							} // end of else block for testing for one in m_inlineNonbindingMarkers
+							//} // end of TRUE block for test: if (offset >= 0) - for gpApp->m_charAttributeMkrs
 
 							// In TokenizeText() the embedded marker \+jmp, when ParsePreWord() is called, 
 							// \+jmp will be handled differently than expected in regards to where it is 

@@ -844,7 +844,8 @@ int CCCModule::CCReinitializeTable()
  *
  */
 {
-    register int i;     // Loop index for initializing storage pointers
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int i; // register int i;     // Loop index for initializing storage pointers
     unsigned storemax;
 
     RestoreState();  // this restores our global variables
@@ -1076,7 +1077,9 @@ void CCCModule::tblcreate()		 /* Create tables */
 } /* End--tblcreate */
 
 /****************************************************************************/
-void CCCModule::groupinclude(register int group)  /* Include another group of changes in search area */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//void CCCModule::groupinclude(register int group)  /* Include another group of changes in search area */
+void CCCModule::groupinclude(int group)  /* Include another group of changes in search area */
 /****************************************************************************/
 
 /* This procedure includes a new group of changes in the list of groups
@@ -1117,7 +1120,8 @@ void CCCModule::groupinclude(register int group)  /* Include another group of ch
  */
 
 {
-    register int i;		/* Loop index for searching curgroups */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int i;	//register int i;		/* Loop index for searching curgroups */
     char found;				/* Boolean: TRUE == group is currently active */
 
 
@@ -1155,7 +1159,9 @@ void CCCModule::groupinclude(register int group)  /* Include another group of ch
 } /* End--groupinclude */
 
 /****************************************************************************/
-void CCCModule::groupexclude(register int group)				  /* Exclude a group of changes */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//void CCCModule::groupexclude(register int group)				  /* Exclude a group of changes */
+void CCCModule::groupexclude(int group)				  /* Exclude a group of changes */
 /****************************************************************************/
 
 /* This procedure excludes a group from the list of groups being searched.
@@ -1195,7 +1201,8 @@ void CCCModule::groupexclude(register int group)				  /* Exclude a group of chan
  */
 
 {
-    register int i;	/* Loop index for searching curgroups */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int i; //register int i;	/* Loop index for searching curgroups */
     char found;			/* Boolean: TRUE == found the group */
 
 
@@ -2242,8 +2249,10 @@ void CCCModule::fillmatch()                          /* Fill match area, execute
  */
 
 {
-    register int i;		   /* Loop index for initializing storage pointers */
-    register tbltype tpntr; /* For finding the physical first group if
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int i; // register int i;		   /* Loop index for initializing storage pointers */
+    tbltype tpntr; // register tbltype tpntr; 
+                   /* For finding the physical first group if
     								 *	 defaulting to an empty group
     								 */
 
@@ -2374,10 +2383,12 @@ void CCCModule::completterset()					 /* Compute first-letter set for matching */
  */
 
 {
-    register tbltype tp;		/* Working pointer into storage area */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    tbltype tp; // register tbltype tp;		/* Working pointer into storage area */
     tbltype tp9;				/* Working pointer to the end of the store */
     /*  currently being checked */
-    register cngtype cp;		/* Working pointer for going through the changes */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    cngtype cp; // register cngtype cp;		/* Working pointer for going through the changes */
     cngtype clp9;				/* Working pointer to the end of the */
     /*  regular changes for the current group */
     cngtype cxp9;				/* Working pointer to the end of the current group */
@@ -2515,10 +2526,11 @@ int CCCModule::gmatch(int group)										  /* Check through one group */
  */
 
 {
-    register cngtype clp;	/* Pointer to beginning of regular changes */
-    register cngtype cxp;	/* Pointer to beginning of left-executable changes */
-    register cngtype clp9;	/* Pointer to end of regular changes */
-    register cngtype cxp9;	/* Pointer to end of left-executable changes */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    cngtype clp; //register cngtype clp;	/* Pointer to beginning of regular changes */
+    cngtype cxp; //register cngtype cxp;	/* Pointer to beginning of left-executable changes */
+    cngtype clp9; //register cngtype clp9;	/* Pointer to end of regular changes */
+    cngtype cxp9; //register cngtype cxp9;	/* Pointer to end of left-executable changes */
     int match_choice;		/* type of match found */
 
     endoffile_in_mch[0] = FALSE;
@@ -2622,7 +2634,9 @@ int CCCModule::gmatch(int group)										  /* Check through one group */
 } /* End--gmatch */
 
 /****************************************************************************/
-int CCCModule::cmatch(register cngtype cp, int ofs)						/* Match a change, letter by letter */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//int CCCModule::cmatch(register cngtype cp, int ofs)						/* Match a change, letter by letter */
+int CCCModule::cmatch(cngtype cp, int ofs)						/* Match a change, letter by letter */
 /****************************************************************************/
 //register cngtype cp;		/* Pointer to the match we're trying */
 //int ofs;						/* Offset into the change at which to start */
@@ -3012,10 +3026,15 @@ int CCCModule::anyutf8check(SSINT * mcptr)             /* Is item in the specifi
  */
 
 {
-    register SSINT *wptr,           /* Working pointer */
-                   *endptr;         /* Pointer to end of store */
-	register int i;					/* Index into UTF-8 character */
-	register int utf8charactersize; /* Size of UTF-8 character */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    //   register SSINT *wptr,           /* Working pointer */
+    //                  *endptr;         /* Pointer to end of store */
+    //register int i;					/* Index into UTF-8 character */
+    //register int utf8charactersize; /* Size of UTF-8 character */
+    SSINT *wptr,            /* Working pointer */
+          *endptr;          /* Pointer to end of store */
+    int i;					/* Index into UTF-8 character */
+    int utf8charactersize;  /* Size of UTF-8 character */
 
     endptr = storend[*tblptr];				 /* End of store, for loop termination */
 	utf8charactersize = UTF8AdditionalBytes((UTF8)*mcptr) +1;
@@ -3055,7 +3074,8 @@ int CCCModule::anycheck(SSINT mc)                                               
  */
 
 {
-    register SSINT *wptr,           /* Working pointer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* wptr, // register SSINT* wptr,           /* Working pointer */
     *endptr;  /* Pointer to end of store */
 
     endptr = storend[*tblptr];				 /* End of store, for loop termination */
@@ -3188,8 +3208,9 @@ void CCCModule::discard_symbol_table()	  /* Discard symbol table */
 
 {
     int i;  /* Loop index */
-    register CC_SYMBOL *sym_pntr;  /* Pointer for traversing the lists */
-    register CC_SYMBOL *temp_pntr;
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    CC_SYMBOL* sym_pntr; //register CC_SYMBOL *sym_pntr;  /* Pointer for traversing the lists */
+    CC_SYMBOL* temp_pntr; //register CC_SYMBOL *temp_pntr;
 
     /* For all 4 symbol tables, loop through freeing all entries */
     for (i = 0; i < 4; i++ )
@@ -3389,7 +3410,8 @@ void CCCModule::startcc()									/* Start up CC */
 
 {
     unsigned storemax;					/* Size of store area */
-    register int i;		/* Loop index for initializing storage pointers */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    int i; // register int i;		/* Loop index for initializing storage pointers */
 
     bytset( switches, FALSE, MAXARG+1);					/* Clear all switches */
 
@@ -3488,7 +3510,8 @@ SSINT CCCModule::inputchar()     /* Input a char.  Return <CR> on EOL, <CTRL-Z> 
  */
 
 {
-    register SSINT ch;  /* Input value from getc */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT ch; // register SSINT ch;  /* Input value from getc */
     SSINT ch2;          /* used to see if we have doublebyte "character" */
 
     if (bEndofInputData)					/* Return <CTRL-Z> on EOF */
@@ -3696,7 +3719,8 @@ int CCCModule::contcheck()		 /* Is next part of match == contents of store? */
  */
 
 {
-    register SSINT *mp,      /* Pointer to input being matched */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT *mp, //register SSINT *mp,      /* Pointer to input being matched */
     *tp,	 /* Pointer to contents of store being matched */
     *tp9;  /* Pointer to the end of the store being matched */
 
@@ -3769,7 +3793,8 @@ void CCCModule::incrstore(int j)			/* Increment ASCII number in store */
 {
 
     SSINT *tb;            /* Local copy of the beginning address of the store */
-    register SSINT *tp;   /* Working pointer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* tp; // register SSINT* tp;   /* Working pointer */
 
     if ( storeact[j] )		/* Is this store being used for matching? */
         setcurrent = FALSE;
@@ -3835,7 +3860,8 @@ void CCCModule::decrstore(int j)                /* Decrement ASCII number in sto
 {
 
     SSINT *tb;            /* Local copy of the beginning address of the store */
-    register SSINT *tp;   /* Working pointer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* tp; // register SSINT* tp;   /* Working pointer */
 
     if ( storeact[j] )		/* Is this store being used for matching? */
         setcurrent = FALSE;
@@ -3911,7 +3937,8 @@ void CCCModule::ccmath(SSINT oprtor, SSINT **tblpnt)   /* Perform a mathematical
 {
     char sign_check,        /* Flag byte for signs of the operands */
     operation;          /* What we're doing (+, -, *, or /) */
-    register SSINT *tp;     /* Copy of the table pointer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* tp; // register SSINT* tp;     /* Copy of the table pointer */
     long int first_operand,
     second_operand,
     l_tmp_1,
@@ -4211,7 +4238,9 @@ void CCCModule::storechar(SSINT ch)		  /* Store a char in the internal table */
 } /* End--storechar */
 
 /****************************************************************************/
-int CCCModule::srchlen(register tbltype tp1) /* Get length of match of change */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//int CCCModule::srchlen(register tbltype tp1) /* Get length of match of change */
+int CCCModule::srchlen(tbltype tp1) /* Get length of match of change */
 /****************************************************************************/
 
 /* Description -- Go through the table, starting at tp1, until we find
@@ -4233,8 +4262,9 @@ int CCCModule::srchlen(register tbltype tp1) /* Get length of match of change */
  */
 
 {
-    register tbltype tp2;  /* Pointer for going through the table */
-    register int length;   /* Length to be returned */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    tbltype tp2; // register tbltype tp2;  /* Pointer for going through the table */
+    int length; // register int length;   /* Length to be returned */
 
     length = 0;
 
@@ -4368,7 +4398,8 @@ void CCCModule::parse( char **pntr, char **pntr2, int errormessage) /* Parse an 
  */
 
 {
-    register char *lp,	 /* Pointer to beginning of element */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char *lp, //register char *lp,	 /* Pointer to beginning of element */
     *lp2;   /* Pointer to next char beyond end of element */
 
     lp = *pntr2;								/* Set starting pointer */
@@ -4769,7 +4800,8 @@ void CCCModule::check_symbol_table() /* Check symbol table for possible typos */
 
 {
     int i;  /* Loop index */
-    register CC_SYMBOL *sym_pntr;  /* Pointer for traversing the lists */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    CC_SYMBOL* sym_pntr; // register CC_SYMBOL* sym_pntr;  /* Pointer for traversing the lists */
 
     for (i = 0; i < 4; i++ )
     {
@@ -4864,8 +4896,9 @@ int CCCModule::cctsetup()					/* Set up pointers into table */
      *
      */
 
-    register tbltype tp;
-    register tbltype *ptp;
+     // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    tbltype tp; // register tbltype tp;
+    tbltype* ptp; // register tbltype* ptp;
     cngtype cp;
     int group, i, j;
 
@@ -5069,8 +5102,9 @@ void CCCModule::cctsort()									/* Sort CC table */
 
 {
 
-    register cngtype k;	/* Inner loop pointer */
-    register cngtype j;	/* Outer loop pointer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    cngtype k; // register cngtype k;	/* Inner loop pointer */
+    cngtype j; // register cngtype j;	/* Outer loop pointer */
     tbltype hold;			/* Pointer to change pointer be inserted */
     int group;  			/* Current group # */
 
@@ -5284,9 +5318,10 @@ void CCCModule::inputaline()	  /* Input a line and set len to its length */
  */
 
 {
-    register SSINT ch,      /* Input character */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT ch, //register SSINT ch,      /* Input character */
     quotechar;	/* Close-quote character we're looking for */
-    register char *lp;  /* Pointer into line */
+    char* lp; // register char* lp;  /* Pointer into line */
 
     lp = line;				/* Initialize local variables */
     quotechar = '\0';
@@ -5398,11 +5433,12 @@ SSINT * CCCModule::execute(int mlen, SSINT * tpx, int beginflag)	/* Execute repl
  */
 
 {
-    register SSINT ch, *cp;        /* current character from table */
-    register SSINT tempch;         /* character from dup or store buffer */
-    register int i;                /* Generic loop index */
-    register unsigned j, k;        /* Unsigned loop indices */
-    register tbltype tp;
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT ch, * cp; // register SSINT ch, * cp;        /* current character from table */
+    SSINT tempch; // register SSINT tempch;         /* character from dup or store buffer */
+    int i; // register int i;                /* Generic loop index */
+    unsigned j, k; // register unsigned j, k;        /* Unsigned loop indices */
+    tbltype tp; // register tbltype tp;
     SSINT cha;                     /* next character in table */
     bool bOmitDone;                /* true only if fwd or omit done with this match */
 
@@ -5736,7 +5772,9 @@ SSINT * CCCModule::execute(int mlen, SSINT * tpx, int beginflag)	/* Execute repl
 } /* End--execute */
 
 /****************************************************************************/
-void CCCModule::output(register SSINT ch)											/* Output or store a char */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//void CCCModule::output(register SSINT ch)											/* Output or store a char */
+void CCCModule::output(SSINT ch)											/* Output or store a char */
 /****************************************************************************/
 //register SSINT ch;
 
@@ -5796,7 +5834,9 @@ void CCCModule::output(register SSINT ch)											/* Output or store a char */
 } /* End--output */
 
 /****************************************************************************/
-void CCCModule::storch(register int store, SSINT ch)		/* Store a char at the end of the current store */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//void CCCModule::storch(register int store, SSINT ch)		/* Store a char at the end of the current store */
+void CCCModule::storch(int store, SSINT ch)		/* Store a char at the end of the current store */
 /****************************************************************************/
 //register int store;
 //SSINT ch;
@@ -5837,8 +5877,9 @@ void CCCModule::storch(register int store, SSINT ch)		/* Store a char at the end
  */
 
 {
-    register tbltype tp;					/* Working pointer */
-    register tbltype end_of_store;	/* Pointer to the end of store */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    tbltype tp; // register tbltype tp;					/* Working pointer */
+    tbltype end_of_store; // register tbltype end_of_store;	/* Pointer to the end of store */
 
     /* Note:  The above variables are declared separately because */
     /*				DECUS C does not allow regular typedef's	*/
@@ -5910,8 +5951,9 @@ void CCCModule::tblskip(SSINT **tblpnt)  /* Skip to end-of-entry, else, or endif
  */
 
 {
-    register SSINT *tp;              /* Working pointer into table */
-    register SSINT ch;            /* Temp storage for char from table */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* tp; // register SSINT* tp;              /* Working pointer into table */
+    SSINT ch; // register SSINT ch;            /* Temp storage for char from table */
     int level;					 /* Level of nesting of begin and end blocks */
 
     level = 0;												/* Initializations */
@@ -6133,7 +6175,9 @@ void CCCModule::BackCommand(SSINT **cppTable, bool utf8)
 }
 
 /****************************************************************************/
-int CCCModule::valnum(register SSINT * operand, char *opbuf, int buflen, long int *value, char first)  /* Validate numeric arg */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//int CCCModule::valnum(register SSINT* operand, char* opbuf, int buflen, long int* value, char first)  /* Validate numeric arg */
+int CCCModule::valnum(SSINT* operand, char* opbuf, int buflen, long int* value, char first)  /* Validate numeric arg */
 /****************************************************************************/
 //register SSINT *operand;
 //char *opbuf;            /* Buffer for the operand, in case it's bad */
@@ -6188,7 +6232,8 @@ int CCCModule::valnum(register SSINT * operand, char *opbuf, int buflen, long in
                              */
     char firsthalf;         /* first half doublebyte pair of valid digits */
 
-    register char *numptr;  /* Pointer for loading numbuf    */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char* numptr; // register char* numptr;  /* Pointer for loading numbuf    */
 
 
     SSINT *opptr;  /* Pointer for finding end of operand     */
@@ -6330,7 +6375,8 @@ int CCCModule::storematch(SSINT **tblpnt)	/* Compare a store with next thing in 
  */
 
 {
-    register SSINT *sp, /* (fast) Pointer to beginning of store */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT *sp, //register SSINT *sp, /* (fast) Pointer to beginning of store */
     *sp2;  /* (fast) Pointer to the thing to compare to
     *	(either a store or a string in the table)
     */
@@ -6546,7 +6592,8 @@ void CCCModule::LengthStore(SSINT **cppTable)
     long lLength;
     int i;
     SSINT *cpWorkTable;    /* Working copy of table pointer */
-    char   cpAsciiLength[15];
+    // whm 6Dec2025 g++ says note: sprintf output between 2 and 21 bytes into a destination of size 15
+    char   cpAsciiLength[15]; // whm 6Dec2025 increased array size to 21
     char  *cpAscii;
 
     cpWorkTable = *cppTable;	 	/* Get working copy of table pointer */
@@ -6590,7 +6637,8 @@ int CCCModule::IfSubset(SSINT **tblpnt)	/* TRUE if each character in store is fo
  */
 
 {
-    register SSINT *sp, /* (fast) Pointer to beginning of store */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT *sp, //register SSINT *sp, /* (fast) Pointer to beginning of store */
     *sp2; /* (fast) Pointer to the thing to compare to
     *	(either a store or a string in the table)
     */
@@ -6698,7 +6746,8 @@ int CCCModule::IfSubset(SSINT **tblpnt)	/* TRUE if each character in store is fo
 void CCCModule::refillinputbuffer()
 {
     int nbytesleft;
-    register SSINT *cp;   /* Working pointer for replenishing match buffer */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT* cp; // register SSINT* cp;   /* Working pointer for replenishing match buffer */
     SSINT ch;
 
     nbytesleft = matchpntrend - matchpntr;
@@ -6749,7 +6798,8 @@ char *CCCModule::sym_name(int number, int type)	/* Return symbolic name for a gi
 /* or define, respectively */
 {
     static char name_buffer[20];	/* Buffer used if no symbolic name exists */
-    register CC_SYMBOL *sym_pntr;	/* Pointer for traversing the list */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    CC_SYMBOL* sym_pntr; // register CC_SYMBOL* sym_pntr;	/* Pointer for traversing the list */
 
     /* Search appropriate symbol table for a matching number */
     sym_pntr = sym_table[type].list_head;
@@ -7179,8 +7229,9 @@ void CCCModule::err(char *message)											/* Display an error message */
  */
 {
     MSG_STRUCT_S_S *structss;
-    register char *cp;         // points to the source of the error info
-    register char *lp;         // points to the target of the error info
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char* cp; // register char* cp;         // points to the source of the error info
+    char* lp; // register char* lp;         // points to the target of the error info
     {
         lp= errorLine;
 
@@ -7237,7 +7288,8 @@ int CCCModule::hex_decode(char * pstr)  /* Decode a hexadecimal sequence        
  *
  */
 {
-    register char next_byte;   /* The next "byte" (element) to store */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char next_byte; // register char next_byte;   /* The next "byte" (element) to store */
     char * pstrstart= pstr;
 
     parsepntr++;				/* Skip over the leading 'x' */
@@ -7311,7 +7363,8 @@ int CCCModule::ucs4_decode(char * pstr)  /* Decode a usc4 string converting it t
  *
  */
 {
-    register unsigned char next_byte;   /* The next "byte" (element) to store */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    unsigned char next_byte; // register unsigned char next_byte;   /* The next "byte" (element) to store */
     UCS4 ch;
     int count;
 
@@ -7407,7 +7460,9 @@ void CCCModule::decimal_decode(int * number )	 /* Decode a decimal number */
 } /* End--decimal_decode */
 
 /****************************************************************************/
-void CCCModule::octal_decode(register int *number)			/* Decode an octal number */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//void CCCModule::octal_decode(register int *number)			/* Decode an octal number */
+void CCCModule::octal_decode(int* number)			/* Decode an octal number */
 /****************************************************************************/
 
 /* Description:
@@ -7479,7 +7534,8 @@ void CCCModule::buildkeyword()			/* Copy suspected keyword into the array keywor
  */
 
 {
-    register char *kp;
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char* kp; // register char* kp;
 
     for ( kp = keyword; parsepntr < parse2pntr; )
     {
@@ -7565,7 +7621,8 @@ void CCCModule::storarg( char comand, char sym_args, char table_head ) /* Store 
  */
 
 {
-    register SSINT number;   /* number for building argument */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    SSINT number; // register SSINT number;   /* number for building argument */
     int flag;                /* Flag for no digits between parentheses */
     char *pPredefined;       /* used to check for predefined store for out */
     bool bPredefinedFound;   /* TRUE if we find a predefined store for out */
@@ -7850,10 +7907,12 @@ int CCCModule::symbol_number(int sym_type, char sym_use) /* Get number for symbo
  */
 
 {
-    register char *beginning_of_symbol,  /* Pointers to name/number */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    char *beginning_of_symbol, //register char *beginning_of_symbol,  /* Pointers to name/number */
     *end_of_symbol;
 
-    register CC_SYMBOL *cursym;  /* Used for traversing symbol table */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    CC_SYMBOL* cursym; //register CC_SYMBOL *cursym;  /* Used for traversing symbol table */
 
     CC_SYMBOL *sym_temp;		/* Used while adding a new element to the table */
 
@@ -8103,7 +8162,8 @@ int CCCModule::search_table(int table_index, char sym_usage, char *sym_name,
  *
  */
 {
-    register CC_SYMBOL *list_pointer;  /* Pointer for traversing the list */
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    CC_SYMBOL* list_pointer; // register CC_SYMBOL* list_pointer;  /* Pointer for traversing the list */
 
     list_pointer = sym_table[ table_index ].list_head;
 
@@ -8134,7 +8194,9 @@ int CCCModule::search_table(int table_index, char sym_usage, char *sym_name,
 } /* End--search_table */
 
 /****************************************************************************/
-int CCCModule::a_to_hex(register char ch )	/* Convert an ASCII char to hex */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//int CCCModule::a_to_hex(register char ch )	/* Convert an ASCII char to hex */
+int CCCModule::a_to_hex(char ch)	/* Convert an ASCII char to hex */
 /****************************************************************************/
 {
     ch = (char)toupper( ch );
@@ -8145,7 +8207,9 @@ int CCCModule::a_to_hex(register char ch )	/* Convert an ASCII char to hex */
 }
 
 /****************************************************************************/
-int CCCModule::odd(register int i)				/* Is numeric argument odd? */
+// whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+//int CCCModule::odd(register int i)				/* Is numeric argument odd? */
+int CCCModule::odd(int i)				/* Is numeric argument odd? */
 /****************************************************************************/
 {
     return(i & 1);

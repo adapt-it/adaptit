@@ -10385,7 +10385,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 		wxMessageBox(_T("IsLoadableFile() read in less then all of the file. File will be treated as non-loadable."),
 			_T("Error"),wxICON_EXCLAMATION | wxOK);
 		if (pbyteBuff != NULL) // whm 11Jun12 added NULL test
-			delete pbyteBuff;
+			free(pbyteBuff); // delete pbyteBuff;  // whm 6Dec2025 changed delete to free(pbyteBuff) to avoid gcc warning [-Wmismatched-new-delete]
 		f.Close();
 		return FALSE;
 	}
@@ -10418,7 +10418,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 		bIsXML = TRUE;
 	}
 	if (pbyteBuff != NULL) // whm 11Jun12 added NULL test
-		delete pbyteBuff;
+		free(pbyteBuff); // delete pbyteBuff; // whm 6Dec2025 changed delete to free(pbyteBuff) to avoid gcc warning [-Wmismatched-new-delete]
 
 //	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
 // GDLC I agree with Bill that we can allow ucs-4 and usc4-le
