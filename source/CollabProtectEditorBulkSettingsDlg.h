@@ -25,6 +25,8 @@
 class CCollabProtectEditorBulkSettingsDlg : public AIModalDialog
 {
 public:
+    // Expose all overloads of InitDialog from the base class (wxWindowBase)
+    using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
     CCollabProtectEditorBulkSettingsDlg(wxWindow* parent); // constructor
     virtual ~CCollabProtectEditorBulkSettingsDlg(void); // destructor
     // The following are temporary values for holding settings until user clicks OK.

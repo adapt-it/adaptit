@@ -134,6 +134,8 @@ protected:
 class CSetEncodingDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CSetEncodingDlg(wxWindow* parent); // constructor
 	virtual ~CSetEncodingDlg(void); // destructor
     // accessors

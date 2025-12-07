@@ -196,7 +196,8 @@ void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
  */
 void MD5Transform(unsigned int buf[4], unsigned int const in[16])
 {
-    register unsigned int a, b, c, d;
+    // whm 6Dec2025 modification: ISO C++17 does not allow ‘register’ storage class specifier [-Wregister]
+    unsigned int a, b, c, d; //register unsigned int a, b, c, d;
 
     a = buf[0];
     b = buf[1];

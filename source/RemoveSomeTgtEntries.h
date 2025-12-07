@@ -88,6 +88,8 @@ WX_DEFINE_ARRAY_INT(int,TrackingArray); // store 0 or 1 to track which pseudo-ch
 class RemoveSomeTgtEntries : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	RemoveSomeTgtEntries(wxWindow*	parent); // constructor
 	virtual ~RemoveSomeTgtEntries(); // destructor
 	CKB*	m_pKB;

@@ -32,6 +32,8 @@
 class CLanguagesPage : public  wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CLanguagesPage();
 	CLanguagesPage(wxWizard* parent); // constructor
 	virtual ~CLanguagesPage(void); // destructor // whm make all destructors virtual

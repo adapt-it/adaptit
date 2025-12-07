@@ -38,6 +38,8 @@
 class CProjectPage : public wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CProjectPage();
 	CProjectPage(wxWizard* parent); // constructor
 	virtual ~CProjectPage(void); // destructor // whm make all destructors virtual

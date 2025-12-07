@@ -26,6 +26,8 @@
 class CJoinDialog : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CJoinDialog(wxWindow* parent); // constructor
 	virtual ~CJoinDialog(void); // destructor
 	//enum { IDD = IDD_JOIN_DLG };

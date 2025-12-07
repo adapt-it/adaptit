@@ -30,6 +30,8 @@
 class CMoveDialog : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CMoveDialog(wxWindow* parent); // constructor
 	virtual ~CMoveDialog(void); // destructor
 

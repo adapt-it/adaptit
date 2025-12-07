@@ -54,7 +54,9 @@
 class KBSharingAuthenticationDlg : public AIModalDialog
 {
 public:
-    // Constructor (this one defaults m_bForManager to TRUE unilaterally), and pass in FALSE
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
+	// Constructor (this one defaults m_bForManager to TRUE unilaterally), and pass in FALSE
     // for m_bUserAuthenticating if the computer user is assumed NOT to be whoever is
     // authenticating (eg when using the KB Sharing Manager), otherwise pass in TRUE - in
     // which case the username, and password get remembered in the session, etc.

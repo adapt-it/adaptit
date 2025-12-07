@@ -6593,7 +6593,7 @@ void CCCModule::LengthStore(SSINT **cppTable)
     int i;
     SSINT *cpWorkTable;    /* Working copy of table pointer */
     // whm 6Dec2025 g++ says note: sprintf output between 2 and 21 bytes into a destination of size 15
-    char   cpAsciiLength[15]; // whm 6Dec2025 increased array size to 21
+    char   cpAsciiLength[21]; // whm 6Dec2025 increased array size to 21
     char  *cpAscii;
 
     cpWorkTable = *cppTable;	 	/* Get working copy of table pointer */

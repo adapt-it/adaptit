@@ -29,6 +29,8 @@ class CAdapt_ItView;
 class CUnitsDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	//enum { IDD = IDD_UNITS_DLG };
 	CUnitsDlg(wxWindow* parent); // constructor
 	virtual ~CUnitsDlg(void); // destructor // whm make all destructors virtual

@@ -24,6 +24,8 @@
 class CCollabProjectMigrationDlg : public AIModalDialog
 {
 public:
+    // Expose all overloads of InitDialog from the base class (wxWindowBase)
+    using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
     CCollabProjectMigrationDlg(wxWindow* parent, wxString aiProj, wxString srcProject, wxString tgtProject, wxString freeTransProject); // constructor
     virtual ~CCollabProjectMigrationDlg(void); // destructor
     wxRadioButton* pRadioBtnPT9;

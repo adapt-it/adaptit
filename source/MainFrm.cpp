@@ -2085,7 +2085,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 class AboutDlg : public AIModalDialog
 {
 public:
-    AboutDlg(wxWindow *parent);
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
+	AboutDlg(wxWindow *parent);
 	wxSizer* pAboutDlgSizer;
 protected:
 	wxStaticBitmap* m_pbmpAI;

@@ -41,6 +41,8 @@ class CFindDlg : public wxScrollingDialog // use wxScrollingDialog instead of AI
 #endif
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CFindDlg();
 	CFindDlg(wxWindow* parent); // constructor
 	virtual ~CFindDlg(void); // destructor // whm make all destructors virtual
@@ -155,6 +157,8 @@ class CReplaceDlg : public wxScrollingDialog // use wxScrollingDialog instead of
 #endif
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CReplaceDlg();
 	CReplaceDlg(wxWindow* parent); // constructor
 	virtual ~CReplaceDlg(void); // destructor // whm make all destructors virtual

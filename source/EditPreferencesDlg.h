@@ -60,6 +60,8 @@ class CEditPreferencesDlg : public wxPropertySheetDialog
 {
 	//DECLARE_DYNAMIC_CLASS(CEditPreferencesDlg)
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CEditPreferencesDlg();
 	CEditPreferencesDlg(
 		wxWindow* parent, wxWindowID id, const wxString& title,

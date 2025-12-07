@@ -28,6 +28,8 @@
 class CDocPage : public wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CDocPage();
 	CDocPage(wxWizard* parent); // constructor
 	virtual ~CDocPage(void); // destructor // whm make all destructors virtual

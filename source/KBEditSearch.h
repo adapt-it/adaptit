@@ -66,6 +66,8 @@ int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr)
 class KBEditSearch : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	KBEditSearch(wxWindow* parent); // constructor
 	virtual ~KBEditSearch(void); // destructor
 

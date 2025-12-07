@@ -28,6 +28,8 @@
 class CWelcome : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CWelcome(wxWindow* parent); // constructor
 	virtual ~CWelcome(void); // destructor // whm make all destructors virtual
 	// other methods

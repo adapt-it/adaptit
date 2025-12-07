@@ -39,6 +39,8 @@ enum TransferDirection
 class CExportOptionsDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CExportOptionsDlg(wxWindow* parent); // constructor
 	virtual ~CExportOptionsDlg(void); // destructor
 	// other methods

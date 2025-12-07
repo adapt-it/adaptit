@@ -218,6 +218,8 @@ protected:
 class CUsfmFilterPageWiz : public wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CUsfmFilterPageWiz();
 	CUsfmFilterPageWiz(wxWizard* parent); // constructor
 	virtual ~CUsfmFilterPageWiz(void); // destructor // whm make all destructors virtual
@@ -275,6 +277,8 @@ private:
 class CUsfmFilterPagePrefs : public wxPanel
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CUsfmFilterPagePrefs();
 	CUsfmFilterPagePrefs(wxWindow* parent); // constructor
 	virtual ~CUsfmFilterPagePrefs(void); // destructor // whm make all destructors virtual

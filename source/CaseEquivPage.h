@@ -99,6 +99,8 @@ public:
 class CCaseEquivPageWiz : public wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CCaseEquivPageWiz();
 	CCaseEquivPageWiz(wxWizard* parent); // constructor
 	virtual ~CCaseEquivPageWiz(void); // destructor // whm make all destructors virtual
@@ -156,6 +158,8 @@ private:
 class CCaseEquivPagePrefs : public wxPanel
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CCaseEquivPagePrefs();
 	CCaseEquivPagePrefs(wxWindow* parent); // constructor
 	virtual ~CCaseEquivPagePrefs(void); // destructor // whm make all destructors virtual

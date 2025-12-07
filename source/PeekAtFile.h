@@ -42,6 +42,8 @@ class CPeekAtFileDlg : public AIModalDialog
 {
 	friend class AdminMoveOrCopy;
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CPeekAtFileDlg(wxWindow* parent); // constructor
 	virtual ~CPeekAtFileDlg(void); // destructor
 	// other methods
