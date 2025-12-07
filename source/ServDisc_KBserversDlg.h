@@ -30,6 +30,8 @@
 class CServDisc_KBserversDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pIpAddrs, wxArrayString* pHostnames); // constructor
 	virtual ~CServDisc_KBserversDlg(void); // destructor
 
