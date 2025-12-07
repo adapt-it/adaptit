@@ -4367,8 +4367,11 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
     // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
     // encountered when this OnUpdateViewComposeBar() update handler was being triggered at idle
     // time, but before the View object was created
-    if (pView == NULL)
-        return;
+	if (pView == NULL)
+	{
+		return;
+	}
+
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pApp->m_bFreeTranslationMode)
