@@ -39238,18 +39238,20 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 	bool& bHasBogusPeriods, int& nWhitesLenIncludingBogusPeriods, int& nPeriodsInWhitesLen)
 {
 	wxChar* p = pChar;
+	//CAdapt_ItApp* pApp = &wxGetApp();
 	nWhitesLenIncludingBogusPeriods = 0;
 	nPeriodsInWhitesLen = 0;
 	int nFollowingWhitesLen = 0;
 	int itemLen = 0;
-	wxString wholeMkr; wholeMkr.Empty();
+	wxString wholeMkrCandidate; wholeMkrCandidate.Empty();
+	wxString wholeMkrThatFollows; wholeMkrThatFollows.Empty();
 	wxString chapterMkr = _T("\\c");
 	wxString verseMkr = _T("\\v");
 	if (IsMarker(p))
 	{
 		itemLen = ParseMarker(p);
-		wxString wholeMkr = wxString(p, itemLen);
-		if (wholeMkr == chapterMkr || wholeMkr == verseMkr)
+		wholeMkrCandidate = wxString(p, itemLen);
+		if (wholeMkrCandidate == chapterMkr || wholeMkrCandidate == verseMkr)
 		{
 			// it's a \c or \v marker so parse the following space and number
 			p += itemLen;
@@ -39366,13 +39368,56 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 	// Finally, we can now determine whether it is an empty marker or not.
 	if (*p == gSFescapechar || p == pEnd) // whm 12Jan2024 added pEnd test
 	{
-		// Yes, it's an empty marker
-		return TRUE;
+		// whm 8Dec2025 modification/addition. This needs to be smarter to determine whether
+		// the marker being pointed at now is followed by sacred text, and if so, this
+		// marker isn't actually an empty marker, and we return FALSE. The need for more
+		// smarts is found in input texts such as our Hezekiah text where there are a number
+		// of poetry markers that exist on a line by themselves, followed by a verse marker, i.e.:
+		// \q1
+		// \v 3 Someone is shouting in the desert, ...
+		// In this case the \q1 marker is not an "empty marker" because it is followed by a verse
+		// marker and some actual verse text. Both the \q1 marker and the \v 3 marker should be
+		// associated with the source phrase of the text word "Someone". 
+		// Hence, the code above is seeking the status of the \q1 marker, has parsed that marker,
+		// and parsed following whitespace as "\r\n", and p is currently pointing at a backslash of
+		// the verse marker "\\v 3". Probably the best way to determine whether the marker \q1 is
+		// empty or not is to parse the currently pointed-at marker and if it is a verse marker that
+		// is followed by some text, the \q1 should not be considered an "empty marker", and we
+		// return FALSE. It may be that markers other than a verse marker occurring at this point
+		// might also suggest that the 
+		itemLen = ParseMarker(p);
+		wholeMkrThatFollows = wxString(p, itemLen);
+		if (wholeMkrThatFollows == chapterMkr || wholeMkrThatFollows == verseMkr)
+		{
+			// it's a \c or \v marker so parse the following space and number
+			p += itemLen;
+			itemLen = ParseWhiteSpace(p);
+			p += itemLen;
+			itemLen = ParseNumber(p);
+			// update p to point past the number 
+			p += itemLen;
+			// parse any whitespace that follows the \c n or \v n marker
+			itemLen = ParseWhiteSpace(p);
+			// update p to point past whitespace
+			p += itemLen;
+			if (*p == gSFescapechar || p == pEnd)
+			{
+				// Yes, it's an empty marker since we are pointing at a marker
+				return TRUE;
+			}
+			else
+			{
+				// p is pointing at something that is not whitespace and is not a marker, we assume it is
+				// text, indicating that this is NOT an empty marker
+				nWhitesLenIncludingBogusPeriods = 0;
+				m_bWithinEmptyMkrsLoop = FALSE;
+			}
+		}
 	}
 	else
 	{
 		// No, it's not an empty marker, after whitespace(s) there is not the backslash of a beginMkr
-		nWhitesLenIncludingBogusPeriods = 0; // -1;
+		nWhitesLenIncludingBogusPeriods = 0;
 		m_bWithinEmptyMkrsLoop = FALSE;
 	}
 	return FALSE;
@@ -48304,7 +48349,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber >= 6)
+		if (pSrcPhrase->m_nSequNumber >= 756)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
