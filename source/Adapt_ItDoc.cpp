@@ -21024,31 +21024,44 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 	return augmentedWholeMkr == xref;
 }
 
+// whm 7Dec2025 modified. I've modified the FindWordBreakChar() function to return a whole 
+// EOL "\r\n" string, if "\r\n" or a single '\r' or '\n' char immediately preceeds the ptr 
+// location, or return a whitespace char if the immediately preceding char is whitespace;
+// otherwise it returns an empty string. The function also now utilizes the pBufStart 
+// parameter to protect the code from accessing a memory location preceding pBufStart.
 wxString CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 {
-	wxUnusedVar(pBufStart); // avoid gcc warning
-	wxString strReturn; strReturn = wxEmptyString; // initialize to a "safe" value
-	wxChar* pSpann; pSpann = ptr; wxUnusedVar(pSpann);
-	wxString mySpan;
-	mySpan = wxEmptyString; // init
-	// BEW 22Mar23, MUST not return a NULL. pBufStart is a small local span, typically starting with
-	// a begin mkr. So what we want to return is the first whitespace earlier than pBufStart, which is
-	// where ptr starts off pointing at as well.
-	// BEW 13JUL23 the code can currently insert NULL when these no whitespace to grab, so probably the
-	// best thing to do is to remove NULL from the function, turn chReturn into strReturn and initialise
-	// it to empty string, and handle initial values of other values similarly
+	wxString EOL = _T("\r\n");
+	// whm 7Dec2025 removed the original comments BEW had for this function, as they are no longer
+	// applicable. The previous version of this function just examined one char BEFORE the ptr location
+	// which in practice would return just the "\n" part of a whole EOL "\r\n", which could cause potential
+	// parsing problems. I've modified the code here to return a whole EOL "\r\n" string if "\r\n" or a 
+	// single '\r' or '\n' char immediately preceeds the ptr location, or return a whitespace char if it
+	// is present; otherwise it returns an empty string. The function also now utilizes the pBufStart  
+	// parameter to protect the code from accessing a memory location preceding pBufStart.
+	// Note: Currently, when we input a new text for parsing, the text is normalized to make EOLs all "\r\n"
+	// so there should not be any isolated single \r or \n chars as EOL.
 	wxChar* pTemp = ptr; // don't corrupt ptr value
-	wxChar chLast1 = *(pTemp - 1);
-	bool bIsWhitespace = FALSE;
-	bIsWhitespace = IsWhiteSpace(pTemp - 1);
-	if (bIsWhitespace)
+	if (((pTemp - 2) >= pBufStart) && (*(pTemp - 2) == _T('\r')) && (*(pTemp - 1) == _T('\n')))
 	{
-		return (wxString)chLast1;
+		// An EOL "\r\n" immediately precedes the current ptr location, so return it as the word break
+		return EOL;
+	}
+	else if (((pTemp - 1) >= pBufStart) && (*(pTemp - 1) == _T('\r') || *(pTemp - 1) == _T('\r')))
+	{
+		// There is not a whole EOL, but an isolated single \r or \n immediately preceding 
+		// the ptr, rather than \r\n in which case we should actually return the full EOL.
+		return EOL;
+	}
+	else if (((pTemp - 1) >= pBufStart) && IsWhiteSpace(pTemp - 1))
+	{
+		// No EOL char(s) precede the ptr location, but only a whitespace char, so return that whitespace char.
+		return *(pTemp - 1);
 	}
 	else
 	{
-		mySpan = wxEmptyString;
-		return strReturn;
+		// The char preceding the ptr is neither whitespace, nor an EOL char, so return empty string.
+		return wxEmptyString;
 	}
 }
 
@@ -48531,8 +48544,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// - along with any nLenSweptUpStuff to advance the ptr below. Also, any tempWhites would 
 		// be prefixed to any sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, for use later
 		// in TokenizeTextZ() when the actual marker filtering takes place.
+		// 
+		// whm 7Dec2025 comment and code adjustment. The tempWhites variable was never assigned any
+		// whitespace content! And yet I think the code was working fine, so I'm removing it from
+		// from the coding below. I think that the call of FindWordBreakChar() below will now catch
+		// any EOL chars that are present storing them in m_srcWordBreak - the FindWordBreakChar()
+		// function was also revised to do this as of this date.
 		itemLen = 0;
-		wxString tempWhites; tempWhites.Empty();
+		//wxString tempWhites; tempWhites.Empty();
 		wxChar* tempPtr = ptr;
 		if (IsWhiteSpace(tempPtr))
 		{
@@ -48612,7 +48631,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		if (bIsNextFilterableMkrToBeFiltered)
 		{
-			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered = tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
+			//sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered = tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
+			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
 			bParseSweptUpMatterBeforeMarkerToBeFiltered = TRUE; // whm 10Feb2024 modified var name
 			itemLen += nLenSweptUpStuff; // advance ptr to point past the swept up stuff and point at following marker to be filtered
 		}
@@ -48625,7 +48645,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// going to be stored with a filtered marker in the m_filteredInfo member.
 			bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
 			// Store any swept up white space and/or markers on the m_markers member
-			pSrcPhrase->m_markers += tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
+			//pSrcPhrase->m_markers += tempWhites + sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
+			pSrcPhrase->m_markers += sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered;
 			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
 			itemLen += nLenSweptUpStuff; // advance ptr to point past the swept up stuff and point at what follows
 		}
@@ -49502,10 +49523,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// stored.
 								if (itemLen > 0)
 								{
-									precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
-									// whitespace char follows the marker
+									// whm 7Dec2025 modification. Whitespace here may well be an EOL sequence "\r\n"
+									// We need to store the whole EOL "\r\n", not just the first "\r" part of the EOL.
+									// so I've added code to get the whole whitespace that was parsed above and store
+									// it within the precWordDelim, as well as the pSrcPhrase->m_srcWordBreak, and
+									// also importantly, now we store such whitespace in the pSrcPhrase->m_markers 
+									// instead of the m_precPunct member.
+									//precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
+									// // whitespace char follows the marker
+									precWordDelim = wxString(ptr, itemLen);
 									pSrcPhrase->SetSrcWordBreak(precWordDelim);
-									pSrcPhrase->m_precPunct += precWordDelim;
+									pSrcPhrase->m_markers += precWordDelim; //pSrcPhrase->m_precPunct += precWordDelim;
 								}
 								ptr += itemLen;
 								// whm 28Dec2024 removed the following bKeepPtrFromAdvancing TRUE assignment as it causes
@@ -51046,10 +51074,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									int spAfterMkr = ParseWhiteSpace(ptr);
 									if (spAfterMkr > 0)
 									{
-										precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
-										// whitespace char follows the marker
+										// whm 7Dec2025 modification. Whitespace here may well be an EOL sequence "\r\n"
+										// We need to store the whole EOL "\r\n", not just the first "\r" part of the EOL.
+										// so I've added code to get the whole whitespace that was parsed above and store
+										// it within the precWordDelim, as well as the pSrcPhrase->m_srcWordBreak, and
+										// also importantly, now we store such whitespace in the pSrcPhrase->m_markers 
+										// instead of the m_precPunct member.
+										//precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
+										// // whitespace char follows the marker
+										precWordDelim = wxString(ptr, spAfterMkr);
 										pSrcPhrase->SetSrcWordBreak(precWordDelim);
-										pSrcPhrase->m_precPunct += precWordDelim;
+										pSrcPhrase->m_markers += precWordDelim; //pSrcPhrase->m_precPunct += precWordDelim;
 									}
 									ptr += spAfterMkr;
 									// It's an unknown marker
@@ -55158,7 +55193,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString atPtr = wxString(ptr, 16);
 		wxLogDebug(_T("TokenizeText(), line %d , sn= %d , APPENDING to pList , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, atPtr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 144)
+		if (pSrcPhrase->m_nSequNumber >= 1015)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}

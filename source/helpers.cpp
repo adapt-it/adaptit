@@ -14881,8 +14881,17 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 			// unless a test is explicitly made in the TRUE block for newline. Add that code.
 			// whm 21Feb2024 modified first test below to includ \r so that an \r doesn't become
 			// a space, but \n.
-			if (s == _T("\n") || s == _T("\r"))
+			// whm 8Dec2025 modified. 
+			// The internal EOL for AI docs is normalized on input to "\r\n" and s here would 
+			// generally be "\r\n" which needs to be tested for here, otherwise an s value of 
+			// "\r\n" would be turned into a space
+			if (s == _T("\r\n"))
 			{
+				output = _T("\r\n");
+			}
+			else if (s == _T("\n") || s == _T("\r"))
+			{
+				// if per chance the s value has only \r or \n
 				output = _T("\n");
 			}
 			else
@@ -14918,7 +14927,24 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 		// BEW 29Oct22 added protection for Get Char(0)
 		if (!s.IsEmpty() && (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t')) )
 		{
-			output = _T(" ");
+			// whm 8Dec2025 modified. 
+			// The Tgt word break handling should be similar to the Source word break above.
+			// The internal EOL for AI docs is normalized on input to "\r\n" and s here would 
+			// generally be "\r\n" which needs to be tested for here, otherwise an s value of 
+			// "\r\n" would be turned into a space
+			if (s == _T("\r\n"))
+			{
+				output = _T("\r\n");
+			}
+			else if (s == _T("\n") || s == _T("\r"))
+			{
+				// if per chance the s value has only \r or \n
+				output = _T("\n");
+			}
+			else
+			{
+				output = _T(" ");
+			}
 			return output;
 		}
 		return s;
