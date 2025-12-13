@@ -242,6 +242,7 @@ public:
 	virtual bool OnSaveModified(); // in protected area of MFC app
 	bool			DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
 	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
+	bool			IsFinalPunctuationOnly(wxString str); // whm 11Dec2025 added
 
 	// Implementation
 protected:
@@ -885,7 +886,7 @@ public:
 	bool IsEmptyMkr(wxChar* pChar, wxChar* pEnd, 
 		bool& bHasBogusPeriods, int& nWhitesLenIncludingBogusPeriods, int& nPeriodsInWhitesLen);
 	void IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd, int& nPeriods); 
-	bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
+	//bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
 
 
 

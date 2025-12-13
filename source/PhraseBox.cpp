@@ -1104,6 +1104,77 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 					__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str());
 			}
 #endif
+			// whm 11Dec2025 addition. To support our code having an empty source phrase (m_key is "") 
+			// and which has an isolated ")." or other bit of final punctuation in its m_srcPhrase member, the
+			// following code will detect that "rogue" situation and assign the value stored in m_srcPhrase
+			// to its m_targetStr member, before we return from this DoStore...() function at the return
+			// statement below. This allows the final punctuation to remain in the target line after an
+			// Enter press at the location of the otherwise empty source phrase (m_key is ""). We have nothing
+			// to Store() in the KB, so we go ahead and return immediately below.
+			if (pOldActiveSrcPhrase->m_key.IsEmpty() && pDoc->IsFinalPunctuationOnly(pOldActiveSrcPhrase->m_srcPhrase))
+			{
+				// Before we arrive here the user could have made a change to the target phrase punctuation
+				// of our otherwise empty source phrase. That change, if made, will appear in the 
+				// pApp->m_targetPhrase global. Any change should be discoverable by comparing the m_srcPhrase
+				// member of the pOldActiveSrcPhrase->m_srcPhrase with what is now stored in pApp->m_targetPhrase.
+				// If a user edit is evident, we need to use the edited version to store in the current
+				// pOldActiveSrcPhrase->m_targetStr, and also store the edited version in the current
+				// pOldActiveSrcPhrase->m_srcPhrase, as well as pOldActiveSrcPhrase->m_follPunct.
+				if (pOldActiveSrcPhrase->m_srcPhrase != pApp->m_targetPhrase)
+				{
+					// The user edited the punctuation in the phrasebox changing it to something other that
+					// what was there originally. The phrasebox might now contain:
+					// 1. Punctuation only, but different than what was there previouly.
+					// 2. Nothing. The punctuation was deleted and phrasebox emptied.
+					// 3. Text only, or text plus some punctuation.
+					// First deal with 1 and 2 above:
+					if (pDoc->IsFinalPunctuationOnly(pApp->m_targetPhrase) || pApp->m_targetPhrase.IsEmpty())
+					{
+						// The user type some different punctuation into the phrasebox without any text,
+						// or deleted the whole contents of the phrasebox.
+						// Adjust the pOldActiveSrcPhrase to reflect the changes
+						pOldActiveSrcPhrase->m_targetStr = pApp->m_targetPhrase;
+						//pOldActiveSrcPhrase->m_srcPhrase = pApp->m_targetPhrase;
+						//pOldActiveSrcPhrase->m_follPunct = pApp->m_targetPhrase;
+
+					}
+					// Deal with 3 above.  
+					else 
+					{
+						// The user added some text, or text plus punctuation.
+						// The text plus any punctuation should be stored in the m_targetStr
+						// when we don't want to store in the KB, we still have some things to do
+						// to get appropriate m_adaption and m_targetStr members set up for the doc...
+						// when adapting, fill out the m_targetStr member of the CSourcePhrase instance,
+						// and do any needed case conversion and get punctuation in place if required
+						//pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+
+						// Any punctuation added by the user is not stored in pOldActiveSrcPhrase->m_adaption.
+						// The m_targetStr member may now have punctuation, so get rid of it
+						// before assigning whatever is left to the m_adaption member.
+						wxString strKeyOnly = pApp->m_targetPhrase;
+						pView->RemovePunctuation(pDoc, &strKeyOnly, from_target_text);
+
+						// The text only should be stored in the m_adaption
+						pOldActiveSrcPhrase->m_adaption = strKeyOnly;
+
+						// whm 11Dec2025 In normal cases where source text m_key is not empty, we might
+						// let the user see the unpunctuated string in the phrase box as visual feedback,
+						// but for the present situation where source m_key is empty, we retain any
+						// punctuation in pApp->m_targetPhrase, and also in the source phrase' m_targetStr.
+						//pApp->m_targetPhrase = strKeyOnly;
+						pOldActiveSrcPhrase->m_targetStr = pApp->m_targetPhrase;
+					}
+				}
+				else
+				{
+					// The punctuation in the phrasebox was not changed when phrasebox moved away
+					// so to make the punctuation "stick" we must assign it to the current source phrase's
+					// m_targetStr.
+					pOldActiveSrcPhrase->m_targetStr = pOldActiveSrcPhrase->m_srcPhrase;
+				}
+			}
+
 			return TRUE; // wasFALSE;
 		}
 

@@ -431,7 +431,7 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 
 	// whm 28Sep2023 added initialization of following here in the Doc's constructor
 	// See comments in the PlacePhraseBox() function 
-	m_bWithinEmptyMkrsLoop = FALSE; // set TRUE when entering, FALSE when exiting
+	//m_bWithinEmptyMkrsLoop = FALSE; // set TRUE when entering, FALSE when exiting
 
 	// WX Note: Nearly all Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
@@ -34803,6 +34803,30 @@ bool CAdapt_ItDoc::IsPunctuationOnlyFollowedByEndmarker(wxChar* pChar, wxChar* p
 	return FALSE;
 }
 
+// whm 11Dec2025 created. Returns TRUE if after trimming any whitespace
+// from str, the remaining characters of str consist of final punctuation 
+// only, otherwise return FALSE. 
+// This function is intended only for a source language str.
+bool CAdapt_ItDoc::IsFinalPunctuationOnly(wxString str)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	str.Trim(TRUE);
+	str.Trim(FALSE);
+	if (str.IsEmpty())
+		return FALSE;
+	int lenStr = str.Length();
+	wxChar aChar;
+	for (int i = 0; i < lenStr; i++)
+	{
+		aChar = str.GetChar(i);
+		if (pApp->m_finalSrcPuncts.Find(aChar) == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 
 ///////////////////////// 
 // Helper code for support of USFM3's attribute-having metadata for certain markers, for
@@ -39410,7 +39434,7 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 				// p is pointing at something that is not whitespace and is not a marker, we assume it is
 				// text, indicating that this is NOT an empty marker
 				nWhitesLenIncludingBogusPeriods = 0;
-				m_bWithinEmptyMkrsLoop = FALSE;
+				//m_bWithinEmptyMkrsLoop = FALSE;
 			}
 		}
 	}
@@ -39418,7 +39442,7 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 	{
 		// No, it's not an empty marker, after whitespace(s) there is not the backslash of a beginMkr
 		nWhitesLenIncludingBogusPeriods = 0;
-		m_bWithinEmptyMkrsLoop = FALSE;
+		//m_bWithinEmptyMkrsLoop = FALSE;
 	}
 	return FALSE;
 }
@@ -40259,7 +40283,14 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 					}
 				}
 			}
-
+			// whm 11Dec2025 testing. This pSrcPhrase is going to be an empty one, with m_key == ""
+			// but it will have some final punctuation which will not display in the main window.
+			// This addition below is a test to see if we can store the final punctuation in the
+			// m_srcPhrase member in order to get that punctuation to diaplay in the main window.
+			if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_key.IsEmpty())
+			{
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct;
+			}
 			// We need to force this source phrase to be closed off as an "empty" one,
 			// so we assign a TRUE value to the bForceEmptySrcPhrase formal parameter and
 			// return the len
@@ -48017,7 +48048,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// BEW added another member boolean to CAdapt_ItDoc instance, to help with detached ] when ParseWord() parses
 	m_bClosingBracketIsNext = FALSE; // initialise, goes TRUE on when ParseWord() forces a new pSrcPhrase for
 									 // carrying the ] as m_key and m_srcPhrase, restore FALSE when the ] is done with
-	m_bWithinEmptyMkrsLoop = FALSE; // set TRUE when entering, FALSE when exiting
+	//m_bWithinEmptyMkrsLoop = FALSE; // set TRUE when entering, FALSE when exiting
 
 	// whm 17Jan2024 added the following 3 variable initializations. 
 	// I may decide not to use these outside the IsEmptyMkr() function and within 
@@ -49290,7 +49321,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// pertinent to what happens in PlacePhraseBox(). But, in the meantime, at least resetting the 
 			// m_bWithinEmptyMkrsLoop to FALSE here should prevent the test in PlacePhraseBox() from causing the
 			// phrasebox to be prematurely emptied when clicking the phrasebox to certain locations.
-			m_bWithinEmptyMkrsLoop = FALSE;
+			//m_bWithinEmptyMkrsLoop = FALSE;
 
 			// BEW 14Aug23 comment: legacy parsing code for markers having content starts here
 			// Put here chapter mkr test block first, so that pApp->m_curChapter 
@@ -53475,7 +53506,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_srcPhrase = [%s] , m_curTextType = %d, m_key = [%s] , m_markers= [%s], at=[%s]"), __LINE__,
 			//	(int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), (int)pSrcPhrase->m_curTextType,
 			//	pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 5) // whm break
+			if (pSrcPhrase->m_nSequNumber >= 142) // whm break
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}

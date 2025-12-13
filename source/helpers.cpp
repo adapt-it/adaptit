@@ -6248,7 +6248,8 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 	CSourcePhrase* pSP = NULL;
 	SPList::Node* pos_pSPList;
 	// Get the position of our starting pSrcPhrase from pList
-	pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
+	// whm 11Dec2025 correction. The first item in pList is gotten by pList->GetFirst().
+	pos_pSPList = pList->GetFirst(); //pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
 	if (pos_pSPList == NULL) // safety check
 		return FALSE;
 	// See if our starting pSrcPhrase has an opening parenthesis and inline binding marker that
@@ -12619,6 +12620,18 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 	{
 		if (gpApp->m_pTargetBox->IsShown())// not focused on app closure
 		{
+			// whm 11Dec2025 testing for when pActiveSrcPhrase is an empty source phrase, but
+			// gpApp->m_targetPhrase has only (final) punctuation. In this case we need not
+			// update the doc with phrasebox contents and can return from this function. We
+			// don't want to make the following calls to change the App's m_targetPhrase, nor
+			// remove the punctuation that makes up the m_targetPhrase, nor call StoreText(), etc.
+			if (pActiveSrcPhrase->m_key.IsEmpty() 
+				&& pDoc->IsFinalPunctuationOnly(pActiveSrcPhrase->m_srcPhrase)
+				&& pDoc->IsFinalPunctuationOnly(gpApp->m_targetPhrase))
+			{
+				return; 
+			}
+
 			if (!gbIsGlossing)
 			{
 				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, gpApp->m_targetPhrase);
