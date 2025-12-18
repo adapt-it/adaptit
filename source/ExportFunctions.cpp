@@ -20904,7 +20904,6 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	// when it was parsed into Adapt It.
 
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	int curMkrPos = 0;
 	int len = text.Length();
 	// Since we require a read-only buffer for our main buffer we
 	// use GetData which just returns a const wxChar* to the data in the string.
@@ -20970,7 +20969,6 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		int usfmStructArrTot = pDoc->m_UsfmStructArr.GetCount();
 		wxString usfmStructLineStr;
 		wxString marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus;
-		wxChar bufChar1BeforeMkr, bufChar2BeforeMkr;
 		whiteSpBeforeMkr.Empty();
 
 		while (*pOld != (wxChar)0 && pOld < pEnd)
@@ -20990,8 +20988,6 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 				// Protect from accessing pOld chars before pBufStart
 				if ((pOld - 2) >= pBufStart)
 				{
-					bufChar1BeforeMkr = *(pOld - 1);
-					bufChar2BeforeMkr = *(pOld - 2);
 					// Check first whether the usfmstruct specifies "nil" whitespace before marker
 					if (whiteSpBeforeMkr == _T("nil"))
 					{
@@ -21342,7 +21338,6 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 				// Process the non-marker text.
 				// just copy whatever we are pointing at and then advance the pointers
 				dummyChar = *(pNew++) = *(pOld++);
-				curMkrPos = (int)(pOld - pBufStart); // update value
 			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		dummyChar = dummyChar;
@@ -21514,7 +21509,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				*(pNew-1) = CR; // replacing the previous EOL char with CR
 				*pNew = LF;
 				dummyChar = *(pNew++); // the (wxChar)0 will go after the LF here, done below
-				//*pNew = *pNew; // avoid gcc warning set but not used warning
+				//  *pNew = *pNew; // avoid gcc warning set but not used warning
 			}
 			else
 			{

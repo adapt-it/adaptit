@@ -4520,7 +4520,7 @@ void FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filtered
 		wxChar CR = _T('\r');
 		wxChar LF = _T('\n');
 		wxChar dummyChar = _T('x'); // for debug inspection only: value computed is not used below
-
+		dummyChar = dummyChar; // avoid gcc warning
 		wxString wholeMkr;
 		wholeMkr.Empty();
 		wxString augWholeMkr;
