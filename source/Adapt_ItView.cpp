@@ -31498,16 +31498,12 @@ bailout:	pAdaptList->Clear();
 		// whm 13Nov2023 added the following function call to update the filter status fields in the 
 		// .usfmstruct file that was created for the newly created document from the input source text
 		// file before the TokenizeText() call above.
-		// The following function uses the gCurrentFilterMarkers string to add or update the last colon
-		// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in
-		// gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in gCurrentFilterMarkers.
+		// The following function uses the IsACurrentFilterMarker() function  to add or update the last 
+		// colon delimited field in the .sfmstruct file, making the field ":1" if the marker is to be
+		// filtered, or making it ":0" if the marker is NOT to be filtered.
 		// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
 		// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
 		// AFTER the TokenizeText[String]() call is made here below.
-		// *****************************
-		// whm TODO: Verify that the gCurrentFilteredMarkers string is up to date before the
-		// call below.
-		// *****************************
 		if (pDoc->m_bUsfmStructEnabled)
 		{
 			pDoc->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(pDoc->m_usfmStructFilePathAndName);

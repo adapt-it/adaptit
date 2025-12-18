@@ -2212,7 +2212,7 @@ wxString  NormalizeChVsRefToInitialVsOfAnyBridge(wxString bridgedRef)
 // whm 2Feb2024 added following function that appends sppendingStr to receivingStr ensuring that there
 // is singular whitespace between the two strings. Excess whitespace is removed from the right end of the
 // receivingStr. The receivingStr is returned to caller by reference and the appendingStr is not changed.
-// The "singlual" whitespace that ends up between the strings depends on what whitespace is already at 
+// The "singular" whitespace that ends up between the strings depends on what whitespace is already at 
 // /backright end of the receivingStr and the front/left end of the appendingStr. If either string has
 // EOL whitespace (\r, \n, or \r\n) or a mixture of latin space and EOL chars, then the singular whitespace
 // that is placed between the strings is "\r\n". If one or both strings have only non-EOL space between
@@ -4461,6 +4461,159 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 	return pSrcPhrase->GetCollectedBackTrans().IsEmpty();
 }
 
+// whm 13Dec2025 added. This function takes a filteredInfo string that previously
+// had its filter markers removed by GetFilteredStuffAsUnfiltered(), and goes throug
+// the filteredInfo string and parses the markers found there. If the markers are
+// within the m_identificationMkrs set:
+// "\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 
+// \\toca \\toca1 \\toca2 \\toca3 \\toca4 ", these "identification" markers such as
+// \rem should have EOLs in front of them, i.e., they should each start a new line in
+// the rebuilt text. The filteredInfo string typically would not be a real long text,
+// but we can still use a processing buffer to process them.
+// This function is taylored after the FormatMarkerBufferForOutput() function in 
+// ExportFunctions.cpp
+void FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filteredInfo)
+{
+	wxString str = filteredInfo;
+	// Note: Within filteredInfo, it is possible to have swept up markers prefixed to the 
+	// filteredInfo. These would typically be makers like, for example:
+	// "\r\n\\p\r\n\\c 1\\rem [text]..."
+	// Within this example the marker "\\rem ..." is an m_identificationMkrs and as such
+	// we want to ensure that it has an EOL whitespace, so that after processing with this
+	// FormatIdentificationMarkersBeingUnfilteredWithInitialEOL() function the formatted 
+	// filteredInfo string returned by reference to the caller would be:
+	// "\r\n\\p\r\n\\c 1\r\n\\rem [text]..." - where "\r\n" is added before the \rem marker.
+
+	if (str.IsEmpty())
+		return;
+	int posBackSlash = str.Find(_T('\\'));
+	if (posBackSlash == wxNOT_FOUND)
+		return;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// There is at least one backslash indicating at least one marker in filteredInfo
+	// Set up our processing buffer
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	int len = filteredInfo.Length();
+	// Since we require a read-only buffer for our main buffer we
+	// use GetData which just returns a const wxChar* to the data in the string.
+	const wxChar* pBuffer = filteredInfo.GetData();
+	int nBufLen = filteredInfo.Length();
+	wxChar* ptrSrc = (wxChar*)pBuffer;	// point to the first char (start) of the buffer text
+	wxChar* pEnd = ptrSrc + nBufLen;	// point to one char past the end of the buffer text
+	wxChar* pBufStart = (wxChar*)ptrSrc; // whm 13Dec2025 added
+	wxASSERT(*pEnd == '\0');
+	// For a copy-to buffer we'll base it on text2 with a double-sized buffer
+	wxString text2;
+	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString text2 is accessed directly within
+	// this function in text = text2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuff2(text2, len * 2 + 1);
+		//wxChar* pBuff2 = text2.GetWriteBuf(len*2 + 1);
+		//wxChar* pBufStart2 = pBuff2;
+		//wxChar* pEnd2;
+		//pEnd2 = pBufStart2 + len*2;
+		wxChar* pOld = pBufStart;
+		wxChar* pNew = pBuff2;
+		wxChar CR = _T('\r');
+		wxChar LF = _T('\n');
+		wxChar dummyChar = _T('x'); // for debug inspection only: value computed is not used below
+
+		wxString wholeMkr;
+		wholeMkr.Empty();
+		wxString augWholeMkr;
+
+		while (*pOld != (wxChar)0 && pOld < pEnd)
+		{
+			// scan the whole text for standard format markers
+			//if (pDoc->IsMarker(pOld, pBufStart))
+			if (pDoc->IsMarker(pOld))
+			{
+				// we are pointing at a marker; get the marker into the wholeMkr
+				wholeMkr = pDoc->GetWholeMarker(pOld);
+				augWholeMkr = wholeMkr + _T(" ");
+				// If the marker is in the m_identificationMkrs set, we ensure that
+				// the marker is preceded by an EOL.
+				if (pApp->m_identificationMkrs.Find(augWholeMkr) != wxNOT_FOUND)
+				{
+					// It's an identification marker like \rem. Examine the whitespace 
+					// before the marker, and ensure that it has EOL whitespace which we
+					// want for markers of the m_identificationMkrs set which include 
+					// the \rem marker.
+					if (pOld == pBufStart)
+					{
+						// The marker is at the beginning of the string buffer, so it 
+						// has no whitespace before it, so we can just add eols to pNew
+						dummyChar = *pOld; // for debug inspection of pOld only
+						*pNew = CR;
+						dummyChar = *(pNew++);
+						*pNew = LF;
+						dummyChar = *(pNew++);
+					}
+					else if (!IsWhiteSpace(pOld - 1))
+					{
+						// No whitespace present at pOld - 1, so add eols to pNew, incrementing 
+						// pNew pointer after the CR and LF assignments.
+						dummyChar = *pOld; // for debug inspection of pOld only
+						*pNew = CR;
+						dummyChar = *(pNew++);
+						*pNew = LF;
+						dummyChar = *(pNew++);
+					}
+					else
+					{
+						// There is at least one whitespace char before the marker.
+						// Backup pOld until it points to a non-whitespace char, then
+						// increment pOld and store \r there, increment pOld again and
+						// store \n there. Then add \r and \n to pNew incrementing pNew
+						// after each assignment
+						int pOldIndx = 1;
+						int nWhiteSp = 0;
+						while (IsWhiteSpace(pOld - pOldIndx) && pOld >= pBufStart)
+						{
+							nWhiteSp++;
+							pOldIndx++;
+						}
+						pNew = pNew - nWhiteSp; // to point pNew to the initial whitespace
+						// Now add eols to pNew, incrementing pointers after the assignments.
+						dummyChar = *pOld; // for debug inspection of pOld only
+						dummyChar = *pNew; // for debug inspection on pNew only
+						*pNew = CR;
+						dummyChar = *(pNew++);
+						*pNew = LF;
+						dummyChar = *(pNew++);
+					}
+				}
+				// Parse over the marker, copying the Marker to the pNew buffer.
+				// We need not parse the verse \v nor chapter \c markers separately
+				// here since the \v and \c markers are not in the m_identificationMkrs
+				// set; their numbers will be parsed and copied over to pNew just as 
+				// non-marker text.
+				int itemLen = pDoc->ParseMarker(pOld);
+				for (int ctmkr = 0; ctmkr < itemLen; ctmkr++)
+				{
+					dummyChar = *(pNew++) = *(pOld++);
+				}
+			}
+			else
+			{
+				// Copy the non-marker text to the pNew buffer
+				// Process the non-marker text.
+				// just copy whatever we are pointing at and then advance the pointers
+				dummyChar = *(pNew++) = *(pOld++);
+			}
+		}
+		*pNew = (wxChar)0; // terminate the new buffer string with null char
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed
+		// results, so do it here now
+		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
+	} // end of special scoping block
+	filteredInfo = text2; // replace old string with new one
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 a string with the filtered information and wrapped by
 ///                         appropriate markers but not any \~FILTER or \~FILTER* wrappers
@@ -6249,6 +6402,7 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 	SPList::Node* pos_pSPList;
 	// Get the position of our starting pSrcPhrase from pList
 	// whm 11Dec2025 correction. The first item in pList is gotten by pList->GetFirst().
+	pSrcPhrase = pSrcPhrase; // avoid unused warning.
 	pos_pSPList = pList->GetFirst(); //pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
 	if (pos_pSPList == NULL) // safety check
 		return FALSE;
@@ -6462,6 +6616,7 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	bIsSpanEnclosedInParentheses = IsInlineMarkerSpanEnclosedInParentheses(pSrcPhrase, pList);
 
 	bAddedSomething = FALSE;
+
 	if (bIsSpanEnclosedInParentheses)
 	{
 		// whm 19Nov2025 added this part below which reverses the order of the opening
@@ -9090,7 +9245,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	bool bAddedSomething = FALSE;
 	// it's helpful to keep the various inline markers as encountered, so we can easily
 
-				// empty the scratch strings
+	// empty the scratch strings
 	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
 		collBackTransStr, filteredInfoStr);
 	// get the other string information we want, putting it in the scratch strings
@@ -9655,8 +9810,11 @@ bool IsWhiteSpace(const wxChar *pChar)
 	// under Linux" is not longer accurate/significant - wxIsspace() does return TRUE for
 	// when *pChar  is _T('\n') - see testing results near end of OnInit() in the App, and
 	// so I've removed the explicit test: || *pChar == _T('\n') from the if() test below.
+	// whm 13Dec2025 modified. Yikes! Looks like wxIsspace() now returns FALSE for 
+	// *pChar  is _T('\n') and presumably *pChar  is _T('\r') too. Therefore, I've 
+	// aded "|| pChar == _T('\n')" and "|| pChar == _T('\r')" as conditions to return TRUE below.
 	//if (wxIsspace(*pChar) != 0 || *pChar == NBSP || *pChar == _T('\n') || *pChar == HairSpace)
-	if (wxIsspace(*pChar) != 0 || *pChar == NBSP || *pChar == HairSpace)
+	if (wxIsspace(*pChar) != 0 || *pChar == _T('\n') || *pChar == _T('\r') || *pChar == NBSP || *pChar == HairSpace)
 	{
 		return TRUE;
 	}

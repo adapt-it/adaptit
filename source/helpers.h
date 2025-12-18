@@ -362,6 +362,9 @@ bool      HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll = FALSE); //BEW 30Sep19
 bool      IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool      IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
+// whm 13Dec2025 added the following to ensure that identification markers like \rem are preceded
+// by an EOL "\r\n" sequence when they are being unfiltered
+void  FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filteredInfo);
 wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, 
 							bool bDoCount, 
 							bool bCountInTargetText, 

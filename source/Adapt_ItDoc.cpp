@@ -1563,9 +1563,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// whm 13Nov2023 added the following function call to update the filter status fields in the 
 			// .usfmstruct file that was created for the newly created document from the input source text
 			// file before the TokenizeText() call above.
-			// The following function uses the gCurrentFilterMarkers string to add or update the last colon
-			// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in
-			// gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in gCurrentFilterMarkers.
+			// whm 13Dec2025 revision:
+			// The following function uses the IsACurrentFilterMarker() function to add or update the last 
+			// colon delimited field in the .sfmstruct file, making the field ":1" if the marker is to be
+			// filtered, or making it ":0" if the marker is NOT to be filtered.
 			// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
 			// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
 			// AFTER the TokenizeText[String]() call is made here below - probably best at the time the
@@ -5650,6 +5651,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 	wxString arrLine;
 	wxString marker;
 	wxString numChars;
+	wxString whiteSpBeforeMkr; // whm 13Dec2025 added
 	wxString filterStatus;
 	int lineIndex = 0;
 	wxString chapter = _T("\\c ") + ch;
@@ -5662,7 +5664,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 	while (lineIndex < totLines && !bRefFound)
 	{
 		arrLine = m_UsfmStructArr.Item(lineIndex);
-		ParseUsfmStructLine(arrLine, marker, numChars, filterStatus);
+		ParseUsfmStructLine(arrLine, marker, numChars, whiteSpBeforeMkr, filterStatus);
 		if (marker.Find(chapter) != wxNOT_FOUND)
 		{
 			bChFound = TRUE;
@@ -5689,7 +5691,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 		while (lineIndex < totLines && !bMkrFound)
 		{
 			arrLine = m_UsfmStructArr.Item(lineIndex);
-			ParseUsfmStructLine(arrLine, marker, numChars, filterStatus);
+			ParseUsfmStructLine(arrLine, marker, numChars, whiteSpBeforeMkr, filterStatus);
 			if (marker == mkr)
 			{
 				bMkrFound = TRUE;
@@ -5730,6 +5732,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 			}
 			wxString m;
 			wxString c;
+			wxString w;
 			wxString f;
 			int nBefore = 5;
 			int nAfter = 5;
@@ -5738,7 +5741,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 			{
 				// Accumulate lines working backwards accumulating up to 5 lines before the marker
 				arrLine = m_UsfmStructArr.Item(tempLineIndex);
-				ParseUsfmStructLine(arrLine, m, c, f);
+				ParseUsfmStructLine(arrLine, m, c, w, f);
 				bUserCSF = FALSE;
 				nUserCSF = 0;
 				userCSF.Empty();
@@ -5767,7 +5770,7 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 			{
 				// Accumulate lines working forwards accumulating up to 5 lines after the marker.
 				arrLine = m_UsfmStructArr.Item(tempLineIndex);
-				ParseUsfmStructLine(arrLine, m, c, f);
+				ParseUsfmStructLine(arrLine, m, c, w, f);
 				bUserCSF = FALSE;
 				nUserCSF = 0;
 				userCSF.Empty();
@@ -5803,13 +5806,15 @@ wxString CAdapt_ItDoc::GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, 
 // This function is used within the ReorderFilterMaterialUsingUsfmStructData() function
 // whm 26Mar2024 revised to utilize the MD5 sum data in identifying multiple markers which are
 // the same marker and only differ by the MD5 sums, i.e., \ip <text1> \id <text2 \id <text3> etc.
-void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& filterStatus)
+// whm 13Dec2025 revised to include the wxString& whiteSpBeforeMkr parameter before the filterStatus
+// parameter.
+void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& whiteSpBeforeMkr, wxString& filterStatus)
 {
-	// Lines in the m_UsfmStructArr array have 4 fields delimited by 3 colons, and are of the form:
-	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
-	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
-	// \c n:numChars:0:0
-	// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+	// Lines in the m_UsfmStructArr array have 5 fields delimited by 4 colons, and are of the form:
+	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh: :0
+	// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:nil:1
+	// \c n:numChars:0:eol:0
+	// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:eol:0
 	// where:
 	//   The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
 	//     initial backslash, but no following space. \c and \v markers have following space + number.
@@ -5817,11 +5822,14 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 	//   The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
 	//     following the marker. For markers like \c nn (and empty content markers) which don't have 
 	//     associated text, the MD5 hash value field is just 0
+	//   The 4th field now represents an indication of the whitespace preceding the marker: "nil", "eol", or " "
+	//     where the " " usually is the ASCII (#32) space " ", but is the actual non-eol whitespace used.
 	//   The last field is a 0 or 1 which is the filter status of the marker.
 	mkr.Empty();
 	numChars.Empty();
-	filterStatus.Empty();
 	MD5sum.Empty();
+	whiteSpBeforeMkr.Empty();
+	filterStatus.Empty();
 	wxString colon = _T(":");
 	int posColon = -1;
 	wxString remainderStr;
@@ -5849,10 +5857,20 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 				MD5sum.Trim(TRUE);
 				wxASSERT(!MD5sum.IsEmpty());
 				remainderStr = remainderStr.Mid(posColon + 1);
-				filterStatus = remainderStr;
-				filterStatus.Trim(FALSE);
-				filterStatus.Trim(TRUE);
-				wxASSERT(!filterStatus.IsEmpty());
+				posColon = remainderStr.Find(colon);
+				if (posColon != wxNOT_FOUND)
+				{
+					whiteSpBeforeMkr = remainderStr.Mid(0, posColon);
+					// don't call Trim() here since we don't want to remove the whitespace!
+					remainderStr = remainderStr.Mid(posColon + 1);
+					posColon = remainderStr.Find(colon);
+					if (posColon != wxNOT_FOUND)
+					{
+						filterStatus = remainderStr;
+						filterStatus.Trim(FALSE);
+						filterStatus.Trim(TRUE);
+					}
+				}
 			}
 		}
 	}
@@ -5886,10 +5904,10 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 // will result in the m_UsfmStructArr strings having the MD5 hash value - a 32 char string - being included 
 // as a 4th colon delimited field for lines stored in the m_UsfmStructArr array. Each string in the array 
 // will appear as:
-// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
-// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
-// \c n:numChars:0:0
-// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:nil:0
+// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh: :1
+// \c n:numChars:0:eol:0
+// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:eol:0
 // where:
 //   The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
 //     initial backslash, but no following space. \c and \v markers have following space + number.
@@ -5897,6 +5915,8 @@ void CAdapt_ItDoc::ParseUsfmStructLine(wxString lineStr, wxString& mkr, wxString
 //   The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
 //     following the marker. For markers like \c nn (and empty content markers) which don't have 
 //     associated text, the MD5 hash value field is just 0
+//   The 4th field represents any whitespace that appears before the marker: "nil", "eol" or " " 
+//     where " " is the actual non-eol whitespace char used in the text.
 //   The last field is a 0 or 1 which is the filter status of the marker.
 // In the GetUsfmStructureAndExtent() call below leeave out the 2nd parameter so that it defaults to FALSE
 // value which then includes the MD5 has sum values in each marker line that goes into the array.
@@ -5959,13 +5979,14 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		{
 			// File is open for reading, and we read its contents into the m_UsfmStructArr
 			// 
-			// whm 26Mar2024 added. We'll check the first line of the existing file and see if it lacks MD5 hash 
-			// sum data or not. If so, we need to first remove the existing file and create a new usfmstruct file 
-			// in its place that contains the MD5 data that now exists in the m_UsfmStructArr array.
-			// If the file has MD5 hash sum data fields, there will be 3 colons in each line, otherwise just
-			// 2 colons will be present in each line.
-			// If the existing file has the MD5 hash sum data, then we just read its data lines into the
-			// m_UsfmStructArr array.
+			// whm 26Mar2024 added. 
+			// whm 13Dec2025 revised. We'll check the first line of the existing file and see if it lacks MD5 hash 
+			// sum data and whitespace data or not. If so, we need to first remove the existing file and create a 
+			// new usfmstruct file in its place.
+			// If the file has MD5 hash sum data fields and whitespace fields there will be 4 colons in each line, 
+			// otherwise less than 4 colons will be present in each line.
+			// If the existing file has the MD5 hash sum data, and whitespace data, then we just read its data 
+			// lines into the m_UsfmStructArr array.
 			// whm 2Apr2024 BEW reported a crash that was caused by the usfmstruct file existing but being
 			// empty, and if empty the textFile.GetLine(0) call below would cause a crash due to index out of
 			// range. So we must first check that the textFile has at least one line of text.
@@ -5974,7 +5995,9 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 			{
 				// The textFile has at least one text line in it. Does the file have MD5 hash sum data?
 				testLine = textFile.GetLine(0);
-				if (testLine.Replace(_T(":"), _T(":")) == 2) // Replace returns the number of replacements 
+				// whm 13Dec2025 modified the following Replace test from == 2 to < 4 since we want to
+				// recreate the 
+				if (testLine.Replace(_T(":"), _T(":")) < 4) // Replace returns the number of replacements 
 				{
 					// The textFile doesn't have hash sum data so set flag to recreate it below.
 					bTextFileNeedsRecreating = TRUE;
@@ -6125,13 +6148,13 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		// whm 26Mar2024 modified. Call the GetUsfmStructureAndExtent() without the TRUE parameter, 
 		// which will result in the m_UsfmStructArr strings having the MD5 hash value - a 32 char 
 		// string - being included now as the 3rd colon delimited field for lines stored in the 
-		// m_UsfmStructArr array. The filter status is now the 4th field delimited by 3 colons in
+		// m_UsfmStructArr array. The filter status is now the 5th field delimited by 4 colons in
 		// each line.
 		// Each string in the array will now appear as:
-		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:0
-		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:1
-		// \c n:numChars:0:0
-		// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:0
+		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh:nil:0
+		// \mkr:numChars:abcdefghabcdefghabcdefghabcdefgh: :1
+		// \c n:numChars:0:eol:0
+		// \v nn:numChars:abcdefghabcdefghabcdefghabcdefgh:eol:0
 		// where:
 		//  The marker \mkr (and any chapter or verse number) is the marker field (before 1st colon) with
 		//    initial backslash, but no following space. \c and \v markers have following space + number.
@@ -6139,9 +6162,11 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		//  The abcdefghabcdefghabcdefghabcdefgh represents the 32 char MD5 hash string value of any text
 		//     following the marker. For markers like \c nn (and empty content markers) which don't have 
 		//     associated text, the MD5 hash value field is just 0
+		//  The 4th field indicates what if any whitespace occurs before the marker: "nil" "eol" or " "
+		//     where " " is the actual non-eol whitespace char used in the text.
 		//  The last field is a 0 or 1 which is the filter status of the marker.
 		// In the GetUsfmStructureAndExtent() call below we previously added a TRUE second parameter to 
-		// suppress the creation of MD5 hash sum values. But, as of 26Mar2024 we leeave out the 2nd 
+		// suppress the creation of MD5 hash sum values. But, as of 26Mar2024 we leave out the 2nd 
 		// parameter so that it defaults to a FALSE value which then causes the function to include the 
 		// MD5 has sum values in each marker line that goes into the array.
 		m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer); //m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer, TRUE);
@@ -9009,7 +9034,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// <filename.usfmstruct file, and it creates them if necessary so we need not handle dir
 	// and file existence matters here. Here we will just call the SetupUsfmStructArrayAndFile() 
 	// function with appropriate parameters. 
-	// . 
+	//
 	m_usfmStructDirName = _T(".usfmstruct");
 	wxFileName structFn(gpApp->m_curOutputPath);
 	m_usfmStructFilePath = structFn.GetPath();
@@ -13807,6 +13832,8 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar* pChar)
 /// only returns the DEFAULT state of the marker as defined in the AI_USFM.xml control
 /// file. It's filter="0" does NOT change from that value even when the user ticks the
 /// filtering box within the USFM/Filtering tab in Preferences.
+/// whm 13Dec2025 comment. The IsAFilteringSFM() was replaced by the smarter function
+/// IsACurrentFilterMarker().
 /// 
 /// Parsing will include any embedded (inline) markers belonging
 /// to the parent marker.
@@ -37187,32 +37214,39 @@ wxString CAdapt_ItDoc::GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fro
 // made just before the TokenizeText() function is called to tokenize the input text and filter
 // any markers designated to be filtered by the settings in the USFM and Filtering tab of
 // Preferences.
-// The following function uses the gCurrentFilterMarkers string to add or update the last colon
-// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in the
-// App's gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in 
-// gCurrentFilterMarkers. It also updates the m_UsfmStructArr string elements with the same filter
-// status data, so that the in-memory array is immediately accessible with the current filter
-// status of all markers making up the document.
+// The following function uses the IsACurrentFilterMarker() function to add or update the last colon
+// delimited field in the .sfmstruct file, making the field ":1" if the marker is to be filtered, 
+// or making it ":0" if the marker is NOT to be filtered. It also updates the m_UsfmStructArr 
+// string elements with the same filter status data, so that the in-memory array is immediately 
+// accessible with the current filter status of all markers making up the document.
 // Note: The SetupUsfmStructArrayAndFile() should be called BEFORE the call to TokenizeText[String]()
 // and this UpdateCurrentFilterStatusOfUsfmStructFileAndArray() should be called AFTER the call to
 // TokenizeText[String](), and after any filtering changes have been processed within the 
 // ReconstituteAfterFilteringChange() function - probably best to call this function in the document
 // saving procedure in order for the usfmstruct to be updated upon document save.
-// whm 26Mar2024 revised to update the filterstatus of usfmstruct strings where the filterstatus
-// is the 4th field - the strings now having 3 colon delimiters for 4 fields.
+// whm 13Dec2025 revised to update the filterstatus of usfmstruct strings where the filterstatus
+// is the 5th field - the strings now having 4 colon delimiters for 5 fields.
 // 
-// whm 6Nov2025 Held off on substituting the new IsACurrentFilterMarker() function in this 
-// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function, because the function needs to also 
+// whm 6Nov2025 Substituted the new IsACurrentFilterMarker() function in this 
+// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function. The function needs to also 
 // set and reset the Doc global flags m_bIsWithinCrossRef_X_Span and m_bIsWithinFootnote_F_Span while
 // it iterates through the lines of the .usfmstruct file that is being updated, in order for the new
 // function to detect accurately whether any \xt marker occurs within a \f ...\f* span, a \fe ...\fe*
 // span, or an \x ...\x* span - then reset the flags to FALSE at the end of the update process, so they
 // get initialized for any subsequent TokenizeText() operation that might also call IsACurrentFilterMarker().
-// TODO: whm needs to go through the function and ensure that the  m_bIsWithinCrossRef_X_Span and 
-// m_bIsWithinFootnote_F_Span w doc flags get set appropriately for the accurate working of IsACurrentFilterMarker().
-// TODO: whm need to initialize the Doc flags at the beginning of this function. Determine if we should save 
-// the values of the Doc flags at the beginning of this function, so that we can restore them to their value 
-// at entry at the time we exit - or simply initialize them both to FALSE. 
+// whm 6Nov2025 modified. Made sure that the m_bIsWithinCrossRef_X_Span and m_bIsWithinFootnote_F_Span 
+// doc flags get set appropriately for the accurate working of IsACurrentFilterMarker().
+// Initialize the Doc flags at the beginning of this function. We save the values of the Doc flags 
+// at the beginning of this function, so that we can restore them to the value they had at entry 
+// before we exit. We initialize them both to FALSE.
+// whm 13Dec2025 modified.
+// The GetUsfmStructureAndExtent() now creates its hidden .usfmstruct file to have 4 colon delimiters 
+// separating 5 fields, which are now structured as follows:
+//		marker:charCount:MD5Sum:WhiteSpBeforeMkr:FilterStatus
+// in which the :WhiteSpBeforeMkr was added as 4th field by GetUsfmStructureAndExtent().
+// The modifications to this UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function now
+// recognize that the 4th field is WhiteSpBeforeMkr and the 5th field is updated here to 
+// indicate the marker's current filter status as "0" or "1". 
 void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath)
 {
 	// whm 6Nov2025 added. Save the state of the Doc flags, so we can restore them to their previous value
@@ -37237,8 +37271,8 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 	else
 	{
 		// Read each line in the file and add/update the filter status according to whether
-		// the marker at the beginning of the line is within the App's gCurrentFilterMarkers
-		// using ":1" if the marker is present, ":0" if not present.
+		// the marker at the beginning of the line is indicated so by callling 
+		// IsACurrentFilterMarker(), using ":1" if the marker is to be filtered, ":0" if not.
 		int ct;
 		wxString lineStr;
 		wxString newLineStr;
@@ -37250,7 +37284,12 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 		wxString strBetweenFirstAndSecondColons = wxEmptyString; // the char count
 		wxString strAfterSecondColon = wxEmptyString;
 		wxString strBetweenSecondAndThirdColons = wxEmptyString; // the MD5 has sum
-		wxString strAfterThirdColon = wxEmptyString; // the filter status
+		// whm 13Dec2025 changed the storage variables to accommodate whitespace stored
+		// after the third colon, which moves the filter status to the string after the
+		// fourth colon
+		wxString strAfterThirdColon = wxEmptyString; // the whitespace indicator "nil" "eol" or " "
+		wxString strBetweenThirdAndFourthColons = wxEmptyString;
+		wxString strAfterFourthColon = wxEmptyString; // the new filter status
 		int nLines = file.GetLineCount();
 		// Empty the m_UsfmStructArr array, and reload it with the updated filter status
 		// information
@@ -37261,29 +37300,29 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 			// Each line in the usfm struct file starts with a marker, and each marker is
 			// followed by either a space or a colon, for example, a usfm struct file BEFORE
 			// it gets any filter status field might look like this:
-			//\c 1:0:0
-			//\v 52:155:baff7055830af34764c9a30da8096781
-			//\q:9:89f25952c0af3708654f8308d018f06c
-			//\f:13:00965dbed6e402eca8d6ff3f486f1b3a
-			//\fk:6:b5250093d8ae4c225026ca03c3377ffa
-			//\fk*:21:851d023cc8d97f9b879ca7d4d097fca5
-			//\fk:18:73c925cae7cde8f74fc4560483406043
-			//\fk*:0:0
-			//\f*:0:0
-			//\c 11:0:0
-			//\ms:47:17cfeb217ee44453e2c7c07ed110df61
-			//\mr:13:e30fd9b079df5213c1e0f353ec31f7e5
-			//\s:32:1112cf736cc6cbdce5c60372ebcc6435
-			//\rr:43:6a67762638751a677909095291eaf4f6
-			//\p:0:0
-			//\v 1:127:6a82c9f1866b821c64fcd15f8443f77d
+			//\c 1:0:0:eol
+			//\v 52:155:baff7055830af34764c9a30da8096781:eol
+			//\q:9:89f25952c0af3708654f8308d018f06c:eol
+			//\f:13:00965dbed6e402eca8d6ff3f486f1b3a: 
+			//\fk:6:b5250093d8ae4c225026ca03c3377ffa: 
+			//\fk*:21:851d023cc8d97f9b879ca7d4d097fca5: 
+			//\fk:18:73c925cae7cde8f74fc4560483406043: 
+			//\fk*:0:0: 
+			//\f*:0:0: 
+			//\c 11:0:0:eol
+			//\ms:47:17cfeb217ee44453e2c7c07ed110df61:eol
+			//\mr:13:e30fd9b079df5213c1e0f353ec31f7e5:eol
+			//\s:32:1112cf736cc6cbdce5c60372ebcc6435:eol
+			//\rr:43:6a67762638751a677909095291eaf4f6:eol
+			//\p:0:0:eol
+			//\v 1:127:6a82c9f1866b821c64fcd15f8443f77d:eol
 			// After the update is done below each line will have a filter status field by
-			// adding a third colon ':' followed by a "0" or "1" to indicate the marker's
+			// adding a fourth colon ':' followed by a "0" or "1" to indicate the marker's
 			// current filter status.
 			// If the usfm struct file was previously updated, the file would already have
 			// the filter status fields, and the current update will not add another colon
 			// field, but will simply update the existing "0" or "1" to reflect the current
-			// status of the marker according to its presence in gCurrentFilteredMarkers.
+			// status of the marker according to return value of IsAFilterMarker().
 			if (!lineStr.IsEmpty())
 			{
 				// Extract the marker at the beginning of the lineStr which exists before the 
@@ -37304,7 +37343,7 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 						mkr.Trim(TRUE);
 						mkr.Trim(FALSE); // mkr is now a whole marker, minus any extraneous whitespace
 					}
-					// Is the mkr present in gCurrentFilteredMarkers? 
+					// Is the mkr to be filtered/not filtered according to IsACurrentFilterMarker()? 
 					// each marker in gCurrentFilteredMarkers is followed by a space delimiter
 					// so make sure we call Find() looking for a space augmented marker.
 					wxString augmentedMkr = mkr + space;
@@ -37322,12 +37361,12 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 					}
 						
 					// whm 6Nov2025 Modified. Use the new function IsACurrentFilterMarker() to check the
-					// filter status of the augmentedMkr. The new function will handle more accurately the
+					// filter status of the augmentedMkr. The new function handles more accurately the
 					// case of the \xt marker, and assign it the same filter status that its enclosing span
 					// of cross reference \x ...\x* has, or the same filter status that its enclosing span
 					// of footnote/endnote \f ...\f* or \fe ...\fe* has.
-					//if (gpApp->gCurrentFilterMarkers.Find(augmentedMkr) >= 0) // comment this out when TODO is done.
-					if (IsACurrentFilterMarker(augmentedMkr)) // enable this line when TODO is done.
+					//if (gpApp->gCurrentFilterMarkers.Find(augmentedMkr) >= 0) 
+					if (IsACurrentFilterMarker(augmentedMkr))
 					{
 						bMkrIsFiltered = TRUE;
 					}
@@ -37356,39 +37395,45 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 						strBetweenFirstAndSecondColons = strAfterFirstColon.Mid(0, posSecondColon);
 						strAfterSecondColon = strAfterFirstColon.Mid(posSecondColon + 1);
 						int posThirdColon = strAfterSecondColon.Find(colon);
-						if (bMkrIsFiltered)
+						if (posThirdColon != wxNOT_FOUND)
 						{
-							if (posThirdColon != wxNOT_FOUND)
+							strBetweenSecondAndThirdColons = strAfterSecondColon.Mid(0, posThirdColon);
+							strAfterThirdColon = strAfterSecondColon.Mid(posThirdColon + 1);
+							int posFourthColon = strAfterThirdColon.Find(colon);
+							if (bMkrIsFiltered)
 							{
-								// A filter status field exists, so update its field to "1"
-								strBetweenSecondAndThirdColons = strAfterSecondColon.Mid(0, posThirdColon);
-								strAfterThirdColon = strAfterSecondColon.Mid(posThirdColon + 1);
-								newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + _T("1");
+								if (posFourthColon != wxNOT_FOUND)
+								{
+									// A filter status field exists, so update its field to "1"
+									strBetweenThirdAndFourthColons = strAfterThirdColon.Mid(0, posFourthColon);
+									strAfterFourthColon = strAfterThirdColon.Mid(posFourthColon + 1);
+									newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + strBetweenThirdAndFourthColons + _T(":1");
+								}
+								else
+								{
+									// A filter status field doesn't exist, so add one as ":1"
+									newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + strAfterThirdColon + _T(":1");
+								}
 							}
 							else
 							{
-								// A filter status field doesn't exist, so add one as ":1"
-								newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strAfterSecondColon + _T(":1");
+								// The filter status is "0", add/update the lineStr accordingly
+								// If there is a second colon in strAfterFirstColon, the lineStr
+								// already has a filter status field.
+								if (posFourthColon != wxNOT_FOUND)
+								{
+									// A filter status field exists, so update its field to "0"
+									strBetweenThirdAndFourthColons = strAfterThirdColon.Mid(0, posFourthColon);
+									strAfterFourthColon = strAfterThirdColon.Mid(posFourthColon + 1);
+									newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + strBetweenThirdAndFourthColons + _T(":0");
+								}
+								else
+								{
+									// A filter status field doesn't exist, so add one as ":0"
+									newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + strAfterThirdColon + _T(":0");
+								}
 							}
-						}
-						else
-						{
-							// The filter status is "0", add/update the lineStr accordingly
-							// If there is a second colon in strAfterFirstColon, the lineStr
-							// already has a filter status field.
-							if (posThirdColon != wxNOT_FOUND)
-							{
-								// A filter status field exists, so update its field to "1"
-								strBetweenSecondAndThirdColons = strAfterSecondColon.Mid(0, posThirdColon);
-								strAfterThirdColon = strAfterSecondColon.Mid(posThirdColon + 1);
-								newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strBetweenSecondAndThirdColons + colon + _T("0");
-							}
-							else
-							{
-								// A filter status field doesn't exist, so add one as ":1"
-								newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + strAfterSecondColon + _T(":0");
-							}
-						}
+						} // end of if (posThirdColon != wxNOT_FOUND)
 					} // end of if (posSecondColon != wxNOT_FOUND)
 
 					/*
@@ -37497,7 +37542,7 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 //    have a non-empty string element when the filtered string has a swept up marker such as
 //    a \c n marker and/or other markers that immediately preceded the filtered marker that
 //    follows it.
-// 6. A check is made to see if the filterabelMkrsArray elements are in the same sequential
+// 6. A check is made to see if the filterableMkrsArray elements are in the same sequential
 //    order as the markers in the same part of the usfmstruct file. If the ordering is out-of
 //    order, then reordering is required, otherwise the function simply returns the filterStr
 //    unchanged.
@@ -37515,7 +37560,9 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 // material that may have one or more swept up markers preceding a \~FILTER ...\~FILTER* element.
 // whm 26Mar2024 revised to utilize the MD5 sum data in identifying multiple markers which are
 // the same marker and only differ by the MD5 sums, i.e., \ip <text1> \id <text2 \id <text3> etc.
-// 
+// whm 13Dec2025 modified by adding whiteSpBeforeMkr parameter for the ParseUsfmStructLine() 
+// function call.
+// Note: the whiteSpBeforeMkr reference parameter is not utilized within this function.
 wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr)
 {
 	wxString newOrderedStr;
@@ -37546,8 +37593,9 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 	wxString arrLine;
 	wxString marker;
 	wxString numChars;
-	wxString filterStatus;
 	wxString MD5hashOrigStruct;
+	wxString whiteSpBeforeMkr; // whm 13Dec2025 added
+	wxString filterStatus;
 	int lineIndex = 0;
 	wxString chapter = _T("\\c ") + ch;
 	wxString verse = _T("\\v ") + vs;
@@ -37560,7 +37608,7 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 	while (lineIndex < totStructArrLines && !bRefFound)
 	{
 		arrLine = m_UsfmStructArr.Item(lineIndex);
-		ParseUsfmStructLine(arrLine, marker, numChars, MD5hashOrigStruct, filterStatus);
+		ParseUsfmStructLine(arrLine, marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus);
 		if (marker.Find(chapter) != wxNOT_FOUND)
 		{
 			bChFound = TRUE;
@@ -37723,7 +37771,7 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 			size_t countIndexPosOfMkrInStructArr = IndexPosOfMkrInStructArr.GetCount();
 			if (countIndexPosOfMkrInStructArr != countFilteredMkrsArray)
 			{
-				// Soomething went wrong above. We need to bail out of the function without attempting to
+				// Something went wrong above. We need to bail out of the function without attempting to
 				// reorder the markers.
 				wxString msg = _T("***ARRAY INDEX OUT OF RANGE: In ReorderFilterMaterialUsingUsfmStructData().\n   The countIndexPosOfMkrInStructArr was %d but the countFilteredMkrsArray was %d\n   filterStr was: %s\n***Unable to Reorder filter markers!");
 				msg = msg.Format(msg, countIndexPosOfMkrInStructArr, countFilteredMkrsArray, filterStr.c_str());
@@ -37820,8 +37868,7 @@ int CAdapt_ItDoc::GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int above
 // whm 6Jan2024 added.
 // whm 6Jan2024 Testing shows that doing an augment operation += as follows:
 //	pSrcPhrase->m_markers += tokBuffer in various places in TokenizeText()
-// sometimes results
-// in a marker getting duplicated within m_markers.
+// sometimes results in a marker getting duplicated within m_markers.
 // To eliminate any such duplication including any duplication of whitespace
 // I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
 // remove any duplicate markers found in m_markers. If the first marker in 
@@ -41653,6 +41700,10 @@ tryagain:
 /// EnterEmptyMkrsLoop(), and ContainsMarkerToBeFiltered() - replacing them with tests for 
 /// existence of the marker in the gCurrentFilterMarkers instead. IsAFilteringSFM() wasn't 
 /// reliable for testing the current filter status of a marker in those contexts.
+/// whm 6Nov2025 modified the following code block to use the new function 
+/// IsACurrentFilterMarker(wxString augWholeMkr) which incorporates the manditory filtering 
+/// of \free, \note, and \bt... and also ensures that any instance of the (now) deprecated 
+/// \xt marker takes on the filter status of the marker span that encloses the \xt marker.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	const wxChar* pBufStart, // whm 28Sep2023 added to determine initial buffer start
@@ -49028,8 +49079,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 			// whm 17Jan2024 Removed the EnterEmptyMkrsLoop() function and its call above, 
 			// and instead called directly the IsEmptyMkr() function here as well as set a
-			// bIsToBeFiltered boolean based on whether the marker is within the 
-			// gCurrentFilterMarkers string. If the marker is within gCurrentFilterMarkers
+			// bIsToBeFiltered boolean based on whether the marker is filtered as indicated
+			// by calling IsACurrentFilterMarker(). If the marker is to be filtered
 			// then we exclude it from proceding into the bProcessEmptyMarker TRUE block 
 			// below. Otherwise, paragraph markers which are normally empty like \p can
 			// get treated within the empty markers block below and outside that block

@@ -4866,6 +4866,9 @@ extern bool gbDoingInitialSetup;
 	/// character count is zero, the MD5 checksum is also 0 in such cases.
 	/// whm 13Nov2023 added a second bool parameter suppressMD5Sum which defaults to FALSE
 	/// this change is to allow for creation of a usfm struct that omits the MD5 sums.
+	/// whm modified 13Dec2025 to include an initial ":" delimited field that indicates 
+	/// what whitespace occurs immediately preceding the marker, if any. This field may
+	/// be: "nil", "eol", or " " [the actual non-eol whitespace char, usually ascii space #32]
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer, bool suppressMD5Sum) // default is FALSE
 	{
@@ -4966,7 +4969,8 @@ extern bool gbDoingInitialSetup;
 			// skip over the UTF16 BOM in the buffer
 			ptrSrc = ptrSrc + 1;
 		}
-
+		wxChar* pBufStart = (wxChar*)ptrSrc; // whm 13Dec2025 added
+		//wxChar space = _T(' ');
 		wxString temp;
 		temp.Empty();
 		int nMkrLen = 0;
@@ -4980,6 +4984,7 @@ extern bool gbDoingInitialSetup;
 		wxString lastMarkerNumericAugment;
 		wxString stringForMD5Hash;
 		wxString md5Hash;
+		wxString whiteSpaceBeforeMkr; whiteSpaceBeforeMkr.Empty(); // whm 13Dec2025 added
 		// Scan the buffer and extract the chapter:verse:count information
 		while (ptrSrc < pEnd)
 		{
@@ -5032,11 +5037,19 @@ extern bool gbDoingInitialSetup;
 							usfmDataStr += _T(':');
 							usfmDataStr += md5Hash;
 						}
+
+						// whm 13Dec2025 added. Store a 5th ':' delimited field to indicate what 
+						// whitespace precedes marker.
+						// Construct data string for the whitespace field
+						usfmDataStr += _T(':');
+						usfmDataStr += whiteSpaceBeforeMkr;
+						
+						UsfmStructureAndExtentArray.Add(usfmDataStr);
+
 						charCountSinceLastMarker = 0;
 						stringForMD5Hash.Empty();
 						lastMarker.Empty();
-						UsfmStructureAndExtentArray.Add(usfmDataStr);
-
+						whiteSpaceBeforeMkr = _T("nil");
 						lastMarkerNumericAugment.Empty();
 					}
 				}
@@ -5044,8 +5057,30 @@ extern bool gbDoingInitialSetup;
 				if (Is_ChapterMarker(ptrSrc))
 				{
 					// its a chapter marker
-					// parse the chapter marker and following white space
+					// whm 13Dec2025 added. Store a 5th ':' delimited field to indicate what 
+					// whitespace precedes marker.
+					if ((ptrSrc - 1) >= pBufStart && IsWhiteSpace(ptrSrc - 1))
+					{
+						wxChar wxWhiteCharBeforeMkr = *(ptrSrc - 1);
+						if (wxWhiteCharBeforeMkr == _T('\n') || wxWhiteCharBeforeMkr == _T('\r'))
+						{
+							whiteSpaceBeforeMkr = _T("eol");
+						}
+						else
+						{
+							// The wxCharBefore1 is non-eol whitespace of some kind, usually 
+							// a space _T(" "), but we should store that actual whitespace char
+							// in case it is some kind of Unicode whitespace char other than an 
+							// ASCII space char (#32).
+							whiteSpaceBeforeMkr = (wxString)wxWhiteCharBeforeMkr;
+						}
+					}
+					else
+					{
+						whiteSpaceBeforeMkr = _T("nil");
+					}
 
+					// parse the chapter marker and following white space
 					itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
 					temp = GetStringFromBuffer(ptrSrc, itemLen); // get the marker
 					lastMarker = temp;
@@ -5078,6 +5113,28 @@ extern bool gbDoingInitialSetup;
 				else if (Is_VerseMarker(ptrSrc, nMkrLen))
 				{
 					// Its a verse marker
+					// whm 13Dec2025 added. Store a 5th ':' delimited field to indicate what 
+					// whitespace precedes marker.
+					if ((ptrSrc - 1) >= pBufStart && IsWhiteSpace(ptrSrc - 1))
+					{
+						wxChar wxWhiteCharBeforeMkr = *(ptrSrc - 1);
+						if (wxWhiteCharBeforeMkr == _T('\n') || wxWhiteCharBeforeMkr == _T('\r'))
+						{
+							whiteSpaceBeforeMkr = _T("eol");
+						}
+						else
+						{
+							// The wxCharBefore1 is non-eol whitespace of some kind, usually 
+							// a space _T(" "), but we should store that actual whitespace char
+							// in case it is some kind of Unicode whitespace char other than an 
+							// ASCII space char (#32).
+							whiteSpaceBeforeMkr = (wxString)wxWhiteCharBeforeMkr;
+						}
+					}
+					else
+					{
+						whiteSpaceBeforeMkr = _T("nil");
+					}
 
 					// Parse the verse number and following white space
 					itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
@@ -5119,6 +5176,28 @@ extern bool gbDoingInitialSetup;
 				else if (Is_Marker(ptrSrc, pEnd))
 				{
 					// Its some other marker.
+					// whm 13Dec2025 added. Store a 5th ':' delimited field to indicate what 
+					// whitespace precedes marker.
+					if ((ptrSrc - 1) >= pBufStart && IsWhiteSpace(ptrSrc - 1))
+					{
+						wxChar wxWhiteCharBeforeMkr = *(ptrSrc - 1);
+						if (wxWhiteCharBeforeMkr == _T('\n') || wxWhiteCharBeforeMkr == _T('\r'))
+						{
+							whiteSpaceBeforeMkr = _T("eol");
+						}
+						else
+						{
+							// The wxCharBefore1 is non-eol whitespace of some kind, usually 
+							// a space _T(" "), but we should store that actual whitespace char
+							// in case it is some kind of Unicode whitespace char other than an 
+							// ASCII space char (#32).
+							whiteSpaceBeforeMkr = (wxString)wxWhiteCharBeforeMkr;
+						}
+					}
+					else
+					{
+						whiteSpaceBeforeMkr = _T("nil");
+					}
 
 					itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
 					temp = GetStringFromBuffer(ptrSrc, itemLen); // get the marker
@@ -5165,6 +5244,14 @@ extern bool gbDoingInitialSetup;
 				usfmDataStr += _T(':');
 				usfmDataStr += md5Hash;
 			}
+
+			// whm 13Dec2025 added. Store a 5th ':' delimited field to indicate what 
+			// whitespace precedes marker. 
+			// We are pointing at the LAST marker at this point.
+			// Construct data string for the whitespace field
+			usfmDataStr += _T(':');
+			usfmDataStr += whiteSpaceBeforeMkr;
+
 			charCountSinceLastMarker = 0;
 			stringForMD5Hash.Empty();
 			lastMarker.Empty();

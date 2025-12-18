@@ -401,7 +401,7 @@ public:
 	wxString		GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, wxString ChVs, wxArrayString m_UsfmStructArr, 
 					wxString& filterStatusStr, wxString& filterableMkrStr);
 	*/
-	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& filterStatus);
+	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& whiteSpBeforeMkr, wxString& filterStatus);
 	wxArrayString	m_UsfmStructArr;
 	wxString		m_UsfmStructStringBuffer;
 	wxString		m_usfmStructFilePathAndName;
