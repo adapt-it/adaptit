@@ -292,6 +292,7 @@ public:
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
 	wxString		ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW added 16Nov23
+	wxString		ParseNumberPrefixedWord(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxString& finalPuncts); // whm 18Dec2025 added
 
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
@@ -529,7 +530,7 @@ public:
 	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBraceAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBracketAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
-	wxString		ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
+	wxString		ParseChVerseAndDigitPrefixedWord(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
 							// be a digit, parse over things like 4:17, or 5:4-9. but do not include the 
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, bool& bWordNotParsed); // BEW 3Aug23 added bWordNotParsed
@@ -611,6 +612,7 @@ public:
 							wxString& spacelessPuncts, int len, bool& bExitOnReturn,
 							bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
 
+	int				ParseStrictlyInitialPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // whm 19Dec2025 added
 	int				ParseStrictlyFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // whm 6Nov2025 added
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
 	int				ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 25Jul23 added
@@ -666,7 +668,8 @@ public:
 		bool& bIsInlineNonbindingMkr,
 		bool& bIsInlineBindingMkr,
 		bool bTokenizingTargetText,
-		bool& bForceEmptySrcPhrase);
+		bool& bForceEmptySrcPhrase,
+		bool& bParsePreWordParsedPuncts);
 
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
@@ -681,7 +684,8 @@ public:
 		// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
 		bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
 		bool bTokenizingTargetText,
-		bool& bProcessedOldBarCode); // whm 18Feb2024 added. TRUE when ParseWord() has processed an old bar code
+		bool& bProcessedOldBarCode,// whm 18Feb2024 added. TRUE when ParseWord() has processed an old bar code
+		bool& bParsePreWordParsedPuncts); // whm 22Dec2025 added
 
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);

@@ -6378,9 +6378,20 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 // have sufficient information within the first source word of the span to inform
 // us of the correct ordering. Hence, this function scans through successive
 // source phrases to locate the closing parenthesis, and analyse its ordering 
-// relative to the nearby \xt* end marker. If, and onlyi if, the closing
+// relative to the nearby \xt* end marker. If, and only if, the closing
 // parenthesis immediately follows the \xt* end marker this function returns
 // TRUE. Otherwise, it returns FALSE.
+// whm 19Dec2025 Note: This function will return FALSE if the inline marker does
+// not have a corresponding end marker. Markers line \tl are supposed to have end
+// markers according to USFM 3.1 syntax, however, some instances Kimaragang data
+// only have the \tl begin markers followed by \ft. This isn't a reordering 
+// problem except during rebuilds except when there is an opening parenthesis
+// immediately before the \tl begin marker that has no corresponding end marker \tl*. 
+// In such cases there is no real inline marker span to decipher, and no 
+// m_srcSinglePattern data with an end marker like \tl* or \xt* to analyse,
+// and so, the use of this function back in GetSrcPhraseBeginningInfo() during 
+// source text rebuilding won't be of help in determing the correct ordering of 
+// the inline marker and the parenthesis.
 bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList)
 {
 	// Set up a while loop that examines the current pSrcPhrase, and
@@ -6393,17 +6404,34 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 	// marker, then we return TRUE. If none of these conditions exist, we
 	// return FALSE.
 	bool bHasOpeningParentheses = FALSE;
-	bool bHasXTMarker = FALSE;
+	bool bHasInlineBindingMarker = FALSE; //bool bHasXTMarker = FALSE;
 	wxString PrecPunct; PrecPunct.Empty();
 	wxString InlineNonBindingMkrs; InlineNonBindingMkrs.Empty();
 	int indexOfEndMkr = -1;
 	int indexOfClosingParen = -1;
 	CSourcePhrase* pSP = NULL;
 	SPList::Node* pos_pSPList;
+	CAdapt_ItApp* pApp = &wxGetApp();
 	// Get the position of our starting pSrcPhrase from pList
 	// whm 11Dec2025 correction. The first item in pList is gotten by pList->GetFirst().
-	pSrcPhrase = pSrcPhrase; // avoid unused warning.
-	pos_pSPList = pList->GetFirst(); //pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
+	// whm 18Dec2025 revision of 11Dec2025 change to use pList->GetFirst() which caused
+	// the normal rebuild of whole source text and the call of this function to fail.
+	// The failure revealed the need to distinguist here between a whole text rebuild and
+	// a rebuild of only a sub-list. We can distinguish which one we are doing by comparing
+	// the count of the pApp->m_pSourcePhrases pList, and the pList passed into this function;
+	// if the passed in pList's count is less that the App's pList then we need to use 
+	// GetFirst(), but if pList count is the same as the App's pList, then we need to do
+	// pList->Item(pSrcPhrase->m_nSequNumber) here.
+	if (pList->GetCount() < pApp->m_pSourcePhrases->GetCount())
+	{
+		pos_pSPList = pList->GetFirst();
+	}
+	else
+	{
+		pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
+	}
+	//pSrcPhrase = pSrcPhrase; // avoid unused warning.
+	//pos_pSPList = pList->GetFirst(); //pos_pSPList = pList->Item(pSrcPhrase->m_nSequNumber);
 	if (pos_pSPList == NULL) // safety check
 		return FALSE;
 	// See if our starting pSrcPhrase has an opening parenthesis and inline binding marker that
@@ -6421,19 +6449,40 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 	// Hence, we allow for our initial pSrcPhrase possibly meeting all the conditions for a TRUE
 	// return value.
 	// Retrieve and check out our pSP at the initial pSrcPhrase->m_nSequNumber
+	// whm 19Dec2025 modification. Needed to make the following code more general to apply 
+	// to any inline nonbinding marker, not just \xt.
 	pSP = (CSourcePhrase*)pos_pSPList->GetData();
 	if (pSP == NULL)
 		return FALSE;
 	PrecPunct = pSP->m_precPunct;
-	InlineNonBindingMkrs = pSP->GetInlineNonbindingMarkers();
-
 	bHasOpeningParentheses = PrecPunct.Find(_T("(")) != wxNOT_FOUND;
-	bHasXTMarker = InlineNonBindingMkrs.Find(_T("\\xt")) != wxNOT_FOUND;
-	if (bHasOpeningParentheses && bHasXTMarker)
+	if (!bHasOpeningParentheses)
+		return FALSE;
+	InlineNonBindingMkrs = pSP->GetInlineNonbindingMarkers();
+	if (!InlineNonBindingMkrs.IsEmpty())
+		bHasInlineBindingMarker = TRUE;
+	else
+		return FALSE;
+	wxString inlineMkr;
+	wxString inlineEndMkr;
+	int ctMkrs = InlineNonBindingMkrs.Replace(_T("\\"), _T("\\"), TRUE); // just counts string no changed
+	if (ctMkrs == 1)
+	{
+		inlineMkr = InlineNonBindingMkrs.Trim();
+	}
+	else
+	{
+		// InlineNonBindingMkrs has more than one marker, get the last one in the list
+		size_t pos = InlineNonBindingMkrs.find_last_of(_T("\\"));
+		inlineMkr = InlineNonBindingMkrs.Mid(pos);
+	}
+	inlineEndMkr = InlineNonBindingMkrs + _T("*");
+	//bHasXTMarker = InlineNonBindingMkrs.Find(_T("\\xt")) != wxNOT_FOUND;
+	if (bHasOpeningParentheses && bHasInlineBindingMarker) //if (bHasOpeningParentheses && bHasXTMarker)
 	{
 		// Analyse the m_srcSinglePattern for the ordering of a closing parenthesis
-		// relative to the corresponding end marker \xt*.
-		indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
+		// relative to the corresponding end marker such as \xt* or \tl*
+		indexOfEndMkr = pSP->m_srcSinglePattern.Find(inlineEndMkr); //indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
 		indexOfClosingParen = pSP->m_srcSinglePattern.Find(_T(")"));
 		if (indexOfEndMkr != -1 && indexOfClosingParen != -1)
 		{
@@ -6502,7 +6551,7 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 				// initial pSrcPhrase.
 				// Analyse the m_srcSinglePattern for the ordering of a closing parenthesis
 				// relative to the corresponding end marker \xt*.
-				indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
+				indexOfEndMkr = pSP->m_srcSinglePattern.Find(inlineEndMkr); //indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
 				indexOfClosingParen = pSP->m_srcSinglePattern.Find(_T(")"));
 				if (indexOfEndMkr != -1 && indexOfClosingParen != -1)
 				{
@@ -6531,8 +6580,8 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 			bContinueScan = FALSE;
 		}
 		// Analyse the m_srcSinglePattern for the ordering of a closing parenthesis
-		// relative to the corresponding end marker \xt*.
-		indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
+		// relative to the corresponding end marker such as \xt* or \tl*.
+		indexOfEndMkr = pSP->m_srcSinglePattern.Find(inlineEndMkr); //indexOfEndMkr = pSP->m_srcSinglePattern.Find(_T("\\xt*"));
 		indexOfClosingParen = pSP->m_srcSinglePattern.Find(_T(")"));
 		if (indexOfEndMkr != -1 && indexOfClosingParen != -1)
 		{
@@ -6546,12 +6595,7 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 				return TRUE; // temp for testing
 			}
 		}
-		
-
 	} // end of while (pos_pSPList != NULL && bContinueScan)
-
-
-
 
 	return FALSE; 
 }
@@ -9186,7 +9230,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber == 122) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	if (pSingleSrcPhrase->m_nSequNumber == 26) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}

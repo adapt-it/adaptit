@@ -6197,7 +6197,18 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		}
 		else
 		{
-			file.Write(m_UsfmStructStringBuffer, len);
+			file.Seek((wxFileOffset)0); // 2nd arg, wxSeekMode, is default wxFromStart
+			bool bWriteOutOK = file.Write(m_UsfmStructStringBuffer, wxConvUTF8);
+			if (!bWriteOutOK)
+			{
+				wxString msg = _T("Failed file.Write() for writing usfmstruct info to %s");
+				msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+				gpApp->LogUserAction(msg);
+				m_bUsfmStructEnabled = FALSE; // set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+				return FALSE;
+			}
+			file.Flush();
+			//file.Write(m_UsfmStructStringBuffer, len);
 			file.Close();
 			// Note: now that the m_UsfmStructStringBuffer data has been written out to the 
 			// external usfmstruct file the Doc's populated m_UsfmStructArr array remains in 
@@ -17258,6 +17269,69 @@ int CAdapt_ItDoc::ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPun
 	return parsedPunctsLen;
 }
 
+// whm 19Dec2025 added the following as a more "strict" version of the ParsePuncts() function.
+// This ParseStrictlyInitialPuncts() parses punctuation chars that are strictly only "initial" punctuation 
+// forms.
+// We start from the whole spacelessPuncts list and exclude the chars that are not strictly "initial" puncts.
+// The spacelessPuncts we start with are: ?.,;:"!()<>{}[]“”‘’~«»
+// To the spacelessPuncts we add the two inverted chars: inverted questionmark '¿' and inverted exclamation '¡'
+// From spacelessPuncts we exclude the ANSI straight quote marks '\"' (ch 145) and '\"' (ch 147) since these
+// are ambiguous and can legitimately function as either "opening" or "closing/final" forms. We want to include
+// only the punctuation chars that are strictly initial forms.
+// From spacelessPuncts we permit the "opening/initial" forms, but exclude the following "closing" punctuation 
+// forms:
+// _T('?') question mark
+// _T('.') period
+// _T(',') comma
+// _T(';') semi-colon
+// _T(':') colon
+// _T('!') exclamation
+// _T('>') right wedge
+// _T(']') right square bracket
+// _T(')') right parenthesis
+// _T('}') right curly bracket
+// _T('”') or L'\x201D' unicode right Double Quotation Mark
+// _T('’') or L'\x2019' unicode left Single Quotation Mark
+// _T('»') or L'\x00BB' unicode left-pointing double chevron
+// We also should I think exclude the following tilde which isn't a strict "final" punct
+// _T('~') tilde - not a strict "final" punct
+// The function also stops parsing whenever the following tests return TRUE:
+// IsEnd(ptr) - coming to the end of the buffer stops the parse
+// IsWhiteSpace(ptr) - encountering a space stops the parse
+// *ptr == gSFescapechar - encountering another marker stops the parse
+int CAdapt_ItDoc::ParseStrictlyInitialPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
+{
+	int length = 0;
+	wxChar* ptr = pChar; // iterator
+	wxString spacelessPunctsPlusInvertedChars = spacelessPuncts;
+	wxString invQues = L'\x00BF'; // ¿
+	wxString invExcl = L'\x00A1'; // ¡
+	spacelessPunctsPlusInvertedChars += invQues;
+	spacelessPunctsPlusInvertedChars += invExcl;
+	if (ptr < pEnd && (spacelessPunctsPlusInvertedChars.Find(*ptr) == wxNOT_FOUND))
+	{
+		// ptr is not pointing at a punctuation character, so return 0
+		return length;
+	}
+	else
+	{
+		// There is at least one non-excluded punctuation character, so parse over each in a loop
+		// until the loop exit condition is met. A while loop suffices. Punctuation characters
+		// which are not word-initial, have to be excluded, so the loop will exit if one such is at ptr
+		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (spacelessPunctsPlusInvertedChars.Find(*ptr) != wxNOT_FOUND)
+			&& (*ptr != _T(']')) && (*ptr != _T(')')) && (*ptr != _T('}')) && (*ptr != gSFescapechar)
+			&& (*ptr != _T('\"')) && (*ptr != _T('\''))
+			&& (*ptr != _T('?')) && (*ptr != _T('.')) && (*ptr != _T(',')) && (*ptr != _T(';')) && (*ptr != _T(':')) && (*ptr != _T('!'))
+			&& (*ptr != _T('>')) && (*ptr != L'\x201D') && (*ptr != L'\x2019') && (*ptr != L'\x00BB') && (*ptr != _T('~'))
+			)
+		{
+			length++;
+			ptr++;
+		}
+	}
+	return length;
+}
+
 // whm 6Nov2025 added the following as a more "strict" version of the original ParseFinalPuncts() function 
 // defined later below.
 // This ParseStrictlyFinalPuncts() parses punctuation chars that are strictly only "final" punctuation forms.
@@ -17268,10 +17342,9 @@ int CAdapt_ItDoc::ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPun
 // only the punctuation chars that are strictly final forms.
 // From spacelessPuncts we permit the "closing/final" forms, but exclude the following "opening" punctuation forms:
 // _T('<') left wedge
-// _T('[') left wedge
-// _T('(') left wedge
-// _T('{') left wedge
-// _T('') left wedge
+// _T('[') left square bracket
+// _T('(') left parenthesis
+// _T('{') left curly bracket
 // _T('“') or L'\x201C' unicode left Double Quotation Mark
 // _T('‘') or L'\x2018' unicode left Single Quotation Mark
 // _T('«') or L'\x00AB' unicode left-pointing double chevron
@@ -21437,7 +21510,7 @@ int CAdapt_ItDoc::ScanToWhiteSpace(wxChar* pChar, wxChar* pEnd)
 }
 
 //BEW 16Nov23 need a parser for things like:  12-nha  28-ŋura  26-dja etc. ParseAWord could do it, but that
-// is much further below and ParseDate() or ParseChVerseUnchanged() would unhelpfully get called before control
+// is much further below and ParseDate() or ParseChVerseAndDigitPrefixedWord() would unhelpfully get called before control
 // can get that far. So need something which starts off like ParseDate(), and after the first number there must
 // be a hyphen, and after that alphabetic chars. We don't have a reliable test for alphabetics when exotic languages
 // are to be supported, so we could just require that after the hyphen every character until whitespace is 
@@ -21548,6 +21621,71 @@ wxString CAdapt_ItDoc::ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxSt
 		pEnd = (wxChar*)ptr + len2 - metadataLength; 
 		wxChar* pBufStart = (wxChar*)ptr;
 	*/
+}
+
+// whm 18Dec2025 added. This function is designed to parse a word such as "1Ptr" which is used as
+// a book abbreviation within an "\xt 1Ptr ..." reference. Before the function was called within the
+// if (IsAnsiDigit(*ptr)) block of ParseWord(), the code would parse "1Ptr" as two separate source
+// phrases. This is called to enable parsing of ansi digit prefixed words like "1Ptr" or "1Ptr." as 
+// a single source phrase. Any final punctuation is returned in the reference parameter finalPunct.
+wxString CAdapt_ItDoc::ParseNumberPrefixedWord(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxString& finalPuncts)
+{
+	wxChar* ptr = pChar;
+	wxString strResult = wxEmptyString;
+	bool bIsDigit = IsAnsiDigit(*pChar);
+	int nSpanLen = 0;
+	if (!bIsDigit)
+	{
+		return strResult;
+	}
+	wxString initialDigitPart = wxEmptyString;
+	wxString partAfterDigits = wxEmptyString;
+	finalPuncts = wxEmptyString; 
+	nSpanLen = ScanToWhiteSpace(ptr, pEnd);
+	if (nSpanLen > 0)
+	{
+		// Here we scan the strResult parsing it into initialDigitPart, partAfterDigits, 
+		// and any finalPuncts. Any finalPuncts should be stored in pSrcPhrase->m_follPuncts.
+		strResult = wxString(ptr, nSpanLen);
+		int nLenResult = strResult.Length();
+		int index = 0;
+		while (IsAnsiDigit(strResult.GetChar(index)) && index < nLenResult)
+		{
+			initialDigitPart += strResult.GetChar(index);
+			index++;
+		}
+		partAfterDigits = strResult.Mid(index);
+		// Now get the non-punctuation part, if any of partAfterDigits
+		index = 0;
+		if (!partAfterDigits.IsEmpty())
+		{
+			int nLenPartAfterDigits = partAfterDigits.Length();
+			// Scan the partAfterDigits from the back end scanning forward, collecting any final punctuation
+			for (int i = nLenPartAfterDigits -1; i >= 0; i--)
+			{
+				wxChar ch = partAfterDigits.GetChar(i); // retrieving characters in reverse order
+				if (IsOneOf(&ch, spacelessPuncts))
+				{
+					finalPuncts = finalPuncts + ch; // assemble finalPuncts in correct order.
+				}
+				else
+				{
+					break; 
+				}
+			}
+			int nLenFinalPuncts = finalPuncts.Length();
+			// Remove the finalPuncts from the end of the partAfterDigits leaving partAfterDigits
+			// that has no final punctuation char(s).
+			partAfterDigits = partAfterDigits.RemoveLast(nLenFinalPuncts);
+			return initialDigitPart + partAfterDigits;
+		}
+		else
+		{
+			// This word is composed of only digits, so return it
+			return strResult;
+		}
+	}
+	return strResult;
 }
 
 // BEW added 16Jun23 for parsing data like 02/26/01 or 02/26/2001, or 2010/05/24, or 12/02
@@ -22289,12 +22427,18 @@ unknown:				bool bIsAnEndMkr;
 						// end marker, the punctuation we store here should be stored in pSrcPhrase->m_follOuterPunct
 						// instead of m_follPunct, and it should not also be appended to the m_srcPhrase member
 						// in such cases.
+						// whm 19Dec2025 correction. The comment above "it should not also be appended to the 
+						// m_srcPhrase member in such cases" is not correct as the following outer punctuation
+						// then fails to get drawn to the main window's rendering of the source phrase. Therefore,
+						// I'm adding code below to append the strEndPuncts to pSrcPhrase->m_srcPhrase even when
+						// bParsedOverNonbindingEndMarker is TRUE.
 						if (bParsedOverNonbindingEndMarker) // whm 30Mar2024 added
 						{
 							wxString strFollOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
 							strFollOuterPunct << strEndPuncts;
 							pSrcPhrase->SetFollowingOuterPunct(strFollOuterPunct);
-							bParsedOverNonbindingEndMarker = FALSE; 
+							pSrcPhrase->m_srcPhrase += strEndPuncts; // whm 19Dec2025 added
+							bParsedOverNonbindingEndMarker = FALSE;
 						}
 						else
 						{
@@ -22391,11 +22535,17 @@ unknown:				bool bIsAnEndMkr;
 							// end marker, the punctuation we store here should be stored in pSrcPhrase->m_follOuterPunct
 							// instead of m_follPunct, and it should not also be appended to the m_srcPhrase member
 							// in such cases.
+							// whm 19Dec2025 correction. The comment above "it should not also be appended to the 
+							// m_srcPhrase member in such cases" is not correct as the following outer punctuation
+							// then fails to get drawn to the main window's rendering of the source phrase. Therefore,
+							// I'm adding code below to append the strEndPuncts to pSrcPhrase->m_srcPhrase even when
+							// bParsedOverNonbindingEndMarker is TRUE.
 							if (bParsedOverNonbindingEndMarker) // whm 30Mar2024 added
 							{
 								wxString strFollOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
 								strFollOuterPunct << strEndPuncts;
 								pSrcPhrase->SetFollowingOuterPunct(strFollOuterPunct);
+								pSrcPhrase->m_srcPhrase << strEndPuncts; // whm 19Dec2025 added
 								bParsedOverNonbindingEndMarker = FALSE;
 							}
 							else
@@ -22451,17 +22601,23 @@ unknown:				bool bIsAnEndMkr;
 						// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
 						// at this iteration; so do the stores and updates and continue looping - a detached punct
 						// may follow - keep looping until ptr does not advance
-							// whm 30Mar2024 modified. I've added a boolean flag bParsedOverNonbindingEndMarker that
-							// gets set TRUE in the block above when such a nonbinding end marker has been stored.
-							// The reason for this boolean flag is that if we've already encountered a nonbinding
-							// end marker, the punctuation we store here should be stored in pSrcPhrase->m_follOuterPunct
-							// instead of m_follPunct, and it should not also be appended to the m_srcPhrase member
-							// in such cases.
+						// whm 30Mar2024 modified. I've added a boolean flag bParsedOverNonbindingEndMarker that
+						// gets set TRUE in the block above when such a nonbinding end marker has been stored.
+						// The reason for this boolean flag is that if we've already encountered a nonbinding
+						// end marker, the punctuation we store here should be stored in pSrcPhrase->m_follOuterPunct
+						// instead of m_follPunct, and it should not also be appended to the m_srcPhrase member
+						// in such cases.
+						// whm 19Dec2025 correction. The comment above "it should not also be appended to the 
+						// m_srcPhrase member in such cases" is not correct as the following outer punctuation
+						// then fails to get drawn to the main window's rendering of the source phrase. Therefore,
+						// I'm adding code below to append the strEndPuncts to pSrcPhrase->m_srcPhrase even when
+						// bParsedOverNonbindingEndMarker is TRUE.
 						if (bParsedOverNonbindingEndMarker) // whm 30Mar2024 added
 						{
 							wxString strFollOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
 							strFollOuterPunct << strEndSpaces + strEndPuncts;
 							pSrcPhrase->SetFollowingOuterPunct(strFollOuterPunct);
+							pSrcPhrase->m_srcPhrase += strEndSpaces + strEndPuncts; // whm 19Dec2025 added
 							bParsedOverNonbindingEndMarker = FALSE;
 						}
 						else
@@ -36178,14 +36334,19 @@ bool CAdapt_ItDoc::IsDetachedWJtype_endMkr_Ahead(wxChar* pChar, wxChar* pEnd, in
 // (I have to parse it, even if it is default filtered out) the following source data sequence:
 // \xo 1.32-33 \xt 2Sa. 7.12-13,16; Isa. 9.7\x*
 // All of that is handleable with present code, except the ",16;" substring after 7.12-13
-// So I'll have to include some code at the end of ParseChVerseUnchanged to detect when a punct
+// So I'll have to include some code at the end of ParseChVerseAndDigitPrefixedWord to detect when a punct
 // followed by more digits occurs, and when detected, parse the substring until end of the extra
 // digits, and then finish off any subsequent puncts finish at a whitespace. Here goes...
 // BEW 17Nov23, Gupapuyngu has a sequence:  10:4-ŋuru  which, if I don't add code to parse it
 // successfully (the "-ŋuru" bit is the problem), the function would return "10:4-" causing the
 // "ŋuru" to be parsed as test on the next pSrcPhrase. ParseAWord() can't handle the 10:4 due to
 // the presence of punctuation (the ':'), so I've gotta get a parse done here
-wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd)
+// whm 18Dec2025 added an additional test to check for word patterns like "1Ptr" which
+// is a book reference that has an initial ansi digit, followed by non-ditit text. This addition
+// is to correct the code from parsing words like "1Ptr" as two separate source phrases,
+// where it should be parsed as a single source phrase. Also renamed this function from 
+// ParseChVerseUnchanged() to ParseChVerseAndDigitPrefixedWord()
+wxString CAdapt_ItDoc::ParseChVerseAndDigitPrefixedWord(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd)
 {
 	wxChar* ptr = pChar;
 	wxString chvsStr = wxEmptyString;
@@ -36212,18 +36373,27 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	bool   bIsDigit = FALSE; // intialise
 	bool   bIsRangeChar = FALSE; // initialise
 	bool   bIsABorC = FALSE; // initialise
+	bool   bIsTextChar = FALSE; // initialize whm 18Dec2025 added to detect non-ansidigit, non-punct "plain" text
 	bool   bExitEarly = FALSE; // initialise
 	wxChar chClosingParen = _T(')'); // to extent functionality, for dealing with, e.g. 5,000) -- dont include ')' in the parse
 	while ((ptr < pEnd) && (*ptr != colon) && (*ptr != period) && (*ptr != semicolon) && (*ptr != ahyphen)  && (*ptr != horiz_bar) )
 	{
 		bIsDigit = IsAnsiDigit(*ptr);
 		bIsABorC = IsOneOf(ptr, partsSet);
+		// whm 18Dec2025 added the following bIsTextChar flag to detect non-ansidigit, non-punct, non-whitespace char, non-backslash
+		bIsTextChar = !bIsDigit && !bIsABorC && !IsOneOf(ptr, spacelessPuncts) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar);
 		if (bIsDigit)
 		{
 			firstPart += *ptr;
 			ptr++;
 		}
 		else if (bIsABorC)
+		{
+			firstPart += *ptr;
+			ptr++;
+		}
+		// whm 18Dec2025 added the following else if test
+		else if (bIsTextChar)
 		{
 			firstPart += *ptr;
 			ptr++;
@@ -39686,7 +39856,8 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	bool& bIsInlineNonbindingMkr,
 	bool& bIsInlineBindingMkr,
 	bool bTokenizingTargetText,
-	bool& bForceEmptySrcPhrase)
+	bool& bForceEmptySrcPhrase,
+	bool& bParsePreWordParsedPuncts)
 {
 	// BEW 30Sep19 With the separation of ParsePreWord() from legacy ParseWord, each
 	// of these has some unreferenced variables. To avoid compiler variables, use 
@@ -39707,6 +39878,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	CAdapt_ItApp* pApp = GetApp();
 
 	int len = 0;
+	bParsePreWordParsedPuncts = FALSE;
 	wxChar* ptr = pChar;
 	bool bAllowPunctChangeBlock = FALSE;
 	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
@@ -40085,6 +40257,15 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// 2. an inlineBindingMkr, such as \k or \w etc, or
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
 	// 
+	// whm 19Dec2025 modification. I discovered in the Kimaragang MRK data an instance of an
+	// initial parenthesis '(' followed immediately by an inlineNonbinding marker \tl in a
+	// text sequence "(\\tl kusta \ft )..." The current code would generate the "Warning: unexpected..."
+	// message in ParseWord() because ParsePreWord() was only parsing the '(' opening parenthesis and
+	// exiting to ParseWord() where the ptr was then pointing at the \tl marker which ParseWord()
+	// couldn't handle. The parsing of the \tl marker should be taking place here within ParsePreWord().
+	// This, I think, should be done here early in ParsePreWord() before we deal with any "displaced
+	// final punctuation" by calling ParseStrictlyFinalPuncts().
+	// 
 	// whm 4Oct2025 addition. 
 	// whm 6Nov2025 additional modifications to include handling final puncts after \ft marker.
 	// There are other possibilities seen in the Kimaragang MAT data.
@@ -40126,11 +40307,119 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// in the routines that have to rebuild the source text and get the ordering of elements correct. 
 	// My conclusion is that I think we will need to put the BEGIN marker and the final punctuation
 	// in a newly created EMPTY source phrase - which stores these elements only but has a m_key of "".
-	// 
-	// Employ a new function that parses any instance of strictly final punctuation at ptr
-	int numPunctsNowPresent = 0;
-	numPunctsNowPresent = ParseStrictlyFinalPuncts(ptr, pEnd, spacelessPuncts);
-	if (numPunctsNowPresent > 0 && (ptr + numPunctsNowPresent) < pEnd)
+	// and employ a new function ParseStrictlyFinalPuncts() that parses any instance of strictly final 
+	// punctuation at ptr.
+
+	// whm 19Dec2025 addition. Before we handle any displaced final punctuation, we 
+	// need to first handle any initial punctuation such as open parenthesis '(' followed 
+	// immediately by an m_inlineNonbindingMarkers such as \tl, in a text sequence where 
+	// ptr is now pointing at something like: "(\\tl kusta \ft )...".
+	// Here the source phrase word "kusta" should be where the '(' is stored in m_precPunct, 
+	// and the \tl is stored within m_inlineNonbindingMarkers. Since the \ft is a begin marker
+	// it and the displaced closing parenthesis ')' will need to be treaded in the next block
+	// below where ParseStrictlyFinalPuncts() is called and where the \ft and ')' are stored 
+	// in an empty new source phrase created to hold them.
+	// But, first handle any initial punctuation that is now pointed at by ptr.
+	int numInitialPunctsNowPresent = 0;
+	numInitialPunctsNowPresent = ParseStrictlyInitialPuncts(ptr, pEnd, spacelessPuncts);
+	if (numInitialPunctsNowPresent > 0 && (ptr + numInitialPunctsNowPresent) < pEnd)
+	{
+		wxString initialPuncts;
+		initialPuncts = wxString(ptr, numInitialPunctsNowPresent);
+		pSrcPhrase->m_precPunct += initialPuncts;
+		pSrcPhrase->m_srcPhrase = initialPuncts + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
+		ptr += numInitialPunctsNowPresent;
+		len += numInitialPunctsNowPresent;
+		bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added to notify ParseWord()
+		// check for whitespace following the punct char. We'll store this whitespace
+		// within the m_precPunct member.
+		itemLen = ParseWhiteSpace(ptr);
+		if (itemLen > 0)
+		{
+			wxString whiteSp;
+			whiteSp.Empty();
+			whiteSp = wxString(ptr, itemLen);
+			pSrcPhrase->m_precPunct += whiteSp;
+		}
+		ptr += itemLen;
+		len += itemLen;
+
+		// whm 19Dec2025 Note: We've seen data where following initial punct '(' there is
+		// the m_inlineNonbinding marker \tl that also precedes the word that will later be 
+		// parsed by ParseWord()
+		// So, we code here to process any m_inlineNonbinding marker
+		if (IsMarker(ptr))
+		{
+			wxString wholeMkr;
+			int mkrLen = ParseMarker(ptr);
+			bool bIsEndMkr = FALSE;
+			wholeMkr = wxString(ptr, mkrLen);
+			wxString augWholeMkr = wholeMkr + _T(" ");
+			if (IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr))
+			{
+				// It's a begin marker, store appropriately - begin markers need space augmented marker
+				if (pApp->m_inlineNonbindingMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+				{
+					// It's a begin inline nonbinding marker, get any present in
+					// m_inlineNonbindingMarkers, append augWholeMkr to them and
+					// call SetInlineNonbindingMarkers().
+					wxString INBmarkers = pSrcPhrase->GetInlineNonbindingMarkers();
+					pSrcPhrase->SetInlineNonbindingMarkers(INBmarkers + augWholeMkr);
+				}
+				else if (pApp->m_inlineBindingMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+				{
+					// It's a begin inline binding marker; append to any existing in
+					// m_inlineBindingMarkers via AppendToInlineBindingMarkers().
+					pSrcPhrase->AppendToInlineBindingMarkers(augWholeMkr);
+				}
+				else
+				{
+					// It's a standard regular begin marker; append to any existing
+					// in m_markers.
+					pSrcPhrase->m_markers += augWholeMkr;
+				}
+			}
+			else
+			{
+				// It's an end marker, store appropriately - end markers don't need following space
+				if (pApp->m_inlineNonbindingEndMarkers.Find(wholeMkr) != wxNOT_FOUND)
+				{
+					// It's an inline nonbinding end marker, get any present in 
+					// m_inlineNonbindingEndMarkers, append augWholeMkr to them, and 
+					// call SetInlineNonbindingEndMarkers().
+					wxString INBEmarkers = pSrcPhrase->GetInlineNonbindingEndMarkers();
+					pSrcPhrase->SetInlineNonbindingEndMarkers(INBEmarkers + wholeMkr);
+				}
+				else if (pApp->m_inlineBindingEndMarkers.Find(wholeMkr) != wxNOT_FOUND)
+				{
+					// It's an inline binding end marker, append to any existing in 
+					// m_inlineBindingEndMarkers via AppendToInlineBindingEndMarkers().
+					pSrcPhrase->AppendToInlineBindingEndMarkers(wholeMkr);
+				}
+				else
+				{
+					// It's a standard regular end marker; add to any existing in
+					// m_endMarkers via AddEndMarker().
+					pSrcPhrase->AddEndMarker(wholeMkr);
+				}
+			}
+			len += mkrLen;
+			ptr += mkrLen;
+
+			// Parse any following whitespace
+			if (IsWhiteSpace(ptr))
+			{
+				int wsLen = ParseWhiteSpace(ptr);
+				len += wsLen;
+				ptr += wsLen;
+			}
+		}
+	}
+
+	// Now address any displaced final punctuation as per comment 4 and 4a above.
+	int numFinalPunctsNowPresent = 0;
+	numFinalPunctsNowPresent = ParseStrictlyFinalPuncts(ptr, pEnd, spacelessPuncts);
+	if (numFinalPunctsNowPresent > 0 && (ptr + numFinalPunctsNowPresent) < pEnd)
 	{
 		// Get the last (begin) marker that was parsed and was stored in this pSrcPhrase
 		// immediately before the current ptr location.
@@ -40181,10 +40470,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 
 			wxString finalPunctInPrePosn;
 			finalPunctInPrePosn.Empty();
-			finalPunctInPrePosn = wxString(ptr, numPunctsNowPresent);
+			finalPunctInPrePosn = wxString(ptr, numFinalPunctsNowPresent);
 			pSrcPhrase->m_follPunct += finalPunctInPrePosn;
-			ptr += numPunctsNowPresent;
-			len += numPunctsNowPresent;
+			ptr += numFinalPunctsNowPresent;
+			len += numFinalPunctsNowPresent;
 			// check for whitespace following the punct char. We'll store this whitespace
 			// within the m_follPunct member.
 			itemLen = ParseWhiteSpace(ptr);
@@ -40333,11 +40622,13 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 			// whm 11Dec2025 testing. This pSrcPhrase is going to be an empty one, with m_key == ""
 			// but it will have some final punctuation which will not display in the main window.
 			// This addition below is a test to see if we can store the final punctuation in the
-			// m_srcPhrase member in order to get that punctuation to diaplay in the main window.
+			// m_srcPhrase member in order to get that punctuation to display in the main window.
 			if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_key.IsEmpty())
 			{
 				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct;
 			}
+			bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added
+
 			// We need to force this source phrase to be closed off as an "empty" one,
 			// so we assign a TRUE value to the bForceEmptySrcPhrase formal parameter and
 			// return the len
@@ -40567,7 +40858,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 			}
 			else
 			{
-				pSrcPhrase->m_precPunct += *ptr++;
+				pSrcPhrase->m_precPunct += chWhatever;
+				pSrcPhrase->m_srcPhrase = chWhatever + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
+				bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added
+				ptr++;
 				len++;
 			}
 		}
@@ -41111,13 +41405,19 @@ tryagain:
 					}
 					else if (chWhatever == _T('('))
 					{
-						pSrcPhrase->m_precPunct += *ptr++;
+						pSrcPhrase->m_precPunct += chWhatever;
+						pSrcPhrase->m_srcPhrase = chWhatever + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
+						bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added
+						ptr++;
 						len++;
 						return len;
 					}
 					else if (chWhatever == _T('{'))
 					{
-						pSrcPhrase->m_precPunct += *ptr++;
+						pSrcPhrase->m_precPunct += chWhatever;
+						pSrcPhrase->m_srcPhrase = chWhatever + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
+						bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added
+						ptr++;
 						len++;
 						return len;
 					}
@@ -41715,7 +42015,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	bool& bIsInlineNonbindingMkr,
 	bool& bIsInlineBindingMkr,
 	bool bTokenizingTargetText,
-	bool& bProcessedOldBarCode)
+	bool& bProcessedOldBarCode,
+	bool& bParsePreWordParsedPuncts) // whm 22Dec2025 addede
 {
 	wxUnusedVar(inlineNonbindingEndMrks); // avoid compiler warning unreferenced formal parameter
 
@@ -41750,7 +42051,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	{
 		wxString pointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("ParseWord() line %d , Before ParseNumber() , ptr-> [%s]"), __LINE__, pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 49)
+		if (pSrcPhrase->m_nSequNumber >= 62)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -42026,9 +42327,60 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #endif
 				len += numDigits;
 				wxString strResult = wxString(pNewPtr, numDigits);
+				int strResultLen = strResult.Length();
 				pNewPtr += numDigits;
-				pSrcPhrase->m_key = _T("(") + strResult;
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
+				pSrcPhrase->m_srcPhrase = _T("(") + strResult; // prefix "(" only to m_srcPhrase
+				pSrcPhrase->m_key = strResult; // we remove final punctuation from m_key below
+				// whm 20Dec2025 addition to remove punctuation from the m_key member.
+				// At this point strResult - which follows the opening parenthesis '(' - may be
+				// a verse reference like "6:20;" which many contain final punctuation such as
+				// ',' ';' or '.' [ParseNumber() - called earlier - returns such final punctuation 
+				// suffixed to a verse reference]. In this particular case the original source text 
+				// was: "(6:20;"
+				// Note: Other similar verse reference lists that are not preceded immediately by 
+				// an opening parenthesis but by a whitespace, are treated farther below. They may 
+				// be strings such as verse reference lists separated by semicolons like: " 7:22;" 
+				// and " 14:11-13;". 
+				// The final punctuation on strResult (often a ';' ',' or '.') needs to be stored 
+				// in pSrcPhrase->m_follPunct now, and we must remove it from m_key, but store
+				// the whole strResult with its prefixed '(' and its final punctuation ';' ',' 
+				// or '.' in pSrcPhrase->m_srcPhrase. 
+				// As was done earlier in ParseWord() we need to call the RemovePunctuation() 
+				// function to remove puncts from m_key. If not done this can cause doubling 
+				// of the open parenthesis when exporting source text.
+				//
+				// First collect any final punctuation (such as ';' ',' or '.' from the verse
+				// reference in strResult.
+				// To assist in getting final puncts we have a function in helpers.cpp called:
+				// SpanIncluding(wxString inputStr, wxString charSet) that returns a substring 
+				// that contains characters in the string that are in charSet, beginning with
+				// the first character in the string and ending when a character is found in 
+				// the inputStr that is not in charSet. If the first character of inputStr is 
+				// not in the charSet, then it returns an empty string. Since we want to get
+				// final punctuation from strResult, we need to reverse strResult because the
+				// SpanIncluding() starts working from the beginning of its inputStr.
+				wxString strWordReversed = MakeReverse(strResult);
+				wxString endingPuncts = SpanIncluding(strWordReversed, spacelessPuncts);
+				wxString strWordWithoutFinalPuncts = strResult; // start with any final puncts
+				if (!endingPuncts.IsEmpty())
+				{
+					int lenFinalPuncts = endingPuncts.Length();
+					wxString finalPuncts = strWordWithoutFinalPuncts.Mid(strResultLen - lenFinalPuncts);
+					pSrcPhrase->m_follPunct = finalPuncts; // can assign with = here as m_follPunct would be empty
+					// Remove the final puncts from strWordWithoutFinalPuncts
+					strWordWithoutFinalPuncts = strWordWithoutFinalPuncts.Mid(0, strResultLen - lenFinalPuncts);
+				}
+				pSrcPhrase->m_key = strWordWithoutFinalPuncts;
+
+				//CAdapt_ItDoc* pDoc = pApp->GetDocument();
+				//CAdapt_ItView* pView = pApp->GetView();
+				//int nSrcPunctsSet = 0; // we want src puncts, for use in RemovePunctuation
+				//wxString strSrcKey = pSrcPhrase->m_key;
+				//pView->RemovePunctuation(pDoc, &strSrcKey, nSrcPunctsSet);
+				//// Now fix m_key to have no wrapping parentheses
+				//pSrcPhrase->m_key = strSrcKey;
+
+				// whm TODO: this next part probably not needed - len was incremented by numdigits above
 				int punctsLen = ParseFinalPuncts(pNewPtr, pEnd, spacelessPuncts);
 				if (punctsLen > 0)
 				{
@@ -42047,7 +42399,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	} // scoped block ends
 
 	// BEW 25Aug23, source data of this kind [including the ( and ) parentheses]: (2t) (2toea) (2 kina) (5MB) etc
-	// currently get parsed as two pSrcPhrases: "(2" and then "t)" because our number parser, ParseChVerseUnchanged()
+	// currently get parsed as two pSrcPhrases: "(2" and then "t)" because our number parser, ParseChVerseAndDigitPrefixedWord()
 	// will parse only as far as the non-digit, and then the rest will go on a new pSrcPhrase. So here I'm building
 	// a way to parse this kind of data for a single pSrcPhrase. The idea is that if "(<digit> is recognised, the
 	// code will search for the matching ")" closing parenthesis, and accept all that's between provided that the
@@ -42798,6 +43150,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			if (*ptr == _T('(') || *ptr == _T('{') || *ptr == _T('['))
 			{
 				pSrcPhrase->m_precPunct += *ptr;
+				pSrcPhrase->m_srcPhrase = *ptr + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
 				ptr++;
 				len++;
 			}
@@ -43429,6 +43782,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						if (*ptr == openParen || *ptr == openBrace || *ptr == openBracket)
 						{
 							pSrcPhrase->m_precPunct += *ptr;
+							pSrcPhrase->m_srcPhrase = *ptr + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
 							ptr++;
 							len++;
 						}
@@ -43528,7 +43882,6 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
 						}
 #endif
-
 						// BEW 17Nov23 added call of ParseNumberHyphenSuffix() to handle data like "24-tja" or "14-nha" before
 						// ParseDate() gets a chance to misparse such info. The latter would wrongly produce "24" then 
 						// "-tja" on a following pSrcPhrase. If structure constraint is not satisfied, this function returns
@@ -43541,9 +43894,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						} // end of TRUE block for test: if (!strNumHyphSuffix.IsEmpty())
 						else
 						{
-
 							// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
-							// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
+							// do ParseChVerseAndDigitPrefixedWord(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
 							int dateLen;
 							dateLen = ParseDate(ptr, pEnd, spacelessPuncts); // if error, returns -1, okay if dateLen is +ve
 							bool bValidDate;
@@ -43558,7 +43910,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 								{
 									wxString pointsAt = wxString(ptr, 16);
-									wxLogDebug(_T("ParseWord() line %d, Before ParseChVerseUnchanged() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+									wxLogDebug(_T("ParseWord() line %d, Before ParseChVerseAndDigitPrefixedWord() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 1)
 									{
@@ -43574,17 +43926,16 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								}
 #endif
 
-								strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
-							}
-
+								strWord = ParseChVerseAndDigitPrefixedWord(ptr, spacelessPuncts, pEnd);
+							} // end of else block for test: if (bValidDate)
 						} // end of else block for test: if (!strNumHyphSuffix.IsEmpty())
-
+						
 						// ParseNumberHyphenSuffix(), if it has returned a valid result string,
 						// must set strWord to the result string before control gets to here 
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 16);
-							wxLogDebug(_T("ParseWord() line %d, After ParseChVerseUnchanged(): m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+							wxLogDebug(_T("ParseWord() line %d, After ParseChVerseAndDigitPrefixedWord(): m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
@@ -43602,8 +43953,35 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 
 						// set m_key and m_srcPhrase
 						int strWordLen = strWord.Length();
-						pSrcPhrase->m_key = strWord;
-						pSrcPhrase->m_srcPhrase = strWord;
+						// whm 20Dec2025 addition/modification. At this point strWord may contain final
+						// punctuation as returned from the strWord = ParseChVerseAndDigitPrefixedWord()
+						// call above, as when parsing verse references separated by semicolons like:
+						// "7:22;" and "14:11-13;". The final punctuation on strWord needs to be stored
+						// in pSrcPhrase->m_follPunct, remove it from m_key, but store the whole strWord
+						// with final ";" punctuation in pSrcPhrase->m_srcPhrase. 
+						// We have a function in helpers.cpp called:
+						// SpanIncluding(wxString inputStr, wxString charSet) that returnsa substring 
+						// that contains characters in the string that are in charSet, beginning with
+						// the first character in the string and ending when a character is found in 
+						// the inputStr that is not in charSet. If the first character of inputStr is 
+						// not in the charSet, then it returns an empty string. Since we want to get
+						// final punctuation from strWord, we need to reverse strWord because the
+						// SpanIncluding() works from the beginning of its inputStr.
+						wxString strWordReversed = MakeReverse(strWord);
+						wxString endingPuncts = SpanIncluding(strWordReversed, spacelessPuncts);
+						endingPuncts = MakeReverse(endingPuncts);
+						wxString strWordWithoutFinalPuncts = strWord; // start with any final puncts
+						if (!endingPuncts.IsEmpty())
+						{
+							int lenFinalPuncts = endingPuncts.Length();
+							wxString finalPuncts = strWordWithoutFinalPuncts.Mid(strWordLen - lenFinalPuncts);
+							pSrcPhrase->m_follPunct = finalPuncts; // can assign with = here as m_follPunct would be empty
+							// Remove the final puncts from strWordWithoutFinalPuncts
+							strWordWithoutFinalPuncts = strWordWithoutFinalPuncts.Mid(0, strWordLen - lenFinalPuncts);
+						}
+
+						pSrcPhrase->m_key = strWordWithoutFinalPuncts; //pSrcPhrase->m_key = strWord;
+						pSrcPhrase->m_srcPhrase += strWord; // whm 22Dec2025 corrected = to +=
 						ptr += strWordLen;
 						len += strWordLen;
 						// NOLOGS wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
@@ -43611,7 +43989,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 
 						// BEW 29May23, after a chapter/verse number in a footnote, there may be an
 						// explict \fr* endMkr; code following ParseAWord() would deal with this endMkr,
-						// but after ParseChVerseUnchanged() returns, ParseAWord() is not called. So we
+						// but after ParseChVerseAndDigitPrefixedWord() returns, ParseAWord() is not called. So we
 						// should check for \fr* here (it's in the m_RedEndMarkers set), and deal with it.
 						// \fr*, if present, should abutt the end of the chapVerse strWord
 
@@ -44134,6 +44512,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #endif
 
 				} // end of else block for test: if ((*ptr == _T(']')) && IsWhiteSpace((ptr - 1)))
+
+				// whm 21Dec2025 Moved the following assignments down below putting them inside the
+				// if (bFromDigitsUpdatedPtr == FALSE) block. Otherwise the m_key especially can get
+				// polluted with final punctuation when coming from parsing of ansi digits material 
+				// above.
+				/*
 				theWord = strWord;
 				strWordLen = strWord.Length();
 				pSrcPhrase->m_key = strWord;
@@ -44143,6 +44527,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// include following whitespace before the word (i.e. detached). Check for non-empty, and insert it
 				// at the start of m_srcPhrase - as ParseWord is concerned with post-word stuff, so nothing below
 				// will get it displayed if I don't do it here
+				*/
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 				{
 					wxString pointsAt = wxString(ptr, 16);
@@ -44170,13 +44555,47 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// text value - this is how Mike's reported issue happens. Solution here should be simply do Trim(FALSE)
 				pSrcPhrase->m_precPunct = pSrcPhrase->m_precPunct.Trim(FALSE);
 
-				if (!pSrcPhrase->m_precPunct.IsEmpty())
-				{
-					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct + pSrcPhrase->m_srcPhrase;
-				}
+				// whm 22Dec2025 testing shows that the following test can result in m_srcPhrase 
+				// getting doubled "((" assigned to it when m_srcPhrase is already "(". 
+				// I'm commenting it out since ParsePreWord() will have likely already stored
+				// punctuation in m_srcPhrase.
+				//if (!pSrcPhrase->m_precPunct.IsEmpty())
+				//{
+				//	pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct + pSrcPhrase->m_srcPhrase;
+				//}
+				
+				// whm 22Dec2025 added a sub-test if (bParsePreWordParsedPuncts == FALSE) 
+				// to the test below. Reason: ParsePreWord() now parses initial puncts and final
+				// puncts, storing them in m_srcPhrase, and bParsePreWordParsedPuncts informs us of 
+				// when that occurs. So here back in ParseWord() we must avoid wiping out those
+				// punctuation additions to m_srcPhrase, otherwise they won't appear in the main
+				// window display.
 				if (bFromDigitsUpdatedPtr == FALSE)
 				{
-					// BEW 9Jun23 don't update here, if updating after digits or chapVerse has already
+					// whm 21Dec2025 Moved the following assignments here inside the
+					// if (bFromDigitsUpdatedPtr == FALSE) block from above. If called outside the
+					// if (bFromDigitsUpdatedPtr == FALSE) the m_key especially can get
+					// polluted with final punctuation when coming from parsing of ansi digits 
+					// material farther above.
+					theWord = strWord;
+					strWordLen = strWord.Length();
+					pSrcPhrase->m_key = strWord;
+					if (bParsePreWordParsedPuncts == FALSE)
+					{
+						// m_key is the base for m_srcPhrase, the latter will have puncts (possibly detached) added
+						pSrcPhrase->m_srcPhrase = strWord; // we don't want parsing functions to work on an empty m_srcPhrase
+					}
+					else
+					{
+						// ParsePreWord() parsed some punct, add them to m_srcPhrase
+						pSrcPhrase->m_srcPhrase += strWord;
+						bParsePreWordParsedPuncts = FALSE; // whm 22Dec2025 added restore default 
+					}
+					// BEW 8Jun23, TokenizeText(), at about lines +/- 19388, may set content in m_precPunct, and it may
+					// include following whitespace before the word (i.e. detached). Check for non-empty, and insert it
+					// at the start of m_srcPhrase - as ParseWord is concerned with post-word stuff, so nothing below
+					// will get it displayed if I don't do it here
+						// BEW 9Jun23 don't update here, if updating after digits or chapVerse has already
 					// been done. The flag will be FALSE if ParseAWord() has just parsed above, and that's
 					// when augmenting here is needed.
 					len += strWordLen;
@@ -48431,7 +48850,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber >= 756)
+		if (pSrcPhrase->m_nSequNumber >= 28)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
@@ -48962,6 +49381,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// and so forth. Or the word proper may be next wxChar. So we pass control on to ParseWord to
 						// fill out the rest of m_key and compute what m_srcPhrase is to be
 						pSrcPhrase->m_precPunct += *ptr;
+						pSrcPhrase->m_srcPhrase = *ptr + pSrcPhrase->m_srcPhrase; // whm 22Dec2025 added
 						itemLen = 0; // reset
 						ptr++; // point past the [ so that ParseWord()'s input pChar will be correct
 					}
@@ -53696,6 +54116,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// while (ptr < pEnd) loop to avoid gcc error of goto finishup; jumping past initialization.
 			bForceEmptySrcPhrase = FALSE; 
 
+			bool bParsePreWordParsedPuncts = FALSE; // whm 22Dec2025 added
 
 			// BEW 25Jul23 ParsePreWord() causes \fig (a char attribute mkr) - and maybe other begin mkrs
 			// to be parsed over. But members of gpApp->m_charAttributeMkrs must not have ptr advance, because
@@ -53708,7 +54129,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// skip, if the bool was TRUE
 				itemLen = ParsePreWord(ptr, pBufStart, pEnd, pSrcPhrase, spacelessPuncts, pApp->m_inlineNonbindingMarkers,
 					pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText,
-					bForceEmptySrcPhrase);
+					bForceEmptySrcPhrase, bParsePreWordParsedPuncts); // whm 22Dec2025 added bParsePreWordParsedPuncts
 
 #if defined (_DEBUG) && !defined (NOLOGS)
 				// whm 16Jun2023 separated the declaration of wxChar* auxPtr from its assignment/initialization below, to 
@@ -53789,7 +54210,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pApp->m_inlineNonbindingEndMarkers,
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 				bTokenizingTargetText,
-				bProcessedOldBarCode);
+				bProcessedOldBarCode,
+				bParsePreWordParsedPuncts); // whm 22Dec2025 added
 
 			//		wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
@@ -54574,7 +54996,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxString atPtr = wxString(ptr, 16);
 			wxLogDebug(_T("TokenizeText(), line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d"),
 				__LINE__, pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-			if (pSrcPhrase->m_nSequNumber >= 1)
+			if (pSrcPhrase->m_nSequNumber >= 26)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -55355,11 +55777,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 			// */
 		}
+		// whm 21Dec2025 removed the following test for an empty m_srcPhrase when m_key is not empty
+		// Having the test here would never be effective since it is after the pList->Apend(pSrcPhrase)
+		// call a few lines above. Also checks for an empty m_srcPhrase are done in other places.
 		// BEW 7Nov22, check that pSrcPhrase->m_scrPhrase is not empty, when m_key has content. Fix if so
-		if (!pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_srcPhrase.IsEmpty())
-		{
-			pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
-		}
+		//if (!pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_srcPhrase.IsEmpty())
+		//{
+		//	pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
+		//}
 
 		// make this one be the "last" one for next time through
 		pPrevSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
