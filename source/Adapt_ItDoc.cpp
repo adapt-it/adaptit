@@ -49447,6 +49447,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 11Jun23 don't remove the bool in the test. When SWBK is set with content ( from >= 1)
 		// it will always be empty. sn = 0 is different, it helps only there
 		bool bForceEmptySrcPhrase = FALSE; // whm 15Nov2025 initialize here to avoid gcc error of jumping past initialization
+		bool bParsePreWordParsedPuncts = FALSE; // whm 22Dec2025 initialize here to avoid gcc error of jumping past initialization
 		wxString strPointsAt;
 		bool bIsToBeFiltered;
 		bIsToBeFiltered = FALSE; // BEW 18Aug23 init to FALSE, otherwise it's 205 which is bogus TRUE
@@ -54116,7 +54117,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// while (ptr < pEnd) loop to avoid gcc error of goto finishup; jumping past initialization.
 			bForceEmptySrcPhrase = FALSE; 
 
-			bool bParsePreWordParsedPuncts = FALSE; // whm 22Dec2025 added
+			bParsePreWordParsedPuncts = FALSE; // whm 22Dec2025 added
 
 			// BEW 25Jul23 ParsePreWord() causes \fig (a char attribute mkr) - and maybe other begin mkrs
 			// to be parsed over. But members of gpApp->m_charAttributeMkrs must not have ptr advance, because
