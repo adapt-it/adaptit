@@ -22016,7 +22016,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	//    there is no punctuation before it, but there may be after it - either attached, or detached by whitespace
 	// 3. Punctuation character(s) - may be more than one in sequence, but usually one; or the same but following the endMkr of 2.
 #if defined (_DEBUG) && !defined(NOLOGS)
-	if (pSrcPhrase->m_nSequNumber >= 8)
+	if (pSrcPhrase->m_nSequNumber >= 44)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
@@ -35299,7 +35299,7 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			}
 			else 
 			{
-				// m_offsetToFirstBar was found
+				// m_offsetToFirstBar was found and m_offsetToMatchingEndMkr > m_offsetToFirstBar
 				// We've some atributes or alternatives metadata to deal with, to
 				// get it and cache it for when it needs to be added to the CSourcePhrase
 				// instance which has the | (bar). ptr has not moved, so point to where
@@ -35344,18 +35344,18 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 				// We are done here. The rest is done in ParseWord()  now
 				// or later in the tokenizing, when tokenizing gets to the right location
 				return TRUE;  // TRUE causes the caller to set m_bWithinMkrAttributeSpan to TRUE
-			}
-		} // end of true block for test: if (!m_bWithinMkrAttributeSpan)
+			} // end of m_offsetToFirstBar was found and m_offsetToMatchingEndMkr > m_offsetToFirstBar
+		} // end of TRUE block for test: bool bFound = CheckForAttrMarker()
 	} // end of else block for test: if (!m_bWithinMkrAttributeSpan)
 
-	  // If control gets here, it must not have been an attribute-having marker
+	// If control gets here, it must not have been an attribute-having marker
 	return FALSE;
 }
-// Looks up CheckForAttrMarker fast access string, or the
-// CheckForAttrEndMarker fast access string. Returns what
-// was matched, and whether a begin marker or end marker type
+// Looks up attrMkr in App's m_charAttributeMkrs fast access string, or the
+// App's m_charAttributeEndMkrs fast access string. Returns what was matched, 
+// and whether a begin marker or end marker type was returned in matchedMkr.
 // Returns TRUE If one from the set of USFM3 attribute-having markers
-// was found
+// was found.
 // params:
 // attrMkr		->	reference to the USFM marker that the caller identified at the ptr location
 // matchedMkr	<-	pass back the matched attribute-having marker, if attrMkr matches one
@@ -47694,7 +47694,16 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							} // end of TRUE block for test: if ( !((chFirst == gSFescapechar) && (chSecond == _T('f') || chSecond == _T('x'))) )
 							else
 							{
-								bFoundEndMkr = FALSE; // causes break from loop  
+								// whm 23Dec2025. We shouldn't set bFoundEndMkr here to FALSE for end markers
+								// of the \f... or \x... sets. The loop should loop again to store any such additional
+								// following end markers in m_endMarkers and parse over them. The setting of bFoundEndMkr
+								// here to FALSE caused the \f* end marker to go missing when immediately following another
+								// footnote-related end marker like \fk*, such as in the sequence "...\fk*\f*".
+								// Therefore I'm commenting out the bFoundEndMkr = FALSE line below, so that the while
+								// loop will continue with bFoundEndMkr being TRUE.
+								// bFoundEndMkr = FALSE; // causes break from loop  
+								int break_here = 1;
+								break_here = break_here;
 							}
 
 						} // end of TRUE block for test: if (chLast == _T('*'))
@@ -48736,6 +48745,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bIsInlineNonbindingMkr = FALSE;
 	bool bIsInlineBindingMkr = FALSE;
 	bool bIsCharAttrMkr = FALSE;
+	bool bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 	bool bProcessedOldBarCode = FALSE;
 
 	// BEW 13Jul11, added support via bool bEmptyUSFM flag, for parsing to CSourcePhrase
@@ -49066,7 +49076,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 6);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 165) // whm break
+		if (pSrcPhrase->m_nSequNumber >= 7) // whm break
 		//if (mypointsAt.Find(_T(" later")) != wxNOT_FOUND) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -49463,7 +49473,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber == 161)
+				if (pSrcPhrase->m_nSequNumber == 45)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -50781,6 +50791,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// is better and more mnemonic to users for \fig.
 					bIsToBeFiltered = FALSE; // init
 					bIsCharAttrMkr = FALSE;  // init
+					bIsCharFormatMkr = FALSE; // init whm 23Dec2025 added
 
 					// BEW 27Jul23, add protection. If markup is  \q1 "Jo iyah...., in the inner loop the \q1 will
 					// be detected and stored, and the loop will try find any additional following beginMkr - but
@@ -50801,12 +50812,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// bIsCharAttrMkr flag to TRUE for any char attribute markers that arrive
 					// here and add an initial test if (!bIsCharAttrMkr) surrounding the if 
 					// test below: if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
+					// 
+					// whm 23Dec2025 addition. Testing shows that char format markers such as
+					// \add may also be pointed at by ptr here at this code location, and the
+					// similarly the block below doesn't adequately deal with the format 
+					// markers which also are handled farther below. Therefore, I'm adding a
+					// new bool flag bIsCharFormatMkr along with the bIsCharAttrMkr, and adding
+					// a second exclusionary test to the if (!bIsCharAttrMkr) test below, 
+					// making that test now become: if (!bIsCharAttrMkr && !bIsCharFormatMkr).
+					// Prior to this addition of && !bIsCharFormatMkr to the test, the char
+					// format marker \add would get stored within the pSrcPhrase->m_markers 
+					// member instead of the pSrcPhrase->m_inlineBindingMarkers member.
 					wholeMkr = GetWholeMarker(ptr);
 					wxASSERT(!wholeMkr.IsEmpty());
 					augWholeMkr = wholeMkr + _T(' ');
 					lookupStr = augWholeMkr;
+					bIsCharFormatMkr = gpApp->m_charFormatMkrs.Find(augWholeMkr) != wxNOT_FOUND; // whm 23Dec2025 added
 					bIsCharAttrMkr = gpApp->m_charAttributeMkrs.Find(augWholeMkr) != wxNOT_FOUND;
-					if (!bIsCharAttrMkr) // whm 3Dec2025 added this outer test
+					if (!bIsCharAttrMkr && !bIsCharFormatMkr) // whm 3Dec2025 added this outer test; 23Dec2025 also !bIsCharFormatMkr to the test
 					{
 						if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
 						{
@@ -51264,9 +51287,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 								}  // end of filtering TRUE block for test: if (bIsToBeFiltered)
 								/*
-								// whm 3Dec2025 removed the following else if (IsAttributeMarker(ptr)) test
-								// and instead I decided to enclose this whole section within an outer test:
-								// if (!bIsCharAttrMkr).
+								// whm 3Dec2025 & 23Dec2025 removed the following else if (IsAttributeMarker(ptr)) 
+								// test and instead I decided to enclose this whole section within an outer test:
+								// if (!bIsCharAttrMkr && !IsCharFormatMkr).
+
 								// whm 21Nov2025 added the following else if (IsAttributeMarker(ptr)) block
 								// after noticing that when ptr is pointing at a inline binding marker like
 								// \w that Doc's m_bWithinMkrAttributeSpan doesn't get set properly to TRUE
@@ -51356,13 +51380,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								*/
 								else
 								{
-									// whm 5Oct2025 Observation: In some circumstances the tokBuffer here
-									// may have an inlineBindingMarker such as \add (from JamesJ's MAT data)
+									// whm 5Oct2025 & 23Dec2025 Observation: In some circumstances the tokBuffer 
+									// here may have an inlineBindingMarker such as \add (from JamesJ's MAT data)
 									// and inlineBindingMarkers should be stored NOT in m_markers, but in 
 									// m_inlineBindingMarkers using AppendToInlineBindingMarkers().
-									// To correct this issue I placed an outer test if (!bIsCharAttrMkr) around
-									// this whole section that prevents inlineBindingMarker type markers
-									// from reaching this block.
+									// To correct this issue I placed an outer test:
+									//    if (!bIsCharAttrMkr && !bIsCharFormatMkr) around
+									// this whole section that prevents both m_charAttributeMkrs and 
+									// m_inlineBindingMarkers markers from reaching this block.
 
 									// This block can parse, but with care - don't append a latin space
 									// to an empty pSrcPhrase->m_markers; also wholeMkr is not going to be filtered out
@@ -51657,7 +51682,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								} // end of if (!bIsToBeFiltered)
 							} // end of if (*ptr == gSFescapechar)
 						}  // end of else block for if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
-					} // end of if (!bIsCharAttrMkr) // whm 3Dec2025 added this outer test
+					} // end of if (!bIsCharAttrMkr && !bIsCharFormatMkr) // whm 3Dec2025 & 23Dec2025 added this outer test
 
 					// BEW 30Sep19 the one-line test with three subtest below
 
@@ -51785,6 +51810,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										bIsInlineBindingMkr = FALSE;
 										bIsInlineNonbindingMkr = FALSE;
 										bIsCharAttrMkr = TRUE;
+										bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 										bFoundOne = TRUE;
 										bKeepPtrFromAdvancing = TRUE;
 										// The only charAttributeMkr (i.e an begin-marker) we are considering
@@ -51843,9 +51869,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// as a (bleeding) special case
 										}
 										// When it's not \fig, it can be one of several others, so bIsCharAttrMkr can be
-										// made use of when in ParsePhreWord(), and after that, in ParseWord()
+										// made use of when in ParsePreWord(), and after that, in ParseWord()
 
-									} // end of else block of test: if (offset != wxNOT_FOUND)
+									} // end of else block of test: if (offset != wxNOT_FOUND), bIsCharAttrMkr = TRUE
 								} // end of TRUE block for test: if (!bIsToBeFiltered)
 								// No else block  because we don't stored bar data if filtering is to be done
 #if defined (_DEBUG) && !defined (NOLOGS)
@@ -51868,7 +51894,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// 
 								// whm 26Feb2024 Removed rest of code in this TRUE block of if (bIsHidingNeeded).
 								// The IsAttributeMarker() function that above that set bIsHidingNeeded to TRUE also 
-								// set all the attribute marker data for the current marker. We don't want to call 
+								// set all the attribute marker data for the current marker including the Doc's
+								// m_bWithinMrkAttributeSpan flag. We don't want to call 
 								// ClearAttributeMkrStorage() at this point, which will would clear all that data
 								// before we can process the caption text up to the bar '|' that delimits it.
 								// Also this block is already TRUE for all 3 of the conditions of the outer test:
@@ -52092,30 +52119,38 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										bIsInlineBindingMkr = TRUE;
 										bIsInlineNonbindingMkr = FALSE;
 										bIsCharAttrMkr = FALSE;
+										bIsCharFormatMkr = TRUE; // whm 23Dec2025 added
 										// We have enough info to store it, do so
-										if (bIsInlineBindingMkr && !bIsCharAttrMkr)
-										{
-											int nAugMkrLen = wholeMkrLen + 1; // +1 for the following space
-											wxString strInlineBindingBeginMkrs;
-											strInlineBindingBeginMkrs = pSrcPhrase->GetInlineBindingMarkers();
-											strInlineBindingBeginMkrs += augmentedWholeMkr;
-											pSrcPhrase->SetInlineBindingMarkers(strInlineBindingBeginMkrs);
-											// Update ptr (whm removed the (size_t) cast on the call below)
-											ptr += nAugMkrLen;
-											// whm 22Jan2024 modified. At this point the marker is bIsInlineBindingMkr TRUE
-											// and an inline binding marker like \fk has been parsed over with the ptr
-											// pointing after the following space at what follows, and what follows should
-											// likely be a text word. Therefore there should be a break call at this point
-											// in order for ParsePreWord() and ParseWord() to be able to parse the word(s) 
-											// following this inline binding marker. This addition fixed the garbled parsing 
-											// of the \fk marker.
-											//
-											// whm 6Oct2025 added. Now that the inline binding marker has been
-											// processed/stored, we need to reset the bKeepPtrFromAdvancing to FALSE
-											bKeepPtrFromAdvancing = FALSE;
-											//
-											break; // whm 22Jan2024 added to break back to ParsePreWord() and ParseWord().
-										}
+										// whm 23Dec2025 modification. The \w marker is in all 3 of these marker sets:
+										// m_inlineBindingMarkers, m_charAttributeMkrs, and m_charFormatMkrs. When
+										// augmentedWholeMkr is "\\w " here in this block is should be stored in 
+										// m_inlineBindingMarkers via the SetInlineBindingMarkers() below.
+										// I've removed the surrounding test if (bIsInlineBindingMkr && !bIsCharAttrMkr)
+										// since the test conditions were already assigned above with bIsInlineBindingMkr
+										// set to TRUE AND bIsCharAttrMkr set to FALSE.
+										//if (bIsInlineBindingMkr && !bIsCharAttrMkr)
+										//{
+										int nAugMkrLen = wholeMkrLen + 1; // +1 for the following space
+										wxString strInlineBindingBeginMkrs;
+										strInlineBindingBeginMkrs = pSrcPhrase->GetInlineBindingMarkers();
+										strInlineBindingBeginMkrs += augmentedWholeMkr;
+										pSrcPhrase->SetInlineBindingMarkers(strInlineBindingBeginMkrs);
+										// Update ptr (whm removed the (size_t) cast on the call below)
+										ptr += nAugMkrLen;
+										// whm 22Jan2024 modified. At this point the marker is bIsInlineBindingMkr TRUE
+										// and an inline binding marker like \fk has been parsed over with the ptr
+										// pointing after the following space at what follows, and what follows should
+										// likely be a text word. Therefore there should be a break call at this point
+										// in order for ParsePreWord() and ParseWord() to be able to parse the word(s) 
+										// following this inline binding marker. This addition fixed the garbled parsing 
+										// of the \fk marker.
+										//
+										// whm 6Oct2025 added. Now that the inline binding marker has been
+										// processed/stored, we need to reset the bKeepPtrFromAdvancing to FALSE
+										bKeepPtrFromAdvancing = FALSE;
+										//
+										break; // whm 22Jan2024 added to break back to ParsePreWord() and ParseWord().
+										//}
 									}
 									/* 
 										// BEW 20Nov23 commented out this block, because it's relevant only if an
@@ -52493,9 +52528,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// BEW 28Apr20 refactored the tests; 21Jul23
 
 							//m_bInRedSet = FALSE; // init  BEW 9Jan23, it's a doc.h member bool, 
-								// set only when augmented beginMkr is in m_RedBeginMarkers BEW 24Aug23 removed, it's unused 
+							// set only when augmented beginMkr is in m_RedBeginMarkers BEW 24Aug23 removed, it's unused 
 							bIsCharAttrMkr = FALSE; // init
+							bIsCharFormatMkr = FALSE; // init whm 23Dec2025 added
 							// HERE following we just set booleans, we don't parse
+
 #if defined (_DEBUG) && !defined(NOLOGS)
 							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
@@ -52518,6 +52555,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// it's one of the beginMkrs in the character attributes set
 								bIsInlineBindingMkr = FALSE;
 								bIsInlineNonbindingMkr = FALSE;
+								bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 								bIsCharAttrMkr = TRUE; // set the doc member bool, filterable
 								// whm 12Mar2024 addition. Below is a break statement to break out 
 								// of the inner loop, to get to ParsePreWord() etc.,  so since the
@@ -52537,6 +52575,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// It's one of the several markers like \k \it etc, textType 
 									// 'none' - binding ones
 									bIsInlineBindingMkr = TRUE;
+									bIsCharFormatMkr = TRUE; // whm 23Dec2025 added
 									bIsInlineNonbindingMkr = FALSE;
 									bIsCharAttrMkr = FALSE;
 								}
@@ -52550,6 +52589,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										bIsInlineBindingMkr = FALSE;
 										bIsInlineNonbindingMkr = TRUE;
 										bIsCharAttrMkr = FALSE;
+										bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 
 										// BEW 6May23, we have to retest for inline binding beginMkr here.
 										// Why? Because the source text parse may have come to an
@@ -52592,6 +52632,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// There are a heap of markers in these red sets, they are not necessarily inLine; but a not 'verse or 'poetry'
 									else
 									{
+										// it's NOT a nonbinding type of marker
+										// whm 23Dec2025 comment: In the if ... else blocks below the
+										// flags are set the same, therefore no if .. else test here needed,
+										// we could just set the flags all FALSE here without the if...else
+										// test below.
 										offset = pApp->m_RedBeginMarkers.Find(augmentedWholeMkr);
 										if (offset != wxNOT_FOUND)
 										{
@@ -52600,6 +52645,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											bIsInlineNonbindingMkr = FALSE;
 											// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
 											bIsCharAttrMkr = FALSE;
+											bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 										}
 										else
 										{
@@ -52611,6 +52657,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											bIsInlineBindingMkr = FALSE;
 											bIsInlineNonbindingMkr = FALSE;
 											bIsCharAttrMkr = FALSE;
+											bIsCharFormatMkr = FALSE; // whm 23Dec2025 added
 										}
 									}
 								} // end of the else block for test: if (offset >= 0) - for char format mkrs
@@ -54100,7 +54147,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 			//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			//	pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 145)
+			if (pSrcPhrase->m_nSequNumber >= 8)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
