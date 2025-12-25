@@ -21992,7 +21992,15 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		//pSrcPhrase->m_srcPhrase << _T("empty-key");
 		//ptr += 9;
 		//itemLen = 9;
-		return ptr;
+		// whm 24Dec2025 modified. I have some Kimaragang data that has a sequence that must be parsed with
+		// an empty source phrase, and that empty source phrase is followed by two end markers \fk*\f* at
+		// the end of a footnote. We need to allow for the possibility that there may be end markers 
+		// occuring directly after an empty source phrase, which should be stored properly on that empty
+		// source phrase. Hence, I'm commenting out the return ptr statement here, so that such end marker
+		// can take place here.
+		// return ptr;
+		int break_here = 1;
+		break_here = break_here;
 	}
 	//wxASSERT(!pSrcPhrase->m_key.IsEmpty());
 	int offset = wxNOT_FOUND; // init
@@ -40320,6 +40328,13 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// below where ParseStrictlyFinalPuncts() is called and where the \ft and ')' are stored 
 	// in an empty new source phrase created to hold them.
 	// But, first handle any initial punctuation that is now pointed at by ptr.
+#if defined (_DEBUG) && !defined(NOLOGS)
+	if (pSrcPhrase->m_nSequNumber >= 11)
+	{
+		int halt_here = 1;
+		wxUnusedVar(halt_here);
+	}
+#endif
 	int numInitialPunctsNowPresent = 0;
 	numInitialPunctsNowPresent = ParseStrictlyInitialPuncts(ptr, pEnd, spacelessPuncts);
 	if (numInitialPunctsNowPresent > 0 && (ptr + numInitialPunctsNowPresent) < pEnd)
@@ -40621,12 +40636,28 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 			}
 			// whm 11Dec2025 testing. This pSrcPhrase is going to be an empty one, with m_key == ""
 			// but it will have some final punctuation which will not display in the main window.
-			// This addition below is a test to see if we can store the final punctuation in the
+			// This addition below is a test to see if we need to store the final punctuation in the
 			// m_srcPhrase member in order to get that punctuation to display in the main window.
 			if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_key.IsEmpty())
 			{
 				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct;
 			}
+
+			// whm 24Dec2025 addition. Although this pSrcPhrase is an empty one with m_key == "",
+			// it may be followed by puncts and/or end markers. An example of this was encountered
+			// in parsing the Kimaragang MAT data which had the following sequence:
+			// "...Kapernaum (intangay sid \xt 4:13\ft ). \ft*\f*[EOL]\v 2 Na..."
+			// In this sequence, previous parsing put the "\ft )." part in an empty source phrase
+			// with the \ft begin marker stored in m_markers, the "). " puncts stored in m_follPunct and 
+			// m_srcPhrase. The previous code also lost both the \f* end marker, and also lost 
+			// the "\r\n\v 2 " part that followed the EOL.
+			// The code here below has no parsing provision for the following end markers \ft*\f* which 
+			// should I think also be stored on this empty pSrcPhrase. 
+			// Hence I'm trying a call of ParsePostWordPunctsAndEndMkrs() here.
+			wxString wordSuffix; wordSuffix.Empty();
+			ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pSrcPhrase, itemLen, wordSuffix, spacelessPuncts);
+			len += itemLen;
+
 			bParsePreWordParsedPuncts = TRUE; // whm 22Dec2025 added
 
 			// We need to force this source phrase to be closed off as an "empty" one,
