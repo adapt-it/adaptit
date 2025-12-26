@@ -47415,6 +47415,11 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								}
 								wxString currEndMkrs = pSrcPhrase->GetEndMarkers();
 								currEndMkrs += strToAdd;
+								// whm 24Dec2025 added. The strToAdd may have gotten an initial space
+								// and the currEndMkrs may have gotten a final space, resulting in a
+								// double space between the end markers. Reduce any double space to a
+								// single space before storing in m_endMarkers.
+								currEndMkrs.Replace(_T("  "), _T(" "), TRUE); // TRUE, change all "  " to " "
 								pSrcPhrase->SetEndMarkers(currEndMkrs);
 								// whm 6Nov2025 added. In case wholeMkr is \f* or \fe* we need to reset the flag
 								// m_bIsWithinFootnote_F_Span to FALSE.
@@ -47441,7 +47446,28 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								nCurLen = len;
 								ptr += itemLen;
 								itemLen = 0;
-							} // end of the TRUE block for test: else if ((ptr < pEnd) && IsEndMarker(ptr, pEnd))
+							} // end of the TRUE block for test: if (itemLen > 0) - has final puncts
+							
+							// whm 24Dec2025 added. At this point there may be a space followed by
+							// another end marker - such as: "\\ft* \\f*EOL" so check for that.
+							itemLen = 0;
+							itemLen = ParseWhiteSpace(ptr);
+							if (itemLen > 0)
+							{
+								// Check to see if another end markers follows the whitespace
+								if ((ptr + 1) < pEnd && IsEndMarker((ptr + 1), pEnd))
+								{
+									// There is another end marker that followed the space, so
+									// store the space in m_endMarkers, and continue the while loop
+									wxString currEndMkrs = pSrcPhrase->GetEndMarkers();
+									currEndMkrs += *ptr; // add the space to end markers
+									pSrcPhrase->SetEndMarkers(currEndMkrs);
+									len += itemLen;
+									ptr += itemLen;
+									continue; // iterate the while loop again to parse the detected end marker
+								}
+							}
+
 						} // end of TRUE block for test: if (chLast == _T('*'))
 					} // end of the TRUE block for test: else if ((ptr < pEnd) && IsEndMarker(ptr, pEnd))
 
@@ -47577,7 +47603,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						{
 							// It's an endmkr
 #if defined (_DEBUG) && !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 4)
+							if (pSrcPhrase->m_nSequNumber >= 10)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}

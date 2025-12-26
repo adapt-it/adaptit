@@ -20965,26 +20965,57 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		int ctmkr;   // used to count item chars while copying from pOld to pNew
 		*/
 		// whm 13Dec2025 added the following:
-		int markerIndex = 0;
+		int markerThisDocIndex = 0;
+		int markerUsfmStructIndex = 0;
 		int usfmStructArrTot = pDoc->m_UsfmStructArr.GetCount();
 		wxString usfmStructLineStr;
 		wxString marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus;
 		whiteSpBeforeMkr.Empty();
+		wxChar* pChar;
 
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
 			// scan the whole text for standard format markers
 			//if (pDoc->IsMarker(pOld, pBufStart))
-			if (pDoc->IsMarker(pOld) && markerIndex < usfmStructArrTot)
+			if (pDoc->IsMarker(pOld) && markerUsfmStructIndex < usfmStructArrTot)
 			{
 				// we are pointing at a marker; get the marker into the wholeMkr
 				wholeMkr = pDoc->GetWholeMarker(pOld);
 
-				// whm 13Dec2025 added. Get the whiteSpBeforeMkr for this markerIndex from 
+				markerThisDocIndex++;
+
+				// whm 13Dec2025 added. Get the whiteSpBeforeMkr for this markerUsfmStructIndex from 
 				// the Doc's in-memory m_UsfmStructArr array.
-				// First get the array string at markerIndex and parse its fields
-				usfmStructLineStr = pDoc->m_UsfmStructArr.Item(markerIndex);
+				// First get the array string at markerUsfmStructIndex and parse its fields
+				usfmStructLineStr = pDoc->m_UsfmStructArr.Item(markerUsfmStructIndex);
 				pDoc->ParseUsfmStructLine(usfmStructLineStr, marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus);
+				
+				// whm 24Dec2025 added. We need to ensure that the marker found in the usfmStructLineStr 
+				// matches the wholeMkr of the document we are running through this FormatMarkerBufferForOutput().
+				if (wholeMkr == _T("\\v") || wholeMkr == _T("\\c"))
+				{
+					int len = 0;
+					int itemLen = 0;
+					pChar = pOld;
+					itemLen = pDoc->ParseMarker(pChar);
+					pChar = pChar + itemLen;
+					len += itemLen;
+					itemLen = pDoc->ParseWhiteSpace(pChar);
+					len += itemLen;
+					pChar = pChar + itemLen;
+					itemLen = pDoc->ParseNumber(pChar);
+					len += itemLen;
+					wxString wholeMkrAndNumber = wxString(pOld, len);
+					wholeMkr = wholeMkrAndNumber;
+				}
+
+				if (wholeMkr != marker)
+				{
+					// break point here.
+					int break_here = 1;
+					break_here = break_here;
+				}
+
 				// Protect from accessing pOld chars before pBufStart
 				if ((pOld - 2) >= pBufStart)
 				{
@@ -21331,7 +21362,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 					curMkrPos = (int)(pOld - pBufStart); // update value
 				}
 				*/
-				markerIndex++; // whm 13Dec2025 increment the marker index count
+				markerUsfmStructIndex++; // whm 13Dec2025 increment the marker usfmstruct index count
 			} // end of if (IsMarker  )
 			else
 			{
