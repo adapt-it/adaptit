@@ -435,6 +435,8 @@ public:
 					// BEW added 4May23 -- GetPostwordExtras removes m_key, returns the rest
 	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr);
 
+	wxString		GetWsMkrsAndPunctsAtPtr(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 10Jan2026 added
+
 					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 					// whitespace(s), and getting to the puncts may require parsing over one or more endEndMarkers
 	//wxChar*			ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
@@ -460,7 +462,7 @@ public:
 	// **** end of functions for not having placement dialogs *******
 
 	bool			IsInitialPunctPlusWhite(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, wxString& strReturn); // BEW 22May23 added
-	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
+	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen, wxString wsMkrsAndPuncts); // whm 13Jan2026 added wsMkrsAndPuncts parameter
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs
 	CLayout* GetLayout(); // view class also has its own member function of the same name
@@ -630,7 +632,7 @@ public:
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar* pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar* pChar,
-	wxChar*			pBuffStart, wxChar* pEnd);
+	wxChar*			pBuffStart, wxChar* pEnd, wxString& wsMkrsAndPuncts);
 	wxChar*			FindParseHaltLocation(wxChar* ptr, wxChar* pEnd, bool* pbFoundInlineBindingEndMarker,
 						bool* pbFoundFixedSpaceMarker, bool* pbFoundClosingBracket,
 						bool* pbFoundHaltingWhitespace, int& nFixedSpaceOffset,

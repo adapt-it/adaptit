@@ -8,6 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some constants used by Adapt It. 
 /// BEW added 15Feb10: set VERSION_NUMBER to 5 for the ai_codefixes refactor job
+/// whm 10Jan2026 set VERSION_NUMBER to 11 for support of the m_follWsMkrsAndPuncts CSourcePhrase member
 /////////////////////////////////////////////////////////////////////////////
 
 // constants used by Adapt It
@@ -41,7 +42,10 @@
 // The following is also defined at line 31 in Adapt_It.h 
 // *********** IMPORTANT:  commment out both together or uncomment out both together *********
 
-#define VERSION_NUMBER      10  // as of 5May23, supportng 5 new member 'Pattern' wxStrings in CSourcePhrase
+// whm 10Jan2026 changed the active VERSION_NUMBER define to 11
+#define VERSION_NUMBER      11  // as of 10Jan2026, supportng the new member m_follWsMkrsAndPuncts wxString in CSourcePhrase
+
+//#define VERSION_NUMBER      10  // as of 5May23, supportng 5 new member 'Pattern' wxStrings in CSourcePhrase
 
 //#define VERSION_NUMBER	9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
 

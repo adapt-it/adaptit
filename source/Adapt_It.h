@@ -661,7 +661,8 @@ const char xml_tgtwdbrk[] = "twbk"; // for target wordbreak, in a retranslation
 const char xml_ssp[] = "ssp";  // m_srcSinglePattern
 const char xml_tsp[] = "tsp";  // m_tgtSinglePattern
 const char xml_gsp[] = "gsp";  // m_glossSinglePattern
-const char xml_smp[] = "smp";  // m_srcMergerPattern
+const char xml_smp[] = "smp";  // m_srcMergerPattern // whm 10Jan2026 removed from active use - except for read of any (empty) data xml
+const char xml_fwsmp[] = "fwsmp";  // m_follWsMkrsAndPuncts // whm 10Jan2026 added
 const char xml_tmp[] = "tmp";  // m_tgtMergerPattern
 const char xml_okey[] = "okey";  // m_oldKey
 

@@ -1,4 +1,29 @@
 ﻿----------------------------------------------
+Version 6.12.0  21 January 2026
+----------------------------------------------
+Feature changes and new features in 6.12.0
+--------------------------------------------------------------------------------------
+* The docVersion that is stored within the header settings of Adapt It's xml document
+is now set at docVersion 11. Adapt It should still be able to read and use its adapted 
+documents that were created with docVersion 10 and prior versions. This change of 
+docVersion was done to be able to catch and correct some incorrectly stored internal 
+values used by Adapt It's parsing/input routines for documents created prior to this 
+docVersion 11. The effect of this change for users is that when a user opens an old
+document that was created with docVersion 10 or earlier, Adapt It may ask the user 
+via a file dialog to indicate the location and name of the original usfm text document 
+that was input at the time Adapt It initially created that document - so that Adapt It
+can re-read that input file and restore or reorder some of the information if needed. 
+If this happens, Adapt It will only ask once for the user to indicate the location and 
+name of the original text used for input and will automatically update the document to
+docVersion 11. If the original input file is not available, the user can cancel from 
+the file dialog, and the result would be that some values stored in the old document 
+may remain stored incorrectly.
+*
+----------------------------------------------
+Bug fixes in 6.12.0 update
+---------------------------------------------
+* 
+----------------------------------------------
 Version 6.11.6  7 March 2025
 ----------------------------------------------
 Feature changes and new features in 6.11.6

@@ -330,7 +330,8 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_srcSinglePattern = sp.m_srcSinglePattern;
 	m_tgtSinglePattern = sp.m_tgtSinglePattern;
 	m_glossSinglePattern = sp.m_glossSinglePattern;
-	m_srcMergerPattern = sp.m_srcMergerPattern;
+	// m_srcMergerPattern = sp.m_srcMergerPattern; // whm 10Jan2026 removed from active use - replaced by m_follWsMkrsAndPuncts
+	m_follWsMkrsAndPuncts = sp.m_follWsMkrsAndPuncts; // whm 10Jan2026 added
 	m_tgtMergerPattern = sp.m_tgtMergerPattern;
 	m_oldKey = sp.m_oldKey;
 }
@@ -480,7 +481,8 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_srcSinglePattern = sp.m_srcSinglePattern;
 	m_tgtSinglePattern = sp.m_tgtSinglePattern;
 	m_glossSinglePattern = sp.m_glossSinglePattern;
-	m_srcMergerPattern = sp.m_srcMergerPattern;
+	//m_srcMergerPattern = sp.m_srcMergerPattern; // whm 10Jan2026 removed from active use - replaced by m_follWsMkrsAndPuncts
+	m_follWsMkrsAndPuncts = sp.m_follWsMkrsAndPuncts; // whm 10Jan2026 added
 	m_tgtMergerPattern = sp.m_tgtMergerPattern;
 	m_oldKey = sp.m_oldKey;
 	return *this;
@@ -826,9 +828,9 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
     // only allowed on the first CSourcePhrase in a merger - we filter any attempt to merge
     // across a CSourcePhrase which carries such information, warn the user and abort the
     // merge attempt. But just in case something goes wrong and a merge is attempted in
-    // such a scenario, here we can just append the strings involved to give a behaviour
-    // that makes sense (ie. accumulating two notes, or two free translations, etc if any
-    // such should slip through our net of checks to prevent this)
+	// such a scenario, here we can just append the strings involved to give a behaviour
+	// that makes sense (ie. accumulating two notes, or two free translations, etc if any
+	// such should slip through our net of checks to prevent this)
 	//
 	// whm 27Jan2024 correction to above comment: 
 	// free translations, notes, collected back translations or filtered information are
@@ -1373,8 +1375,11 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// Supporting new docVersion 10 storage strings (skip this block if docVersion is 9 or less):
 		// 	m_srcSinglePattern, m_tgtSinglePattern, m_glossSinglePattern, m_srcMergerPattern, m_tgtMergerPattern
 		if ((docVersion >= 10) &&
-			(!m_srcSinglePattern.IsEmpty() || !m_tgtSinglePattern.IsEmpty() || !m_glossSinglePattern.IsEmpty() ||
-				!m_srcMergerPattern.IsEmpty() || !m_tgtMergerPattern.IsEmpty() || !m_oldKey.IsEmpty())
+			(!m_srcSinglePattern.IsEmpty() || !m_tgtSinglePattern.IsEmpty() || !m_glossSinglePattern.IsEmpty()
+				// !m_srcMergerPattern.IsEmpty() // whm 10Jan2026 removed
+				|| !m_tgtMergerPattern.IsEmpty() || !m_oldKey.IsEmpty()
+				|| !m_follWsMkrsAndPuncts.IsEmpty()) // whm 10Jan2026 added
+
 			)
 		{
 			// there is something in this group, so form the needed line
@@ -1421,15 +1426,30 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bStarted = TRUE;
 			}
 			// fourth string in 11th line... for src merger pattern
-			if (!m_srcMergerPattern.IsEmpty())
+			//if (!m_srcMergerPattern.IsEmpty())
+			//{
+			//	if (bStarted)
+			//		bstr += " smp=\"";
+			//	else
+			//		bstr += "smp=\"";
+			//	btemp = gpApp->Convert16to8(m_srcMergerPattern);
+			//	InsertEntities(btemp);
+			//	bstr += btemp; // add m_srcMergerPattern string
+			//	bstr += "\"";
+			//	bStarted = TRUE;
+			//}
+			// fourth string in 11th line... for src merger pattern
+			// whm 10Jan2026 added provision for use of m_follWsMkrsAndPuncts in the place
+			// of the m_srcMergerPattern xml creation above.
+			if (!m_follWsMkrsAndPuncts.IsEmpty())
 			{
 				if (bStarted)
-					bstr += " smp=\"";
+					bstr += " fwsmp=\"";
 				else
-					bstr += "smp=\"";
-				btemp = gpApp->Convert16to8(m_srcMergerPattern);
+					bstr += "fwsmp=\"";
+				btemp = gpApp->Convert16to8(m_follWsMkrsAndPuncts);
 				InsertEntities(btemp);
-				bstr += btemp; // add m_srcMergerPattern string
+				bstr += btemp; // add m_follWsMkrsAndPuncts string
 				bstr += "\"";
 				bStarted = TRUE;
 			}
@@ -3005,6 +3025,20 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 	// private m_filteredInfo member string; no delimiting space is to be used between
 	// each such substring. The TokenizeText() parser will use this setter function, as
 	// will the other setter, SetFilteredInfoFromArrays()
+	// whm 25Jan2026 modified. If the m_filteredInfo already has a bracketed filtered 
+	// item within it, m_filteredInfo will be suffixed with the marker-being-filtered 
+	// of this new filteredInfo that is being appended to it. 
+	wxString lastMkr; lastMkr.Empty();
+	if (!m_filteredInfo.IsEmpty())
+	{
+		int posLastMkr;
+		wxString lastMkr = GetLastWholeMarker(m_filteredInfo, posLastMkr); //GetLastMarker(pSingleSrcPhrase->m_markers);
+		wxString filtMkr = gpApp->GetDocument()->GetMarkerFromWithinOneFilteredString(filteredInfo);
+		if (lastMkr == filtMkr && posLastMkr >= 0)
+		{
+			m_filteredInfo = m_filteredInfo.Mid(0, posLastMkr - 1);
+		}
+	}
 	m_filteredInfo += filteredInfo;
 }
 

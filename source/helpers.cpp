@@ -2987,6 +2987,56 @@ wxString GetLastMarker(wxString markers)
 	}
 }
 
+// whm 19Jan2026 added. This function returns a whole marker including the following number for
+// chapter and verse markers, and also returns by reference the offset value of the last marker 
+// in the markers input string. It returns an empty string if there are no SF markers in markers 
+// string and posOffset of wxNOT_FOUND (-1); otherwise it returns the last whole marker of 
+// however many are stored in markers, and the posOffset of that returned marker. If space 
+// follows the marker, the space is not returned with the marker.
+wxString GetLastWholeMarker(wxString markers, int& posOffset)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	wxString mkr = _T("");
+	wxString backslash = gSFescapechar;
+	if (markers.Find(backslash) == wxNOT_FOUND)
+	{
+		posOffset = wxNOT_FOUND;
+		return mkr;
+	}
+	else
+	{
+		int offset = wxNOT_FOUND;
+		int lastOffset = offset;
+		const wxChar* pBuffStart = markers.GetData();
+		wxChar* ptr = (wxChar*)pBuffStart; // this is not const
+		//wxChar* pEnd = ptr + markers.Len(); // points to null if .c_str() called
+		//markers.Trim(); // trim whitespace off of end of string
+		offset = markers.Find(backslash);
+		while (offset != wxNOT_FOUND)
+		{
+			lastOffset = offset;
+			offset = FindFromPos(markers, backslash, offset + 1);
+		}
+		ptr = ptr + lastOffset;
+		int itemLen = pDoc->ParseMarker(ptr);
+		mkr = wxString(ptr, itemLen);
+		ptr += itemLen; // point past mkr
+		posOffset = lastOffset;
+		if (mkr == _T("\\v") || mkr == _T("\\c"))
+		{
+			itemLen = pDoc->ParseWhiteSpace(ptr);
+			wxString whiteSp = wxString(ptr, itemLen);
+			mkr += whiteSp;
+			ptr += itemLen;
+			itemLen = pDoc->ParseNumber(ptr);
+			wxString number = wxString(ptr, itemLen);
+			mkr += number;
+		}
+		return mkr;
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	the zero-based index position of the subStr if it exists in inputStr with a search starting
@@ -6473,8 +6523,8 @@ bool IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* 
 	else
 	{
 		// InlineNonBindingMkrs has more than one marker, get the last one in the list
-		size_t pos = InlineNonBindingMkrs.find_last_of(_T("\\"));
-		inlineMkr = InlineNonBindingMkrs.Mid(pos);
+		int posLastMkr;
+		inlineMkr = GetLastWholeMarker(InlineNonBindingMkrs, posLastMkr); //GetLastMarker(pSingleSrcPhrase->m_markers);
 	}
 	inlineEndMkr = InlineNonBindingMkrs + _T("*");
 	//bHasXTMarker = InlineNonBindingMkrs.Find(_T("\\xt")) != wxNOT_FOUND;
@@ -9105,7 +9155,285 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 	return Sstr;
 }
 
-// whm 6Feb2024 An alternate version of original FromSingleMakeSstr().
+// whm 20Jan2026 added. This function checks for common characters at the end of str1 which
+// are also present at the beginning of str2, i.e., the overlapping substring. 
+// The common characters are returned to the caller, or wxEmptyString if no common 
+// chars are detected. 
+// This function would mainly be used by the caller to determine what characters at the 
+// beginning of str2 would need to be removed, so that str1 and str2 could be concatenated
+// without the commonStr characters being duplicated.
+// This function is mainly called within the FromSingleMakeSstr2() function at the time
+// it concatenates the current export string out to the end of what was previously exported
+// in the previous call of FromSingleMakeSstr2() in the export process.
+wxString FindOverlap(wxString str1, wxString str2)
+{
+	int lenStr1 = str1.Length();
+	int lenStr2 = str2.Length();
+	int maxLen = 0;
+	int lenShortest = lenStr1;
+	if (lenStr2 < lenStr1)
+			lenShortest = lenStr2;
+	// Iterate from potential overlap lengths (1 to lenShortest)
+	for (int i = 1; i <= lenShortest; ++i)
+	{
+		// Check if the last i chars of str1 match the first i chars of str2
+		if (str1.Mid(lenStr1 - i, i) == str2.Left(i))
+		{
+			maxLen = i; // Found a longer common part
+		}
+	}
+
+	if (maxLen > 0)
+	{
+		// Return the common substring (the prefix of str2)
+		return str2.Left(maxLen);
+	}
+	else
+	{
+		return wxEmptyString;
+	}
+}
+
+// whm 27Jan2026 added. This function collects the common parts shared between
+// str1 and str2. Then it returns those common parts in the order they occur in
+// the string designated by the int str1or2. The call might be, for example:
+//   wxString commonOrderedStr;
+//   commonOrderedStr = GetCommonStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
+// where:
+//   str1 keyWord might be: “\add Ong
+//   str2 lastFiltStuff might be: \r\n\v 71 \add “
+//   2 says to return the common parts in the order found in str2
+// The common parts are “ and \add and str2 has those common parts ordered
+// as \add “  so the function would return str2's common parts \add “ to the caller.
+// If either str1 or str2 is empty, or there are no common parts, the string 
+// designated by the third parameter is returned unchanged.
+// Note: Where texts parts are present in the input strings only the markers, punct 
+// and whitespace are collected and compared that PRECEDE the first instance of any 
+// text part.
+// This function is used in the rebuilding of source text routine(s).
+wxString GetCommonStrPartsOrderedAccordingToStr1or2(wxString str1, wxString str2, int str1or2)
+{
+	CAdapt_ItDoc* pDoc;
+	pDoc = gpApp->GetDocument();
+	if (str2.IsEmpty() || str2.IsEmpty())
+	{
+		if (str1or2 == 1)
+			return str1;
+		else
+			return str2;
+	}
+	//   Example:
+	//   str1: “\add Ong
+	//   str2: \r\n\v 71 \add “
+
+	wxString commonPartsStr1; commonPartsStr1.Empty();
+	wxString commonPartsStr2; commonPartsStr2.Empty();
+	wxArrayString PartsStr1; PartsStr1.Clear();
+	wxArrayString PartsStr2; PartsStr2.Clear();
+	// Set up text buffers for both strings.
+	// Make the buffer for str1 parsing thru, from str1 passed in
+	const wxChar* pBuffer1 = str1.GetData();
+	wxChar* ptr1 = (wxChar*)pBuffer1;	// ptr is not constant, point to start of text
+	//wxChar* pBufStart1 = ptr1;        // preserve start address for use in testing for buffer beginning
+	int itemLen = 0;
+	int length1 = str1.Length();
+	wxChar* pEnd1 = (wxChar*)(ptr1 + length1);
+	while (ptr1 < pEnd1)
+	{
+		if (pDoc->IsPunctuation(ptr1)) // 2nd param bIsSource is default TRUE
+		{
+			PartsStr1.Add(*ptr1);
+			ptr1++;
+		}
+		else if (pDoc->IsMarker(ptr1))
+		{
+			itemLen = pDoc->ParseMarker(ptr1);
+			if (itemLen > 0)
+			{
+				wxString mkr = wxString(ptr1, itemLen);
+				ptr1 += itemLen;
+				if (mkr == _T("\\v") || mkr == _T("\\c"))
+				{
+					// Add whitespace and number to the verse/chapter mkr
+					itemLen = pDoc->ParseWhiteSpace(ptr1);
+					mkr += *ptr1;
+					ptr1++;
+					itemLen = pDoc->ParseNumber(ptr1);
+					mkr += wxString(ptr1, itemLen);
+					ptr1++;
+					PartsStr1.Add(mkr);
+				}
+				else
+				{
+					PartsStr1.Add(mkr);
+				}
+			}
+		}
+		else if (pDoc->IsWhiteSpace(ptr1))
+		{
+			itemLen = ParseWhiteSpace(ptr1);
+			wxString whitesp;
+			whitesp = wxString(ptr1, itemLen);
+			PartsStr1.Add(whitesp);
+			ptr1 += itemLen;
+		}
+		else if (IsAnsiDigit(*ptr1) || IsAnsiLetter(*ptr1))
+		{
+			break;
+		}
+	}
+	// Make the buffer for str1 parsing thru, from str1 passed in
+	const wxChar* pBuffer2 = str2.GetData();
+	wxChar* ptr2 = (wxChar*)pBuffer2;	// ptr is not constant, point to start of text
+	//wxChar* pBufStart2 = ptr2;        // preserve start address for use in testing for buffer beginning
+	int length2 = str2.Length();
+	itemLen = 0;
+	wxChar* pEnd2 = (wxChar*)(ptr2 + length2);
+	while (ptr2 < pEnd2)
+	{
+		if (pDoc->IsPunctuation(ptr2)) // 2nd param bIsSource is default TRUE
+		{
+			PartsStr2.Add(*ptr2);
+			ptr2++;
+		}
+		else if (pDoc->IsMarker(ptr2))
+		{
+			itemLen = pDoc->ParseMarker(ptr2);
+			wxString mkr = wxString(ptr2, itemLen);
+			ptr2 += itemLen;
+			if (mkr == _T("\\v") || mkr == _T("\\c"))
+			{
+				// Add whitespace and number to the verse/chapter mkr
+				itemLen = pDoc->ParseWhiteSpace(ptr2);
+				mkr += *ptr2;
+				ptr2++;
+				itemLen = pDoc->ParseNumber(ptr2);
+				mkr += wxString(ptr2, itemLen);
+				ptr2 += itemLen;
+				PartsStr2.Add(mkr);
+			}
+			else
+			{
+				PartsStr2.Add(mkr);
+			}
+		}
+		else if (pDoc->IsWhiteSpace(ptr2))
+		{
+			itemLen = ParseWhiteSpace(ptr2);
+			wxString whitesp;
+			whitesp = wxString(ptr2, itemLen);
+			PartsStr2.Add(whitesp);
+			ptr2+= itemLen;
+		}
+		else if (IsAnsiDigit(*ptr2) || IsAnsiLetter(*ptr2))
+		{
+			break;
+		}
+	}
+	// Get the common parts of PartsStr1 and PartsStr2
+	int itemsIn1 = PartsStr1.GetCount();
+	int itemsIn2 = PartsStr2.GetCount();
+	wxString item1; item1.Empty();
+	wxString item2; item2.Empty();
+	// Get common parts of str1 that are found in str2
+	for (int i = 0; i < itemsIn1; i++)
+	{
+		item1 = PartsStr1.Item(i);
+		for (int j = 0; j < itemsIn2; j++)
+		{
+			item2 = PartsStr2.Item(j);
+			if (item1 == item2)
+			{
+				commonPartsStr1 += item1;
+				break;
+			}
+		}
+	}
+	// Get common parts of str2 that are found in str1
+	for (int i = 0; i < itemsIn2; i++)
+	{
+		item2 = PartsStr2.Item(i);
+		for (int j = 0; j < itemsIn1; j++)
+		{
+			item1 = PartsStr1.Item(j);
+			if (item2 == item1)
+			{
+				commonPartsStr2 += item2;
+				break;
+			}
+		}
+	}
+
+	if (str1or2 == 1)
+		return commonPartsStr1;
+	else
+		return commonPartsStr2;
+}
+
+// whm 25Jan2026 added. This function counts the number of non-overlapping occurrences
+// of a substring within a stringToSearch.
+int CountSubstringOccurrences(wxString stringToSearch, wxString substring)
+{
+	if (stringToSearch.IsEmpty()) 
+	{
+		return 0; // Cannot count occurrences of an empty string
+	}
+	int count = 0;
+	size_t pos = 0;
+	size_t strLen = substring.Length();
+	while ((pos = stringToSearch.Find(substring)) != wxNOT_FOUND) 
+	{
+		stringToSearch = stringToSearch.Mid(pos + strLen);
+		// Increment the count for each occurrence found
+		count++;
+
+		// Advance the search position past the found occurrence
+		pos += strLen;
+	}
+	return count;
+}
+
+// whm 21Jan2026 added this function which provides 5 bool flags that are used within
+// the FromSingleMakeSstr2() function to make the code more self-documenting.
+void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase, 
+	CSourcePhrase* pPrevSingleSrcPhrase, 
+	bool& bHasMetadata, 
+	bool& bHasFilteredInfo, 
+	bool& bHadFilteredInfoInPrevSrcPhrase, 
+	bool& bHasEmptyKey, 
+	bool& bHasEmbeddedMarkerInKeyWord)
+{
+	bHasMetadata = gpApp->HasBarInPunctsPattern(pSingleSrcPhrase);
+	bHasFilteredInfo = !pSingleSrcPhrase->GetFilteredInfo().IsEmpty();
+	if (pPrevSingleSrcPhrase != NULL)
+		bHadFilteredInfoInPrevSrcPhrase = !pPrevSingleSrcPhrase->GetFilteredInfo().IsEmpty();
+	bHasEmptyKey = pSingleSrcPhrase->m_key.IsEmpty();
+	// Lastly, determine if pSingleSrcPhrase->m_srcSinglePattern has an embedded marker within it
+	wxString keyFromSrcSingPattern; keyFromSrcSingPattern.Empty();
+	wxString lastMkr; lastMkr.Empty();
+	bHasEmbeddedMarkerInKeyWord = FALSE;
+	if (!pSingleSrcPhrase->m_srcSinglePattern.IsEmpty() && !pSingleSrcPhrase->m_key.IsEmpty())
+	{
+		keyFromSrcSingPattern = pSingleSrcPhrase->m_srcSinglePattern;
+		int offsetOfLastMkr = -1;
+		lastMkr = GetLastWholeMarker(keyFromSrcSingPattern, offsetOfLastMkr);
+		int offsetOfBareKey = keyFromSrcSingPattern.Find(pSingleSrcPhrase->m_key);
+		if ((offsetOfLastMkr != wxNOT_FOUND) 
+			&& (offsetOfLastMkr != 0)
+			&& (offsetOfBareKey == wxNOT_FOUND) // The m_key value is not contiguous within m_srcSinglePattern.
+			&& (offsetOfLastMkr + lastMkr.Length() < keyFromSrcSingPattern.Length()))
+		{
+			// The marker is embedded within in the string, so we will include it within the
+			// keyWord.
+			// Note: The GetLastMarker() function above doesn't return a number for \c or \v
+			// markers, but we don't expect that any \c or \v would occur embedded within
+			// an m_key string.
+			bHasEmbeddedMarkerInKeyWord = TRUE;
+		}
+	}
+}
+
+// whm 6Feb2024 Made an alternate version of original FromSingleMakeSstr().
 // This version uses code adapted from the FromMergerMakeSstr() which I
 // think is a simpler way of handling the creation of strings from 
 // individual source phrases.
@@ -9128,7 +9456,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 // information, we must be able to access any of its filtered information 
 // which would have been stored on a pPrevSingleSrcPhrase.
 // Here is a detailed example that demonstrates this need taken from a 
-// unittest text:
+// unit test text:
 // --------
 // \id TMP
 // \c 54
@@ -9178,22 +9506,52 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 // filtered information can only be stored on the first source phrase of a merger, and that
 // "Mergers are illegal across filtered info".
 // 
-//wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
-wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-	CSourcePhrase* pPrevSingleSrcPhrase,// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
+// whm 5Feb2024 - this FromSingleMakeSstr2() is now the only one used in the app
+// 
+// whm 2Jan2026-21Jan2026 fully refactored this FromSingleMakeSstr2() function, simplifying 
+// it to mainly utilize the newly added pSingleSrcPhrase->m_follWsMkrsAndPuncts member to
+// help produce more accurate/exact source phrase builds - especially with regards to
+// whitespace, markers and marker ordering, and punctuation and punctuation ordering.
+// This FromSingleMakeSstr2() function is important as there are a number of scenarios 
+// within Adapt It that require a highly accurate rebuild of the source text:
+// Why is it necessary for RebuildSourceText() to be able to rebuild an EXACT 
+// representation of the orignal source text? The answer comes down to the importance 
+// of having correctly ordered whitespace, markers, and punctuation within the rebuilt 
+// text, those non text elements that surround the actual sacred text - all being 
+// reassembled in their precise ordering with respect to the surrounding sacred text - 
+// especially when the rebuilt text is passed on to downstream uses such as these 
+// existing downstream processes - all making ukse of RebuildSourceText() or its 
+// main function coded here: FromSingleMakeSstr2():
+//
+// 1.  DoExportAsType()--> RebuildSourceText()--> FromSingleMakeSstr2() - may also help resolve marker placement for targetTextExport too
+// 2.  DoExportAsType()--> RebuildTargetText()--> if (bHasOuterFollPunct || bIsAmbiguousForEndmarkerPlacement and
+//  	m_tgtMkrPattern.IsEmpty()--> FromSingleMakeSstr2()
+// 3.  DoExportAsType()--> DoExportAsXhtml()--> GetCleanExportedUSFMBaseText()--> RebuildSourceText()--> FromSingleMakeSstr2()
+// 4.  ReconstituteAfterFilteringChange()--> RebuildSourceText()--> FromSingleMakeSstr2() - needs to rebuild accurately a sublist of
+//  	source phrases that get incorporated into the main pList of a whole document.
+// 5.  DoCollabFileSave()--> MakeUpdatedTextForExternalEditor()--> MakeSourceTextForCollabConflictResDlg()--> RebuildSourceText()
+// 6.  OnNewDocument()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: fileProcess == createFromSPList
+// 7.  OnOpenDocument()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: fileProcess == openExistingFile
+// 8.  OnOpenDocWithMerger()->SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: fileProcess == recreateExistingFile
+// 9.  OK_btn_delayedHandler_GetSourceTextFromEditor()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: createNewFile
+// 10. OnOpenDocument()--> if (pApp->m_bAutoExport)--> RebuildTargetText()--> FromSingleMakeTstr()--> FromSingleMakeSstr2()
+// 11. OnEditSourceText()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: fileProcess == createFromSPList
+//
+wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,
+	CSourcePhrase* pPrevSingleSrcPhrase,// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
 	SPList* pList) // whm 19Nov2025 added pList parameter
 {
-	wxUnusedVar(pPrevSingleSrcPhrase); // whm remove if/when pPrevSingleSrcPhrase gets used in future
+	wxUnusedVar(pList);
+
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-
-	//bool bEndPunctsModified = FALSE; // init
 	wxString pattern; pattern = wxEmptyString; // init
-
 	wxString Sstr;
 	wxString aSpace = _T(" ");
 	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
 
 	// whm 3Jan2024 observations comparing very old and newer versions of FromSingleMakeSstr():
+	// whm 20Jan2026 NOTE: The comments below about ORDER OF COMPONENTS is now out-of-date but is only
+	// retained here for historical reference.
 	// 
 	// ORDER OF COMPONENTS OF RETURNED Sstr (in the OLDER code model):
 	// 1. Note: markersPrefix (includes filtered info, which is last to be prefixed on Sstr), followed by a space
@@ -9226,15 +9584,578 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	//    Then strNonbinding markers if any are suffixed to prefixStr.
 	//    Then strBinding markers, if any are suffixed to prefixStr.
 	// 7. The prefixStr is prefixed to srcStr, which is finally assigned to Sstr, trimmed and returned.
+	// 
+	// whm 20Jan2026 NOTE: The above comments about ORDER OF COMPONENTS is now out-of-date but is only
+	// retained here for historical reference.
 
-	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
+	wxString srcStr = wxEmptyString; // init
 
-#if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber == 26) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	// ================= New code below for 14Jan2026 refactor ============== 
+	// whm 13Jan2026 refactoring of FromSingleMakeSstr2 to utilize the new CSourcePhrase
+	// member m_follWsMkrsAndPuncts which should greatly simplify this function. Strategy:
+	// The basic rebuild process now is to grab the pSingleSrcPhrase->m_key value and add 
+	// to it the pSingleSrcPhrase->m_follWsMkrsAndPuncts, repeating this process through
+	// all of the pSingleSrcPhrase instances. 
+	// There are a few clafifications that need to be mentioned regarding the basic 
+	// rebuild process mentioned above:
+	// 1. For pSingleSrcPhrase->m_nSequNum of 0 at the start of the rebuild, we need to 
+	// call the GetSrcPhraseBeginningInfo() function to retrieve that info and prefix it
+	// to the initial srcStr export string.
+	// 2. For most pSingleSrcPhrase instances the pSingleSrcPhrase->m_follWsMkrsAndPuncts
+	// can simply be added to the srcStr export string - *** The GENERAL CASE ***
+	// 3. For when a marker is embedded within in the m_srcSinglePattern, we will need to
+	// include the entire m_srcSinglePattern within the keyWord.
+	// 4. For an empty m_key instance, we need to adjust the m_follWsMkrsAndPuncts of the
+	// current source phrase with what was stored in the m_follWsMkrsAndPuncts of the 
+	// previous source phrase, since the previous source phrase's m_follWsMkrsAndPuncts
+	// is likely to include a significant amount of the punctuation and other markers that 
+	// are stored in the current empty m_key instance. In this case the contents of the
+	// pSrcPhrase of the current empty m_key source phrase is likely to be included in
+	// the m_follWsMkrsAndPuncts string stored on the pPrevSrcPhrase. To avoid duplication
+	// of whitespace, markers and punctuation, we need to only include the unique (last) 
+	// part of the m_follWsMkrsAndPuncts of the current source phrase in the srcStr export
+	// string.
+	// 5. For Bar coded hidden metadata information, we need to call the function
+	// RestoreUSFM3AttributesMetadata() to retrieve the hidden metadata and add it to the
+	// srcStr export string.
+	// 6. For when there is filteredStr information stored in pSingleSrcPhrase, we retrieve
+	// that information and parse it out. Following the end bracket \~FILTER* will now be
+	// the wsMkrsAndPuncts information that we should insert after the now unfiltered
+	// marker and associated text is inserted, rather than the 
+	// pSingleSrcPhrase->m_follWsMkrsAndPuncts value of the pSingleSrcPhrase where the
+	// filteredInfo was stored.
+	wxString filteredInfoStr;
+
+#ifdef _DEBUG
+	if (pSingleSrcPhrase->m_nSequNumber >= 38)
 	{
-		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+		int break_here = 1;
+		break_here = break_here;
 	}
 #endif
+
+	// whm 18Jan2026 added. We need to keep track of the whitespace, marker(s) and punct that
+	// was stored after the last filtered string in m_filteredInfo if any. We need this value
+	// to persist from one call of FromSingleMakeSstr2() that processes filtered material to 
+	// the next call of FromSingleMakeSstr2(), so I'm using a static wxString variable I'll
+	// call lastFilteredWsMkrsAndPuncts.
+	wxString lastFiltStuff; lastFiltStuff.Empty();
+	static wxString lastFilteredWsMkrsAndPuncts;
+	if (!lastFilteredWsMkrsAndPuncts.IsEmpty())
+	{
+		lastFiltStuff = lastFilteredWsMkrsAndPuncts;
+	}
+
+	bool bHasMetadata = FALSE;
+	bool bHasFilteredInfo = FALSE;
+	bool bHadFilteredInfoInPrevSrcPhrase = FALSE;
+	bool bHasEmptyKey = FALSE;
+	bool bHasEmbeddedMarkerInKeyWord = FALSE;
+	GetSrcPhraseStatusFlags(pSingleSrcPhrase, pPrevSingleSrcPhrase,
+		bHasMetadata, bHasFilteredInfo, bHadFilteredInfoInPrevSrcPhrase,
+		bHasEmptyKey, bHasEmbeddedMarkerInKeyWord);
+
+	// whm 5Feb2024 comment:
+	// The purpose of the GetSrcPhraseBeginningInfo() call below is to be (from BEW comments):
+	// "A useful utility which ignores filtered information and m_markers, but collects, in
+	// sequence, other punctuation and marker information which precedes the phrase. This
+	// material is stored in m_inlineNonbindingMarkers, m_precPunct, and
+	// m_inlineBindingEndMarkers, in that order."
+	// Hence it should be called BEFORE the str << pSrcPhrase->m_key assignment below.
+	if (pSingleSrcPhrase->m_nSequNumber == 0 && pSingleSrcPhrase->m_markers.Find(_T("\\id")) != wxNOT_FOUND)
+	{
+		// For the first pSingleSrcPhrase start the srcStr with the contents of
+		// the m_markers which would usually be the \id marker for scipture books and/or
+		// Scripture chapters during collaboration. Our scheme for collecting and using 
+		// the m_follWsAMkrsAndPuncts as our main tool for reconstructing the source 
+		// text only tells us what follows each m_key word. It won't tell us what if 
+		// anything other than \id might occur before the first m_key in a Scripture
+		// file. For normal Scripture files then, it is not likely that the 
+		// pSingleSrcPhrase at m_nSequNum of 0 would have any other markers occuring 
+		// before the m_key which would usually be the book abbreviation for Scripture 
+		// data. However, I've added the test for the presence of \id in m_markers
+		// for entry into this block, so that if RebuildSourceText() is called during an
+		// Edit Source Text where a rebuild of a sub-list is done, and no \id is present
+		// it would be quite possible that the first source phrase being rebuilt here 
+		// may not have an \id markers, and may have other kinds of markup for which 
+		// this block should not be executed, and the addition of m_follWsMkrsAndPuncts
+		// should be done via the blocks farther below.
+		if (!pSingleSrcPhrase->m_markers.IsEmpty())
+		{
+			srcStr = markersStr;
+		}
+		if (!bHasFilteredInfo && !bHadFilteredInfoInPrevSrcPhrase)
+		{
+			srcStr << pSingleSrcPhrase->m_key;
+			srcStr << pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+			Sstr = srcStr;
+			return Sstr;
+		}
+	}
+	
+	// This block would likely execute for the first pSingleSrcPhrase instance 
+	// of any sub-list rebuild of source text.
+		
+	// When there is no complicating things like filtered info, metadata, an empty
+	// key, embedded markers in the key word, we can just pass the m_key and 
+	// m_follWsMkrsAndPuncts into the output stream, and return our Sstr.
+	if (!bHasMetadata && !bHasEmptyKey && !bHasEmbeddedMarkerInKeyWord
+		&& !bHasFilteredInfo && !bHadFilteredInfoInPrevSrcPhrase)
+	{
+		// This is the *** THE GENERAL CASE ***
+		// 
+		// whm 30Jan2026 added. There is a specific case where a string composed
+		// of the current pSingleSrcPhrase->m_key + pSingleSrcPhrase->m_follWsMkrsAndPuncts
+		// is actually found as a substring at the very end of the previous source phrase's
+		// pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts. This can happen when the current
+		// pSingleSrcPhrase was created to hold isolated punctuation char(s) such as "["
+		// or ")." etc. These punctuation chars would have been parsed through and included
+		// at the end of the previous source phrase's m_follWsMkrsAndPuncts string. In this
+		// case the current pSingleSrcPhrase has nothing to contribute to the output stream
+		// since all of its string data would have alread been included in the output of the
+		// pPrevSingleSrcPhrase. So, we'll test for that specific situation first, and it
+		// it tests TRUE we'll return without sending anything into the srcStr variable.
+		// For example:
+		// pPrevSingleSrcPhrase->m_key is: "Pilatus"
+		// pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts is: ".\r\n\\p [\r\n\\v 21 "
+		// prevKeyPlusStuff is: "Pilatus.\r\n\\p [\r\n\\v 21 " [length is 22]
+		// pSingleSrcPhrase->m_key is: "["
+		// pSingleSrcPhrase->m_follWsMkrsAndPuncts is: "\r\n\\v 21 "
+		// currKeyPlusStuff is: "[\r\n\\v 21 "  [length is 9]
+		// The currKeyPlusStuff is found at the end of prevKeyPlusStuff:
+		// "Pilatus.\r\n\\p [\r\n\\v 21 "		
+		//                 "[\r\n\\v 21 "
+		// posCurrStuff is: 13
+		// In the above example the currKeyPlusStuff resides at the end of the prevKeyPlusStuff
+		// string, and we conclude that no data from this current pSingleSrcPhrase should be
+		// contributed into the output stream.
+		wxString currKeyPlusStuff = pSingleSrcPhrase->m_key + pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		wxString prevKeyPlusStuff = pPrevSingleSrcPhrase->m_key + pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		int posCurrStuff = prevKeyPlusStuff.Find(currKeyPlusStuff);
+		if (!currKeyPlusStuff.IsEmpty() && !prevKeyPlusStuff.IsEmpty() 
+			&& (pSingleSrcPhrase->m_key != pPrevSingleSrcPhrase->m_key) // avoid exclusion of 2nd repeated word like "Laban, Laban,..."
+			&& (!pSingleSrcPhrase->m_follWsMkrsAndPuncts.IsEmpty() && !pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts.IsEmpty())
+			&& (pSingleSrcPhrase->m_follWsMkrsAndPuncts != _T(" ") && pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts != _T(" "))
+			&& posCurrStuff != wxNOT_FOUND
+			&& (posCurrStuff + currKeyPlusStuff.Length() == prevKeyPlusStuff.Length())
+			)
+		{
+			// Add nothing to the output stream, just return Sstr.
+			Sstr = srcStr;
+			return Sstr;
+		}
+		srcStr << pSingleSrcPhrase->m_key;
+		srcStr << pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		Sstr = srcStr;
+		return Sstr;
+	}
+
+	if (bHasEmptyKey)
+	{
+		// When m_key is empty, the last iteration that processed what is now
+		// the pPrevSingleSrcPhrase inserted its own pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts
+		// into the stream which would have included any displaced punctuation that caused the
+		// current source phrase to be empty. 
+		// Therefore, I think that we need not put anything into the output stream here, since
+		// Both the punctuation and any begin marker(s) will have been put into the output stream 
+		// when the last iteration inserted its m_follWsMkrsAndPuncts.
+		//srcStr << pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		if (!bHasFilteredInfo && !bHadFilteredInfoInPrevSrcPhrase)
+		{
+			Sstr = srcStr;
+			return Sstr;
+		}
+	}
+
+	wxString keyWord; keyWord.Empty();
+	// The following was located before processing of filteredInfo in the 
+	// AppendSrcPhraseEndingInfo() function.
+	if ((bHasMetadata) && !gpApp->m_bClipboardAdaptMode)
+	{
+		wxString str;
+		str = RestoreUSFM3AttributesMetadata(pSingleSrcPhrase, str, FALSE);
+
+		// At this point srcStr should have the m_key + | + metadata + endMarker
+		// in which the endMarker will lack any following whitespace. The 
+		// m_follWsMkrsAndPuncts, however, will have the format endMarker with
+		// any surrounding whitespace stored within it. Here we want to remove
+		// the endMarker from the srcStr, and replace it with the endMarker plus
+		// any whitespace contained at the end of m_follWsMkrsAndPuncts.
+		// This also avoids the doubling of the endMarker when m_follWsMkrsAndPuncts
+		// is added to srcStr.
+		wxString lastMkr = GetLastMarker(str);
+		int posEndMkr = -1;
+		if (!lastMkr.IsEmpty())
+		{
+			posEndMkr = str.Find(lastMkr); //posEndMkr = srcStr.Find(lastMkr);
+			str = str.Mid(0, posEndMkr); //srcStr = srcStr.Mid(0, posEndMkr);
+			keyWord = str;
+		}
+	}
+		
+	if (bHasEmbeddedMarkerInKeyWord)
+	{
+		// Get a keyWord we can use for a currCompareStr for use below.
+		// When bHasEmbeddedMarkerInKeyWord we need to use the 
+		// pSingleSrcPhrase->m_srcSinglePattern for our keyWord since m_srcSinglePattern
+		// will have the embedded marker within it.
+		// 
+		// whm 17Jan2026 comment. It is possible the we could get a duplication here for
+		// situations like what occurs a few times in the Kimarangang data where the text has:
+		// "... di Jesus: \vb 1 - 4[EOL]" in which the \vb is an unknown marker that is being 
+		// used to indicate some kind of bridged reference with spaces padding the ref as 1 - 4 
+		// at the end of the line. In this case the marker being unknown doesn't get parsed like
+		// a verse marker, but instead there is a source phrase with m_key of "1", another source
+		// phrase with m_key of "-" and a third source phrase with m_key of "4". The first of these
+		// 3 source phrase m_key of "1" is where the "\vb " is stored in its m_markers member and
+		// m_inform has "?\vb? " - informing as "unknown. 
+		// When building the source text, we have a challenge to avoid the duplication of the "1"
+		// m_key value in the output, because the previous pPrevSingleSrcPhrase's m_follWsMkrsAndPuncts
+		// value had a value of ": \vb 1 " - because that was the stuff parsed after the m_key
+		// word "Yesus" for that previous source phrase, and that ": \vb 1 " was already processed
+		// in the previous FromSingleMakeSstr2() call into the "source" text.
+		// Here we need to try to detect whether the current m_key value of "1" was already streamed
+		// to the source output or not. We can combine the m_markers value of "\vb " with the m_key
+		// value of "1" together with the current m_follWsMkrsAndPuncts value of " ", which forms
+		// "\vb 1 " and see if that value is found at the end of the previous source phrase's
+		// m_follWsMkrsAndPuncts value, and if so, we avoid streaming the current m_key value into
+		// the output stream because it was already included with the previous source phrase' stream
+		// of its ": \vb 1 ".
+		//
+		// Then, determine the shape of the keyWord we will be using - it may have embedded 
+		// marker(s) which will be signaled by any markers fully embedded within the 
+		// m_srcSinglePattern member.
+		// Note: any marker within m_srcSinglePattern that is at the beginning or end of the 
+		// m_srcSinglePattern string is NOT an embedded marker and, in such cases, our keyWord 
+		// will just be the pSingleSrcPhrase->m_key value.
+		keyWord = pSingleSrcPhrase->m_srcSinglePattern;
+	}
+	else if (!bHasMetadata)
+	{
+		// There is no embedded marker involved.
+		// whm 25Jan2026 modified. To avoid duplication of final punctuation on the
+		// keyWord, or failure to separate the current m_key word from the next m_key
+		// word in the output with a separating space, we'll use the m_srcPhrase for
+		// the keyWord, but only when bHasEmptyKey or bHadFilteredInfoInPrevSrcPhrase
+		// are TRUE. For other cases use the m_key for the keyWord.
+		// whm 26Jan2026 added the inline binding markers before the m_key when composing
+		// the keyWord. Without it, it appears to result in m_precPunct being placed 
+		// between an inline binding marker and the m_key, for example, the source
+		// might have “\add Ong... but before this change we would get: “\add “Ong...
+		// in the rebuild source text. This happens below when the code looks for the
+		// overlapping stuff to eliminate.
+		if (bHasEmptyKey || bHadFilteredInfoInPrevSrcPhrase)
+		{
+			keyWord = pSingleSrcPhrase->m_markers
+				+ pSingleSrcPhrase->m_precPunct
+				+ pSingleSrcPhrase->GetInlineBindingMarkers()
+				+ pSingleSrcPhrase->m_key; //pSingleSrcPhrase->m_srcPhrase;
+		}
+		else
+			keyWord = pSingleSrcPhrase->m_key;
+	}
+
+	filteredInfoStr = pSingleSrcPhrase->GetFilteredInfo();
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// The filteredInfoStr may have more than one filtered marker within it, and
+		// may also have some swept up material preceding some of the filtered items.
+		// We have refactored the TokenizeText() parsing routines and filtering routines
+		// attempting to ensure that filtered material stored within m_filteredInfo 
+		// retains the the original whitespace, medial markers and punctuation that 
+		// appeared between the marker's associated text words, as well as between each 
+		// filtered marker. Each bracketed filtered marker bit stored between 
+		// \~FILTER ... \~FILTER* brackets is followed by the original whitespace, 
+		// markers and/or punctuation that was present in the original text following 
+		// the last word or end marker of the associated text that has been filtered.
+		// Our job here is to unravel the filtered material so that it is rebuilt into
+		// a source text that reflects the original text including the whitespace,
+		// markers and punctuation.
+		// 
+		// Get the filtered marker (first one if more than one) from the beginning of
+		// filteredInfoStr.
+		wxString filtMkr;
+		filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfoStr);
+
+		// Extract any whitespace, marker(s) and punctuation that was stored AFTER
+		// the last \~FILTER* end marker in the filteredInfoStr. This will be useful
+		// when processing the next pSingleSrcPhrase following the unfiltering of
+		// the filtered material being done here.
+		// Note: The lastFilteredWsMkrsAndPuncts string is static and should be
+		// available to the next iteration of FromSingleMakeSstr2().
+		wxString lastStuffReversed = MakeReverse(filteredInfoStr);
+		//wxString revEndFilterMkr = _T(" *RETLIF~\\"); // Include space following "\~FILTER* "
+		wxString revEndFilterMkr = _T("*RETLIF~\\"); // No space following "\~FILTER*"
+		int posEndFM = lastStuffReversed.Find(revEndFilterMkr);
+		if (posEndFM != wxNOT_FOUND)
+		{
+			lastFilteredWsMkrsAndPuncts = lastStuffReversed.Mid(0, posEndFM);
+			lastFilteredWsMkrsAndPuncts = MakeReverse(lastFilteredWsMkrsAndPuncts);
+		}
+
+		// whm 25Jan2026 added for debugging purposes only. 
+		// Count the number of filtered items in filteredInfoStr.
+		int numFilteredItems = CountSubstringOccurrences(filteredInfoStr, _T("\\~FILTER*"));
+		if (numFilteredItems > 1)
+		{
+			// Adjacent filtered markers will have the marker (filtMkr) stored between 
+			// the bracketed filtered segments. This is now removed in the AddToFilteredInfo()
+			// function in SourcePhrase.cpp.
+			int break_here = 1;
+			break_here = break_here;
+
+		}
+		// whm comment the RemoveAnyFilterBracketsFromString can handle multiple
+		// filtered markers and their associated text as well as any swept up 
+		// markers that lurk there.
+		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+
+		// The filteredInfoStr should have the filtered marker at the beginning of
+		// its string. The m_follWsMkrsAndPuncts also has that same marker at the
+		// end of its string, but m_follWsMkrsAndPuncts also has the other whitespace
+		// markers, and/or puncts that immediately precede that filter marker.
+		// So we will remove the filter marker from the filteredInfoStr before
+		// we concatenate the two strings to avoid duplicating the marker itself
+		// while gaining the other stuff that precede the filter marker.
+		// The elimination of any possible duplication is now done within the 
+		// next block below where FindOverlap() is called.
+	}
+
+
+	// Compose two strings that we can use to determine any overlapping whitespace, markers 
+	// and punctuation between the current export material (currCompareStr), and previous export 
+	// material (prevCompareStr). We need to remove any common material that overlaps between
+	// the currCompareStr and the prevCompareStr.
+	//int offsetOfLastMkr = -1;
+	//wxString lastMkr = GetLastWholeMarker(pSingleSrcPhrase->m_srcSinglePattern, offsetOfLastMkr);
+	wxString currCompareStr; currCompareStr.Empty();
+	wxString prevCompareStr; prevCompareStr.Empty();
+	// whm 19Jan2026 this routine below needs to be smarter and include other possible markers 
+	// other than just marker(s) in m_markers. The Kimarangang data has a string segment like this:
+	// "...no \add yo-\add*Yesus dot..." where the \add ... \add* inline binding marker is used
+	// to add a prefix on the keyWord. In this case we not only need to employ the 
+	// m_indlineNonbindingMarkers /add to form the "lastMkr" of our currCompareStr, we also need to
+	// take into account that its end marker \add* is embedded within the keyWord in the original
+	// text as "yo-\add*Yesus". The m_srcSinglePattern value helps us here because it will contain
+	// the value of "yo-\\add*Yesus". So, I think we can do some coding here similar to that used
+	// within the GetWsMkrsAndPuncts() function to account for this markup as we rebuild the source
+	// text.
+	// First we will use a generic "bag" to hold begin markers that may be involved here which include
+	// the m_markers and m_inlineBindingMarkers such as \add, and we can get our lastMkr from that
+	// "bag"
+	// Then, we also need to check whether keyWord had any end marker like \add* fully embedded within 
+	// it, which we can determine from examination of the m_srcSinglePattern value.
+	
+	// whm 22Jan2026 modified. Moved the getting of filteredInfoStr to above this point so we could
+	// simplify and treat the currCompareStr and prevCompareStr material more robustly
+	if (bHasFilteredInfo)
+	{
+		prevCompareStr = keyWord + pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		if (bHasEmptyKey)
+		{
+			// When the m_key is empty, it may still store end markers. Prefix them to filteredInfoStr.
+			// They need to be prefixed on filteredInfoStr in order to extend the common part between
+			// currCompareStr and preCompareStr below and avoid duplication of end markers.
+			wxString endMkrs;
+			if (!pSingleSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				endMkrs = pSingleSrcPhrase->GetInlineBindingEndMarkers() + _T(" ");
+			if (!pSingleSrcPhrase->GetEndMarkers().IsEmpty())
+				endMkrs += pSingleSrcPhrase->GetEndMarkers() + _T(" ");
+			currCompareStr = endMkrs + filteredInfoStr;
+		}
+		else
+			currCompareStr = filteredInfoStr;
+		// Does the end of prevCompareStr share the same characters/substring that occurs
+		// at the beginning of currCompareStr? If so, the strings overlap and we need to 
+		// avoid the duplication of markers here, and just pass the unique part into 
+		// the output stream.
+		// Use the new function: wxString FindOverlap(). 
+		wxString commonStr;
+		commonStr = FindOverlap(prevCompareStr, currCompareStr);
+		if (!commonStr.IsEmpty())
+		{
+			int posCommonStr = currCompareStr.Find(commonStr);
+			currCompareStr.Remove(posCommonStr, commonStr.Length());
+			// Stream both the prevCompareStr and currCompareStr after removing the 
+			// commonStr part.
+			if (bHasEmptyKey)
+				srcStr << currCompareStr;
+			else
+				srcStr << prevCompareStr << currCompareStr;
+			// Don't return yet if there is also filtered info in pSingleSrcPhrase
+			Sstr = srcStr;
+			return Sstr;
+		}
+		else
+		{
+			// currCompStr and prevCompStr do not share any common part.
+			// So, just stream the currCompareStr (i.e., filteredInfoStr) into the output stream.
+			srcStr << currCompareStr;
+		}
+	}
+
+	// First, gather the markers into the allBeginMarkers bag
+	wxString allBeginMarkers = pSingleSrcPhrase->m_markers 
+		+ pSingleSrcPhrase->m_precPunct
+		+ pSingleSrcPhrase->GetInlineBindingMarkers();
+	//// It is indeterminate from the CsourcePhrase member data as to the order of
+	//// some of the whitespace, markers, and punctuation. Hence, I have provided
+	//// an allBeginMarkersAlt below which has the
+	//wxString allBeginMarkersAlt = pSingleSrcPhrase->m_markers
+	//	+ pSingleSrcPhrase->GetInlineBindingMarkers()
+	//	+ pSingleSrcPhrase->m_precPunct;
+
+	if (!allBeginMarkers.IsEmpty() && !keyWord.IsEmpty())
+	{
+		int posOffset;
+		wxString lastMkr = GetLastWholeMarker(allBeginMarkers, posOffset); //GetLastMarker(pSingleSrcPhrase->m_markers);
+		wxString commonChars;
+		lastMkr.Trim();
+		lastMkr += _T(" "); // ensure the marker has a following space
+		if (keyWord.Find(lastMkr) != wxNOT_FOUND)
+		{
+			commonChars = GetCommonStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
+			if (!commonChars.IsEmpty())
+				keyWord = commonChars + pSingleSrcPhrase->m_key;
+			currCompareStr = keyWord + pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		}
+		else
+			currCompareStr = lastMkr + keyWord + pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		// Now see if the currCompStr is at the end of the previous source phrase's m_follWsMkrsAndPuncts
+		if (!lastFiltStuff.IsEmpty())
+		{
+			prevCompareStr = lastFiltStuff;
+			// We've used the lastFiltStuff (lastFilteredWsMkrsAndPuncts) for this iteration by 
+			// assigning it to prevCompareStr. Now, if the current pSingleSrcPhrase has no 
+			// filtered information, now here we should empty the static value 
+			// lastFilteredWsMkrsAndPuncts to inform the next iteration of pSingleSrcPhrase that
+			// its "last" referred filtered info will be empty.
+			if (!bHasFilteredInfo)
+			{
+				lastFilteredWsMkrsAndPuncts.Empty();
+			}
+		}
+		else
+		{
+			prevCompareStr = pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		}
+		// Does the end of prevCompareStr share the same characters/substring that occurs
+		// at the beginning of currCompareStr? If so, the strings overlap and we need to 
+		// avoid the duplication of markers here, and just pass the unique part into 
+		// the output stream.
+		// Use the new function: wxString FindOverlap(). 
+		wxString commonStr;
+		commonStr = FindOverlap(prevCompareStr, currCompareStr);
+		if (!commonStr.IsEmpty())
+		{
+			int posCommonStr = currCompareStr.Find(commonStr);
+			currCompareStr.Remove(posCommonStr, commonStr.Length());
+			// Stream only the part of the currCompStr that remains after removing the 
+			// commonStr part.
+			srcStr << currCompareStr;
+			// Don't return yet if there is also filtered info in pSingleSrcPhrase
+			if (!bHasFilteredInfo)
+			{
+				Sstr = srcStr;
+				return Sstr;
+			}
+		}
+		else
+		{
+			// currCompStr and prevCompStr do not share any common part.
+			// So, just stream the current source phrase's m_key into the output stream.
+			srcStr << pSingleSrcPhrase->m_key;
+		}
+	}
+	else
+	{
+		// whm 25Jan2026 added. Include the m_follWsMkrsAndPuncts here.
+		// Stream the current source phrase's m_key and any m_follWsMkrsAndPuncts
+		// into the output stream.
+		srcStr << pSingleSrcPhrase->m_key << pSingleSrcPhrase->m_follWsMkrsAndPuncts;
+	}
+
+	/*
+	filteredInfoStr = pSingleSrcPhrase->GetFilteredInfo();
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// The filteredInfoStr may have more than one filtered marker within it, and
+		// may also have some swept up material preceding some of the filtered items.
+		// We have refactored the TokenizeText() parsing routines and filtering routines
+		// attempting to ensure that filtered material stored within m_filteredInfo 
+		// retains the the original whitespace, medial markers and punctuation that 
+		// appeared between the marker's associated text words, as well as between each 
+		// filtered marker. Each bracketed filtered marker bit stored between 
+		// \~FILTER ... \~FILTER* brackets is followed by the original whitespace, 
+		// markers and/or punctuation that was present in the original text following 
+		// the last word or end marker of the associated text that has been filtered.
+		// Our job here is to unravel the filtered material so that it is rebuilt into
+		// a source text that reflects the original text including the whitespace,
+		// markers and punctuation.
+		// 
+		// Get the filtered marker (first one if more than one) from the beginning of
+		// filteredInfoStr.
+		wxString filtMkr;
+		filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfoStr);
+
+		// Extract any whitespace, marker(s) and punctuation that was stored AFTER
+		// the last \~FILTER* end marker in the filteredInfoStr. This will be useful
+		// when processing the next pSingleSrcPhrase following the unfiltering of
+		// the filtered material being done here.
+		// Note: The lastFilteredWsMkrsAndPuncts string is static and should be
+		// available to the next iteration of FromSingleMakeSstr2().
+		wxString lastStuffReversed = MakeReverse(filteredInfoStr);
+		wxString revEndFilterMkr = _T(" *RETLIF~\\"); // Include space following "\~FILTER* "
+		int posEndFM = lastStuffReversed.Find(revEndFilterMkr);
+		if (posEndFM != wxNOT_FOUND)
+		{
+			lastFilteredWsMkrsAndPuncts = lastStuffReversed.Mid(0, posEndFM);
+			lastFilteredWsMkrsAndPuncts = MakeReverse(lastFilteredWsMkrsAndPuncts);
+		}
+
+		// whm comment the RemoveAnyFilterBracketsFromString can handle multiple
+		// filtered markers and their associated text as well as any swept up 
+		// markers that lurk there.
+		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+
+		// The filteredInfoStr should have the filtered marker at the beginning of
+		// its string. The m_follWsMkrsAndPuncts also has that same marker at the
+		// end of its string, but m_follWsMkrsAndPuncts also has the other whitespace
+		// markers, and/or puncts that immediately precede that filter marker.
+		// So we will remove the filter marker from the filteredInfoStr before
+		// we concatenate the two strings to avoid duplicating the marker itself
+		// while gaining the other stuff that precede the filter marker.
+		//int posFiltMkr = filteredInfoStr.Find(filtMkr);
+		//// Remove the marker from the beginning of the filteredInfoStr string.
+		//if (posFiltMkr != wxNOT_FOUND)
+		//{
+		//	filteredInfoStr.Remove(posFiltMkr, filtMkr.Length());
+		//	// The m_follWsMkrsAndPuncts will end in the original space after the
+		//	// marker, so we should remove the space also that followed the just-
+		//	// removed marker from filteredInfoStr. There may also be punctuation
+		//	// that was stored at the end of the filteredInfoStr. Hence, we need
+		//	// to remove all whitespace and punctuation that still remains at the 
+		//	// beginning end of the filteredInfoStr.
+		//	bool bFound = TRUE;
+		//	while (!filteredInfoStr.IsEmpty() && bFound)
+		//	{
+		//		wxChar firstCh = filteredInfoStr.GetChar(0);
+		//		bFound = IsWhiteSpace(&firstCh) || gpApp->m_strSpacelessSourcePuncts.Find(firstCh) != wxNOT_FOUND;
+		//		if (bFound)
+		//			filteredInfoStr.Remove(0, 1);
+		//		else
+		//			bFound = FALSE;
+		//	}
+		//}
+		// Finally, add the filteredInfoStr to the output string. 
+		srcStr << filteredInfoStr;;
+	}
+	*/
+	Sstr = srcStr;
+	return Sstr;
+
+	// ============== Old code below before 14-21Jan2026 refactor ==============
+	/*
 	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
 	// but m_srcPhrase will be _T("\\"), we want to keep the backslash in the exported
 	// source text, so test and set srcStr to it
@@ -9275,18 +10196,18 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 		pSingleSrcPhrase->m_oldKey = newKey; // it's now updated
 	}
 
-	wxString endMarkersStr;
+	//wxString endMarkersStr;
 	// BEW 22Jun15 we retain freeTransStr, noteStr, collBackTransStr, filteredInfoStr
 	// because these are parameter in lower down function calls; those function calls
 	// are made in other types of export, so our approach here is to let these strings
 	// be populated, but then clear them to empty before their contents can be used
-	wxString freeTransStr;
-	wxString noteStr;
-	wxString collBackTransStr;
-	wxString filteredInfoStr;
-	wxString beforeStr;
-	wxString afterStr;
-	bool bAddedSomething = FALSE;
+	//wxString freeTransStr;
+	//wxString noteStr;
+	//wxString collBackTransStr;
+	//wxString filteredInfoStr;
+	//wxString beforeStr;
+	//wxString afterStr;
+	//bool bAddedSomething = FALSE;
 	// it's helpful to keep the various inline markers as encountered, so we can easily
 
 	// empty the scratch strings
@@ -9297,8 +10218,14 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	//							freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
 	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
 		freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
+	wxString endFilterBracket = _T("\\~FILTER*");
+	int nLenEndnFilterBracket = (int)endFilterBracket.Length();
+	wxString follWsMkrsAndPuncts; follWsMkrsAndPuncts.Empty();
+	int posEndFilterBracket = filteredInfoStr.Find(endFilterBracket);
 	if (!filteredInfoStr.IsEmpty())
 	{
+		if (posEndFilterBracket >= 0)
+			follWsMkrsAndPuncts = filteredInfoStr.Mid(posEndFilterBracket + nLenEndnFilterBracket);
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
 	}
 
@@ -9422,7 +10349,9 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	//{
 	//	srcStr += filteredInfoStr;
 	//}
+	*/
 
+	// Older code below:
 	/*
 	// 24Jan2024 Testing of Hezekiah input file indicates that the LAST item appended to srcStr
 	// should be the filtered material - which makes sense since the filtered material is now
@@ -9556,6 +10485,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	}
 	*/
 
+	/*
 #if defined (_DEBUG)
 	if (pSingleSrcPhrase->m_nSequNumber >= 19)
 	{
@@ -9566,6 +10496,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 	Sstr = srcStr;
 	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
+	*/
 }
 
 

@@ -342,6 +342,7 @@ void      EmptyMarkersAndFilteredStrings(
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
 wxString  GetLastMarker(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr); // whm 12Nov2025 added
 wxString  GetLastMarker(wxString markers);
+wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
 wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
 								// use in CAdapt_ItApp::EnsureProperCapitalization()
 //bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
@@ -396,6 +397,43 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
+
+// whm 20Jan2026 added. This function checks for common characters at the end of str1 which
+// are also present at the beginning of str2.
+wxString FindOverlap(wxString str1, wxString str2);
+
+// whm 27Jan2026 added. This function collects the common parts shared between
+// str1 and str2. Then it returns those common parts in the order they occur in
+// the string designated by the int str1or2. The call might be, for example:
+//   wxString commonOrderedStr;
+//   commonOrderedStr = GetCommonStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
+// where:
+//   str1 keyWord might be: “\add Ong
+//   str2 lastFiltStuff might be: \r\n\v 71 \add “
+//   2 says to return the common parts in the order found in str2
+// The common parts are “ and \add and str2 has those common parts ordered
+// as \add “  so the function would return str2's common parts \add “ to the caller.
+// If either str1 or str2 is empty, or there are no common parts, the string 
+// designated by the third parameter is returned unchanged.
+// Note: Where texts parts are present in the input strings only the markers, punct 
+// and whitespace are collected and compared that PRECEDE the first instance of any 
+// text part.
+// This function is used in the rebuilding of source text routine(s).
+wxString GetCommonStrPartsOrderedAccordingToStr1or2(wxString str1, wxString str2, int str1or2);
+
+// whm 25Jan2026 added. This function counts the number of non-overlapping occurrences
+// of a substring within a string.
+int CountSubstringOccurrences(wxString stringToSearch, wxString substring);
+
+// whm 21Jan2026 added for use in FromSingleMakeSstr2()
+void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	bool& bHasMetadata, 
+	bool& bHasFilteredInfo, 
+	bool& bHadFilteredInfoInPrevSrcPhrase,
+	bool& bHasEmptyKey, 
+	bool& bHasEmbeddedMarkerInKeyWord);
+
 //wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app

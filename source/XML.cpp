@@ -4313,7 +4313,17 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_smp)
 				{
-					gpEmbeddedSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+					// whm 10Jan2026 removed m_srcMergerPattern (was unused) and replace with
+					// the m_follWsMkrsAndPuncts value. We allow the xml routine here to read 
+					// the xml_smp "smp" data if it exists (it would be empty), but ignore it 
+					// on input.
+					//gpEmbeddedSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+					;
+				}
+				// whm 10Jan2026 added the ability to read the "fwsmp" data for DocVersion 11
+				else if (gnDocVersion >= 10 && attrName == xml_fwsmp)
+				{
+					gpEmbeddedSrcPhrase->m_follWsMkrsAndPuncts = gpApp->Convert8to16(attrValue);
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_tmp)
 				{
@@ -4562,7 +4572,17 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_smp)
 				{
-					gpSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+					// whm 10Jan2026 removed m_srcMergerPattern (was unused) and replace with
+					// the m_follWsMkrsAndPuncts value. We allow the xml routine here to read 
+					// the xml_smp "smp" data if it exists (it would be empty), but ignore it 
+					// on input.
+					;
+					//gpSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+				}
+				// whm 10Jan2026 added the ability to read the "fwsmp" data for DocVersion 11
+				else if (gnDocVersion >= 10 && attrName == xml_fwsmp)
+				{
+					gpSrcPhrase->m_follWsMkrsAndPuncts = gpApp->Convert8to16(attrValue);
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_tmp)
 				{

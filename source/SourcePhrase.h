@@ -368,7 +368,8 @@ public:
 	wxString m_srcSinglePattern;
 	wxString m_tgtSinglePattern;
 	wxString m_glossSinglePattern;
-	wxString m_srcMergerPattern;
+	// whm 10Jan2026 modification. We now store m_follWsMkrsAndPuncts in the place of m_srcMergerPattern
+	wxString m_follWsMkrsAndPuncts; // wxString m_srcMergerPattern;
 	wxString m_tgtMergerPattern;
 	wxString m_oldKey; // actually added on 10May23 to support changes of m_key value in rebuilding src
 
