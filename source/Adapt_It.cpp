@@ -31262,6 +31262,84 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#endif
 
     // **** test code fragments here ****
+    
+    /*
+    // whm 2Feb2026 testing of hyphen and bridging characters and how they are converted 
+    // during de referencing of the ptr and in wxString construction operations using the
+    // wxString aStr = wxString(ptr, itemLen) constuctor.
+    wxChar hyphenChar = _T('-');
+    wxChar hyphenChar2 = wxUniChar(0x002D);
+    wxChar enDashChar = (wxChar)0x2013; // _T('–'); warning C4066: characters beyond first in wide-character constant ignored
+    wxChar enDashChar2 = wxUniChar(0x2013);
+    wxChar horizBarChar = (wxChar)0x2015; // _T('―'); warning C4066: characters beyond first in wide-character constant ignored
+    wxChar horizBarChar2 = wxUniChar(0x2015);
+    wxString testHyphen = _T("-"); // no warning but results in a bad string: â€“
+    wxString testEnDash = _T("–"); // no warning but results in a bad string: â€“
+    wxString testHorizBar = _T("―"); // no warning but results in a bad string: â€•
+    wxString space = _T(" ");
+    wxString str; str.Empty();
+    wxString strResult; strResult.Empty();
+    str << _T("14") << enDashChar << _T("11");
+    str << space << _T("8") << horizBarChar << _T("12");
+    str << space << _T("24") << enDashChar << _T("22");
+    str << space << _T("18") << horizBarChar << _T("22");
+    str << space << _T("Word1stPart") << hyphenChar << _T("Word2ndPart");
+    int nLen = str.Length();
+    const wxChar* pBuf = str.GetData();
+    wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
+    wxASSERT(*pEnd == _T('\0'));
+    wxChar* ptr = (wxChar*)pBuf;
+    //wxChar* pBufStart = (wxChar*)pBuf;
+    int posChar = 0;
+    while ((ptr + posChar) < pEnd)
+    {
+        strResult += *(ptr + posChar);
+        posChar++;
+    }
+    wxString result1 = wxString(pBuf, nLen);
+
+    wxString str2; str2.Empty();
+    wxString strResult2; strResult2.Empty();
+    str2 << _T("14") << enDashChar << _T("11");
+    str2 << space << _T("8") << horizBarChar2 << _T("12");
+    str2 << space << _T("24") << enDashChar2 << _T("22");
+    str2 << space << _T("18") << horizBarChar2 << _T("22");
+    str2 << space << _T("Word1stPart") << hyphenChar2 << _T("Word2ndPart");
+    int nLen2 = str2.Length();
+    pBuf = str2.GetData();
+    pEnd = (wxChar*)pBuf + nLen2; // cast necessary because pBuf is const
+    wxASSERT(*pEnd == _T('\0'));
+    ptr = pEnd; // start at right end of string and work back toward beginning of string
+    wxChar* pBufStart = (wxChar*)pBuf;
+    posChar = 0;
+    while ((ptr - posChar) > pBufStart)
+    {
+         posChar++;
+         strResult2 = *(ptr - posChar) + strResult2;
+    }
+    wxString result2 = wxString(pBuf, nLen2);
+    if (hyphenChar != hyphenChar2)
+        wxLogDebug(_T("hyphenChar != hyphenChar2"));
+    if (enDashChar != enDashChar2)
+        wxLogDebug(_T("enDashChar != enDashChar2"));
+    if (horizBarChar != horizBarChar2)
+        wxLogDebug(_T("horizBarChar != horizBarChar2"));
+
+    if (str != str2)
+        wxLogDebug(_T("str != str2"));
+    if (result1 != result2)
+        wxLogDebug(_T("result1 != result2"));
+    if (str != result1)
+        wxLogDebug(_T("str != result1"));
+    if (str2 != result2)
+        wxLogDebug(_T("str2 != result2"));
+
+    int break_here = 1;
+    break_here = break_here;
+    // RESULTS: There doesn't appear to be any automatic conversion of en dash to 
+    // horizontal bar in the above test results due to de referencing of the ptr,
+    // or using the wxString(ptr, len) constructor.
+    */
 
     /*
     // whm 15Jan2024 testing of RemoveMultipleSpaces()

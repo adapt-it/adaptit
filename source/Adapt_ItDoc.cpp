@@ -36957,9 +36957,24 @@ wxString CAdapt_ItDoc::ParseChVerseAndDigitPrefixedWord(wxChar* pChar, wxString 
 				{
 					chARange = wxString(acomma);
 				}
-				else
+				// whm 2Feb2026 added if else (offset == 2) for longHyphen.
+				// The RangeSet was defined above as: 
+				// RangeSet = 
+				// wxString(ahyphen) offset 0
+				// + wxString(acomma) offset 1
+				// + wxString(horiz_bar) offset 2
+				// + wxString(longHyphen) offset 3
+				// The lack of code for offset 2 resulted in the function converting every
+				// longHyphen (en hash) to a horiz_bar (horizontal bar). This fixes the issue
+				// where in Kimarangang input data all an en dash verse bridge chars were 
+				// being changed/converted to a horizontal bar.
+				else if (offset == 2) // whm 2Feb2026 added
 				{
 					chARange = wxString(horiz_bar);
+				}
+				else
+				{
+					chARange = wxString(longHyphen);
 				}
 			}
 		
@@ -44813,11 +44828,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 
 						pSrcPhrase->m_key = strWordWithoutFinalPuncts; //pSrcPhrase->m_key = strWord;
 						pSrcPhrase->m_srcPhrase += strWord; // whm 22Dec2025 corrected = to +=
-						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here so that
-						// it doesn't end up empty and MakeWordAndExtras() gets called below since the
-						// MakeWordAndExtras() uses wxString(ptr, itemLen) to create the wxString, but
-						// that wxString() constructor doesn't properly handle bridging characters and 
-						// wrongly converts a character 8213 (horiz bar/quotation dash) to 8211 (em dash)
+						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
 						pSrcPhrase->m_srcSinglePattern += strWord;
 						ptr += strWordLen;
 						len += strWordLen;
@@ -45583,11 +45594,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						finalPunctsLen = strFinalPuncts.Length();
 						pSrcPhrase->m_follPunct << strFinalPuncts;
 						pSrcPhrase->m_srcPhrase << strFinalPuncts;
-						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here so that
-						// it doesn't end up empty and MakeWordAndExtras() gets called below since the
-						// MakeWordAndExtras() uses wxString(ptr, itemLen) to create the wxString, but
-						// that wxString() constructor doesn't properly handle bridging characters and 
-						// wrongly converts a character 8213 (horiz bar/quotation dash) to 8211 (em dash)
+						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
 						// Here, m_srcSinglePattern will be empty. The m_key was recenly assigned, and 
 						// m_srcPhrase also, plus m_srcPhrase was just suffixed with strFinalPuncts, 
 						// so here we should here copy what is already set within the m_srcPhrase for 
@@ -45605,11 +45612,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						twoOnly = wxString(pAux, 2);
 						pSrcPhrase->m_follPunct << twoOnly;
 						pSrcPhrase->m_srcPhrase << twoOnly;
-						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here so that
-						// it doesn't end up empty and MakeWordAndExtras() gets called below since the
-						// MakeWordAndExtras() uses wxString(ptr, itemLen) to create the wxString, but
-						// that wxString() constructor doesn't properly handle bridging characters and 
-						// wrongly converts a character 8213 (horiz bar/quotation dash) to 8211 (em dash)
+						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
 						pSrcPhrase->m_srcSinglePattern << twoOnly;
 						ptr += 2;
 						len += 2;
@@ -45767,11 +45770,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 
 							pSrcPhrase->m_follPunct << strPuncts;
 							pSrcPhrase->m_srcPhrase << strPuncts;
-							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here so that
-							// it doesn't end up empty and MakeWordAndExtras() gets called below since the
-							// MakeWordAndExtras() uses wxString(ptr, itemLen) to create the wxString, but
-							// that wxString() constructor doesn't properly handle bridging characters and 
-							// wrongly converts a character 8213 (horiz bar/quotation dash) to 8211 (em dash)
+							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
 							pSrcPhrase->m_srcSinglePattern << strPuncts;
 							return len; // what follows ptr location is the newline, and then typically a \v beginMKR (or a word)
 						} // end of TRUE block for test: if (bch1OK == TRUE && bch2OK == TRUE && bch3OK == TRUE && bch4OK == TRUE)
@@ -45824,11 +45823,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							len += itemLen;
 							pSrcPhrase->m_follPunct << strPuncts;
 							pSrcPhrase->m_srcPhrase << strPuncts;
-							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here so that
-							// it doesn't end up empty and MakeWordAndExtras() gets called below since the
-							// MakeWordAndExtras() uses wxString(ptr, itemLen) to create the wxString, but
-							// that wxString() constructor doesn't properly handle bridging characters and 
-							// wrongly converts a character 8213 (horiz bar/quotation dash) to 8211 (em dash)
+							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
 							pSrcPhrase->m_srcSinglePattern << strPuncts;
 							return len; // what follows ptr location is the newline, and then typically a \v beginMKR (or a word)
 						} // end of TRUE block for test: if (bch2OK == TRUE && bch3OK == TRUE && bch4OK == TRUE)
