@@ -388,7 +388,12 @@ wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPr
 							wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct,
 							SPList* pList); // whm 19Nov2025 added pList parameter
-bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
+bool	  AnalyseSstr(wxString s, 
+	wxArrayString& arrItems, 
+	wxString separator, 
+	wxString& CopiedTstr, 
+	wxString tgtWord,
+	wxString srcWord); // whm 18Feb2026 added srcWord parameter
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
 			// Each such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm
@@ -406,7 +411,7 @@ wxString FindOverlap(wxString str1, wxString str2);
 // str1 and str2. Then it returns those common parts in the order they occur in
 // the string designated by the int str1or2. The call might be, for example:
 //   wxString commonOrderedStr;
-//   commonOrderedStr = GetCommonStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
+//   commonOrderedStr = GetCommonNonTextStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
 // where:
 //   str1 keyWord might be: “\add Ong
 //   str2 lastFiltStuff might be: \r\n\v 71 \add “
@@ -419,7 +424,10 @@ wxString FindOverlap(wxString str1, wxString str2);
 // and whitespace are collected and compared that PRECEDE the first instance of any 
 // text part.
 // This function is used in the rebuilding of source text routine(s).
-wxString GetCommonStrPartsOrderedAccordingToStr1or2(wxString str1, wxString str2, int str1or2);
+wxString GetCommonNonTextStrPartsOrderedAccordingToStr1or2(wxString str1, wxString str2, int str1or2);
+
+// whm 26Feb2026 added.
+wxString RemoveCommonNonTextPartsOfStr1FromStr2IgnoringStr2WhiteSpace(wxString str1, wxString str2);
 
 // whm 25Jan2026 added. This function counts the number of non-overlapping occurrences
 // of a substring within a string.
@@ -432,15 +440,27 @@ void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
 	bool& bHasFilteredInfo, 
 	bool& bHadFilteredInfoInPrevSrcPhrase,
 	bool& bHasEmptyKey, 
-	bool& bHasEmbeddedMarkerInKeyWord);
+	bool& bHasEmbeddedMarkerInKeyWord,
+	bool& bKeyHasOnlyPuncts); // whm 2Mar2026 added
+
+// whm 1Mar2026 refactored for simplification.
+// As of 4Mar2026 this function completely replaces the
+// previous FromSingleMakeSstr2() function below.
+wxString  FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	SPList* pList); 
 
 //wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
+// whm 4Mar2026 As of this date the following function is no longer
+// used/called anywhere within the application.
 wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
 			CSourcePhrase* pPrevSingleSrcPhrase,
 			SPList* pList); // whm 19Nov2025 added pList parameter
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
-wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, SPList* pList); // whm 19Nov2025 added pList
+wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, 
+			CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
+			SPList* pList); // whm 19Nov2025 added pList
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 // whm 19Nov2025 added the IsInlineMarkerSpanEnclosedInParentheses() function below
 bool	  IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList);

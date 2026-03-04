@@ -486,6 +486,7 @@ public:
 	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar* pChar);
+	bool			IsStringWhiteSpace(wxString str); // whm 20Feb2026 added
 	int				ParseNumber(wxChar* pChar);
 	wxString		ParseNumberInStr(wxString strStartingWithNumber); // BEW 1Aug23, to get a number string without having to use wxChar*
 	wxString		m_firstVerseNum; // BEW added 1Aug23, to enable knowing when a contentless pSrcPhrase is

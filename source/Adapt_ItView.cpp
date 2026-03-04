@@ -28355,7 +28355,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added, used in FromMergerMakeSstr() and FromSingleMakeSstr2()
 	while (pos_pSP != NULL)
 	{
 		pSrcPhrase = pos_pSP->GetData();
@@ -28368,12 +28368,20 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
 				// it's a genuine merger
-				srcStr = FromMergerMakeSstr(pSrcPhrase, pSublist); // whm 19Nov2025 added pSublist
+				srcStr = FromMergerMakeSstr(pSrcPhrase, 
+						pPrevSrcPhrase, // whm 16Feb2026 added 2nd parameter
+						pSublist); // whm 19Nov2025 added pSublist
 			}
 			else
 			{
 				// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter - unused - may use in future
+				// whm 4Mar2026 Changed the FromSingleMakeSstr2() below to the refactored
+				// FromSingleMakeSstr1().
+				// TODO: Need to do more testing of the EditSourceText operation that calls
+				// this ScanSpanDoingSourceTextReconstruction() to test out the refactored 
+				// function.
+				srcStr = FromSingleMakeSstr1(pSrcPhrase, //srcStr = FromSingleMakeSstr2(pSrcPhrase,
+					pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter 
 					pSrcPhrases); // whm 19Nov2025 added pSrcPhrases
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll

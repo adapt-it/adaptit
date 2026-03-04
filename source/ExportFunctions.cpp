@@ -17925,6 +17925,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// relocation until a non-placeholder CSourcePhrase is encountered. So if the
 			// bMarkersOnPlaceholder flag is TRUE, just have this placeholder ignored
 			// without the populatiing of any of the local wxString variables above
+			// whm 16Feb2026 TODO: TESTING NEEDED
+			// Determine if more code is needed within the refactored FromSingleMakeSstr1() to 
+			// handle the presence of placeholder source phrases. Doing so there would eliminate 
+			// dealing with anything here related to placeholder source phrases.
  			if (!bMarkersOnPlaceholder)
 			{
 				bool bAddedSomething = FALSE;
@@ -17937,6 +17941,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				bool bAddedHiddenMetaData = FALSE; 
+				// whm 16Feb2026 TODO: TESTING NEEDED
+				// Determine if the following AppendSrcPhraseEndingInfo() call is needed following 
+				// the current refactoring of the FromSingleMakeSstr2() function. This is the
+				// only call of AppendSrcPhraseEndingInfo() left in the code base.
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase, bAddedSomething, bAddedHiddenMetaData,
 					TRUE, TRUE, FALSE);
 
@@ -17945,6 +17953,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// bool bIncludeNote is FALSE
 				// bool bDoCountForFreeTrans is TRUE
 				// bool bCountInTargetTextLine is FALSE
+				// 
+				// whm 16Feb2026 TODO: TESTING NEEDED 
+				// Determine if strCollectedBeginnings is still relevant?
+				// The following AppendSrcPhraseBeginningInfo() call should not be needed following 
+				// the current refactoring of the FromSingleMakeSstr2() function. This is the
+				// only call of AppendSrcPhraseBeginningInfo() left in the code base.
 				strCollectedBeginnings = AppendSrcPhraseBeginningInfo(strCollectedBeginnings,
 					pSrcPhrase, bMarkersOnPlaceholder); // , FALSE, TRUE, FALSE);
 				// if bMarkersOnPlaceholder returns TRUE from the above call, it means that
@@ -17983,6 +17997,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// have its pre-word info stored on itself because its former content is now
 			// what we are attempting to replace by relocation from the preceding
 			// placeholder.
+			// whm 16Feb2026 TODO: TESTING NEEDED
+			// Determine if the following addition of strCollectedBeginnings is still relevant?
 			if (bMarkersOnPlaceholder)
 			{
 				// pSrcPhrase here is not a placeholder, so filtered material and any
@@ -18009,6 +18025,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
 			// because we don't gather those info types in the above function
+			// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+			// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+			/*
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				tempStr = pSrcPhrase->m_markers;
@@ -18026,6 +18045,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				}
 				tempStr.Empty();
 			}
+			*/
 			// 
 			// whm 2Jan2024 modification. When source ends with whitespace and str begins
 			// with whitespace, we should remove the whitespace from the end of the accumulated
@@ -18033,21 +18053,25 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// beginning of the str being added.
 			// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
 			// of the rebuilt source string
-			if (pSrcPhrase->m_nSequNumber > 0)
-			{
-				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			}
-			else
-			{
-				// when m_nSequNum == 0 source will be empty string, so don't put medial white space
-				// at the beginning of the rebuild.
-				source << str;
-			}
+			// whm 16Feb2025. Our current use of CSourcePhrase::m_follWsMkrsAndPuncts eliminates 
+			// the need for AppendStringToStringWithSingularMedialWhiteSpace.
+			//if (pSrcPhrase->m_nSequNumber > 0)
+			//{
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//}
+			//else
+			//{
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
+			//}
 
-			// reconstitute the source text from the merger originals; anything from the
+			// Reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
-			// we just add the following material to it
-			str = FromMergerMakeSstr(pSrcPhrase, pList); // whm 19Nov2025 added pList
+			// we just add the following material to it.
+			str = FromMergerMakeSstr(pSrcPhrase, 
+				pPrevSrcPhrase, // whm 16Feb2026 added pPrevSrcPhrase				
+				pList); // whm 19Nov2025 added pList
 
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
@@ -18058,16 +18082,18 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// beginning of the str being added.
 			// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
 			// of the rebuilt source string
-			if (pSrcPhrase->m_nSequNumber > 0)
-			{
-				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			}
-			else
-			{
-				// when m_nSequNum == 0 source will be empty string, so don't put medial white space
-				// at the beginning of the rebuild.
-				source << str;
-			}
+			// whm 16Feb2025. Our current use of CSourcePhrase::m_follWsMkrsAndPuncts eliminates 
+			// the need for AppendStringToStringWithSingularMedialWhiteSpace.
+			//if (pSrcPhrase->m_nSequNumber > 0)
+			//{
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//}
+			//else
+			//{
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
+			//}
 			str.Empty();
 		}
 		else
@@ -18130,7 +18156,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #endif
 
 			// whm 5Feb2024 removed unused parameters
-			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, pList); // whm 28Dec2024 added second parameter - unused - may use in future
+			//str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, pList); // whm 28Dec2024 added second parameter
+			// whm 1Mar2026 replaced The above FromSingleMakeSstr2() with a
+			// refactored and greatly simplified FromSingleMakeSstr1() function.
+			str = FromSingleMakeSstr1(pSrcPhrase, pPrevSrcPhrase, pList);
+
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
@@ -18280,7 +18310,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	pStatusBar->FinishProgress(_("Rebuilding Source Text"));
 
-	source.Trim(); // trim the end
+	// whm 27Feb2026 Don't automatically trim whitespace, EOLs from end of source buffer.
+	//source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 
 	// update length
@@ -19259,12 +19290,7 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 				wxASSERT(itemLen == (int)wholeMkr.Len());
 
 				// get the bare marker, lookupable, (ie. no \ and no final *)
-				bareMkr = wholeMkr.Mid(1); // remove initial backslash
-				if (bareMkr.Last() == _T('*'))
-				{
-					bareMkr = bareMkr.Left(itemLen - 2);
-				}
-
+				bareMkr = pDoc->GetBareMarkerForLookup(wholeMkr);
 				// is it a marker of the type we want to remove?
 				bool bSatifiesAdditionalRemovalTests = FALSE; // BEW added 11Oct10
 				USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
@@ -19416,7 +19442,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber == 831) 
+		if (pSrcPhrase->m_nSequNumber >= 151) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -20901,6 +20927,20 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 			text += gpApp->m_eolStr;
 		}
 	}
+	// whm 1Mar2026 removed the block below. Determining whether
+	// a buffer ends with EOL is done elsewhere within a prior call 
+	// ApplyOutputFilterToText(...,..., TRUE or FALSE)
+	//else
+	//{
+	//	int textLen;
+	//	textLen = text.Length();
+	//	if (textLen > 1 && (text.GetChar(textLen - 1) != _T('\n') || text.GetChar(textLen - 1) != _T('\r')))
+	//	{
+	//		// the text does not end with either \n or \r eol, so add the appropriate
+	//		// eol at the end of the text.
+	//		text += gpApp->m_eolStr;
+	//	}
+	//}
 
 	// Change this to FALSE to get the legacy code that compares the .usfmstruct data for 
 	// whitespace, EOLs, or nil before markers and makes the text conform to what the 

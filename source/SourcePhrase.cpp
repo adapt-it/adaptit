@@ -3036,7 +3036,10 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 		wxString filtMkr = gpApp->GetDocument()->GetMarkerFromWithinOneFilteredString(filteredInfo);
 		if (lastMkr == filtMkr && posLastMkr >= 0)
 		{
-			m_filteredInfo = m_filteredInfo.Mid(0, posLastMkr - 1);
+			//m_filteredInfo = m_filteredInfo.Mid(0, posLastMkr - 1);
+			// whm 20Feb2026 correction. The posLastMkr cut off the * of 
+			// the end filter bracket when no space intervened.
+			m_filteredInfo = m_filteredInfo.Mid(0, posLastMkr);
 		}
 	}
 	m_filteredInfo += filteredInfo;
