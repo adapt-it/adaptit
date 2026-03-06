@@ -41257,6 +41257,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 					// m_cachedAttributeData member so ParseWord() can deal with it.
 					bool bHidingNeeded = FALSE;
 					bHidingNeeded = IsAttributeMarker(ptr); // This will set m_cachedAttributeData
+					bHidingNeeded = bHidingNeeded;
 					// It's a begin inline binding marker; append to any existing in
 					// m_inlineBindingMarkers via AppendToInlineBindingMarkers().
 					pSrcPhrase->AppendToInlineBindingMarkers(augWholeMkr);
