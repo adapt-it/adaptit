@@ -16,6 +16,8 @@ LT_INIT([dlopen])
 #AC_DEFINE(_KBSERVER)
 
 # Debug builds pass --debug to wx-config and define _DEBUG
+# whm 17Mar2022 added following line
+AC_MSG_CHECKING([whether to enable debugging])
 AC_ARG_ENABLE([debug],
             [AS_HELP_STRING([--enable-debug],
               [enable debug build using debug wxwidgets libraries])],
@@ -23,13 +25,19 @@ AC_ARG_ENABLE([debug],
             [enable_debug=no])
 
 WXDEBUG=
-AS_IF([test "x$enable_debug" != xno],
-    [AC_SUBST([WXDEBUG], ["--debug"])
+AS_IF([test "x$enable_debug" != xno], [
+# whm 17Mar2022 added next line
+     AC_MSG_RESULT([yes])
+     AC_SUBST([WXDEBUG], ["--debug"])
      AC_DEFINE([_DEBUG], [1],
                [Define for debug builds])
 #     AC_DEFINE([_KBSERVER], [1],
 #               [Define for KBServer builds])
-    ])
+# whm 17Mar2022 added next three else lines to define NDEBUG and avoid asserts in release builds
+], [
+     AC_MSG_RESULT([no])
+     AC_DEFINE(NDEBUG, 1, [Define to 1 if no debugging functionality desired.])
+])
 
 CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -Wno-sizeof-pointer-memaccess -g -fexceptions"
 CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -Wno-sizeof-pointer-memaccess -g -fexceptions"
