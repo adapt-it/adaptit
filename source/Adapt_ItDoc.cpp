@@ -6335,9 +6335,18 @@ void CAdapt_ItDoc::GetFilteredAndSweptUpMarkersFromString(wxString filterStr,
 		wxString tempFilteredStr;
 		wxString tempPreFilteredMkrs;
 		wxArrayString segmentsArr;
+		wxArrayString wsMkrsAndPunctsArr;
 		// Get the filterStr's filtered "segments". A given segment may now have a swept up
 		// marker like \c 11 prefixing the bracketed filtered material.
-		segmentsArr = GetFilteredInfoSegments(filterStr);
+		// whm 7Mar2026 revised the GetFilteredInfoSegments() to be a void
+		// function, returning two arrays as ref parameters, the original
+		// segmentsArr, and a new one for tracking whitespace, markers, and
+		// puncts that follow the end bracket \~FILTER* of the filtered info.
+		// whm 7Mar2026 TODO: Test how or whether this wxMkrsAndPunctsArr 
+		// is needed here like it is in the ReconstituteAfterFilterChange() 
+		// function's bUnfilteringRequired section.
+		//segmentsArr = GetFilteredInfoSegments(filterStr);
+		GetFilteredInfoSegments(filterStr, segmentsArr, wsMkrsAndPunctsArr);
 		int totSegments = (int)segmentsArr.GetCount();
 
 		for (int i = 0; i < totSegments; i++)
@@ -10566,21 +10575,32 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					// of a previously unfiltered marker's text.
 					// 
 					wxArrayString filteredStrItemsWithBrackets; filteredStrItemsWithBrackets.Empty();
+					// whm 7Mar2026 added. We need a parallel array to keep track of any whitespace,
+					// markers and punctuation that occurs outside the end bracket \~FILTER* of each
+					// filtered item.
+					wxArrayString filteredStrItemsWsMkrsAndPuncts; filteredStrItemsWsMkrsAndPuncts.Empty();
 					wxArrayPtrVoid LastWordSrcPhrofUnfilteredMkrsArr; LastWordSrcPhrofUnfilteredMkrsArr.Empty();
 					wxString thisWholeMkrInFilterBrackets;  thisWholeMkrInFilterBrackets.Empty();
+					wxString thisFiltItemFollWsMkrsAndPuncts; thisFiltItemFollWsMkrsAndPuncts.Empty();
 					wxString nextWholeMkrInFilterBrackets; nextWholeMkrInFilterBrackets.Empty();
 					wxString previousWholeMkrInFilterBrackets; previousWholeMkrInFilterBrackets.Empty();
 					bool bThisMkrToBeUnfiltered;
 					//bool bNextMkrToBeUnfiltered;
 					//bool bPreviousMkrWasUnfiltered;
 					bool bAnyPreviousMkrWasUnfiltered = FALSE;
-					filteredStrItemsWithBrackets = GetFilteredInfoSegments(theFilteredInfo);
+					// whm 7Mar2026 modified the GetFilteredInfoSegments() function call below
+					// to return via ref parameters two wxArrayStrings, the second one a new 
+					// parallel array to keep track of/restore whitespace, markers and puncts.
+					//filteredStrItemsWithBrackets = GetFilteredInfoSegments(theFilteredInfo);
+					GetFilteredInfoSegments(theFilteredInfo, 
+						filteredStrItemsWithBrackets, filteredStrItemsWsMkrsAndPuncts);
 					int nTotFilterItems = (int)filteredStrItemsWithBrackets.GetCount();
 					if (nTotFilterItems > 0)
 						pSrcPhrase->SetFilteredInfo(wxEmptyString); // empty its m_filteredInfo, it might get populated again below
 					for (int itemCt = 0; itemCt < nTotFilterItems; itemCt++)
 					{
 						thisWholeMkrInFilterBrackets = filteredStrItemsWithBrackets.Item(itemCt);
+						thisFiltItemFollWsMkrsAndPuncts = filteredStrItemsWsMkrsAndPuncts.Item(itemCt);
 						if (itemCt + 1 < nTotFilterItems)
 							nextWholeMkrInFilterBrackets = filteredStrItemsWithBrackets.Item(itemCt + 1);
 						else
@@ -10618,7 +10638,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								// No previous marker was unfiltered, so store thisWholeMkrInFilterBrackets back on 
 								// pSrcPhrase by adding it to any filtered material already there.
-								pSrcPhrase->AddToFilteredInfo(thisWholeMkrInFilterBrackets);
+								pSrcPhrase->AddToFilteredInfo(thisWholeMkrInFilterBrackets 
+									+ thisFiltItemFollWsMkrsAndPuncts);
 							}
 							else
 							{
@@ -10649,14 +10670,16 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									{
 										pStoreSP = savePos->GetData();
 										wxASSERT(pStoreSP != NULL);
-										pStoreSP->AddToFilteredInfo(thisWholeMkrInFilterBrackets);
+										pStoreSP->AddToFilteredInfo(thisWholeMkrInFilterBrackets
+											+ thisFiltItemFollWsMkrsAndPuncts);
 									}
 								}
 								else
 								{
 									// We didn't find any previous place to store the filtered marker, so add it
 									// to any filtered info already stored on the original pSrcPhrase.
-									pSrcPhrase->AddToFilteredInfo(thisWholeMkrInFilterBrackets);
+									pSrcPhrase->AddToFilteredInfo(thisWholeMkrInFilterBrackets
+										+ thisFiltItemFollWsMkrsAndPuncts);
 								}
 							}
 						}
@@ -10689,8 +10712,16 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							pSublist->Clear(); // clear list in preparation for Tokenizing
 
 							wxString extractedStr = RemoveAnyFilterBracketsFromString(thisWholeMkrInFilterBrackets); // we'll tokenize LHSide
-							extractedStr.Trim(FALSE); // remove any initial space
-							extractedStr.Trim(TRUE); // remove any final space
+							// whm 7Mar2026 Don't call Trim() on extractedStr
+							//extractedStr.Trim(FALSE); // remove any initial space
+							//extractedStr.Trim(TRUE); // remove any final space
+							// 
+							// whm 7Mar2026 With the new scheme of tracking whitespace, markers
+							// and puncts in m_follWsMkrsAndPuncts and storing that info 
+							// suffixed after the \~FILTER* end marker of a filtered item,
+							// we restore that information now to extractedStr here before
+							// sending it to the TokenizeTextString().
+							extractedStr = extractedStr + thisFiltItemFollWsMkrsAndPuncts;
 
 							// tokenize the substring (using this we get its inline marker handling for free)
 							// whm 22Mar2024 added. If the marker-being-unfiltered is \x the extractedStr will
@@ -12160,6 +12191,8 @@ g:				bIsUnknownMkr = FALSE;
 				// that to filteredStr farther below.
 				wxString strFilteredStuff;
 				strFilteredStuff.Empty();
+				wxString whiteSpAndMkrsAtEndOfRebuiltSrcText; // whm 8Mar2026 added
+				whiteSpAndMkrsAtEndOfRebuiltSrcText.Empty();
 				if (!pSublist->IsEmpty())
 				{
 					// BEW addition 9Apr15
@@ -12267,14 +12300,41 @@ g:				bIsUnknownMkr = FALSE;
 					strFilteredStuff = strFilteredStuff.Mid(posWholeMkr);
 				}
 
-				filteredStr += sweptUpStr; // sweptUpStr is empty when no swept up material is present
-				filteredStr = filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
-				filteredStr += _T(' '); // add space
-				filteredStr += strFilteredStuff;
+				// whm 8Mar2026 addition
+				wxString singleSrcPattern = pSrcPhr->m_srcSinglePattern;
+				wxString assocTextProper; assocTextProper.Empty();
+				if (!singleSrcPattern.IsEmpty())
+				{
+					int posEndStuff = strFilteredStuff.Find(singleSrcPattern);
+					if (posEndStuff != wxNOT_FOUND)
+					{
+						whiteSpAndMkrsAtEndOfRebuiltSrcText = strFilteredStuff.Mid(posEndStuff + singleSrcPattern.Length());
+						assocTextProper = strFilteredStuff.Mid(0, posEndStuff + singleSrcPattern.Length());
+					}
+				}
+				// whm 8Mar2026 Determine any punctuation that precedes the first 
+				// word of assocTextProper. This can be determined by examining the
+				// m_srcPhrase member of pSrcPhrase (this pSrcPhrase is still pointing
+				// at the beginning source phrase that has the filter marker in its
+				// m_markers member), or alternately, looking at the 
+				// pSrcPhrase->m_precPunct content.
+				// Note: It might be good to use the pPrevSrcPhrase->m_follWsMkrsAndPuncts
+				// member to determine this, but pPrevSrcPhrase is currently NULL, so not
+				// available to look at its m_follWsMkrsAndPuncts member. 
+				wxString leadingPunct; leadingPunct.Empty();
+				leadingPunct = pSrcPhrase->m_precPunct;
 
+				filteredStr = sweptUpStr; // sweptUpStr is empty when no swept up material is present
+				filteredStr += filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
+				filteredStr += _T(' '); // add space
+				filteredStr += wholeMkrBeingFiltered; // whm 8Mar2026 added
+				filteredStr += _T(' '); // whm 8Mar2026 added
+				filteredStr += leadingPunct; // whm 8Mar2026 added
+				filteredStr += assocTextProper; //strFilteredStuff; // whm 8Mar2026 modified
 				// add the bracketing end filtermarker \~FILTER*
-				filteredStr.Trim(); // don't need a final space before \~FILTER*
+				//filteredStr.Trim(); // don't need a final space before \~FILTER*
 				filteredStr += filterMkrEnd; // adds \~FILTER*
+				filteredStr += whiteSpAndMkrsAtEndOfRebuiltSrcText;
 
 				// delete the sublist's deep copied CSourcePhrase instances
 				bool bDoPartnerPileDeletionAlso = FALSE; // there are no partner piles to delete
@@ -13085,6 +13145,8 @@ g:				bIsUnknownMkr = FALSE;
 				// filteredStr
 				wxString strFilteredStuff;
 				strFilteredStuff.Empty();
+				wxString whiteSpAndMkrsAtEndOfRebuiltSrcText; // whm 8Mar2026 added
+				whiteSpAndMkrsAtEndOfRebuiltSrcText.Empty();
 				if (!pSublist->IsEmpty())
 				{
 					// BEW addition 9Apr15 to fix a bug where two consecutive filterable spans such
@@ -13197,14 +13259,41 @@ g:				bIsUnknownMkr = FALSE;
 					strFilteredStuff = strFilteredStuff.Mid(posWholeMkr);
 				}
 
+				// whm 8Mar2026 addition
+				wxString singleSrcPattern = pSrcPhr->m_srcSinglePattern;
+				wxString assocTextProper; assocTextProper.Empty();
+				if (!singleSrcPattern.IsEmpty())
+				{
+					int posEndStuff = strFilteredStuff.Find(singleSrcPattern);
+					if (posEndStuff != wxNOT_FOUND)
+					{
+						whiteSpAndMkrsAtEndOfRebuiltSrcText = strFilteredStuff.Mid(posEndStuff + singleSrcPattern.Length());
+						assocTextProper = strFilteredStuff.Mid(0, posEndStuff + singleSrcPattern.Length());
+					}
+				}
+				// whm 8Mar2026 Determine any punctuation that precedes the first 
+				// word of assocTextProper. This can be determined by examining the
+				// m_srcPhrase member of pSrcPhrase (this pSrcPhrase is still pointing
+				// at the beginning source phrase that has the filter marker in its
+				// m_markers member), or alternately, looking at the 
+				// pSrcPhrase->m_precPunct content.
+				// Note: It might be good to use the pPrevSrcPhrase->m_follWsMkrsAndPuncts
+				// member to determine this, but pPrevSrcPhrase is currently NULL, so not
+				// available to look at its m_follWsMkrsAndPuncts member. 
+				wxString leadingPunct; leadingPunct.Empty();
+				leadingPunct = pSrcPhrase->m_precPunct;
+
 				filteredStr = sweptUpStr; // sweptUpStr is empty when no swept up material is present
 				filteredStr += filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
 				filteredStr += _T(' '); // add space
-				filteredStr += strFilteredStuff;
-
+				filteredStr += wholeMkrBeingFiltered; // whm 8Mar2026 added
+				filteredStr += _T(' '); // whm 8Mar2026 added
+				filteredStr += leadingPunct; // whm 8Mar2026 added
+				filteredStr += assocTextProper; //strFilteredStuff; // whm 8Mar2026 modified
 				// add the bracketing end filtermarker \~FILTER*
-				filteredStr.Trim(); // don't need a final space before \~FILTER*
+				//filteredStr.Trim(); // don't need a final space before \~FILTER*
 				filteredStr += filterMkrEnd; // adds \~FILTER*
+				filteredStr += whiteSpAndMkrsAtEndOfRebuiltSrcText;
 
 				// delete the sublist's deep copied CSourcePhrase instances
 				bool bDoPartnerPileDeletionAlso = FALSE; // there are no partner piles to delete
@@ -18344,10 +18433,21 @@ void CAdapt_ItDoc::GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkr
 // with strings that already have the filter brakets removed, whereas this function
 // fills its reference array parameter with strings that still have their filter
 // brackets intact in each array item.
-wxArrayString CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr)
+// wxArrayString CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr)
+// whm 7Mar2026 revised. We need the GetFilteredInfoSegments() function to 
+// return an additional parallel string array that contains any following
+// whitespace, markers, and punctuation that occurs after the \~FILTER* end
+// bracket of the info in the filterStr. I changed the previous version to be
+// a void function and added both wxArrayStrings as reference parameters to
+// the function. 
+void CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 added
+	wxArrayString& filteredStrItemsWithBrackets, // whm 7Mar2026 added
+	wxArrayString& filteredStrItemsWsMkrsAndPuncts) // whm 7Mar2026 added
 {
-	wxArrayString segmentsArr;
-	segmentsArr.Clear();
+	//wxArrayString segmentsArr;
+	//wxArrayString wsMkrsAndPunctsArr;
+	filteredStrItemsWithBrackets.Clear(); // segmentsArr.Clear();
+	filteredStrItemsWsMkrsAndPuncts.Clear();
 	int posEndFilterBracket = -1;
 	wxString remainingStr = filterStr; // start with the whole string
 	wxString endFilterBracket = _T("\\~FILTER*");
@@ -18357,11 +18457,52 @@ wxArrayString CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr)
 	{
 		wxString tempStr;
 		tempStr = remainingStr.Mid(0, posEndFilterBracket + nLenEndnFilterBracket);
-		segmentsArr.Add(tempStr);
+		filteredStrItemsWithBrackets.Add(tempStr); // segmentsArr.Add(tempStr);
 		remainingStr = remainingStr.Mid(posEndFilterBracket + nLenEndnFilterBracket);
 		posEndFilterBracket = remainingStr.Find(endFilterBracket);
+		if (!remainingStr.IsEmpty())
+		{
+			// There is some material after the end of the last filter
+			// bracket \~FILTER*. If there are no more filter segments
+			// we save the remainingStr in the filteredStrItemsWsMkrsAndPuncts
+			// array.
+			if (posEndFilterBracket == wxNOT_FOUND)
+			{
+				//  No further filtered material follows.
+				// This should be saved in the filteredStrItemsWsMkrsAndPuncts
+				// array.
+				filteredStrItemsWsMkrsAndPuncts.Add(remainingStr);
+			}
+			else
+			{
+				// More filtered material follows. If the posEndFilteredBracket
+				// position index is > 0 then there is something before that 
+				// position to be extracted and saved in the 
+				// filteredStrItemsWsMkrsAndPuncts array. If posEndFilteredBracket
+				// is 0 then there is no whitespace, markers or puncts suffixed
+				// to the current end bracket, so we store an empty string 
+				// in this position of the array to keep the array's parallel.
+				if (posEndFilterBracket > 0)
+				{
+					wxString tmpStr;
+					tmpStr = remainingStr.Mid(0, posEndFilterBracket);
+					filteredStrItemsWsMkrsAndPuncts.Add(tmpStr);
+				}
+				else
+				{
+					// posEndFilterBracket is 0. Save an empty string in the array.
+					filteredStrItemsWsMkrsAndPuncts.Add(wxEmptyString);
+				}
+			}
+		}
+		else
+		{
+			// The remainingStr is empty. 
+			filteredStrItemsWsMkrsAndPuncts.Add(wxEmptyString);
+		}
 	}
-	return segmentsArr;
+	wxASSERT(filteredStrItemsWithBrackets.GetCount() == filteredStrItemsWsMkrsAndPuncts.GetCount());
+	//return segmentsArr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

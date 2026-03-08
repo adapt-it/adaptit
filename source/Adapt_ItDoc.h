@@ -478,7 +478,9 @@ public:
 	void			GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
 	void			GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str);
-	wxArrayString   GetFilteredInfoSegments(wxString filterStr); // whm 8Feb2024 added
+	void			GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 added
+					wxArrayString& filteredStrItemsWithBrackets, // whm 7Mar2026 added
+					wxArrayString& filteredStrItemsWsMkrsAndPuncts); // whm 7Mar2026 added
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
