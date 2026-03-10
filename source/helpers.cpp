@@ -9473,6 +9473,7 @@ wxString GetCommonNonTextStrPartsOrderedAccordingToStr1or2(wxString str1, wxStri
 		{
 			item1 = PartsStr1.Item(j);
 			Item1IsWhiteSp = pDoc->IsStringWhiteSpace(item1);
+			Item1IsWhiteSp = Item1IsWhiteSp; // avoid gcc warning.
 			if (item2 == item1 || item2IsWhiteSp)
 			{
 				commonPartsStr2 += item2; // commonPartsStr2inStr1.Add(item2);
@@ -9588,8 +9589,8 @@ wxString RemoveCommonNonTextPartsOfStr1FromStr2IgnoringStr2WhiteSpace(wxString s
 		// whitespace 
 		bool bItem1IsWhiteSp = FALSE;
 		bool bStr2ChIsWhiteSp = FALSE;
-		wxChar chItem1 = NULL;
-		wxChar chStr2 = NULL;
+		wxChar chItem1 = _T('\0');
+		wxChar chStr2 = _T('\0');
 		if (!item1Str.IsEmpty())
 			chItem1 = item1Str.GetChar(0);
 		if (!str2Temp.IsEmpty())
@@ -10532,6 +10533,7 @@ wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,
 				wxStringTokenizer mkrs(endMkrs, _T("\\"), wxTOKEN_DEFAULT); // empty tokens are never returned
 				int numTokens;
 				numTokens = mkrs.CountTokens();
+				numTokens = numTokens; // avoid gcc warning
 				while (mkrs.HasMoreTokens())
 				{
 					aMkr = mkrs.GetNextToken();
@@ -17998,6 +18000,7 @@ bool AnalyseSstr(wxString s,
 				tokensCount--;
 			}
 			bSrcWordFoundAndRemoved = TRUE;
+			bSrcWordFoundAndRemoved = bSrcWordFoundAndRemoved; // avoid gcc warning
 			break; // exit for loop
 		}
 	}
@@ -18123,6 +18126,7 @@ bool AnalyseSstr(wxString s,
 			wxChar* pEnd = ptr + (size_t)mkrSpanLen; // points to null
 			//wholeMkr = mkrSpan.Left(offset + 1);
 			bIsBeginMkr = pDoc->IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr); // returns wholeMkr by ref
+			bIsBeginMkr = bIsBeginMkr; // avoid gcc warning
 			int lenMarker = (int)wholeMkr.Length();
 			remainder = mkrSpan.Mid(lenMarker);
 			if (!prefixPunct.IsEmpty())
