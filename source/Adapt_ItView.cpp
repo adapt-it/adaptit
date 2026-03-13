@@ -28352,7 +28352,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	}
 
 	wxString srcStr; // collect in this
-	int length = 0;
+	//int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
 	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added, used in FromMergerMakeSstr() and FromSingleMakeSstr2()
@@ -28365,6 +28365,30 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 		{
             // any sequence number meeting that condition lies within the editable span,
             // so collect from it...
+			//
+			// whm 11Mar2026 added. The new scheme of tracking whitespace markers and punctuatioin
+			// within the m_follWsMkrsAndPuncts member of CSourcePhrase requires that we extract
+			// some whitespace, markers and puncts from the previous source phrase's m_follWsMkrsAndPuncts
+			// member and put that into the srcStr here at the start of the while loop but only for the
+			// nStartingSN. The pPrevSrcPhrase's m_follWsMkrsAndPuncts is not readily available because
+			// pPrevSrcPhrase is NULL at this point. So instead of getting its m_follWsMkrsAndPuncts
+			// value, we'll add the m_markers and any other begin markers of the current pSrcPhrase to
+			// For example. If the first word of a span of source text being edited is at the beginning
+			// of a verse, there will be a verse number perhaps like "\\p\r\n\\v 1 " in m_markers which
+			// we want to put back into place preceding the first word that we include in srcStr. 
+			// Generally, we should include any other begin markers and preceding punctuation in the
+			// general rebuild order that precedes the first word of the span being edited.
+			wxString wsMkrsAndPuncts; wsMkrsAndPuncts.Empty();
+			if (pSrcPhrase->m_nSequNumber == nStartingSN)
+			{
+				// The general order that also was used in export functions. This order may not
+				// always be accurate, but the user can adjust that in the source text edit dialog.
+				wsMkrsAndPuncts += pSrcPhrase->m_markers;
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineNonbindingMarkers();
+				wsMkrsAndPuncts += pSrcPhrase->m_precPunct;
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineBindingMarkers();
+			}
+			// 
 			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
 				// it's a genuine merger
@@ -28384,68 +28408,13 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 					pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter 
 					pSrcPhrases); // whm 19Nov2025 added pSrcPhrases
 			}
-			// figure out how to concatenate the substrings - after an endmarker (we'll
-			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
-			// even if we did we'd just assume \fe or \F were not endmarkers and put a
-			// space after them for concatenation, and that would comply with what the old
-			// markup standard used to so anyway, so we are safe) For USFM endmarker,
-			// we'll not put a space after it unless the to-be-concatenated string does
-			// not begin with a backslash (ie. if punctuation or a word starts it, then
-			// we'd want an intervening space)
-			strSource.Trim(); // remove any space from its end
-			length = strSource.Len();
-			if (length == 0)
-			{
-				strSource = srcStr;
-			}
-			else if (strSource[length-1] != _T('*'))
-			{
-				// no endmarker at its end
-				// BEW refactored 21Jul14, need ZWSP here, since either a single or a
-				// merged pSrcPhrase yielded srcStr
-				if (srcStr[0] == gSFescapechar)
-				{
-					// srcStr starts with an SF marker - it's safe then to tuck it up to
-					// whatever precedes without any intervening space, but it will be
-					// more readable with a space, and this is a context where we won't
-					// have punctuation & filtering interacting, so add the space
-					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-				}
-				else
-				{
-					// srcStr doesn't start with a marker, so we'll need to insert a space
-					// provided strSource is not empty
-					if (strSource.IsEmpty())
-					{
-						strSource = srcStr;
-					}
-					else
-					{
-						strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-					}
-				}
-			}
-			else
-			{
-				// there's an endmarker at its end - we'll add a space only if srcStr does
-				// not begin with an SF marker
-				if (srcStr[0] == gSFescapechar)
-				{
-					// srcStr begins with a marker so we can tuck it up to the end of strSource
-					strSource += srcStr;
-				}
-				else
-				{
-					// no marker at the start of srcStr, so a space would help readability (though
-					// otherwise unnecessary)
-					// BEW 21Jul14 support restoring ZWSP here
-					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-				}
-			}
+			// Prefix the wsMkrsAndPuncts to the rebuild source srcStr before output to strSource.
+			srcStr = wsMkrsAndPuncts + srcStr;
+			strSource += srcStr; // whm 11Mar2026 moved to here.
 			srcStr.Empty();
 		} // end of block for TRUE result from test of sequence number
 		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
-	} // end of loop
+	} // end of while (pos_pSP != NULL) loop
 
 	// Don't leak memory. In the next call, FALSE is bDoPartnerPileDeletionAlso; calls
 	// DeleteSingleSrcPhrase() on each instance in pSublist
@@ -32916,9 +32885,16 @@ void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec,
 	{
 		if (pApp->m_nActiveSequNum > pApp->GetMaxIndex())
 		{
+			// whm 13Mar2026 addition/correction. The App's m_vertEdit_LastActiveSequNum
+			// value need to be updated here, otherwise if the last active pile was at or 
+			// near the end of the doc and source phrases were removed in this 
+			// TransferCompletedSrcPhrase() function, downstream code that then executes: 
+			//    pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum)
+			// will result in an m_pActivePile value of NULL causing a program crash.
 			pApp->m_nActiveSequNum  = pRec->nStartingSequNum; // this is probably a
-															  // better active loc
+															// better active loc
 			pRec->nSaveActiveSequNum = pApp->m_nActiveSequNum;
+			pApp->m_vertEdit_LastActiveSequNum = pApp->m_nActiveSequNum; // whm 13Mar2026 added
 		}
 	}
 }
@@ -34431,7 +34407,28 @@ void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument(); int nIndex = 1; // BEW 29May24 added
 
-	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	// whm 12Mar2026 Discovered a crash is possible if the active sequence number
+	// at the time Edit Source Text was invoked, was at the last pile in the document,
+	// and there were one or more placeholder source phrases in a retranslation that
+	// was just edited by the Edit Source Text process. The pApp->m_vertEdit_LastActiveSequNum
+	// value will be out of range (above the actual number of actual source phrases in
+	// pApp->m_pSourcePhrases). The pApp->m_vertEdit_LastActiveSequNum value should have 
+	// been updated during the Edit Source Text or vertical edit process prior to this point,
+	// so I'm going to put a safety check here to see if the pApp->m_vertEdit_LastActiveSequNum
+	// is beyond the actual count within the pApp->m_pSourcePhrases list. If so, we'll make
+	// sure here that the View's GetPile() call gets the actual last pile of the document
+	// so that pApp->m_pActivePile doesn't become NULL.
+	// whm 13Mar2026 Note: By adding an update of the pApp->m_vertEdit_LastActiveSequNum
+	// value near the end of the TransferCompletedSrcPhrases() function, the if block of
+	// the test should not happen, but having the check here won't hurt.
+	if (pApp->m_vertEdit_LastActiveSequNum > ((int)pApp->m_pSourcePhrases->GetCount() - 1))
+	{
+		pApp->m_pActivePile = pView->GetPile(pApp->m_pSourcePhrases->GetCount() - 1);
+	}
+	else
+	{
+		pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	}
 	wxString phraseboxContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();// whm 12Jul2018 added ->GetTextCtrl() part
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 	pApp->m_targetPhrase = phraseboxContents;

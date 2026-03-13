@@ -6442,7 +6442,12 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		// pApp->m_nActiveSequNum was not -1. Need a more suitable test.
 		int maxindex = pApp->GetMaxIndex();
 		int curSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-		if (maxindex == curSequNum)
+		// whm 12Mar2026 added || !bSuccessful to the test below since when editing a fully
+		// adapted text, the phrasebox may not be at the maxindex, but it would still be
+		// helpful to display the "At end..." message, otherwise the user may feel that the
+		// app is unresponsive if the phrasebox doesn't move especially when the edit was
+		// a <no adaptation> edit at that location.
+		if (maxindex == curSequNum || !bSuccessful) 
 		{
 			// we got to the end of the doc...
 
@@ -6461,6 +6466,12 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 			// tell the user EOF has been reached
 			m_bCameToEnd = TRUE;
+			// whm 12Mar2026 added. We need to set the following two flags to FALSE to
+			// prevent the dropdown box from automatically opening when the phrasebox 
+			// jumps to the last location as it would have items in it that were left-
+			// overs from the dropdown's previous location.
+			pApp->m_bAutoInsert = FALSE; // whm 12Mar2026 added
+			pApp->m_bMovingToDifferentPile = FALSE; // whm 12Mar2026 added.
 			wxStatusBar* pStatusBar;
 			CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
 			if (pFrame != NULL)
@@ -7716,6 +7727,11 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 		// But, when not in Free translation mode have OnIdle() initialize the phrasebox's
 		// to the appropriate state - open for a list with items, closed for an empty list
 		if (pApp->m_bFreeTranslationMode)
+		{
+			pApp->m_bChooseTransInitializePopup = FALSE;
+			this->CloseDropDown(); // whm 21Aug2018 added. Unilaterally close the dropdown list when in free trans mode.
+		}
+		else if (m_bCameToEnd) // whm 12Mar2026 the dropdown shouldn't be executed/opened at eof situation)
 		{
 			pApp->m_bChooseTransInitializePopup = FALSE;
 			this->CloseDropDown(); // whm 21Aug2018 added. Unilaterally close the dropdown list when in free trans mode.
