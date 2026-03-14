@@ -2440,8 +2440,29 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			if (bActiveLocWithinSelection && nNewCount > nCount)
 				nSaveActiveSequNum += nNewCount - nCount;
 		}
-		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // ensure any call to
-									// InsertNullSrcPhrase() will work right
+
+		// whm 14Mar2026 modification. BEW made a change way back on 29Sep17 to move the
+		// following assignment of the App's m_nActiveSequNum with the nSaveActiveSequNum
+		// value, moving it to AFTER the call of PadWithNullSourcePhrasesAtEnd(). For some
+		// reason that change was made in EditRetranslationByTgtClick() and 
+		// OnButtonEditRetranslation(), but not done here in OnButtonRetranslation().
+		// I've noted that a crash can happen here just like it could happen in those other
+		// two places due to an incorrect active value - beyond the m_pSourcePhrases list.
+		// Here I'm moving the assignment of m_nActiveSequNum to below the 
+		// PadWithNullSourcePhrasesAtEnd() call, and prefixing it with the comment 
+		// BEW made in the other two places, since it applies here as well:
+		// 
+		// m_pApp->m_nActiveSequNum = nSaveActiveSequNum; Commented out BEW 29Sep17 because
+		// it sets the active pile sequ num in **anticipation* of what it will be *AFTER*
+		// PadWithNullSourcePhrasesAtEnd() needs to do - but the latter call needs the
+		// pre-padding active location's sequ number, and so we'd generate an incorrect
+		// active value. Historically, this has not been a problem because our documents
+		// are large - but if the document has a one-src-word retranslation followed by
+		// a second word which is at the end of the document, then the sequ number that
+		// gets gnerated for the active location is 1 greater than there are CSourcePhrase
+		// instances in the doc - leading to a crash. So relocate this line to after the
+		// Pad... call, so that it brings the active sequ num value into line with what
+		// the Pad call does internally
 
         // we must have a valid layout, so we have to recalculate it before we go any
         // further, because if preceding code unmerged formerly merged phrases, or if null
@@ -2464,6 +2485,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // do; nNewCount is how many we end up with, nCount is the retranslation span's
         // srcphrase instance count after unmergers and placeholder removal was done
 		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount);
+		
+		// whm 14Mar2026 moved the following initialization from above the Pad...() call to
+		// this location AFTER that call. See BEW's comments of 29Sep17.
+		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; //BEW 29Sep17 relocated this line from
+				// being preceing the Padd...() call. See comment above for reason
+		
 		// BEW 6Sep22, Get m_pRetransEndPile set using nNewCount (if padding was done)
 		// or nCount if no padding was done
 		// 
