@@ -6268,6 +6268,7 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 					bPunctIsFinalInaMkr,
 					bPunctIsMedialInaMkr,
 					bStrIsAllPunctsInaMkr);
+				wxUnusedVar(baMkrHasPunctuation);
 				wxChar lastCh;
 				wxChar firstCh;
 				if (!strAccum.IsEmpty())
@@ -6287,10 +6288,12 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 					if (firstCh == _T(' '))
 					{
 						strAccumBeginsWithSp = TRUE;
+						wxUnusedVar(strAccumBeginsWithSp);
 					}
 					else if (firstCh == _T('\r') || lastCh == _T('\n'))
 					{
 						strAccumBeginsWithEOL = TRUE;
+						wxUnusedVar(strAccumBeginsWithEOL);
 					}
 				}
 
@@ -6331,7 +6334,7 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 						bPunctIsFinalInaMkr1,
 						bPunctIsMedialInaMkr1,
 						bStrIsAllPunctsInaMkr1);
-
+					wxUnusedVar(baMkrHasPunctuation1); // avoid gcc warning
 					strAccum += partBeforeFirstMkr;
 
 					// If the last char of partBeforeFirstMkr is final punctuation
@@ -6373,7 +6376,7 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 							strAccum += aMkr;
 						}
 						else if (pAnalysis->styleType == paragraph 
-							|| (pAnalysis->styleType == noType && pAnalysis->inLine == FALSE)
+							|| ((pAnalysis->styleType == noType) && (pAnalysis->inLine == FALSE))
 							|| bareMkr == _T("v") || bareMkr == _T("c")
 							|| bareMkr.Find(_T("tr")) != wxNOT_FOUND // whm 23Mar2026 added
 							|| bareMkr.Find(_T("th")) != wxNOT_FOUND // whm 23Mar2026 added
