@@ -5452,9 +5452,8 @@ void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 
 // whm 15Mar2026 added. This function is mainly used to populate the new 
 // m_follWsMkrsAndPuncts CSourcePhrase member using data stored in markers 
-// of the Doc Version 10's files.  - which all stored it in the 
-// m_filteredInfo member of the following pSrcPhrase. Starting with Doc 
-// Version 11, whitespace, markers and punctuation is stored within the 
+// of the Doc Version 10's files.  Starting with Doc Version 11, 
+// whitespace, markers and punctuation is stored within the 
 // m_follWsMkrsAndPuncts of a pSrcPhrase to track those elements that 
 // occur in the original source text FOLLOWING the pSrcPhrase->m_key 
 // word(s) all the way to the beginning of the following source 
@@ -5520,8 +5519,6 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 		//		of the same pSrcPhrase where the m_filteredInfo stores the filtered 
 		//		info (The filter marker may have a preceding EOL if it's a paragraph
 		//		or non-inline type marker)
-		// TODO: Can we determine any whitespace and markers that follow filtered info
-		//		AFTER the \~FILTER* end bracket???
 		// NOTE: The above items are initially assembled in the ordering 
 		// indicated above but this ordering of markers in relation to 
 		// punctuation is somewhat indeterminate unless the original 
@@ -5539,13 +5536,11 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 		// We make adjustments to the assignments according to whether the 
 		// gpPreviousSrcPhrase and pSrcPhrase are single SP, merged SP or 
 		// placeholder SP.
-		// TODO: Check the instances of a placeholder both manually inserted 
-		// and placeholders inserted as padding for a retranslation.
-		// TODO: EOL's versus spaces are not preserved well in the members 
-		// of docVersion 10 docs, so we may arbitrarily put EOL's before 
-		// \c, \v and all other paragraphs markers like \p, and put spaces 
-		// before all end markers like \w* \add* \f* and all inline type 
-		// begin markers like \w, \x, \f, etc.
+		// NOTE: EOL's versus spaces are not preserved well in the members 
+		// of docVersion 10 docs, so we attempt to be smart by putting 
+		// EOL's before \c, \v and all other paragraphs markers like \p, 
+		// and put spaces before all end markers like \w* \add* \f* and 
+		// all inline type begin markers like \w, \x, \f, etc.
 
 #ifdef _DEBUG
 		if (pSrcPhrase->m_nSequNumber >= 327)
@@ -5597,7 +5592,6 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 			// is a poetry marker. It's m_textType would be poetry or xml ty="2" whereas the m_textType 
 			// of the pSrcPhrase that the dummy data is being copied to could well be any text type, 
 			// but often might be verse or xml ty="1".
-			// TODO: Determine what would be best here.
 
 			pDoc->DeleteSingleSrcPhrase(gpDummySrcPhrase); 
 			gpDummySrcPhrase = NULL; // initialize back to NULL
@@ -5634,14 +5628,12 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 			// prefix it to the various punct, marker, etc fields so it won't get lost.
 			// gpDummySrcPhrase is created in ReadDoc_XML() before the ParseXML() call
 			// and then deleted in ReadDoc_XML() after the ParseXML() call.
-			//wxASSERT(gpDummySrcPhrase == NULL);
 
 			gpDummySrcPhrase = new CSourcePhrase(*pSrcPhrase); // a shallow copy is all we need
 			// Now Delete the current empty pSrcPhrase and return from this instance of the
 			// FromDocVersion10ToDocVersionCurrent() function
 			pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 			pSrcPhrase = NULL; 
-			//gpSrcPhrase = NULL;
 			return;
 		}
 
@@ -5728,8 +5720,9 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 				}
 				else
 				{
-					// whm 23Mar2026 added. Prefix the delayWMAPCacheAfterFilteredInfo stuff
-					// to the wsMkrsAndPuncts here before the AdjustWhiteSpace...() call below.
+					// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+					// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts here 
+					// before the AdjustWhiteSpace...() call below.
 					//wsMkrsAndPuncts = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts;
 					wsMkrsAndPuncts = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts,
 						pPrevSPhr, pSPhr);
@@ -5913,8 +5906,9 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 							// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts
 							// that are present from the beginning of the filteredStr 
 							// up to the first actual char of text. 
-							// whm 23Mar2026 added. Prefix the delayWMAPCacheAfterFilteredInfo stuff
-							// to the wsMkrsAndPuncts1 here before the AdjustWhiteSpace...() call below.
+							// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+							// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts1 here 
+							// before the AdjustWhiteSpace...() call below.
 							//wsMkrsAndPuncts1 = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts1;
 							wsMkrsAndPuncts1 = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts1,
 								gpPreviousSrcPhrase, pSrcPhrase);
@@ -6166,6 +6160,9 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 					wxChar* pEnd = pBufStart + filteredStr.Length(); // bound past which we must not go
 					wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
 					wxString wsMkrsAndPuncts1;
+					// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+					// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts1 here 
+					// before the GetWsMkrsAndPunctsFromPtrOnward() call below.
 					//wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pLastSPhr);
 					wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, gpPreviousSrcPhrase);
 					// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts

@@ -9725,7 +9725,7 @@ void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
 // required to do the job of reconstructing the source text from a
 // pList of source phrases. The new scheme of storing the 
 // m_follWsMkrsAndPuncts member makes it possible to reconstruct the
-// source text from a simple formula for each source phrase instance
+// source text from a simpler formula for each source phrase instance
 // being rebuilt:
 //	str = <keyWord> + <hiddenData> + m_follWsMkrsAndPuncts
 // where the <keyWord> represents:
@@ -9761,7 +9761,8 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 	// to persist from one call of FromSingleMakeSstr2() that processes filtered material to 
 	// the next call of FromSingleMakeSstr2(), so I'm using a static wxString variable I'll
 	// call lastFilteredWsMkrsAndPuncts.
-	// TODO: 1Mar2026 Is this still needed???
+	// Note: whm 1Mar2026 lastFiltStuff is no longer used in this refactored
+	// design and could be removed.
 	wxString lastFiltStuff; lastFiltStuff.Empty();
 	static wxString lastFilteredWsMkrsAndPuncts;
 	if (!lastFilteredWsMkrsAndPuncts.IsEmpty())
@@ -9778,14 +9779,6 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 	GetSrcPhraseStatusFlags(pSingleSrcPhrase, pPrevSingleSrcPhrase,
 		bHasMetadata, bHasFilteredInfo, bHadFilteredInfoInPrevSrcPhrase,
 		bHasEmptyKey, bHasEmbeddedMarkerInKeyWord, bKeyHasOnlyPuncts);
-
-	// whm 5Feb2024 comment: According to BEW, the purpose of the GetSrcPhraseBeginningInfo() 
-	// call below is to be (from BEW comments):
-	// "A useful utility which ignores filtered information and m_markers, but collects, in
-	// sequence, other punctuation and marker information which precedes the phrase. This
-	// material is stored in m_inlineNonbindingMarkers, m_precPunct, and
-	// m_inlineBindingEndMarkers, in that order."
-	// Hence it should be called BEFORE the str << pSrcPhrase->m_key assignment below.
 
 	// This block would likely execute for the first pSingleSrcPhrase instance 
 	// of any sub-list rebuild of source text.
@@ -9861,7 +9854,7 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 			{
 				str.RemoveLast(1);
 			}
-			keyWord = str; //keyWord = pSingleSrcPhrase->m_key + str;
+			keyWord = str;
 		}
 		else if (bHasEmbeddedMarkerInKeyWord)
 		{
@@ -10086,8 +10079,8 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 // 9.  OK_btn_delayedHandler_GetSourceTextFromEditor()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: createNewFile
 // 10. OnOpenDocument()--> if (pApp->m_bAutoExport)--> RebuildTargetText()--> FromSingleMakeTstr()--> FromSingleMakeSstr2()
 // 11. OnEditSourceText()--> SetupUsfmStructArrayAndFile()--> RebuildSourceText() for: fileProcess == createFromSPList
-// whm 4Mar2026 This function was replace by FromSingleMakeSstr1() in all instanced throughout
-// the application. Therefore this FromSingleMakeSstr2() is no longer used in the application.
+// whm 4Mar2026 This function was replace by FromSingleMakeSstr1() in most instances throughout
+// the application. This FromSingleMakeSstr2() is currently used only in ReconstituteOneAfterPunctuationChange().
 wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase,
 	CSourcePhrase* pPrevSingleSrcPhrase,// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
 	SPList* pList) // whm 19Nov2025 added pList parameter
