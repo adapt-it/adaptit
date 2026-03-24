@@ -289,6 +289,8 @@ public:
 	bool			m_bWmkrAndHasBar; // BEW 12Sep22 added, to save value returned by IsWmkrWithBar(wxChar* ptr), used with caching some USFM 3 stuff
 	wxString		m_strInitialPuncts; // BEW 23Jun23 a set of 11 pre-word punctuation chars, taken from spacelessPuncts to
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
+	wxString		m_strStrictlyInitialPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
+	wxString		m_strStrictlyFinalPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
 	wxString		ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW added 16Nov23
@@ -436,6 +438,8 @@ public:
 	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr);
 
 	wxString		GetWsMkrsAndPunctsAtPtr(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 10Jan2026 added
+
+	wxString		GetWsMkrsAndPunctsFromPtrOnward(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 20Mar2026 added
 
 					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 					// whitespace(s), and getting to the puncts may require parsing over one or more endEndMarkers
@@ -622,6 +626,12 @@ public:
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
 	int				ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 25Jul23 added
 
+	bool			StringHasPunctuation(wxString str,  // whm 22Mar2026 added
+						bool& bPunctIsInitial, 
+						bool& bPunctIsFinal, 
+						bool& bPunctIsMedial, 
+						bool& bStrIsAllPuncts);
+	wxString		RemoveAllPunctuationFromString(wxString strBefore);
 	// *********  NOTE ***** BEW 3Jun23 if I get a message, errorC2248: cannot access private member declared in class
 	// *********  regarding operator= , when using ParseFinalPuncts() , it's because I was assuming that the function
 	// *********  ParseFinaPuncts() returns a wxString, when it actually returns an int!!!!! Duh! Homer brain struck again
@@ -719,6 +729,7 @@ public:
 	void			UpdateFilenamesAndPaths(bool bKBFilename, bool bKBPath, bool bKBBackupPath,
 		bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
+	void			UpdateMergedSequNumbers(); // whm 21Mar2026 added
 	void			SetFilename(const wxString& filename, bool notifyViews);
 
 

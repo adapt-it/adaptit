@@ -370,6 +370,14 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
 // whm 10Jun2024 added
 void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
 
+// whm 15Mar2026 added
+void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase);
+
+// whm 16Mar2026 added
+wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndPuncts, 
+	CSourcePhrase* pPrevSrcPhrase, // whm 19Mar2026 added
+	CSourcePhrase* pSrcPhrase); // whm 19Mar2026 added
+
 // convert from doc version 5's various filtered content storage members, back to the
 // legacy doc version 4 storage regime, where filtered info and endmarkers (for
 // non-filtered info) were all stored on m_markers. This function must only be called on a

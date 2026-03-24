@@ -3373,6 +3373,11 @@ wxString CSourcePhrase::GetSrcWordBreak()
         // just store and return a latin space
 		this->m_srcWordBreak = _T(' ');
 	}
+	// whm 23Mar2026 added. Always change a CR or LF to CRLF.
+	else if (this->m_srcWordBreak == _T('\r') || this->m_srcWordBreak == _T('\n'))
+	{
+		this->m_srcWordBreak = _T("\r\n");
+	}
 	return m_srcWordBreak;
 }
 wxString CSourcePhrase::GetTgtWordBreak()
