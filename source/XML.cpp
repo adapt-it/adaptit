@@ -6376,7 +6376,7 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 							strAccum += aMkr;
 						}
 						else if (pAnalysis->styleType == paragraph 
-							|| ((pAnalysis->styleType == noType) && (pAnalysis->inLine == FALSE))
+							|| ((pAnalysis->styleType == 0) && (pAnalysis->inLine == FALSE))
 							|| bareMkr == _T("v") || bareMkr == _T("c")
 							|| bareMkr.Find(_T("tr")) != wxNOT_FOUND // whm 23Mar2026 added
 							|| bareMkr.Find(_T("th")) != wxNOT_FOUND // whm 23Mar2026 added
