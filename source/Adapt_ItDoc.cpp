@@ -9998,8 +9998,9 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	// regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
 
-	 // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-	srcPhrase = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
+	// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
+	// whm 24Mar2026 now calls FromSingleMakeSstr1()
+	srcPhrase = FromSingleMakeSstr1(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
 		pList); // whm 19Nov2025 added pList
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
@@ -21552,6 +21553,12 @@ wxString CAdapt_ItDoc::ParseNumberPrefixedWord(wxChar* pChar, wxChar* pEnd, wxSt
 // a hyphen, but what precedes the hyphen is a substring which contains punctuation (could be : or .)
 // and there's no '/' (which by itself is an insufficient test, but is a good test if : or . precede
 // a present hyphen. So I need to refactor to reject a string like "10:4-ŋuru"
+// 
+// whm 24Mar2026 modified to return -1 if pChar is pointing at a single digit character in the text
+// because of a GetChar(0) call on the empty string causes a crash situation. This situation occurred
+// when ParseDate() is called from ParseWord() > ParseDate() in the context of 
+// ReconstituteOneAfterPunctuationChanbe() where just a single word (in this case "7") is
+// being processed by TokenizeText().
 int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
 {
 	wxChar* ptr = pChar; wxUnusedVar(ptr); // avoid warning variable initialized but not referenced
@@ -21575,7 +21582,12 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 		// Starts with a digit
 		dateSpanLen = ScanToWhiteSpace(pChar, pEnd);
 		strDate = wxString(pChar, dateSpanLen);
-
+		// whm 24Mar2026 added protection against GetChar(0) below being called
+		// on an empty string (revDate) - in context of ReconstituteOneAfterPunctuationChange().
+		if (strDate.IsEmpty())
+		{
+			return -1;
+		}
 		{ // scoping span
 			//BEW 22Jun23 added code for shortening span if one or more puncts follow.
 			int count = 0; // count final puncts that get removed
