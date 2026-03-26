@@ -9997,11 +9997,33 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	// setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
 	// regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
-
+#ifdef _DEBUG
+	if (pSrcPhrase->m_nSequNumber >= 6)
+	{
+		int break_here = 1;
+		break_here = break_here;
+	}
+#endif
 	// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
 	// whm 24Mar2026 now calls FromSingleMakeSstr1()
+	wxString prevWsMkrsAndPuncts;
+	if (pPrevSrcPhrase != NULL)
+	{
+		prevWsMkrsAndPuncts = pPrevSrcPhrase->m_follWsMkrsAndPuncts;
+	}
+
+	// whm 24Mar2026 added. Prefix the srcPhrase obtained from the FromSingleMakrSstr1()
+	// call below with the begin markers and preceding punctuation associated with the srcPhrase
+	wxString wsMkrsAndPuncts;
+	wsMkrsAndPuncts = pSrcPhrase->GetInlineNonbindingMarkers();
+	wsMkrsAndPuncts += pSrcPhrase->m_markers;
+	wsMkrsAndPuncts += pSrcPhrase->m_precPunct;
+	wsMkrsAndPuncts += pSrcPhrase->GetInlineBindingMarkers();
+
 	srcPhrase = FromSingleMakeSstr1(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
 		pList); // whm 19Nov2025 added pList
+	
+	srcPhrase = wsMkrsAndPuncts + srcPhrase; // whm 24Mar2026 added
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
@@ -25372,22 +25394,26 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 // whm 21Mar2026 added. This function doesn't make a significant
 // change to the m_pSourcePhrases. It simply scans through the
 // pList of the App's m_pSourcePhrases, and tidies up the sequ
-// numbers of the merged source phrases after the m_pSourcePhrases
-// have been updated by a prior call of the UpdateSequNumbers()
-// above. This makes the comparison of diffs within WinMerge
-// less cluttered with highlighted change diffs when WinMerge compares
-// an xml docVersion 10 that has been converted to docVersion 11 by 
-// the FromDocVersion10ToDocVersionCurrent() XML.cpp function, with
-// an xml docVersion 11 file created with App version 6.12.x that
-// itself produces a docVersion 11 file. The conversion routine
-// FromDocVersion10ToDocVersionCurrent() removes empty source phrases 
-// from the docVersion 10 xml, which results in the numbering of the
-// merged m_pSavedWords->m_nSequNumbers getting out-of-sync with what 
-// the m_pSavedWords->m_nSequNumbers would be in a natively produced 
-// docVersion 11 xml file. 
+// numbers and textTypes of the merged source phrases after the 
+// m_pSourcePhrases have been updated by a prior calls of 
+// UpdateSequNumbers() and/or DoMarkerHousekeeping().
+// This tidy-up operation makes the comparison of diffs within WinMerge
+// less cluttered with highlighted change diffs of sequ numbers when 
+// WinMerge compares an xml docVersion 10 that has been converted to 
+// docVersion 11 by the FromDocVersion10ToDocVersionCurrent() XML.cpp 
+// function, with an xml docVersion 11 file created with App version 
+// 6.12.x that itself produces a docVersion 11 file. The conversion 
+// routine FromDocVersion10ToDocVersionCurrent() removes empty source 
+// phrases from the docVersion 10 xml, which results in the numbering 
+// of the merged m_pSavedWords->m_nSequNumbers being out-of-sync with 
+// what the m_pSavedWords->m_nSequNumbers would be in a natively 
+// produced docVersion 11 xml file. 
 // This function is only called after an UpdateSequNumbers() call
-// within the XML.cpp's 
-void CAdapt_ItDoc::UpdateMergedSequNumbers()
+// within the XML.cpp's. The textType number also can get out of
+// sync particularly when an isolated textType changing marker 
+// (like \q1) is removed from its empty source phrase and incorporated
+// in the following source phrase during docVersion 10 to docVersion 11.
+void CAdapt_ItDoc::UpdateMergedSequNumbersAndTextTypes()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -25430,6 +25456,8 @@ void CAdapt_ItDoc::UpdateMergedSequNumbers()
 				pos_pOriginals = pos_pOriginals->GetNext();
 				if (pSPhr->m_nSequNumber != idx)
 					pSPhr->m_nSequNumber = idx;
+				if (pSPhr->m_curTextType != pSrcPhrase->m_curTextType)
+					pSPhr->m_curTextType = pSrcPhrase->m_curTextType;
 				idx++;
 			}
 		}
@@ -27105,6 +27133,22 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			pView->RemovePunctuation(this, &adaption, from_target_text);
 			pSrcPhrase->m_adaption = adaption;
 		}
+		// whm 25Mar2026 added. I think we need to call StoreKBEntryForRebuild() here
+		// as is done for a single non-merged pSrcPhrase farther below. If we don't
+		// the merged pSrcPhrase itself will see its m_bHasKBEntry value unilaterally
+		// set to FALSE, when it should be restored to an original value of TRUE.
+		bool bPlaceholder = FALSE; // default
+		bool bNotInKB = FALSE; // default
+		bool bRetranslation = FALSE; // default
+		if (pSrcPhrase->m_bNullSourcePhrase) bPlaceholder = TRUE;
+		if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
+		if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
+		// whm 25Mar2026 the test !bIsOwned is not applicable to a merged pSrcPhrase
+		// [BEW] update the KBs (both glossing and adapting KBs) provided it is
+		// appropriate to do so
+		if (!bPlaceholder && !bRetranslation && !bNotInKB) // && !bIsOwned)
+			pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
+
 		// Note: in case you are wondering... changing the punctuation settings, not matter
 		// what kind of change is made to them, will have absolutely no effect on the
 		// merger's m_srcPhrase value. The latter can't obtain new characters, nor lose

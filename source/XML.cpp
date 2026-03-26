@@ -4899,7 +4899,18 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		if (gnDocVersion == 10)
 		{
 			gpDoc->UpdateSequNumbers(0, NULL); // in case there were empty source phrases deleted
-			gpDoc->UpdateMergedSequNumbers();
+			// whm 25Mar2026 added a call to DoMarkerHousekeeping() to straighten out
+			// any textType issues that may have resulted from the incorporation of
+			// poetry markers that were stored in empty source phrases and that were
+			// incorporated into the following source phrases by the 
+			// FromDocVersion10ToDocVersionCurrent() function call.
+			TextType dummyType = verse;
+			bool bPropagationRequired = FALSE;
+			int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
+			gpDoc->DoMarkerHousekeeping(gpApp->m_pSourcePhrases, docSrcPhraseCount,
+				dummyType, bPropagationRequired);
+			// whm 
+			gpDoc->UpdateMergedSequNumbersAndTextTypes();
 		}
 
 		return TRUE;
@@ -5543,7 +5554,7 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 		// all inline type begin markers like \w, \x, \f, etc.
 
 #ifdef _DEBUG
-		if (pSrcPhrase->m_nSequNumber >= 327)
+		if (pSrcPhrase->m_nSequNumber >= 533)
 		{
 			int break_here = 1;
 			break_here = break_here;
@@ -6009,7 +6020,18 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 					// we have a merger, so process m_pSavedWords too
 					SPList* pOriginals = gpPreviousSrcPhrase->m_pSavedWords;
 					wxASSERT(!pOriginals->IsEmpty());
-					SPList::Node* pos_pOriginals = pOriginals->GetLast();
+					SPList::Node* pos_pOriginals = pOriginals->GetFirst();
+					CSourcePhrase* pFirstSPhr = pos_pOriginals->GetData();
+					// whm 25Mar2026 The first saved word of the group should
+					// have the same m_markers content at the top-level 
+					// merged word. It also should have the same m_inform
+					// content.
+					if (!gpPreviousSrcPhrase->m_markers.IsEmpty())
+						pFirstSPhr->m_markers = gpPreviousSrcPhrase->m_markers;
+					if (!gpPreviousSrcPhrase->m_inform.IsEmpty())
+						pFirstSPhr->m_inform = gpPreviousSrcPhrase->m_inform;
+
+					pos_pOriginals = pOriginals->GetLast();
 					CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
 					wxASSERT(pLastSPhr);
 

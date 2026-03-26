@@ -729,7 +729,7 @@ public:
 	void			UpdateFilenamesAndPaths(bool bKBFilename, bool bKBPath, bool bKBBackupPath,
 		bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
-	void			UpdateMergedSequNumbers(); // whm 21Mar2026 added
+	void			UpdateMergedSequNumbersAndTextTypes(); // whm 21Mar2026 added
 	void			SetFilename(const wxString& filename, bool notifyViews);
 
 
