@@ -44979,7 +44979,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						pSrcPhrase->m_key = strWordWithoutFinalPuncts; //pSrcPhrase->m_key = strWord;
 						pSrcPhrase->m_srcPhrase += strWord; // whm 22Dec2025 corrected = to +=
 						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
-						pSrcPhrase->m_srcSinglePattern += strWord;
+						// whm 26Mar2026 modification. No, we should wait until after ParseWord() has
+						// completed its work before setting the value of pSrcPhrase->m_srcSinglePattern.
+						//pSrcPhrase->m_srcSinglePattern += strWord;
 						ptr += strWordLen;
 						len += strWordLen;
 						// NOLOGS wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
@@ -45749,7 +45751,13 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						// m_srcPhrase also, plus m_srcPhrase was just suffixed with strFinalPuncts, 
 						// so here we should here copy what is already set within the m_srcPhrase for 
 						// our m_srcSinglePattern value.
-						pSrcPhrase->m_srcSinglePattern = pSrcPhrase->m_srcPhrase;
+						// whm 26Mar2026 modification. No, we should wait until after ParseWord() has
+						// completed its work before setting the value of pSrcPhrase->m_srcSinglePattern.
+						// The reason: The test after ParseWord() is:
+						// if (itemLen > 0 && bTokenizingTargetText == FALSE && pSrcPhrase->m_srcSinglePattern.IsEmpty())
+						// If we set a partial value of m_srcSinglePattern here we may miss other suffixed
+						// material that should go into m_srcSinglePattern.
+						//pSrcPhrase->m_srcSinglePattern = pSrcPhrase->m_srcPhrase;
 						ptr = pAux;
 						ptr += finalPunctsLen;
 						len += finalPunctsLen;
@@ -45763,7 +45771,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						pSrcPhrase->m_follPunct << twoOnly;
 						pSrcPhrase->m_srcPhrase << twoOnly;
 						// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
-						pSrcPhrase->m_srcSinglePattern << twoOnly;
+						// whm 26Mar2026 modification. No, we should wait until after ParseWord() has
+						// completed its work before setting the value of pSrcPhrase->m_srcSinglePattern.
+						//pSrcPhrase->m_srcSinglePattern << twoOnly;
 						ptr += 2;
 						len += 2;
 						return len;
@@ -45921,7 +45931,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							pSrcPhrase->m_follPunct << strPuncts;
 							pSrcPhrase->m_srcPhrase << strPuncts;
 							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
-							pSrcPhrase->m_srcSinglePattern << strPuncts;
+							// whm 26Mar2026 modification. No, we should wait until after ParseWord() has
+							// completed its work before setting the value of pSrcPhrase->m_srcSinglePattern.
+							//pSrcPhrase->m_srcSinglePattern << strPuncts;
 							return len; // what follows ptr location is the newline, and then typically a \v beginMKR (or a word)
 						} // end of TRUE block for test: if (bch1OK == TRUE && bch2OK == TRUE && bch3OK == TRUE && bch4OK == TRUE)
 
@@ -45974,7 +45986,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							pSrcPhrase->m_follPunct << strPuncts;
 							pSrcPhrase->m_srcPhrase << strPuncts;
 							// whm 29Jan2026 added. We need to also update m_srcSinglePattern here.
-							pSrcPhrase->m_srcSinglePattern << strPuncts;
+							// whm 26Mar2026 modification. No, we should wait until after ParseWord() has
+							// completed its work before setting the value of pSrcPhrase->m_srcSinglePattern.
+							//pSrcPhrase->m_srcSinglePattern << strPuncts;
 							return len; // what follows ptr location is the newline, and then typically a \v beginMKR (or a word)
 						} // end of TRUE block for test: if (bch2OK == TRUE && bch3OK == TRUE && bch4OK == TRUE)
 
@@ -55490,7 +55504,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 
 #if defined (_DEBUG) //&& !defined (NOLOGS)
-			if (pSrcPhrase->m_nSequNumber >= 35)
+			if (pSrcPhrase->m_nSequNumber >= 20)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -56965,7 +56979,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString atPtr = wxString(ptr, 16);
 		wxLogDebug(_T("TokenizeText(), line %d , sn= %d , APPENDING to pList , m_bSpecialText = %d , m_curTextType = %d , atPtr= [%s]"),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, atPtr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 7)
+		if (pSrcPhrase->m_nSequNumber >= 332)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
