@@ -44,7 +44,9 @@ class CAdapt_ItView; // forward ref
 //enum UniqueFileIncrementMethod; // whm 28Jul12 removed; gives gcc compile error
 
 // main export functions:
-wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
+// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+//wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
 
 // whm 12Feb2024 Revised to remove the treatment of filtered information in this
 // AppendSrcPhraseBeginningInfo() function and move it to the AppendSrcPhraseEndingInfo()

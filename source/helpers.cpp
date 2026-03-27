@@ -2223,6 +2223,9 @@ wxString  NormalizeChVsRefToInitialVsOfAnyBridge(wxString bridgedRef)
 // characters present (other than "\r\n") will be reduced to "singular" whitespace. 
 // This function is mainly used in export routines such as BuildSourceText(), FromMergerMakeSstr(),
 // FromSingleMakeSstr2(), etc.
+// whm 27Mar2026 This function is currently unused after implementing the more accurate handling
+// of whitespace via the CSourcePhrase->m_follWsMkrsAndPuncts member addition.
+/*
 void AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr)
 {
 	int lenReceivingStr = (int)receivingStr.Length();
@@ -2304,6 +2307,7 @@ void AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wx
 	// Now append to the truncated receivingStr the finalSingularWhitespace and appendingStrMinusLeftEndWhitespace
 	receivingStr << finalSingularWhitespace << appendingStrMinusLeftEndWhitespace;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with

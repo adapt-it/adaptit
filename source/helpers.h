@@ -223,7 +223,9 @@ wxString  MakeUNNNN_Hex(wxString& chStr); // BEW 17Dec22 need this because 41MAT
 // whm 2Feb2024 added following function that appends sppendingStr to receivingStr ensuring that there
 // is singular whitespace between the two strings. Excess whitespace is removed from the right end of the
 // receivingStr. The receivingStr is returned to caller by reference and the appendingStr is not changed.
-void	  AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr);
+// whm 27Mar2026 This function is currently unused after implementing the more accurate handling
+// of whitespace via the CSourcePhrase->m_follWsMkrsAndPuncts member addition.
+//void	  AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr);
 
 // BEW removed this version of ExtractSubstring() as it's looking like I won't need it
 //wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);

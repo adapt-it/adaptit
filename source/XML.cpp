@@ -4907,9 +4907,34 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			TextType dummyType = verse;
 			bool bPropagationRequired = FALSE;
 			int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
+			// whm 27Mar2026 added. When doing a conversion from docVersion10 to 11, the very last
+			// gpSrcPhrase that gets converted in the file will not have its m_follWsMkrsAndPuncts
+			// member filled in with any following punctuation and/or end markers. We need to 
+			// ensure that the last source phrase's m_follWsMkrsAndPuncts member get filled in 
+			// with those following puncts and/or end markers, otherwise any exports done after 
+			// conversion will not contain those following puncts and/or end markers.
+			CSourcePhrase* pFinalSrcPhrase = NULL;
+			SPList::Node* pos_Final = gpApp->m_pSourcePhrases->GetLast();
+			pFinalSrcPhrase = (CSourcePhrase*)pos_Final->GetData();
+			if (pFinalSrcPhrase != NULL)
+			{
+				wxString finalPunctsAndEndMarkers; finalPunctsAndEndMarkers.Empty();
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineBindingEndMarkers();
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->m_follPunct;
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetEndMarkers();
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
+				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineNonbindingEndMarkers();
+				pFinalSrcPhrase->m_follWsMkrsAndPuncts = finalPunctsAndEndMarkers;
+			}
 			gpDoc->DoMarkerHousekeeping(gpApp->m_pSourcePhrases, docSrcPhraseCount,
 				dummyType, bPropagationRequired);
-			// whm 
+			//21Mar2026 added. The UpdateMergedSequNumbersAndTextTypes() function 
+			// call below doesn't make a significant change to the m_pSourcePhrases. 
+			// It simply scans through the pList of the App's m_pSourcePhrases, and 
+			// tidies up the sequ numbers and textTypes of the *merged* source phrases 
+			// only, after the m_pSourcePhrases have been updated by a prior calls of 
+			// UpdateSequNumbers() and/or DoMarkerHousekeeping().
 			gpDoc->UpdateMergedSequNumbersAndTextTypes();
 		}
 

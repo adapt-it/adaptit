@@ -17665,6 +17665,13 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // LF and some being CRLF.
 // whm 2Jan2026-20Jan2026 refactored the main function FromSingleMakeSstr2() function
 // for better formatting and ordering of whitespace, markers and punctuation in exports.
+// 
+// whm 1Mar2026 refactored the FromSingleMakeSstr2() and renamed it FromSingleMakeSstr1()
+// for simplification. The previous version named FromSingleMakeSstr2() was a patchwork 
+// and more complex than required to do the job of reconstructing the source text from a
+// pList of source phrases. The new scheme of storing the m_follWsMkrsAndPuncts member 
+// makes it possible to reconstruct the source text a simpler process for each source 
+// phrase instance being rebuilt.
 int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
@@ -17725,6 +17732,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// original CSourcePhrase instances in the m_pSavedWords array in the merged
 	// sourcephrase we must examine all those originals in that sublist - but the first
 	// must be given special treatment.
+	
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 	source.Empty();
@@ -17809,7 +17817,6 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// processed in the while loop below  - unused - may use in future. Filtered information is 
 	// stored on a previous source phrase in the incoming pList data.
 	CSourcePhrase* pPrevSrcPhrase = NULL;
-
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
@@ -17851,7 +17858,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		
 #endif
 			//aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
-			/* uncomment out, ifyou want to see what aBreak is, shown on every line of the Output in debug mode
+			/* uncomment out, if you want to see what aBreak is, shown on every line of the Output in debug mode
 #ifdef _DEBUG
 
 			int breakLen = aBreak.Length();
@@ -18139,9 +18146,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			//}
 			//else
 			//{
-				// when m_nSequNum == 0 source will be empty string, so don't put medial white space
-				// at the beginning of the rebuild.
-				source << str;
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
 			//}
 			str.Empty();
 
@@ -18308,6 +18315,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
+
 	pStatusBar->FinishProgress(_("Rebuilding Source Text"));
 
 	// whm 27Feb2026 Don't automatically trim whitespace, EOLs from end of source buffer.
@@ -18399,6 +18407,9 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 
 // BEW 11Oct10, removed \x from the test, because \x occurs after \v and verse number in
 // USFM documentation, and so there should be a preceding space
+// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+/*
 wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -18445,6 +18456,7 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 	}
 	return str;
 }
+*/
 
 // This function takes the m_markers and m_gloss members from CSourcePhrase instances, and
 // builds the glosses as if they were connected text (in whatever edited state it happens
