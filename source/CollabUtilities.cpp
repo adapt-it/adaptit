@@ -243,14 +243,23 @@ extern bool gbDoingInitialSetup;
 				tempStr = usfmStructureAndExtentArray.Item(ct);
 				if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
 				{
-					// we're pointing at a \c element of a string that is of the form: "\c 1:0:MD5"
-					// strip away the preceding \c and the following :0:MD5
+					// whm 28Mar2026 Revision. When I added the extra colon delimited field to the
+					// usfm struct I failed to revise this routine here and instead of tempStr getting
+					// the chapter number, it was getting chapter number plus ":0" because the code was
+					// working from the right end to remove the fields following the chapter info.
+					// The revision now simply finds the first colon past the chapter marker and removes
+					// that colon plus all that follows it.
+					// We're pointing at a \c element of a string that is of the form: "\c 1:0:0:MD5"
+					// strip away the preceding \c and the following :0:0:MD5
 
-					// Account for MD5 hash now at end of tempStr
-					int posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
-					tempStr = tempStr.Mid(0, posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
-					posColon = tempStr.Find(_T(':'), TRUE);
-					tempStr = tempStr.Mid(0, posColon); // get rid of the char count part and preceding colon
+					//// Account for MD5 hash now at end of tempStr
+					//int posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
+					//tempStr = tempStr.Mid(0, posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
+					//posColon = tempStr.Find(_T(':'), TRUE);
+					//tempStr = tempStr.Mid(0, posColon); // get rid of the char count part and preceding colon
+					// whm 28Mar2026 revision:
+					int posColon = tempStr.Find(_T(':'), FALSE); // FALSE - find from left end
+					tempStr = tempStr.Mid(0, posColon);
 
 					int posChMkr;
 					posChMkr = tempStr.Find(chMkr); // \c
@@ -532,12 +541,25 @@ extern bool gbDoingInitialSetup;
 							nLastVerseNumber = wxAtoi(str);
 						}
 						// now determine if the verse is empty or not
-						int posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
-						wxASSERT(posColon != wxNOT_FOUND);
-						tempStr = tempStr.Mid(0, posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \v markers)
-						posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
+						// whm 28Mar2026 modification. Here also the addition of a whitespace field
+						// following the MD5 field has caused an issue. Here we wish to determined
+						// the content of the second "extent" field (the value between the first 
+						// and second colon). In order to work from the more established left end
+						// of the usfm struct line, I will leave the tempStr intact and work with
+						// the extent string getting at the second "extent" field from the left end.
+						//int posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
 						wxString extent;
-						extent = tempStr.Mid(posColon + 1);
+						extent = tempStr;
+						int posColon = extent.Find(_T(':'), FALSE); // FALSE - find from left end
+						wxASSERT(posColon != wxNOT_FOUND);
+						// Remove the \v n: part - left end of the string
+						extent = extent.Mid(posColon + 1);
+						posColon = extent.Find(_T(':'), FALSE);
+						// Remove what follows the second "extent" field
+						extent = extent.Mid(0, posColon);
+						//tempStr = tempStr.Mid(0, posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \v markers)
+						//posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
+						//extent = tempStr.Mid(posColon + 1);
 						extent.Trim(FALSE);
 						extent.Trim(TRUE);
 						if (extent == _T("0"))
