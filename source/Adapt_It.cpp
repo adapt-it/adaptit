@@ -53462,7 +53462,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 ///                              is removed
 /// \param      wholeMarker   -> the whole marker of interest
 /// \remarks
-/// Called from: (currently unused)
+/// Called from: GetUnfilteredCrossRefsAndMMarkers()
 /// Removes any instance of wholeMarker found in markerStr.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMarker)
@@ -53472,11 +53472,12 @@ void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMar
     // backslash and terminating with a delimiting space
     // Also assumes wholeMarker begins with backslash, and insures it ends with a
     // delimiting space.
-    wholeMarker.Trim(FALSE); // trim left end
-    wholeMarker.Trim(TRUE); // trim right end
-    wxASSERT(!wholeMarker.IsEmpty());
-    // then add the necessary final space
-    wholeMarker += _T(' ');
+    // whm 29Mar2026 removed the removal of whitespace and adding of Latin space
+    //wholeMarker.Trim(FALSE); // trim left end
+    //wholeMarker.Trim(TRUE); // trim right end
+    //wxASSERT(!wholeMarker.IsEmpty());
+    //// then add the necessary final space
+    //wholeMarker += _T(' ');
     int posn = markerStr.Find(wholeMarker);
     if (posn != -1)
     {

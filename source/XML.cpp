@@ -4793,28 +4793,38 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			// whm 27Jan2024 added next block. Any doc version 4 transfers will have
 			// been done by this point in the call of FromDocVersion4ToDocVersionCurrent()
 			// above.
-			if (gnDocVersion == 5)
-			{
-				FromDocVersion5ToDocVersionCurrent(gpSrcPhrase);
+			// whm 30Mar2026 Removed the following function FromDocVersion5ToDocVersionCurrent()
+			// from this locataion and renamed it to 
+			// DoDocVersion5toCurrentConversion(gpApp->m_pSroucePhrases) and placed the new version
+			// in the 'else if (tag == xml_adaptitdoc)' block below which only executes once at the
+			// end of the xml processing. This was done because the gpSrcPhrase and gpPreviousSrcPhrase
+			// globals were not being updated properly and it was had to keep track of if/when they
+			// were getting updated properly. Now a local pSrcPhrase and pPreviousSrcPhrase exist 
+			// only within the function and not globals.
+			//if (gnDocVersion == 5)
+			//{
+			//	FromDocVersion5ToDocVersionCurrent(gpSrcPhrase);
 				// whm 10June2024 addition. In header comments for this function BEW wondered if it would
 				// be good to assign a value to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as
 				// part of the upgrading process. I agree that it should be done which I've done below.
-				if (gpSrcPhrase->m_srcSinglePattern.IsEmpty())
-				{
-					// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
-					// strWordAndExtras value which includes m_key word plus material that is 
-					// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
-					gpSrcPhrase->m_srcSinglePattern = gpSrcPhrase->m_key;
-					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetInlineBindingEndMarkers();
-					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->m_follPunct;
-					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetEndMarkers();
-					gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetFollowingOuterPunct();
-				}
-				if (gpSrcPhrase->m_oldKey.IsEmpty())
-				{
-					gpSrcPhrase->m_oldKey = gpSrcPhrase->m_key;
-				}
-			}
+				// whm 30Mar2026 note: The populating of the m_srcSinglePattern member is now down within
+				// the new DoDocVersion5toCurrentConversion() function.
+				//if (gpSrcPhrase->m_srcSinglePattern.IsEmpty())
+				//{
+				//	// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+				//	// strWordAndExtras value which includes m_key word plus material that is 
+				//	// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+				//	gpSrcPhrase->m_srcSinglePattern = gpSrcPhrase->m_key;
+				//	gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetInlineBindingEndMarkers();
+				//	gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->m_follPunct;
+				//	gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetEndMarkers();
+				//	gpSrcPhrase->m_srcSinglePattern += gpSrcPhrase->GetFollowingOuterPunct();
+				//}
+				//if (gpSrcPhrase->m_oldKey.IsEmpty())
+				//{
+				//	gpSrcPhrase->m_oldKey = gpSrcPhrase->m_key;
+				//}
+			//}
 
 			// whm 10Jun2024 change. The next test needs to test gnDocVersion >= 6 && gnDocVersion <= 9 
 			// in order to include gnDocVersion from 6 through 9. Those versions all stored filtered information
@@ -4846,10 +4856,16 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				}
 			}
 
-			if (gnDocVersion == 10)
-			{
-				FromDocVersion10ToDocVersionCurrent(gpSrcPhrase);
-			}
+			// whm 30Mar2026 modified. We want the conversion function to execute for
+			// each gpSrcPhrase that is earlier that version 11.
+			// Note: The conversion function above for docVersion >= 6 && docVersion <= 9
+			// will execute first, then the following function. The docVersion of a whole
+			// xml document won't actually change until the entire doc is read in and the
+			// resulting doc is saved.
+			//if (gnDocVersion <= 10)
+			//{
+			//	FromDocVersion10ToDocVersionCurrent(gpSrcPhrase);
+			//}
 
 			if (gpSrcPhrase != NULL)
 			{
@@ -4884,10 +4900,10 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else if (tag == xml_adaptitdoc)
 	{
-		// we are done
+		// We are done processing the xml file.
 		if (gnDocVersion == 4)
 		{
-			// try fix bad bad parsings done in doc version 4
+			// Try to fix bad parsings done in doc version 4
 			gpDoc->UpdateSequNumbers(0,NULL); // in case there were orphans deleted
 					// within the TransferEndMarkers() function within the
 					// FromDocVersion4ToDocVersion5() function
@@ -4895,10 +4911,24 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			gpDoc->UpdateSequNumbers(0,NULL); // incase there were orphans deleted
 											  // when Murdering... the little blighters
 		}
-		// whm 21Mar2026 added.
-		if (gnDocVersion == 10)
+
+		// whm 30Mar2026 Renamed the FromDocVersion5ToDocVersionCurrent() to 
+		// DoDocVersion5toCurrentConversion() and moved it to this location
+		// to be called after the xml doc has completely been processed.
+		if (gnDocVersion == 5)
+		{
+			DoDocVersion5toCurrentConversion(gpApp->m_pSourcePhrases);
+		}
+
+		// whm 30Mar2026 revised.
+		if (gnDocVersion >= 6 && gnDocVersion <= 10)
 		{
 			gpDoc->UpdateSequNumbers(0, NULL); // in case there were empty source phrases deleted
+			// whm 30Mar2026 moved the conversion of xml docVersions 6 through 11 to here
+			// which processes them without depending on gpSrcPhrase and gpPreviousSrcPhrase
+			// globals.
+			DoDocVersion6toCurrentConversion(gpApp->m_pSourcePhrases);
+
 			// whm 25Mar2026 added a call to DoMarkerHousekeeping() to straighten out
 			// any textType issues that may have resulted from the incorporation of
 			// poetry markers that were stored in empty source phrases and that were
@@ -4907,26 +4937,6 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			TextType dummyType = verse;
 			bool bPropagationRequired = FALSE;
 			int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
-			// whm 27Mar2026 added. When doing a conversion from docVersion10 to 11, the very last
-			// gpSrcPhrase that gets converted in the file will not have its m_follWsMkrsAndPuncts
-			// member filled in with any following punctuation and/or end markers. We need to 
-			// ensure that the last source phrase's m_follWsMkrsAndPuncts member get filled in 
-			// with those following puncts and/or end markers, otherwise any exports done after 
-			// conversion will not contain those following puncts and/or end markers.
-			CSourcePhrase* pFinalSrcPhrase = NULL;
-			SPList::Node* pos_Final = gpApp->m_pSourcePhrases->GetLast();
-			pFinalSrcPhrase = (CSourcePhrase*)pos_Final->GetData();
-			if (pFinalSrcPhrase != NULL)
-			{
-				wxString finalPunctsAndEndMarkers; finalPunctsAndEndMarkers.Empty();
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineBindingEndMarkers();
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->m_follPunct;
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetEndMarkers();
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
-				finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineNonbindingEndMarkers();
-				pFinalSrcPhrase->m_follWsMkrsAndPuncts = finalPunctsAndEndMarkers;
-			}
 			gpDoc->DoMarkerHousekeeping(gpApp->m_pSourcePhrases, docSrcPhraseCount,
 				dummyType, bPropagationRequired);
 			//21Mar2026 added. The UpdateMergedSequNumbersAndTextTypes() function 
@@ -5278,6 +5288,11 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 // to assign values to pSrcPhrase->m_srcSinglePattern and pSrcPhrase->m_oldKey as part of
 // the upgrading process, if those value are empty. I've done the assignments at the end of
 // this function.
+// whm 30Mar2026 removed the following FromDocVersion5ToDocVersionCurrent(), replacing it
+// with the renamed DoDocVersion5toCurrentConversion(SPList*& pSrcPhraseList) function
+// now located within the 'else if (tag == xml_adaptitdoc)' block of the AtDocEndTag()
+// function.
+/*
 void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 {
 	if (pSrcPhrase != NULL && gpPreviousSrcPhrase != NULL)
@@ -5375,12 +5390,157 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 		pSrcPhrase->m_markers = strRemainder;
 	}
 }
+*/
+
+// whm 30Mar2026 Revised and renamed from the previous Function that was called
+// FromDocVersion5ToDocVersionCurrent(). This revised function processes the
+// whole pSrcPhraseList at once, whereas the previous function only processed
+// a single source phrase at a time and depended on a global gpPreviousSrcPhrase
+// that wasn't getting updated properly back in the App's m_pSourcePhrases list.
+// This function is similar, but processes pSrcPhrase and pPreviousSrcPhrase
+// entirely within the function.
+// This function moves filtered information from the current pSrcPhrase to the
+// pPreviousSrcPhrase in the pSrcPhraseList. The filtered information includes
+// regular filtered markers, free translations, back translations and AI notes.
+void DoDocVersion5toCurrentConversion(SPList*& pSrcPhraseList)
+{
+	SPList* pList = pSrcPhraseList;
+	wxASSERT(pSrcPhraseList != NULL);
+	SPList::Node* pos_pList = NULL;
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pPreviousSrcPhrase = NULL;
+
+	pos_pList = pList->GetFirst();
+	// Scan the whole document, doing the conversion
+	while (pos_pList != NULL)
+	{
+		pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
+		// We only collect data if both pSrcPhrase and pPreviousSrcPhrase are not NULL
+		if (pSrcPhrase != NULL && pPreviousSrcPhrase != NULL)
+		{
+			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+			pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
+			// whm 27Jan2024 comment:
+			// Note: The purpose of this FromDocVersion5ToDocVersionCurrent() 
+			// functioin is to transfer filtered info from a doc 5's m_filteredInfo 
+			// of the current pSrcPhrase's m_filteredInof member, to the m_filteredInfo 
+			// member of the LAST/PREVIOUS source phrase - pPreviousSrcPhrase here in XML.cpp.
+			// I've modified the code block below to do the transfer for doc version 5
+			// to the current doc version 10+.
+			// 
+			// [BEW] extract all the wrapped filtered info into its own string, deal
+			// separately with free translations, notes, and collected back
+			// translations, and the rest belongs in m_markers
+			// (ExtractWrappedFilteredInfo() is defined in XML.cpp)
+			wxString strRemainder;
+			wxString strFreeTrans;
+			wxString strNote;
+			wxString strCollectedBackTrans;
+			// [BEW] the next call strips of \~FILTER and \~FILTER* and any marker and endmarker
+			// wrapped by these wrapper markers, if returning data via strFreeTrans, strNote,
+			// and/or strCollectedBackTrans; but the normal return string which goes to
+			// filteredInfo will have neither the filter marker wrappers, nor the marker
+			// and endmarker (if present)wrapped by them, removed - because Adapt It makes
+			// no use of the m_filteredInfo content in version 5, that member is just
+			// there as a catch all for all filtered stuff needing to be kept in case the
+			// use calls for an export - in which case it needs to be put into the export
+			// at the appropriate places, but until then we just squirrel it away and
+			// forget about it
+			// BEW Dec 2016 - changed the export functions a few years ago so that they no
+			// longer automatically unfilter to the export. Now, they are stored and are
+			// unused until an explicit choice by the user to unfilter something.
+			wxString filterStuff = pSrcPhrase->GetFilteredInfo();
+			if (!filterStuff.IsEmpty())
+			{
+				// whm 10June2024 modification to ensure that the pPreviousSrcPhrase is a
+				// non-placeholder source phrase. If the most immediate previous source phrase is
+				// a placeholder, the code now scans to previous source phrases until a non-
+				// placeholder source phrase is located.
+				// Note: The gnDocVersion value that was detected in the Settings of the document
+				// remains constance until the document xml is fully parsed in. The doc version of
+				// the xml doesn't change until the parsed in document is actually saved, at which
+				// point it becomes the current doc version which for AI version 6.11.1 is doc version
+				// 10.
+				pPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(pPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
+			}
+			wxString filteredInfo = ExtractWrappedFilteredInfo(filterStuff,
+				strFreeTrans, strNote, strCollectedBackTrans, strRemainder);
+			if (!strFreeTrans.IsEmpty())
+			{
+				// [BEW] transfer the unwrapped content (with \free and \free* markers removed)
+				// to the m_freeTrans member
+				// 
+				// whm 27Jan2024 modified. The SetFreeTrans() method call below should be
+				// done to store filtered \free material on pPreviousSrcPhrase now rather than
+				// on pSrcPhrase.
+				pPreviousSrcPhrase->SetFreeTrans(strFreeTrans); //pSrcPhrase->SetFreeTrans(strFreeTrans);
+			}
+			if (!strNote.IsEmpty())
+			{
+				// [BEW] transfer the unwrapped content (with \note and \note* markers removed)
+				// to the m_note member
+				// 
+				// whm 27Jan2024 modified. The SetNote() method call below should be
+				// done to store filtered \note material on pPreviousSrcPhrase now rather than
+				// on pSrcPhrase. Ditto for the m_bHasNote = TRUE
+				pPreviousSrcPhrase->SetNote(strNote); //pSrcPhrase->SetNote(strNote);
+				pPreviousSrcPhrase->m_bHasNote = TRUE; //pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
+			}
+			if (!strCollectedBackTrans.IsEmpty())
+			{
+				// [BEW] transfer the unwrapped content (with \bt, or any \bt-initial marker, removed)
+				// to the m_collectedBackTrans member
+				// 
+				// whm 27Jan2024 modified. The SetCollectedBackTrans() method call below should 
+				// be done to store filtered \bt... material on pPreviousSrcPhrase now rather than
+				// on pSrcPhrase.
+				pPreviousSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans); //pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+			}
+			// [BEW] transfer filteredInfo returned string to m_filteredInfo member (& it may
+			// be an empty string)
+			// 
+			// whm 27Jan2024 modified. The SetFilteredInfo() method call below should be
+			// done to store remaining filtered material on pPreviousSrcPhrase now rather than
+			// on pSrcPhrase.
+			pPreviousSrcPhrase->SetFilteredInfo(filteredInfo); //pSrcPhrase->SetFilteredInfo(filteredInfo);
+
+			// [BEW] update m_markers to have whatever remains of strModifiers (it could be
+			// nothing), after extracting and storing inline binding or nonbinding
+			// beginmarkers
+			strRemainder = ExtractAndStoreInlineMarkersDocV4To5(strRemainder, pSrcPhrase);
+			pSrcPhrase->m_markers = strRemainder;
+
+			// whm 30Mar2026 moved the populating of the m_srcSinglePattern and m_oldKey members 
+			// from their previous location after the old function that was called:
+			// FromDocVersion5ToDocVersionCurrent(). That functionality is now incorporated
+			// here within the DoCodVersion5toCurrentConversion() function.
+			if (pSrcPhrase->m_srcSinglePattern.IsEmpty())
+			{
+				// Note: In TokenizeText() the m_srcSinglePattern value is taken from the
+				// strWordAndExtras value which includes m_key word plus material that is 
+				// parsed via the ParsePostWordAndEndMkrs() function within ParseWord().
+				pSrcPhrase->m_srcSinglePattern = pSrcPhrase->m_key;
+				pSrcPhrase->m_srcSinglePattern += pSrcPhrase->GetInlineBindingEndMarkers();
+				pSrcPhrase->m_srcSinglePattern += pSrcPhrase->m_follPunct;
+				pSrcPhrase->m_srcSinglePattern += pSrcPhrase->GetEndMarkers();
+				pSrcPhrase->m_srcSinglePattern += pSrcPhrase->GetFollowingOuterPunct();
+			}
+			if (pSrcPhrase->m_oldKey.IsEmpty())
+			{
+				pSrcPhrase->m_oldKey = pSrcPhrase->m_key;
+			}
+		}
+		// Store (temporarily) the current source phrase in pPreviousSrcPhrase
+		pPreviousSrcPhrase = pSrcPhrase;
+	}
+}
 
 // whm 10June2024 modified. This function is mainly used to transfer any filtered information
 // from Doc Version 6 through 9 files - which all stored it in the m_filteredInfo member of
 // the following pSrcPhrase. Starting with Doc Version 10, all filtered information is stored
 // in a previous non-placeholder source phrase.
-// The caller of this function in XML.cpp's DocEndTag() detects whether the XML document 
+// The caller of this function in XML.cpp's AtDocEndTag() detects whether the XML document 
 // being input was created as a document version 6 through 9, and ONLY calls this function 
 // for doc versions 6 through 9.
 //
@@ -5402,8 +5562,8 @@ void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 		pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
 		// whm 27Jan2024 comment:
 		// Note: The purpose of this FromDocVersion5through9ToDocVersionCurrent() 
-		// functioin is to transfer filtered info from a doc 5's m_filteredInfo 
-		// of the current pSrcPhrase's m_filteredInof member, to the m_filteredInfo 
+		// function is to transfer filtered info from a doc 5's m_filteredInfo 
+		// of the current pSrcPhrase's m_filteredInfo member, to the m_filteredInfo 
 		// member of the LAST/PREVIOUS source phrase - gpPreviousSrcPhrase here in XML.cpp.
 		// I've modified the code block below to do the transfer for doc version 5
 		// to the current doc version 10+.
@@ -5488,7 +5648,7 @@ void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 
 // whm 15Mar2026 added. This function is mainly used to populate the new 
 // m_follWsMkrsAndPuncts CSourcePhrase member using data stored in markers 
-// of the Doc Version 10's files.  Starting with Doc Version 11, 
+// of the Doc Version <= 10's files.  Starting with Doc Version 11, 
 // whitespace, markers and punctuation is stored within the 
 // m_follWsMkrsAndPuncts of a pSrcPhrase to track those elements that 
 // occur in the original source text FOLLOWING the pSrcPhrase->m_key 
@@ -5520,6 +5680,9 @@ void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 // in the gpPreviousSrcPhrase->m_follWsMkrsAndPuncts member. It 
 // accounts for differences between single source phrases, merged 
 // source phrases, placeholder source phrases, and empty source phrase.
+// whm 30Mar2026 Removed. Renamed and replaced it with the 
+// DoDocVersion6toCurrentConversion().
+/*
 void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 {
 	// We only collect data if both pSrcPhrase and gpPreviousSrcPhrase are not NULL
@@ -6234,6 +6397,711 @@ void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase)
 			}
 		}
 	}
+}
+*/
+
+// whm 30Mar2026 Revised and renamed from the previous Function that was called
+// FromDocVersion10ToDocVersionCurrent(). This revised function processes the
+// whole pSrcPhraseList at once, whereas the previous function only processed a single
+// source phrase at a time and depended on a global gpPreviousSrcPhrase that
+// wasn't getting updated back in the App's m_pSourcePhrases list.
+// This function is similar, but processes pSrcPhrase and pPreviousSrcPhrase
+// entirely within the function.
+void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
+{
+	//CAdapt_ItView* pView = gpApp->GetView();
+	SPList* pList = pSrcPhraseList;
+	wxASSERT(pSrcPhraseList != NULL);
+	SPList::Node* pos_pList = NULL;
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pPreviousSrcPhrase = NULL;
+	//CSourcePhrase* pFollSrcPhrase = NULL;
+
+	pos_pList = pList->GetFirst();
+	// Scan the whole document, doing the conversion
+	while (pos_pList != NULL)
+	{
+		pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
+		// We only collect data if both pSrcPhrase and pPreviousSrcPhrase are not NULL
+		if (pSrcPhrase != NULL && pPreviousSrcPhrase != NULL)
+		{
+			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+			pDoc->Modify(TRUE); // Upgrading doc to current docVersion makes the doc dirty
+			wxString wsMkrsAndPuncts; wsMkrsAndPuncts.Empty();
+			// The data we collect from pPreviousSrcPhrase:
+			//   1. pPreviousSrcPhrase->GetInlineBindingEndMarkers()
+			//   2. pPreviousSrcPhrase->m_follPunct
+			//   3. pPreviousSrcPhrase->GetFollowingOuterPunct()
+			//   4. pPreviousSrcPhrase->GetInlineNonbindingEndMarkers()
+			//   5. pPreviousSrcPhrase->GetEndMarkers()
+			//		Note: The docVersion 10's m_singleSrcPattern (ssp) member should
+			//		be able to disambiguate the ordering of end markers and 
+			//		final punctuation.
+			//		Note: The docVersion 10's m_srcPhrase (s) member should
+			//		be able to help disambiguate the ordering of initial
+			//		punctuation and possibly inline binding begin markers, when 
+			//		compared to the corresponding inline binding end marker (in
+			//		the current or some subsequent pSrcPhrase storing the 
+			//		corresponding inline binding end marker). See code within
+			//		the now-unused FromSingleMakeSstr2() function which attempts
+			//		to do this type of ordering adjustment.
+			// The data we collect from the current pSrcPhrase:
+			//   5. pSrcPhrase->GetInlineNonbindingMarkers()
+			//   6. pSrcPhrase->m_markers
+			//   7. pSrcPhrase->m_precPunct
+			//   8. pSrcPhrase->GetInlineBindingMarkers()
+			// When pSrcPhrase contains filtered info, we extract the filtered marker
+			//		and following space, and store themt in the m_follWsMkrsAndPuncts 
+			//		of the same pSrcPhrase where the m_filteredInfo stores the filtered 
+			//		info (The filter marker may have a preceding EOL if it's a paragraph
+			//		or non-inline type marker)
+			// NOTE: The above items are initially assembled in the ordering 
+			// indicated above but this ordering of markers in relation to 
+			// punctuation is somewhat indeterminate unless the original 
+			// source text that was originally parsed by TokenizeText() is 
+			// available to verify/adjust the precise ordering of the above 
+			// elements. When collaborating with Paratext/Bibledit, the 
+			// source text is always available at the time it is retrieved
+			// or opened from the Paratext/Bibledit repository, so the 
+			// ordering could be precisely determined for those 
+			// collaboration scenarios, but when opening a non-collaboration 
+			// docVersion 10 adaptation doc we won't necessarily have access 
+			// to the original USFM source text from which the docVersion 10 
+			// doc was created - unless we opt to ask the user to navigate 
+			// in a File dialog to the original input doc and select it for us. 
+			// We make adjustments to the assignments according to whether the 
+			// pPreviousSrcPhrase and pSrcPhrase are single SP, merged SP or 
+			// placeholder SP.
+			// NOTE: EOL's versus spaces are not preserved well in the members 
+			// of docVersion 10 docs, so we attempt to be smart by putting 
+			// EOL's before \c, \v and all other paragraphs markers like \p, 
+			// and put spaces before all end markers like \w* \add* \f* and 
+			// all inline type begin markers like \w, \x, \f, etc.
+
+#ifdef _DEBUG
+			if (pSrcPhrase->m_nSequNumber >= 533)
+			{
+				int break_here = 1;
+				break_here = break_here;
+			}
+#endif
+			// whm 23Mar2026 added. The docVersion 10 tended to have a space before
+			// the end filter bracket \~FILTER* that the current docVersion 11 parser
+			// doesn't have before the \~FILTER* bracket. When exporting filtered 
+			// info such as \free ...\free*, which gets un-filtered, but then removed
+			// during the export source text process, the space generally ends up as
+			// a space immediately before an EOL which is ugly. So, the following
+			// code block tidies up the filtered information by removing any space
+			// that exists before a \~FILTER* end bracket, then stores the modified
+			// filtered info back in pPreviousSrcPhrase. 
+			if (!pPreviousSrcPhrase->GetFilteredInfo().IsEmpty())
+			{
+				wxString filtInfoStr = pPreviousSrcPhrase->GetFilteredInfo();
+				filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+				pPreviousSrcPhrase->SetFilteredInfo(filtInfoStr);
+			}
+
+			wxString cachedDummyMkrForFirstMergedWord; cachedDummyMkrForFirstMergedWord.Empty();
+			if (gpDummySrcPhrase != NULL)
+			{
+				// The previous pSrcPhrase had empty m_key and m_srcPhrase and its
+				// data was copied to the gpDummySrcPhrase. Here we need to copy certain
+				// data fields from the gpDummySrcPhrase to the current pSrcPhrase.
+				// Data to be copied should be prefixed, that is, added to the beginning 
+				// of the destination data fields in pSrcPhrase. For example, 
+				// pSrcPhrase->m_markers = gpDummySrcPhrase->m_markers + pSrcPhrase->m_markers;
+
+				// whm 23Mar2026 added
+				cachedDummyMkrForFirstMergedWord = gpDummySrcPhrase->m_markers;
+				pSrcPhrase->m_markers = gpDummySrcPhrase->m_markers + pSrcPhrase->m_markers;
+				pSrcPhrase->m_inform = gpDummySrcPhrase->m_inform + pSrcPhrase->m_inform;
+				pSrcPhrase->m_precPunct = gpDummySrcPhrase->m_precPunct + pSrcPhrase->m_precPunct;
+				pSrcPhrase->m_follPunct = gpDummySrcPhrase->m_follPunct + pSrcPhrase->m_follPunct;
+				pSrcPhrase->SetFollowingOuterPunct(gpDummySrcPhrase->GetFollowingOuterPunct() + pSrcPhrase->GetFollowingOuterPunct());
+				pSrcPhrase->SetEndMarkers(gpDummySrcPhrase->GetEndMarkers() + pSrcPhrase->GetEndMarkers());
+				pSrcPhrase->SetInlineBindingMarkers(gpDummySrcPhrase->GetInlineBindingMarkers() + pSrcPhrase->GetInlineBindingMarkers());
+				pSrcPhrase->SetInlineBindingEndMarkers(gpDummySrcPhrase->GetInlineBindingEndMarkers() + pSrcPhrase->GetInlineBindingEndMarkers());
+				pSrcPhrase->SetInlineNonbindingMarkers(gpDummySrcPhrase->GetInlineNonbindingMarkers() + pSrcPhrase->GetInlineNonbindingMarkers());
+				pSrcPhrase->SetInlineNonbindingEndMarkers(gpDummySrcPhrase->GetInlineNonbindingEndMarkers() + pSrcPhrase->GetInlineNonbindingEndMarkers());
+				// TODO: Do we need to adjust the pSrcPhrase->m_curTextType here? The empty source phrase
+				// whose data was copied to gpDummySrcPhrase might typically store a marker like \q1 which
+				// is a poetry marker. It's m_textType would be poetry or xml ty="2" whereas the m_textType 
+				// of the pSrcPhrase that the dummy data is being copied to could well be any text type, 
+				// but often might be verse or xml ty="1".
+
+				pDoc->DeleteSingleSrcPhrase(gpDummySrcPhrase);
+				gpDummySrcPhrase = NULL; // initialize back to NULL
+			}
+
+			if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_srcPhrase.IsEmpty())
+			{
+				// In docVersion 11 we avoid empty source phrases, that were used
+				// in docVersion 10 to simply store an isolated marker or punctuation.
+				// Our docVersion 11 does provide an "empty" source phrase for storing
+				// isolated begin/opening punctuation, but such instances will have
+				// the isolated punctuation stored within the m_srcPhrase member in order
+				// for it to be displayed in the adaptation main window. Here we deal
+				// only with situations in which both the m_key and m_srcPhrase are
+				// both empty and would be displaying an empty light-gray background field
+				// in the display.
+				// For conversion purposes, we will copy the fwsmp date contained in the 
+				// empty pSrcPhrase->m_follWsMkrsAndPuncts over to augment whatever may
+				// already be stored within the pPrevSrcPhrase->m_follWsMkrsAndPuncts member.
+				// Other data (mainly markers and possibly punctuation) that is stored within
+				// the empty pSrcPhrase needs to be copied to a following (yet to be read) 
+				// pSrcPhrase. Since the xml reading of the file data in ReadDoc_XML() is 
+				// sequential, we'll need to cache that other data in gpDummySrcPhrase 
+				// until the following pSrcPhrase is created and read in from disk, after 
+				// which we can copy the data from the gpDummySrcPhrase to the now-current 
+				// pSrcPhrase. We will need to delete the "empty" source phrase (which is 
+				// by then the pPreviousSrcPhrase) from the pList and ensure the 
+				// m_nSequNum numbering gets updated. 
+				// First get the fwsmp data from pSrcPhrase and add/augment it to the fwsmp
+				// of the pPreviousSrcPhrase's fwsmp data.
+				pPreviousSrcPhrase->m_follWsMkrsAndPuncts += pSrcPhrase->m_follWsMkrsAndPuncts;
+				// whm 20Mar2026 added. Make a copy/cache of the empty pSrcPhrase to the 
+				// gpDummySrcPhrase so the next iteration can use that info to copy it and 
+				// prefix it to the various punct, marker, etc fields so it won't get lost.
+				// gpDummySrcPhrase is created in ReadDoc_XML() before the ParseXML() call
+				// and then deleted in ReadDoc_XML() after the ParseXML() call.
+
+				gpDummySrcPhrase = new CSourcePhrase(*pSrcPhrase); // a shallow copy is all we need
+				// Now Delete the current empty pSrcPhrase and return from this instance of the
+				// FromDocVersion10ToDocVersionCurrent() function
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
+				pSrcPhrase = NULL;
+				return;
+			}
+
+			// If the pSrcPhrase is a merger, we need to also update the
+			// top level merged pSrcPhrase->m_follWsMkrsAndPuncts, initializing
+			// it with the currently stored m_srcWordBreak, and also fill the
+			// m_follWsMkrsAndPuncts member of each of the m_pSavedWords making
+			// up the merger.
+			int nWordCt = 1;
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				if (pSrcPhrase->m_follWsMkrsAndPuncts.IsEmpty())
+				{
+					// The pSrcPhrase->m_follWsMkrsAndPuncts is empty, so initialize
+					// the this merged source phrase to have a copy of the phrase's 
+					// m_srcWordBreak value, or a Latin space if m_srcWordBreak itself
+					// is empty.
+					if (!pSrcPhrase->GetSrcWordBreak().IsEmpty())
+						pSrcPhrase->m_follWsMkrsAndPuncts = pSrcPhrase->GetSrcWordBreak();
+					else
+						pSrcPhrase->m_follWsMkrsAndPuncts = _T(" ");
+				}
+				// Current pSrcPhrase is a merger, so process its m_pSavedWords too
+				SPList* pOriginals = pSrcPhrase->m_pSavedWords;
+				wxASSERT(!pOriginals->IsEmpty());
+				CSourcePhrase* pPrevSPhr = pPreviousSrcPhrase;
+				SPList::Node* pos_pOriginals = pOriginals->GetFirst();
+				while (pos_pOriginals != NULL)
+				{
+					CSourcePhrase* pSPhr = pos_pOriginals->GetData();
+					wxASSERT(pSPhr);
+					pos_pOriginals = pos_pOriginals->GetNext();
+					// For the first of the m_pSavedWords we build the m_follWsMkrsAndPuncts
+					// from a combination of the pPrevSrcPhrase and the first m_pSavedWords
+					// instance. For subsequent m_pSavedWords, we build the m_follWsMkrsAndPuncts
+					// from the previous m_pSavedWords instance (pPrevSPhr) and the current 
+					// m_pSavedWords instance (pSPhr). 
+					// Note: The pPrevSPhr was initialized to point to pPreviousSrcPhrase
+					// above for the first pass through this while loop.
+					wxString delayWMAPCacheAfterFilteredInfo; delayWMAPCacheAfterFilteredInfo.Empty();
+					// We are processing a merged source phrase.
+					// Construct the first part of wsMkrsAndPuncts from pPrevSPhr:
+					if (pPrevSPhr->GetFilteredInfo().IsEmpty())
+					{
+
+						wsMkrsAndPuncts = pPrevSPhr->GetInlineBindingEndMarkers();
+						wsMkrsAndPuncts += pPrevSPhr->m_follPunct;
+						wsMkrsAndPuncts += pPrevSPhr->GetFollowingOuterPunct();
+						wsMkrsAndPuncts += pPrevSPhr->GetInlineNonbindingEndMarkers();
+						wsMkrsAndPuncts += pPrevSPhr->GetEndMarkers();
+					}
+					else
+					{
+						delayWMAPCacheAfterFilteredInfo = pPrevSPhr->GetInlineBindingEndMarkers();
+						delayWMAPCacheAfterFilteredInfo += pPrevSPhr->m_follPunct;
+						delayWMAPCacheAfterFilteredInfo += pPrevSPhr->GetFollowingOuterPunct();
+						delayWMAPCacheAfterFilteredInfo += pPrevSPhr->GetInlineNonbindingEndMarkers();
+						delayWMAPCacheAfterFilteredInfo += pPrevSPhr->GetEndMarkers();
+					}
+					// Construct the last part of wsMkrsAndPuncts from pSPhr
+					wsMkrsAndPuncts += pSPhr->GetInlineNonbindingMarkers();
+					// whm 23Mar2026 added. When a dummySrcPhrase was utilized and its
+					// markers were copied to pSrcPhrase above, we also need to carry over
+					// the pPreviousSrcPhrase->m_markers value via cachedDummyMkrForFirstMergedWord
+					// to prefix to the m_markers of the first merged word pSPhr.
+					if (!cachedDummyMkrForFirstMergedWord.IsEmpty())
+					{
+						wsMkrsAndPuncts += cachedDummyMkrForFirstMergedWord + pSPhr->m_markers;
+						cachedDummyMkrForFirstMergedWord.Empty();
+					}
+					else
+					{
+						wsMkrsAndPuncts += pSPhr->m_markers;
+					}
+					wsMkrsAndPuncts += pSPhr->m_precPunct;
+					wsMkrsAndPuncts += pSPhr->GetInlineBindingMarkers();
+					if (wsMkrsAndPuncts.IsEmpty())
+					{
+						wxString wordBreak = pSPhr->GetSrcWordBreak();
+						if (!wordBreak.IsEmpty())
+							wsMkrsAndPuncts += wordBreak;
+						else
+							wsMkrsAndPuncts += _T(" ");
+					}
+					else
+					{
+						// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+						// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts here 
+						// before the AdjustWhiteSpace...() call below.
+						//wsMkrsAndPuncts = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts;
+						wsMkrsAndPuncts = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts,
+							pPrevSPhr, pSPhr);
+					}
+
+					// whm 19Mar2026 Should only update the pPrevSPhr->m_follWsMkrsAndPuncts
+					// here if pPrevSPhr->m_nSrcWords == 1.
+					if (pPrevSPhr->m_nSrcWords == 1)
+					{
+						pPrevSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+						if (!pPrevSPhr->GetFilteredInfo().IsEmpty())
+						{
+							// 23Mar2026 added. Tidy up the filtered information by removing 
+							// any space that exists before a \~FILTER* end bracket.
+							wxString filtInfoStr = pPrevSPhr->GetFilteredInfo();
+							filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+							pPrevSPhr->SetFilteredInfo(filtInfoStr);
+
+							pPrevSPhr->AddToFilteredInfo(wsMkrsAndPuncts);
+						}
+					}
+					// Also, update the last merged saved word's m_follWsMkrsAndPuncts member 
+					// when nWordCt == 1.
+					if (nWordCt == 1)
+					{
+						// The previous source phrase processed was also a merger and all but its last
+						// m_pSavedWords instance had their m_follWsMkrsAndPuncts populated.
+						// Since we are also currently processing a merger, the first word of this
+						// current merger is where we're storing the wsMkrsAndPuncts in the 
+						// pPreviousSrcPhrase's m_follWsMkrsAndPuncts member.
+						// Here we also need to store that same wsMkrsAndPuncts stuff in the
+						// LAST word of the m_pSavedWords of pgPreviousSrcPhrase.
+						if (pPreviousSrcPhrase->m_nSrcWords > 1)
+						{
+							// we have a merger, so process m_pSavedWords too
+							SPList* pOriginals = pPreviousSrcPhrase->m_pSavedWords;
+							wxASSERT(!pOriginals->IsEmpty());
+							SPList::Node* pos_pOriginals = pOriginals->GetLast();
+							CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+							wxASSERT(pLastSPhr);
+
+							// whm 20Mar2026 Augment filteredInfo with the wxMkrsAndPuncts
+							wxString filteredInfo = pPreviousSrcPhrase->GetFilteredInfo();
+							if (!filteredInfo.IsEmpty())
+							{
+								// There is filtered Info. We populate the pLastSPhr->m_follWsMkrsAndPuncts
+								// member with whitespace, markers and puncts taken from the filtered info
+								// instead of the wsMkrsAndPuncts determined above.
+								// 
+								// 23Mar2026 added. First, tidy up the filtered information by removing 
+								// any space that exists before a \~FILTER* end bracket.
+								wxString filtInfoStr = pLastSPhr->GetFilteredInfo();
+								filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+								pLastSPhr->SetFilteredInfo(filtInfoStr);
+
+								pLastSPhr->AddToFilteredInfo(wsMkrsAndPuncts);
+
+								// 23Mar2026 added. First, tidy up the filtered information by removing 
+								// any space that exists before a \~FILTER* end bracket.
+								filtInfoStr = pPreviousSrcPhrase->GetFilteredInfo();
+								filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+								pPreviousSrcPhrase->SetFilteredInfo(filtInfoStr);
+
+								// whm 20Mar2026 added. Also add the wsMkrsAndPuncts to the FilteredInfo 
+								// of the pPreviousSrcPhrase, which is the merged source phrase.
+								pPreviousSrcPhrase->AddToFilteredInfo(wsMkrsAndPuncts);
+
+								// whm 20Mar2026 set the wfsmp of this last word of merged group
+								// to have the filter marker followed by whitespace and any markers
+								// and punctu up to the first associated text word of the filtered
+								// info.
+								wxString filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfo);
+								// TODO: Figure out what to do with any swept up stuff in the
+								// markersPrecedingFilteredOnes array.
+
+								wxString filteredStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfo);
+								int posMkr = filteredStr.Find(filtMkr);
+								wxASSERT(posMkr != wxNOT_FOUND);
+								// Set up ptr, pBufStart, pEnd
+								const wxChar* pBuffer = filteredStr.GetData();
+								//int itemLen = 0;
+								wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
+								wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
+															 // contextually defined sfms
+								wxChar* pEnd = pBufStart + filteredStr.Length(); // bound past which we must not go
+								wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
+								wxString wsMkrsAndPuncts1;
+								wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pLastSPhr);
+								// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts
+								// that are present from the beginning of the filteredStr 
+								// up to the first actual char of text. 
+								// whm 23Mar2026 added. Prefix the delayWMAPCacheAfterFilteredInfo stuff
+								// to the wsMkrsAndPuncts1 here before the AdjustWhiteSpace...() call below.
+								wsMkrsAndPuncts1 = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts1;
+								wsMkrsAndPuncts1 = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts1,
+									pPreviousSrcPhrase, pLastSPhr);
+								// The resulting wsMkrsAndPuncts1 will now be stored in the fwsmp field. 
+								// For example wsMkrsAndPuncts1 might be something like: " \\mr (" and 
+								// store it is the m_follWsMkrsAndPuncts member of pLastSPhr: fwsmp=" \\mr ("
+								pLastSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts1;
+							}
+							else
+							{
+								// There is no filtered info, so store the wsMkrsAndPuncts value
+								// that was determined above in pLastSPhr->m_follWsMkrsAndPuncts.
+								pLastSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+							}
+						}
+						else
+						{
+							// The pPreviousSrcPhrase was not a merged one, so set
+							// its' m_follWsMkrsAndPuncts value to wsMkrsAndPuncts
+
+							// whm 20Mar2026 Augment filteredInfo with the wxMkrsAndPuncts
+							wxString filteredInfo = pPreviousSrcPhrase->GetFilteredInfo();
+							if (!filteredInfo.IsEmpty())
+							{
+								// whm 20Mar2026 added. Also add the wsMkrsAndPuncts to the FilteredInfo 
+								// of the pPreviousSrcPhrase, which is the merged source phrase.
+
+								// whm 21Mar2026 Commented out the following line as it doubles
+								// what was already there.
+								//pPreviousSrcPhrase->AddToFilteredInfo(wsMkrsAndPuncts);
+
+								// There is filtered Info. We populate the pLastSPhr->m_follWsMkrsAndPuncts
+								// member with whitespace, markers and puncts taken from the filtered info
+								// instead of the wsMkrsAndPuncts determined above.
+								//pLastSPhr->AddToFilteredInfo(wsMkrsAndPuncts);
+
+								// whm 20Mar2026 set the wfsmp of this last word of merged group
+								// to have the filter marker followed by whitespace and any markers
+								// and punctu up to the first associated text word of the filtered
+								// info.
+								wxString filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfo);
+
+								// TODO: Figure out what to do with any swept up stuff in the
+								// markersPrecedingFilteredOnes array.
+
+								wxString filteredStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfo);
+								int posMkr = filteredStr.Find(filtMkr);
+								wxASSERT(posMkr != wxNOT_FOUND);
+								// Set up ptr, pBufStart, pEnd
+								const wxChar* pBuffer = filteredStr.GetData();
+								//int itemLen = 0;
+								wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
+								wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
+															 // contextually defined sfms
+								wxChar* pEnd = pBufStart + filteredStr.Length(); // bound past which we must not go
+								wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
+								wxString wsMkrsAndPuncts1;
+								wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pPreviousSrcPhrase);
+								// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts
+								// that are present from the beginning of the filteredStr 
+								// up to the first actual char of text. 
+								// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+								// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts1 here 
+								// before the AdjustWhiteSpace...() call below.
+								//wsMkrsAndPuncts1 = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts1;
+								wsMkrsAndPuncts1 = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts1,
+									pPreviousSrcPhrase, pSrcPhrase);
+								// The resulting wsMkrsAndPuncts1 will now be stored in the fwsmp field. 
+								// For example wsMkrsAndPuncts1 might be something like: " \\mr (" and 
+								// store it is the m_follWsMkrsAndPuncts member of pLastSPhr: fwsmp=" \\mr ("
+								pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts1;
+							}
+							// whm 21Mar2026 removed below as the assignments were already done
+							//else
+							//{
+							//	// There is no filtered info, so store the wsMkrsAndPuncts value
+							//	pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+							//}
+
+							//pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+						}
+					}
+					// The second and successive m_pSavedWords point to prev m_pSavedWords 
+					// instance
+					pPrevSPhr = pSPhr;
+					nWordCt++;
+				}
+				// whm 18Mar2026 Check if the pPreviousSrcPhrase->m_follWsMkrsAndPuncts
+				// is empty, and if so assign srcWordBreak or space to it.
+				if (pPreviousSrcPhrase->m_follWsMkrsAndPuncts.IsEmpty())
+				{
+					wxString wordBreak = pPreviousSrcPhrase->GetSrcWordBreak();
+					if (!wordBreak.IsEmpty())
+						pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wordBreak;
+					else
+						pPreviousSrcPhrase->m_follWsMkrsAndPuncts = _T(" ");
+				}
+			}
+			else
+			{
+				wxString delayWMAPCacheAfterFilteredInfo; delayWMAPCacheAfterFilteredInfo.Empty();
+				// We are processing a single source phrase.
+				// Construct the first part of wsMkrsAndPuncts from pPreviousSrcPhrase:
+				if (pPreviousSrcPhrase->GetFilteredInfo().IsEmpty())
+				{
+					wsMkrsAndPuncts = pPreviousSrcPhrase->GetInlineBindingEndMarkers();
+					wsMkrsAndPuncts += pPreviousSrcPhrase->m_follPunct;
+					wsMkrsAndPuncts += pPreviousSrcPhrase->GetFollowingOuterPunct();
+					wsMkrsAndPuncts += pPreviousSrcPhrase->GetInlineNonbindingEndMarkers();
+					wsMkrsAndPuncts += pPreviousSrcPhrase->GetEndMarkers();
+				}
+				else
+				{
+					delayWMAPCacheAfterFilteredInfo = pPreviousSrcPhrase->GetInlineBindingEndMarkers();
+					delayWMAPCacheAfterFilteredInfo += pPreviousSrcPhrase->m_follPunct;
+					delayWMAPCacheAfterFilteredInfo += pPreviousSrcPhrase->GetFollowingOuterPunct();
+					delayWMAPCacheAfterFilteredInfo += pPreviousSrcPhrase->GetInlineNonbindingEndMarkers();
+					delayWMAPCacheAfterFilteredInfo += pPreviousSrcPhrase->GetEndMarkers();
+				}
+				// Construct the last part of wsMkrsAndPuncts from pSrcPhrase:
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineNonbindingMarkers();
+				wsMkrsAndPuncts += pSrcPhrase->m_markers;
+				wsMkrsAndPuncts += pSrcPhrase->m_precPunct;
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineBindingMarkers();
+				// We'll assign wsMkrsAndPuncts to pPreviousSrcPhrase->m_follWsMkrsAndPuncts 
+				// but first we want to ensure that each marker it contains, if any, is 
+				// prefixed with appropriate whitespace, which may be a plain Latin space or 
+				// an EOL "\r\n"
+				// if wsMkrsAndPuncts is empty, we'll prefix it with whatever is contained in
+				// the current pSrcPhrase's wordBreak, or Latin space if wordBreak is empty.
+				if (wsMkrsAndPuncts.IsEmpty())
+				{
+					wxString wordBreak = pSrcPhrase->GetSrcWordBreak();
+					if (!wordBreak.IsEmpty())
+						wsMkrsAndPuncts += wordBreak;
+					else wsMkrsAndPuncts += _T(" ");
+				}
+				else
+				{
+					// Identify the markers contained in the wsMkrsAndPuncts string and prefix them
+					// with an appropriate whitespace - EOL for paragraph markers including \c and \v
+					// or space for inline markers which generally are separated by a space from what
+					// precedes them.
+					wsMkrsAndPuncts = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts,
+						pPreviousSrcPhrase, pSrcPhrase);
+				}
+				// whm 18Mar2026. Examining the xml of docVersion 11 the merged source phrase's
+				// m_follWsMkrsAndPuncts should not get the wsMkrsAndPuncts value at this point,
+				// but only the last word of the m_pSavedWords should get it stored in its
+				// m_follWsMkrsAndPuncts member.
+				//pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+				if (pPreviousSrcPhrase->m_nSrcWords > 1)
+				{
+					// The previous source phrase processed was a merger and all but its last
+					// m_pSavedWords instance had their m_follWsMkrsAndPuncts populated.
+					// Now that we have data for this succeeding pSrcPhrase, the last word of 
+					// the m_pSavedWords of pPreviousSrcPhrase should also have its 
+					// m_follWsMkrsAndPuncts member filled by the wsMkrsAndPuncts determined
+					// above.
+					if (pPreviousSrcPhrase->m_nSrcWords > 1)
+					{
+						// we have a merger, so process m_pSavedWords too
+						SPList* pOriginals = pPreviousSrcPhrase->m_pSavedWords;
+						wxASSERT(!pOriginals->IsEmpty());
+						SPList::Node* pos_pOriginals = pOriginals->GetFirst();
+						CSourcePhrase* pFirstSPhr = pos_pOriginals->GetData();
+						// whm 25Mar2026 The first saved word of the group should
+						// have the same m_markers content at the top-level 
+						// merged word. It also should have the same m_inform
+						// content.
+						if (!pPreviousSrcPhrase->m_markers.IsEmpty())
+							pFirstSPhr->m_markers = pPreviousSrcPhrase->m_markers;
+						if (!pPreviousSrcPhrase->m_inform.IsEmpty())
+							pFirstSPhr->m_inform = pPreviousSrcPhrase->m_inform;
+
+						pos_pOriginals = pOriginals->GetLast();
+						CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+						wxASSERT(pLastSPhr);
+
+						// whm 20Mar2026 Augment filteredInfo with the wxMkrsAndPuncts
+						wxString filteredInfo = pPreviousSrcPhrase->GetFilteredInfo();
+						if (!filteredInfo.IsEmpty())
+						{
+							// 23Mar2026 added. First, tidy up the filtered information by removing 
+							// any space that exists before a \~FILTER* end bracket.
+							wxString filtInfoStr = pLastSPhr->GetFilteredInfo();
+							filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+							pLastSPhr->SetFilteredInfo(filtInfoStr);
+
+							// There is filtered Info. We populate the pLastSPhr->m_follWsMkrsAndPuncts
+							// member with whitespace, markers and puncts taken from the filtered info
+							// instead of the wsMkrsAndPuncts determined above.
+							pLastSPhr->AddToFilteredInfo(wsMkrsAndPuncts);
+
+							// 23Mar2026 added. First, tidy up the filtered information by removing 
+							// any space that exists before a \~FILTER* end bracket.
+							filtInfoStr = pPreviousSrcPhrase->GetFilteredInfo();
+							filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+							pPreviousSrcPhrase->SetFilteredInfo(filtInfoStr);
+
+							// whm 20Mar2026 added. Also add the wsMkrsAndPuncts to the FilteredInfo 
+							// of the pPreviousSrcPhrase, which is the merged source phrase.
+							pPreviousSrcPhrase->AddToFilteredInfo(wsMkrsAndPuncts);
+
+							// whm 20Mar2026 set the wfsmp of this last word of merged group
+							// to have the filter marker followed by whitespace and any markers
+							// and punctu up to the first associated text word of the filtered
+							// info.
+							wxString filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfo);
+
+							// TODO: Figure out what to do with any swept up stuff in the
+							// markersPrecedingFilteredOnes array.
+
+							wxString filteredStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfo);
+							int posMkr = filteredStr.Find(filtMkr);
+							wxASSERT(posMkr != wxNOT_FOUND);
+							// Set up ptr, pBufStart, pEnd
+							const wxChar* pBuffer = filteredStr.GetData();
+							//int itemLen = 0;
+							wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
+							wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
+														 // contextually defined sfms
+							wxChar* pEnd = pBufStart + filteredStr.Length(); // bound past which we must not go
+							wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
+							wxString wsMkrsAndPuncts1;
+							wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pLastSPhr);
+							// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts
+							// that are present from the beginning of the filteredStr 
+							// up to the first actual char of text. 
+							// whm 23Mar2026 added. Prefix the delayWMAPCacheAfterFilteredInfo stuff
+							// to the wsMkrsAndPuncts1 here before the AdjustWhiteSpace...() call below.
+							wsMkrsAndPuncts1 = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts1;
+							wsMkrsAndPuncts1 = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts1,
+								pPreviousSrcPhrase, pLastSPhr);
+							// The resulting wsMkrsAndPuncts1 will now be stored in the fwsmp field. 
+							// For example wsMkrsAndPuncts1 might be something like: " \\mr (" and 
+							// store it is the m_follWsMkrsAndPuncts member of pLastSPhr: fwsmp=" \\mr ("
+							pLastSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts1;
+						}
+						else
+						{
+							// There is no filtered info, so store the wsMkrsAndPuncts value
+							// that was determined above in pLastSPhr->m_follWsMkrsAndPuncts.
+							pLastSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+						}
+					}
+				}
+				else
+				{
+					// pPreviousSrcPhrase is a single non-merged source phrase.
+					// 
+					// whm 20Mar2026 Augment filteredInfo with the wxMkrsAndPuncts
+					// whm 21Mar2026 TODO: Make this whole block into a separate function
+					// calling it AdjustFilteredInfoOfPrevSrcPhrase(CSourcePhrase* pPrevSrcPhrase)
+					// in which it tests for whether the pPrevSrcPhrase is merged or not and
+					// handles both merged and single prev source phrases.
+					// Alternately, TODO: reorganize this whole FromDocVersion10ToDocVersionCurrent()
+					// to put the if (pPreviousSrcPhrase->m_nSrcWords > 1) tests within a single
+					// if (!filteredInfo.IsEmpty()) test, thus simplifying the function's logic/flow.
+					wxString filteredInfo = pPreviousSrcPhrase->GetFilteredInfo();
+					if (!filteredInfo.IsEmpty())
+					{
+						// 23Mar2026 added. First, tidy up the filtered information by removing 
+						// any space that exists before a \~FILTER* end bracket.
+						wxString filtInfoStr = pPreviousSrcPhrase->GetFilteredInfo();
+						filtInfoStr.Replace(_T(" \\~FILTER*"), _T("\\~FILTER*"), TRUE);
+						pPreviousSrcPhrase->SetFilteredInfo(filtInfoStr);
+
+						// whm 20Mar2026 added. Add the wsMkrsAndPuncts to the FilteredInfo 
+						// of the pPreviousSrcPhrase.
+						pPreviousSrcPhrase->AddToFilteredInfo(wsMkrsAndPuncts);
+
+						// There is filtered Info. We populate the pLastSPhr->m_follWsMkrsAndPuncts
+						// member with whitespace, markers and puncts taken from the filtered info
+						// instead of the wsMkrsAndPuncts determined above.
+						//pLastSPhr->AddToFilteredInfo(wsMkrsAndPuncts);
+
+						// whm 20Mar2026 set the wfsmp of this last word of merged group
+						// to have the filter marker followed by whitespace and any markers
+						// and punctu up to the first associated text word of the filtered
+						// info.
+						wxString filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfo);
+						// TODO: Figure out what to do with any swept up stuff in the
+						// markersPrecedingFilteredOnes array.
+
+						wxString filteredStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfo);
+						int posMkr = filteredStr.Find(filtMkr);
+						wxASSERT(posMkr != wxNOT_FOUND);
+						// Set up ptr, pBufStart, pEnd
+						const wxChar* pBuffer = filteredStr.GetData();
+						//int itemLen = 0;
+						wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
+						wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
+													 // contextually defined sfms
+						wxChar* pEnd = pBufStart + filteredStr.Length(); // bound past which we must not go
+						wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
+						wxString wsMkrsAndPuncts1;
+						// whm 23Mar2026 modified. Testing indicates we shouldn't prefix the 
+						// delayWMAPCacheAfterFilteredInfo stuff to the wsMkrsAndPuncts1 here 
+						// before the GetWsMkrsAndPunctsFromPtrOnward() call below.
+						//wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pLastSPhr);
+						wsMkrsAndPuncts1 = pDoc->GetWsMkrsAndPunctsFromPtrOnward(ptr, pBufStart, pEnd, pPreviousSrcPhrase);
+						// The wsMkrsAndPuncts1 now contains any whitespace, markers and puncts
+						// that are present from the beginning of the filteredtSr 
+						// up to the first actual char of text. 
+						// whm 23Mar2026 added. Prefix the delayWMAPCacheAfterFilteredInfo stuff
+						// to the wsMkrsAndPuncts1 here before the AdjustWhiteSpace...() call below.
+						wsMkrsAndPuncts1 = delayWMAPCacheAfterFilteredInfo + wsMkrsAndPuncts1;
+						wsMkrsAndPuncts1 = AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wsMkrsAndPuncts1,
+							pPreviousSrcPhrase, pSrcPhrase);
+						// The resulting wsMkrsAndPuncts1 will now be stored in the fwsmp field. 
+						// For example wsMkrsAndPuncts1 might be something like: " \\mr (" and 
+						// store it is the m_follWsMkrsAndPuncts member of pLastSPhr: fwsmp=" \\mr ("
+						//pLastSPhr->m_follWsMkrsAndPuncts = wsMkrsAndPuncts1;
+						pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts1;
+					}
+					else
+					{
+						// There is no filtered info, so store the wsMkrsAndPuncts value
+						pPreviousSrcPhrase->m_follWsMkrsAndPuncts = wsMkrsAndPuncts;
+					}
+				}
+			}
+		}
+
+		pPreviousSrcPhrase = pSrcPhrase;
+	} // end of while (pos_pList != NULL)
+	
+	// whm 27Mar2026 added. When doing a conversion from docVersion10 to 11, the very last
+	// gpSrcPhrase that gets converted in the file will not have its m_follWsMkrsAndPuncts
+	// member filled in with any following punctuation and/or end markers. We need to 
+	// ensure that the last source phrase's m_follWsMkrsAndPuncts member get filled in 
+	// with those following puncts and/or end markers, otherwise any exports done after 
+	// conversion will not contain those following puncts and/or end markers.
+	CSourcePhrase* pFinalSrcPhrase = NULL;
+	SPList::Node* pos_Final = gpApp->m_pSourcePhrases->GetLast();
+	pFinalSrcPhrase = (CSourcePhrase*)pos_Final->GetData();
+	if (pFinalSrcPhrase != NULL)
+	{
+		wxString finalPunctsAndEndMarkers; finalPunctsAndEndMarkers.Empty();
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineBindingEndMarkers();
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->m_follPunct;
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetEndMarkers();
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetFollowingOuterPunct();
+		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineNonbindingEndMarkers();
+		pFinalSrcPhrase->m_follWsMkrsAndPuncts = finalPunctsAndEndMarkers;
+	}
+
 }
 
 // whm 16Mar2026 added. Used in the FromDocVersion10ToDocVersionCurrent() function

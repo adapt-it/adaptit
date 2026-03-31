@@ -365,13 +365,25 @@ void FromDocVersion4ToDocVersionCurrent( SPList* pList, CSourcePhrase*& pSrcPhra
 // to pPrevSrcPhrase where m_filteredInfo is now stored - always on a prior source
 // phrase from the location the filtered info was taken in the input text.
 // See definition for details.
-void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
+// whm 30Mar2026 Revised and renamed from the previous Function that was called
+// FromDocVersion5ToDocVersionCurrent(). This revised function processes the
+// whole pSrcPhraseList at once, whereas the previous function only processed
+// a single source phrase at a time and depended on a global gpPreviousSrcPhrase
+// that wasn't getting updated properly back in the App's m_pSourcePhrases list.
+// This function is similar, but processes pSrcPhrase and pPreviousSrcPhrase
+// entirely within the function.
+//void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
+void DoDocVersion5toCurrentConversion(SPList*& pSrcPhraseList);
 
 // whm 10Jun2024 added
 void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
 
-// whm 15Mar2026 added
-void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase);
+// whm 15Mar2026 added. Removed this one and renamed it 
+// DoDocVersion6toCurrentConversion().
+//void FromDocVersion10ToDocVersionCurrent(CSourcePhrase*& pSrcPhrase);
+
+// whm 30Mar2026 added
+void DoDocVersion6toCurrentConversion(SPList*& pList);
 
 // whm 16Mar2026 added
 wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndPuncts, 

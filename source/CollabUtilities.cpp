@@ -1876,7 +1876,13 @@ extern bool gbDoingInitialSetup;
 				// Any action to take here deferred to caller
 			}
 
-			const wxChar writemode[] = _T("w");
+			// whm 30Mar2026 I noticed that theText which contains \r\n is being written to disk
+			// as \r\r\n on a Windows platform. Modification: Google AI says that to prevent this
+			// from happening we should use the "wb" writemode meaning, "write binary" to prevent 
+			// the automatic conversion from happening as "wb" will cause wxFFile to write the data
+			// exactly as it appears in the input string theText, preserving existing CRLF 
+			// sequences.
+			const wxChar writemode[] = _T("wb"); //const wxChar writemode[] = _T("w");
 			if (ff.Open(dataPath, writemode))
 			{
 				// no error  when opening
@@ -2382,7 +2388,14 @@ extern bool gbDoingInitialSetup;
 		// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds
 		// should use char, and so the next line should be const char writemode[] = "w";, but
 		// in the Unicode build, this gives a compile error - wide characters are expected
-		const wxChar writemode[] = _T("w");
+		//
+		// whm 30Mar2026 I noticed that theText which contains \r\n is being written to disk
+		// as \r\r\n on a Windows platform. Modification: Google AI says that to prevent this
+		// from happening we should use the "wb" writemode meaning, "write binary" to prevent 
+		// the automatic conversion from happening as "wb" will cause wxFFile to write the data
+		// exactly as it appears in the input string theText, preserving existing CRLF 
+		// sequences.
+		const wxChar writemode[] = _T("wb"); //const wxChar writemode[] = _T("w");
 		if (ff.Open(filePath, writemode))
 		{
 			// no error  when opening
@@ -2435,7 +2448,14 @@ extern bool gbDoingInitialSetup;
 		// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds
 		// should use char, and so the next line should be const char writemode[] = "w";, but
 		// in the Unicode build, this gives a compile error - wide characters are expected
-		const wxChar writemode[] = _T("w");
+		//
+		// whm 30Mar2026 I noticed that theText which contains \r\n is being written to disk
+		// as \r\r\n on a Windows platform. Modification: Google AI says that to prevent this
+		// from happening we should use the "wb" writemode meaning, "write binary" to prevent 
+		// the automatic conversion from happening as "wb" will cause wxFFile to write the data
+		// exactly as it appears in the input string theText, preserving existing CRLF 
+		// sequences.
+		const wxChar writemode[] = _T("wb"); //const wxChar writemode[] = _T("w");
 		if (ff.Open(path, writemode))
 		{
 			// no error  when opening

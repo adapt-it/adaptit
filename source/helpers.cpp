@@ -5187,9 +5187,14 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// BEW 22Jun15, this call no longer needs to be done
 	// whm 9Jan2025 restored legacy behavior, so I've restored the following call, changing
 	// markersPrefix to filteredInfoSuffix.
+	// whm 29Mar2026 revision of the following function. It now returns only an empty string
+	// if bCollabWithEditor is TRUE.
+	bool bCollabWithEditor = gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit;
 	filteredInfoSuffix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pMergedSrcPhrase,
 							pSrcPhrases, otherFiltered, collBackTransStr,
-							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+							freeTransStr, noteStr, bDoCount, bCountInTargetText,
+							bCollabWithEditor); // whm 29Mar2026 added
+								// m_markers
 								// and xrefStr handled in a separate function, later below
 	// BEW 11Oct10, the initial stuff is now more complex, so we just can't insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
@@ -5203,8 +5208,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// It is used in From MergerMakeTstr(), FromSingleMakeTstr() and FromSingleMakeSstr() and
 	// in each case, it must not return filtered info, so the internal tweaks apply in all calls
 	// whm 9Jan2025 restored the function below to use legacy form which returned filtered info.
+	// whm 29Mar2026 Revised to restrict export of markers to just \c n and/or \v n
+	// when pSrcPhrase->m_adaption is empty AND the app is in collaboration with PT/BE.
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
-												bAttachFilteredInfo, bAttach_m_markers);
+												bAttachFilteredInfo, bAttach_m_markers,
+												pMergedSrcPhrase, bCollabWithEditor); // whm 29Mar2026 added
 	filteredInfoSuffix.Trim(FALSE); // markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
 	filteredInfoSuffix.Trim(); // markersPrefix.Trim();
@@ -7431,9 +7439,14 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// BEW 22Jun15 there is now no need to make this call
 	// whm 9Jan2025 uncommented and restored the following legacy call, changing markersPrefix
 	// to filteredInfoSuffix.
+	// whm 29Mar2026 revision of the following function. It now returns only an empty string
+	// if bCollabWithEditor is TRUE.
+	bool bCollabWithEditor = gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit;
 	filteredInfoSuffix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
 							pSrcPhrases, otherFiltered, collBackTransStr,
-							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+							freeTransStr, noteStr, bDoCount, bCountInTargetText,
+							bCollabWithEditor); // whm 29Mar2026 added
+								// m_markers
 								// and xrefStr handled in a separate function, later below
 
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
@@ -7449,8 +7462,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// m_markers and m_endMarkers is wanted, for example), so tests will be done internally
 	// BEW 22Jun15, refactored internally so it returns only markers, but no filtered info
 	// whm 9Jan2024 restored the following function call to again return filtered information.
+	// whm 29Mar2026 Revised to restrict export of markers to just \c n and/or \v n
+	// when pSrcPhrase->m_adaption is empty AND the app is in collaboration with PT/BE.
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
-												bAttachFilteredInfo, bAttach_m_markers);
+												bAttachFilteredInfo, bAttach_m_markers,
+												pSingleSrcPhrase, bCollabWithEditor); // whm 29Mar2026 added
 	filteredInfoSuffix.Trim(FALSE); // markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
 	filteredInfoSuffix.Trim(); // markersPrefix.Trim();
@@ -7682,13 +7698,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 			tgtStr += pSP->GetInlineBindingEndMarkers();
 		}
 		// put the punctuation back in place
+		bool bCollabWithEditor = gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit;
 		if (initialsLen > 0)
 		{
-			tgtStr = initialPuncts + tgtStr;
+			if (!bCollabWithEditor || (bCollabWithEditor && !pSingleSrcPhrase->m_adaption.IsEmpty()))
+				tgtStr = initialPuncts + tgtStr;
 		}
 		if (finalsLen > 0)
 		{
-			tgtStr += finalPuncts;
+			if (!bCollabWithEditor || (bCollabWithEditor && !pSingleSrcPhrase->m_adaption.IsEmpty()))
+				tgtStr += finalPuncts;
 		}
 #if defined (_DEBUG)
 		{
@@ -7770,13 +7789,15 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		
 		if (!endMarkersStr.IsEmpty())
 		{
-			Tstr << endMarkersStr;
+			if (!bCollabWithEditor || (bCollabWithEditor && !pSingleSrcPhrase->m_adaption.IsEmpty()))
+				Tstr << endMarkersStr;
 		}
 
 		// if there is an inline non-binding endmarker, append it
 		if (!pSP->GetInlineNonbindingEndMarkers().IsEmpty())
 		{
-			Tstr << pSP->GetInlineNonbindingEndMarkers();
+			if (!bCollabWithEditor || (bCollabWithEditor && !pSingleSrcPhrase->m_adaption.IsEmpty()))
+				Tstr << pSP->GetInlineNonbindingEndMarkers();
 
 		}
 		/*

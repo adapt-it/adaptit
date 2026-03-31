@@ -160,9 +160,11 @@ bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxStrin
 wxString	GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 							SPList* pSrcPhrases, wxString filteredInfo_NoXRef,
 							wxString collBackTransStr, wxString freeTransStr,
-							wxString noteStr, bool bDoCount, bool bCountInTargetText);
+							wxString noteStr, bool bDoCount, bool bCountInTargetText,
+							bool bCollabWithEditor); // whm 29Mar2026 added
 wxString	GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr, 
-							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers);
+							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers,
+							CSourcePhrase* pSrcPhrase, bool bCollabWithEditor); // whm 29Mar2026 added
 wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& endPos); // whm added 18Oct05
 bool		MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup); // whm added 18Nov05
 wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);

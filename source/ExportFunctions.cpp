@@ -17459,12 +17459,16 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 // BEW created 11Oct10
 // BEW 22Jun15, refactored so that it returns no filtered information
 // whm 9Jan2025 restored to legacy form that returns filtered information
+// whm 29Mar2026 Revised to restrict export of markers to just \c n and/or \v n
+// when pSrcPhrase->m_adaption is empty AND the app is in collaboration with PT/BE.
 wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr,
-				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers)
+				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers,
+				CSourcePhrase* pSrcPhrase, bool bCollabWithEditor) // whm 29Mar2026 added
 {
 	// prefixStr was defined just before this function was called, and it was
 	// not initialized and so is empty, so the next line just results in
 	// markersPrefix being empty
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString markersPrefix = prefixStr;
 	wxString aSpace = _T(' '); // add a space
 	if (!markersStr.IsEmpty())
@@ -17472,10 +17476,67 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 		if (bAttach_m_markers)
 		{
 			// any content in m_markers is to be in the returned string
-			if (!markersStr.IsEmpty())
+			if (!markersStr.IsEmpty() || !markersPrefix.IsEmpty())
 			{
 				markersPrefix.Trim();
-				markersPrefix += aSpace + markersStr;
+				// whm 29Mar2026 added. When bCollabWithEditor is TRUE, we want to 
+				// limit the markers in markersPrefix to only \v n or \c n when
+				// there is no target text to output from the current pSrcPhrase.
+				if (!bCollabWithEditor)
+				{
+					// When not collaborating with Paratext/Bibledit export all.
+					if (!markersPrefix.IsEmpty())
+						markersPrefix += aSpace + markersStr;
+					else
+						markersPrefix = markersStr;
+				}
+				else
+				{
+					// We're collaborating with Paratext/Bibledit. In such cases
+					// we check whether there is actual target text stored in the
+					// current pSrcPhrase. If not, we only export the empty chapter
+					// and verse markers (\c n and \v n). Any other markers should
+					// not go into the export when there is no target text present.
+					// If target text is present, we export all markers contained
+					// in the markersPrefix and markerStr.
+					if (pSrcPhrase->m_adaption.IsEmpty())
+					{
+						// There is NO target text in pSrcPhrase and we're collaborating
+						// with Paratext/Bibledit. Here we only export the empty
+						// chapter and verse markers. All other markers present in
+						// markersPrefix and markerStr should not be exported.
+						// Combine all markers into markersPrefix and remove all markers
+						// found there that are non-id, non-chapter and non-verse markers.
+						if (!markersPrefix.IsEmpty())
+							markersPrefix += aSpace + markersStr;
+						else
+							markersPrefix = markersStr;
+						// Remove all markers from markersPrefix that are not \id,
+						// \c n, or \v n.
+						wxArrayString mkrsArr; mkrsArr.Clear();
+						pDoc->GetMarkersAndFollowingWhiteSpaceFromString(mkrsArr, markersPrefix);
+						wxString wholeMarker;
+						for (int i = 0; i < (int)mkrsArr.GetCount(); i++)
+						{
+							wholeMarker = mkrsArr.Item(i);
+							if (wholeMarker.Find(_T("\\v ")) == wxNOT_FOUND 
+								&& wholeMarker.Find(_T("\\c ")) == wxNOT_FOUND
+								&& wholeMarker.Find(_T("\\id")) == wxNOT_FOUND)
+							{
+								gpApp->RemoveMarkerFromString(markersPrefix, wholeMarker);
+							}
+						}
+					}
+					else
+					{
+						// There is target text in pSrcPhrase, and we're collaborating 
+						// with Paratext/Bibledit, so export all.
+						if (!markersPrefix.IsEmpty())
+							markersPrefix += aSpace + markersStr;
+						else
+							markersPrefix = markersStr;
+					}
+				}
 			}
 			//}
 		//}
@@ -17515,10 +17576,19 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 }
 
 // BEW created 11Oct10
+// whm 29Mar2026 Revised to restrict the output from this function
+// when pSrcPhrase-m_adaption is empty (no target text present) AND the
+// app is in collaboration mode with PT/BE.
 wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	SPList* pSrcPhrases, wxString filteredInfo_NoXRef, wxString collBackTransStr,
-	wxString freeTransStr, wxString noteStr, bool bDoCount, bool bCountInTargetText)
+	wxString freeTransStr, wxString noteStr, bool bDoCount, bool bCountInTargetText,
+	bool bCollabWithEditor) // whm 29Mar2026 added
 {
+	// whm 29Mar2026 added test for bCollabWithEditor, and if true does immediate
+	// return of wxEmptyString
+	if (bCollabWithEditor)
+		return wxEmptyString;
+	
 	wxString markersPrefix; markersPrefix.Empty();
 	wxString aSpace = _T(' ');
 	wxString freeMkr(_T("\\free"));
