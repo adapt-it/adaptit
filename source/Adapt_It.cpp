@@ -613,6 +613,7 @@ bool gbPTVer9Installed = FALSE;
 bool gbPTLinuxVer7Installed = FALSE;
 bool gbPTLinuxVer8Installed = FALSE;
 bool gbPTLinuxVer9Installed = FALSE;
+bool gbPTLinuxParatextLiteInstalled = FALSE; // whm 1Apr2026 added
 
 bool gbPTNotInstalled = FALSE;
 
@@ -622,6 +623,7 @@ bool gbPTVer9OnlyInstalled = FALSE;
 bool gbPTLinuxVer7OnlyInstalled = FALSE;
 bool gbPTLinuxVer8OnlyInstalled = FALSE;
 bool gbPTLinuxVer9OnlyInstalled = FALSE;
+bool gbPTLinuxParatextLiteOnlyInstalled = FALSE;
 
 // The following declarations moved here from the View's global space
 
@@ -13468,6 +13470,7 @@ void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
 //   gbPTLinuxVer7OnlyInstalled
 //   gbPTLinuxVer8OnlyInstalled
 //   gbPTLinuxVer9OnlyInstalled
+//   gbPTLinuxParatextLiteOnlyInstalled
 //   gbPTNotInstalled
 //
 // This function is called initially from the App's OnInit() function when the
@@ -13475,6 +13478,7 @@ void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
 // the SetupEditorCollaboration dialog from the Administrator menu - ensuring
 // that when the Administrator accesses the SetupEditorCollaboration the above
 // PT installation-related bools are up to date.
+// whm 1Apr2026 added support for ParatextLite.
 void CAdapt_ItApp::InventoryCollabEditorInstalls()
 {
     // These bool values below represent what versions of Paratext are installed.
@@ -13488,11 +13492,12 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
     // at the time this function is called (either in App's OnInit() or the
     // CSetupEditorCollaboration dialog).
     gbPTVer7Installed = IsThisParatextVersionInstalled(_T("PTVersion7"));
-    gbPTVer8Installed = IsThisParatextVersionInstalled(_T("PTVersion8"));;
-    gbPTVer9Installed = IsThisParatextVersionInstalled(_T("PTVersion9"));;
-    gbPTLinuxVer7Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion7"));;
-    gbPTLinuxVer8Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));;
-    gbPTLinuxVer9Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));;
+    gbPTVer8Installed = IsThisParatextVersionInstalled(_T("PTVersion8"));
+    gbPTVer9Installed = IsThisParatextVersionInstalled(_T("PTVersion9"));
+    gbPTLinuxVer7Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion7"));
+    gbPTLinuxVer8Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));
+    gbPTLinuxVer9Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));
+    gbPTLinuxParatextLiteInstalled = IsThisParatextVersionInstalled(_T("PTLinuxParatextLite")); // whm 1Apr2026 added
 
     // Set up some convenience boolean variables for other possible PT installations, and a boolean
     // for whan no PT installations are found.
@@ -13510,10 +13515,12 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
         gbPTLinuxVer8OnlyInstalled = TRUE;
     if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
         gbPTLinuxVer9OnlyInstalled = TRUE;
-
+    if (gbPTLinuxParatextLiteInstalled && !gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
+        gbPTLinuxParatextLiteOnlyInstalled = TRUE; // whm 1Apr2026 added
     // Also set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
     // on this machine.
-    if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+    if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed 
+        && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTNotInstalled = TRUE;
 }
 
@@ -13524,7 +13531,7 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
 ///             FALSE if the installation's Paratext.exe cannot be found, or the appropriate data store
 ///             folder cannot be found for the specified PT version.
 /// \param   -> PTVersion  A wxString which must be one of: "PTVersion7", "PTVersion8", "PTVersion9",
-///             "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
+///             "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9", or "PTLinuxParatextLite"
 /// \remarks    This function is a convenience function that uses much of the same code as the
 /// ParatextVersionInstalled() function. This function just verifies whether a particular PT version is
 /// actually installed on the computer - where "installed" means having the requisite Paratext.exe
@@ -13535,6 +13542,7 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
 /// whm 4Feb2020 added mainly to be able to enable/disable the "Paratext 7", "Paratext 8" and "Paratext 9"
 /// radio buttons appropriately in the CSetupEditorCollaboration class, but it could be used elsewhere
 /// when one wants to know if a single version of Paratext is installed on the computer.
+/// whm 1Apr2026 added support for ParatextLite.
 /// Called from: CSetupEditorCollaboration::DoInit(),
 bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
 {
@@ -13760,7 +13768,9 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
     }
 #endif
 
-#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
+#if defined(__WXGTK__) 
+    // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
+    // or the link for paratextlite at /snap/bin/paratextlite
 
     // The following don't need to be conditionally compiled since
     // they would only be called on a Linux machine running the Linux version
@@ -13771,6 +13781,15 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
         if (::wxDirExists(strDir))
         {
             return TRUE;
+        }
+    }
+    // whm 1Apr2026 added support for ParatextLite
+    else if (PTVersion == _T("PTLinuxParatextLite"))
+    {
+        wxString strFile = _T("/snap/bin/paratextlite");
+        if (::wxFileExists(strFile))
+        {
+           return TRUE;
         }
     }
     else if (PTVersion == _T("PTLinuxVersion8"))
@@ -13826,6 +13845,7 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
 //   CAdapt_ItApp::GetAIProjectCollabStatus(),
 //   CSetupEditorCollaboration::InitDialog(), and
 //   CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() [3X].
+// whm 1Apr2026 revised for support of ParatextLite
 wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(wxString &collabEditor, wxString collabEditorVerStr)
 {
     // whm 4Feb2020 Note: Either parateter of this function can be empty strings when this function is called.
@@ -13836,12 +13856,17 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
     // will remain an empty string, but if any version of PT is installed, the highest version of PT installed will
     // be assigned to the m_ParatextVersionForProject App value. However, at that OnInit() call no project settings
     // will be changed since no project has yet been opened when the OnInit() call is made.
-    // Only when this ValidateCollabEditorAndVersionStrAgainstInstallationData() function is called from
+    // Only when this ValidateCollabEditorAndVersionStrAgainstInstallationData() function is called from 
+    // SetCollabSettingsToNewProjDefaults(), CSetupEditorCollaboration::InitDialog(), and
+    // CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() will the working project settings 
+    // be changed.
     wxString tempCollabEditorVerStr;
     tempCollabEditorVerStr = collabEditorVerStr;
 
     // The boolean values used in the test below are determined in InitDialog()
-    if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed)
+    if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed 
+        || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed 
+        || gbPTLinuxParatextLiteInstalled) // whm 1Apr2026 added
     {
         collabEditor = _T("Paratext");
 
@@ -13864,6 +13889,12 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // Only PT version 9 is installed, so ensure that tempCollabEditorVerStr is set to "PTVersion9"
             // since it is the only version for possible collaboration.
             tempCollabEditorVerStr = _T("PTVersion9");
+        }
+        // whm 1Apr2026 added for Paratext Lite support.
+        // See below for situation where PTLinux
+        else if (gbPTLinuxParatextLiteOnlyInstalled)
+        {
+            tempCollabEditorVerStr = _T("PTLinuxParatextLite");
         }
         // Now that the "Only" versions are bled off, check when two or more version are
         // installed, starting with all 3 versions are installed, and moving on to when
@@ -14074,6 +14105,37 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
                 // Assume the administrator will fix this situation. In the mean time, since both
                 // PT 9 and PT 8 are installed, default here to the highest installed version PTLinuxVersion9.
                 tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+        }
+        // whm 2Apr2026 added for situation where Paratext Lite is installed along with 
+        // gbPTLinuxVer8Installed or gbPTLinuxVer9Installed.
+        else if (gbPTLinuxParatextLiteInstalled && (gbPTLinuxVer8Installed || gbPTLinuxVer9Installed))
+        {
+            // Paratext Lite is installed along with either Linux versions of PT8 and/or PT9 - the common 
+            // case for recent PT users who upgraded from PT8 to PT9, then moved to Paratext Lite because
+            // PT8 and PT9 are not supported in versions of Linux since 20.04.
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired or Paratext Lite, but we should keep the older version 
+            // config value to start with.
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the Paratext Lite installed version - in this case "PTLinuxParatextLite".
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTLinuxParatextLite");
+            }
+            else if (tempCollabEditorVerStr != _T("PTLinuxVersion9") && tempCollabEditorVerStr != _T("PTLinuxVersion8")
+                && tempCollabEditorVerStr != _T("PTLinuxParatextLite"))
+            {
+                // Neither PT 9 nor PT 8 nor Paratext Lite had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() Paratext Lite and either PT9 or PT8 for Linux are installed but none of them have valid projects dir mor at least 2 useable projects. Setting PT version to a default of PTLinuxParatextLite.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // Paratext Lite is installed and most likely the desired collab app on Linux, default 
+                // here to the PTLinuxParatextLite.
+                tempCollabEditorVerStr = _T("PTLinuxParatextLite");
             }
         }
         else if (gbPTLinuxVer7Installed && gbPTLinuxVer9Installed)
@@ -14365,7 +14427,8 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the Paratext projects directory
 /// \param      wxString PTVersion - a wxString designating the PT version to use: "PTVersion7",
-///             "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8" or "PTLinuxVersion9".
+///             "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9",
+///             or "PTLinuxParatextLite".
 ///             An empty input parameter _T("") does not currently happen
 /// \remarks
 /// Called from: the App's GetListOfPTProjects(), AiProjectCollabStatus(),
@@ -14405,10 +14468,13 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 /// Revised 22Jan2018 by whm to check for default paths if wxRegKey fails for some reason,
 /// as reported by Ron A who uses PT8 on a Mac host running Win10 under VMWare Fusion.
 /// Revised 4Feb2020 by whm to handle collaboration with PT 9.
+/// whm 4Apr2026 Revised for Paratext Lite support. See the #if defined(__WXGTK__) section
+/// further below.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 {
-    // The PTVersion parameter can be: "PTVersion7", "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
+    // The PTVersion parameter can be: "PTVersion7", "PTVersion8", "PTVersion9", 
+    // "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9", or "PTLinuxParatextLite"
 
     wxString path;
     path.Empty();
@@ -14607,9 +14673,52 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 
 #endif
 #if defined(__WXGTK__) // linux -- check mono directory for values.xml file
-
-    // whm 4Feb2020 TODO: Check the following code after PT 9 for Linux is released in Ubuntu 18.04!!!
+    
     wxString strRegPath;
+    // whm 4Apr2026 added for Paratext Lite support
+    if (PTVersion == _T("PTLinuxParatextLite"))
+    {
+        wxString PTLiteProjPath;
+        wxString PTLiteProjectPath8; PTLiteProjectPath8.Empty();
+        wxString PTLiteProjectPath9; PTLiteProjectPath9.Empty();
+        // The Paratext Lite's projects directory should be one of the following
+        // at least for Linux users who previously had installed the mono oriented
+        // Paratext 8 for Linux, or Paratext 9 for Linux.
+        // $HOME/snap/paratextlite/current/Paratext8Projects   or
+        // $HOME/snap/paratextlite/current/Paratext9Projects
+        wxString homeDir = wxGetenv(_T("HOME"));
+        PTLiteProjectPath9 = homeDir;
+        PTLiteProjectPath9 += _T("/snap/paratextlite/current/Paratext9Projects/");
+        PTLiteProjectPath8 = homeDir;
+        PTLiteProjectPath8 += _T("/snap/paratextlite/current/Paratext8Projects/");
+        if (!::wxDirExists(PTLiteProjectPath9))
+        {
+            if (!::wxDirExists(PTLiteProjectPath8))
+            {
+                wxLogDebug(_T("In GetParatextProjectsDirPath(): Unable to locate a projects dir for Paratext Lite!!"));
+                wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath8.c_str());
+                wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath9.c_str());
+                wxLogDebug(_T("Returning empty string from GetParatextProjectsDirPath()"));
+                PTLiteProjectPath8 = wxEmptyString;
+                PTLiteProjPath = wxEmptyString; // return wxEmptyString;
+            }
+            else
+            {
+                wxLogDebug(_T("Found projects dir for Paratext Lite at: %s"), PTLiteProjectPath8.c_str());
+                PTLiteProjPath = PTLiteProjectPath8; // return PTLiteProjectPath8;
+            }
+        }
+        else
+        {
+            wxLogDebug(_T("Found projects dir for Paratext Lite at: %s"), PTLiteProjectPath9.c_str());
+            PTLiteProjPath = PTLiteProjectPath9; // return PTLiteProjectPath9;
+        }
+        bool bEnvOK = wxSetEnv(_T("PROJECTS_PATH"), PTLiteProjPath);
+        wxUnusedVar(bEnvOK);
+        return PTLiteProjPath;
+    }
+
+    // whm 4Feb2020 Check the following code after PT 9 for Linux is released in Ubuntu 18.04!!!
     if (PTVersion == _T("PTLinuxVersion9")) // whm 4Feb2020 added test for "PTLinuxVersion9"
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT9"));
     else if (PTVersion == _T("PTLinuxVersion8"))
@@ -14779,6 +14888,7 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// folders, if the installation paths cannot be determined from the normal Windows
 /// registry calls using wxRegKey.
 /// whm 4Feb2020 revised for Paratext 9 for Windows and Linux.
+/// whm 1Apr2026 revised for support of ParatextLite - on Linux.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 {
@@ -14904,7 +15014,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
                 path = _T("C:\\Program Files\\Paratext 8"); // no final backslash on path
             }
             else if ((::wxFileExists(exePathPT8_on_64bitOS)
-                    && ::wxFileExists(dllPathPT8_on_64bitOS)))
+                && ::wxFileExists(dllPathPT8_on_64bitOS)))
             {
                 path = _T("C:\\Program Files (x86)\\Paratext 8"); // no final backslash on path
             }
@@ -14958,6 +15068,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 
     // For Linux the passed in parameter will be "PTLinuxVersion" "or "PTLinuxVersion8".
     // Linux version returns /usr/lib/Paratext directory by default for PT 7
+    // whm 1Apr2026 revised to support ParatextLite on Linux.
     if (PTVersion == _T("PTLinuxVersion7"))
     {
         wxString strDir = _T("/usr/lib/Paratext");
@@ -15003,6 +15114,18 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
         if (::wxDirExists(strDir))
         {
             path = strDir;
+        }
+    }
+    // whm 1Apr2026 added for support of ParatextLite
+    // Note: paratextlite in the path is not a directory
+    // but is a symbolic link to the snap executable 
+    // at: /usr/bin/snap
+    else if (PTVersion == _T("PTLinuxParatextLite"))
+    {
+        wxString strFile = _T("/snap/bin/paratextlite");
+        if (wxFileExists(strFile))
+        {
+            path = strFile;
         }
     }
 
@@ -15171,7 +15294,8 @@ wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
 // whm 25June2016 modified for PT 8 support, including a work-around for having used "ParatextVersionForProject"
 // as a project config file label in a pre-release version instead of "CollabParatextVersionForProject" that is
 // used for this label in all subsequent versions.
-// whm 2Februaty2017 - no changes needed for new m_TempCollabBooksProtectedFromSavingToEditor config label
+// whm 2February2017 - no changes needed for new m_TempCollabBooksProtectedFromSavingToEditor config label
+// whm 2Apr2026 Non changes needed for Paratext Lite support
 void CAdapt_ItApp::GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
     wxArrayString& collabSettingsArray)
 {
@@ -15554,7 +15678,8 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// project config file, so as to not set the App's project settings prematurely by reading
 /// the project configuration file into the App's variables which might have undesirable side
 /// effects.
-/// whm 4Feb21020 modified for compatibility with PT 9.
+/// whm 4Feb2020 modified for compatibility with PT 9.
+/// whm 2Apr2026 modified for support of Paratext Lite.
 //////////////////////////////////////////////////////////////////////////////////////////
 enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
     bool& bChangeMadeToCollabSettings, wxString& errorProjects, bool& bBothPT7AndPT8InstalledPT8ProjectsWereMigrated)
@@ -15752,6 +15877,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion7");
                     }
+                    // whm 2Apr2026 added for Paratext Lite support
+                    if (collabPTVersionStrFound == _T("PTLinuxParatextLite"))
+                    {
+                        collabPTVersionStrFound = _T("PTLinuxParatextLite");
+                    }
                     // whm 4Feb2020 moved line below from only within each if block above - always use whatever version is found in config
                     m_ParatextVersionForProject = collabPTVersionStrFound;
                     bFoundCollabPTVersion = TRUE;
@@ -15785,6 +15915,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     if (collabPTVersionStrFound == _T("PTLinuxversion7"))
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion7");
+                    }
+                    // whm 2Apr2026 added for Paratext Lite support
+                    if (collabPTVersionStrFound == _T("PTLinuxParatextLite"))
+                    {
+                        collabPTVersionStrFound = _T("PTLinuxParatextLite");
                     }
                     // whm 4Feb2020 moved line below from only within each if block above - always use whatever version is found in config
                     m_ParatextVersionForProject = collabPTVersionStrFound;
@@ -16350,6 +16485,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             else if (this->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
             {
                 projList = GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+            }
+            // whm 1Apr2026 added for ParatextLite support
+            else if (this->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+            {
+                projList = GetListOfPTProjects(_T("PTLinuxParatextLite")); 
             }
         }
         else if (m_collaborationEditor == _T("Bibledit"))
@@ -24313,6 +24453,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //   gbPTLinuxVer7OnlyInstalled
     //   gbPTLinuxVer8OnlyInstalled
     //   gbPTLinuxVer9OnlyInstalled
+    //   gbPTLinuxParatextLiteOnlyInstalled
     //   gbPTNotInstalled
     // This function is called initially here from the App's OnInit() function when
     // the program loads up. It is also called any time the Administrator accesses
@@ -37833,8 +37974,7 @@ bool CAdapt_ItApp::IsGitInstalled(wxString& versionNumStr)
 /// Called from: COpenExistingProjectDlg::InitDialog(), and CProjectPage::InitDialog(),
 /// and CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects().
 /// Gets a list of possible Adapt It projects located on the m_workFolderPath.
-/// BEW modified 9Sep09, so it can access projects (?? or create a new project at a custom
-/// folder location ?? surely it can't do that -- BEW 22Jun11)
+/// whm 2Apr2026 Non changes needed for Paratext Lite support
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 {
@@ -37891,6 +38031,7 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
     }
 }
 
+// whm 2Apr2026 Non changes needed for Paratext Lite support
 void CAdapt_ItApp::GetPossibleAdaptionCollabProjects(wxArrayString * aiCollabProjectNamesArray)
 {
     bool m_bTempCollaboratingWithParatext;
@@ -46441,10 +46582,10 @@ void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 for Linux that can co-exist with PT7
 /// Revised 4Feb2020 by whm to handle collaboration with PT 9 and to remove its dependency on the
-/// deprecated ParatextVersionInstalled() function and its enum complexity. Instead, it now utilizes
-/// the App's globals gbPT8Installed, gbPT9Installed, gbPTLinux8Installed, etc - set within the
-/// App's InventoryCollabEditorInstalls() which should be called before SetCollabSettingsToNewProjDefaults()
-/// is called.
+/// deprecated ParatextVersionInstalled() function and its enum complexity. Instead, it now depends
+/// indirectly on the App's globals gbPT8Installed, gbPT9Installed, gbPTLinux8Installed, etc - not
+/// used herein, but those gb globals are set within the App's InventoryCollabEditorInstalls() which
+/// should be called before this SetCollabSettingsToNewProjDefaults() function is called.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 {
@@ -46460,6 +46601,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     m_bParatextIsInstalled = FALSE;
     m_ParatextVersionForProject = _T(""); // AI-ProjectConfiguration.aic file label: CollabParatextVersionForProject
     m_ParatextProjectsDirPath = _T("");
+    m_PTLiteProjectPath = _T(""); // whm 4Apr2026 added
     m_ParatextInstallDirPath = _T("");
 
     wxString collabEditorStr = _T("");
@@ -46469,6 +46611,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     // from a project config file here.
     m_ParatextVersionForProject = ValidateCollabEditorAndVersionStrAgainstInstallationData(collabEditorStr, wxEmptyString);
     m_ParatextProjectsDirPath = GetParatextProjectsDirPath(m_ParatextVersionForProject);
+    m_PTLiteProjectPath = GetParatextProjectsDirPath(m_ParatextVersionForProject); // whm 4Apr2026 added
     m_ParatextInstallDirPath = GetParatextInstallDirPath(m_ParatextVersionForProject); // "c:\Program Files (x86)\Paratext 7" or "c:\Program Files (x86)\Paratext 7"
     m_collaborationEditor = collabEditorStr; // AI-ProjectConfiguration.aic file label: CollaborationEditor
     if (m_collaborationEditor == _T("Paratext"))
@@ -61855,6 +61998,109 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 }
 #endif
 
+// whm 3Apr2026 added. This GetListOfPTLiteProjects() intends to do what
+// similar functions GetListOfPTProjects() and GetListOfBEProjects() do,
+// in returning a wxArrayString containing strings of basic project name
+// identifiers. Each string in the array is structured to have 3 colon 
+// delimited fields as follows: shortName:fullName:languageName, but as
+// is done with Bibledit, the Paratext Lite just repeats the shortName for
+// each of the 3 fields so that shortName == fullName == languageName, for
+// example a Nyindrou project in Paratext Lite would be a string formatted
+// like this: "NYNT:NYNT:NYNT"
+wxArrayString CAdapt_ItApp::GetListOfPTLiteProjects()
+{
+    // The paratextlite executable has a command line option that will
+    // output to the console a simple list of its projects. The command
+    // line for this is: 
+    // paratextlite listprojects
+    // and this lists the short name of the projects one per line, for 
+    // example: 
+    // NYNT
+    // TBIB_BT
+    // ...
+    // I have not discovered a way to get a list of the language names or
+    // other data for given projects from paratextlite by way of a command 
+    // line queries.
+    // The 'paratext listprojects' command's console output can be captured.
+    // We can use the wxExecute() override that takes the two wxStringArray 
+    // parameters. This also redirects the output and suppresses the dos console 
+    // window during execution. For example:
+    // long result = ::wxExecute(commandLine, outputMsg, errorsMsg, flags);
+    wxArrayString tempListOfPTProjects;
+    tempListOfPTProjects.Clear();
+    wxArrayString outputMsg; outputMsg.Clear();
+    wxArrayString errorsMsg; errorsMsg.Clear();
+    int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
+    long rvalue = 0; // initialize to "success" result
+    // whm TODO: Do we need to prefix the commandLine with the directory path 
+    // '/snap/bin/paratextlite' to the commandLine below
+    wxString commandLine = _T("paratextlite listprojects");
+    rvalue = wxExecute(commandLine, outputMsg, errorsMsg, flags);
+    if (rvalue != 0)
+    {
+        wxLogDebug(_T("Could NOT do wxExecute() of paratextlite listprojects:"));
+        wxString errorMsg;
+        int errorsCt = errorsMsg.GetCount();
+        for (int i = 0; i < errorsCt; i++)
+        {
+            errorMsg += errorsMsg.Item(i);
+            errorMsg += _T(" ");
+        }
+        wxString msg = _T("   commandLine was: %s\n   error message: %s");
+        msg = msg.Format(msg, commandLine.c_str(), errorMsg.c_str());
+        wxLogDebug(msg);
+        // TODO: Notify user
+    }
+    int outputCt = outputMsg.GetCount();
+    // The projItemArrayStr should be structured with three colon delimited fields:
+    // Similar to Bibledit, each string element contains field elements that are all
+    // the same based on the "shortName" [note that in Bibledit's case 
+    // shortName == fullName == languageName]. The same is the case for Paratext Lite
+    wxString projItemArrayStr;
+    if (outputCt > 0)
+    {
+        // whm 3Apr2026 Note. For Paratext Lite, the Settings.xml file for a given project is
+        // copied along with all other project files from an existing full Paratext for Linux
+        // 8 or 9 project that exists on the Linux machine when Paratext Lite is first installed
+        // The default location where Paratext Lite copies all of this is something like:
+        // [$HOME]/snap/paratextlite/current/Paratext8Projects/NYNT/
+        // for the "NYNT" project that existed on my Linux desktop at: 
+        // [$HOME]/Paratext8Projects/NYNT/
+        // The Paratext Lite's NYNT folder has the same books that were present in the original 
+        // installation of Paratext 8 for Linux which was named the Paratext8Projects folder.
+        // (for Linux installations that previously hade a PT 8 installation existing when
+        // PT 9 was installed kept the old folder name Paratext8Projects even after upgrading
+        // to PT 9. Where no older PT 8 installation existed before PT 9 was installed the
+        // Paratext repository folder on Linux is named Paratext9Projects instead of 
+        // Paratext8Projects.
+        // The App's m_pArrayOfCollabProjects was also populated for Paratext Lite using the
+        // Settings.xml file, which for Paratext Lite is located at:
+        // $HOME/snap/paratextlite/current/Paratext<8|9>Projects/<proj-shortName>/Settings.xml
+        int aTot = (int)m_pArrayOfCollabProjects->GetCount();
+        if (aTot > 0)
+        {
+            int aIndex;
+            for (aIndex = 0; aIndex < aTot; aIndex++)
+            {
+                Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
+                if (pArrayItem != NULL) // whm 11Jun12 added NULL test
+                    delete pArrayItem;
+            }
+            m_pArrayOfCollabProjects->Clear();
+        }
+        wxLogDebug(_T("Paratext Lite Projects:"));
+        for (int i = 0; i < outputCt; i++)
+        {
+            wxString outStr = outputMsg.Item(i);
+            projItemArrayStr = outStr + _T(":") + outStr + _T(":") + outStr;
+            // To store
+            tempListOfPTProjects.Add(projItemArrayStr);
+            wxLogDebug(outStr);
+        }
+    }
+    return tempListOfPTProjects;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxArrayString that contains usable Paratext projects on the
 ///             host computer, formatted in string format with fields separated
@@ -62280,7 +62526,10 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
     }
     // whm 4Feb2020 modified the following test to include "PTVersion9" and "PTLinuxVersion9" since PT 9
     // uses the same data store location for projects that PT 8 used.
-    else if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8") || PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
+    // whm 1Apr2026 Likewise ParatextLite uses the same data store that PT 8 and 9 use.
+    else if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8") 
+    || PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9")
+    || PTVersion == _T("PTLinuxParatextLite")) // whm 1Apr2026 added
     {
 
 
@@ -62289,12 +62538,18 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
             path = GetParatextProjectsDirPath(_T("PTVersion8"));
         if (PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
             path = GetParatextProjectsDirPath(_T("PTVersion9"));
+        // whm 1Apr2026 added for ParatextLite suport
+        if (PTVersion == _T("PTLinuxParatextLite"))
+            path = GetParatextProjectsDirPath(_T("PTLinuxParatextLite"));
 #endif
 #if defined(__WXGTK__) // linux -- check mono directory for values.xml file
         if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8"))
             path = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
         if (PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
             path = GetParatextProjectsDirPath(_T("PTLinuxVersion9"));
+        // whm 1Apr2026 added for ParatextLite suport
+        if (PTVersion == _T("PTLinuxParatextLite"))
+            path = GetParatextProjectsDirPath(_T("PTLinuxParatextLite"));
 #endif
         if (!path.IsEmpty())
         {

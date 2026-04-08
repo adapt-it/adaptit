@@ -447,10 +447,19 @@ extern bool gbDoingInitialSetup;
 						nLastVerseNumber = wxAtoi(str);
 					}
 					// now determine if the verse is empty or not
-					int posColon = tempStr.Find(_T(':'), TRUE); // TRUE - find from right end
+					// whm 4Apr2026 revision. The following needs to now collect the second
+					// colon delimited field which is the word count, or "extent" working 
+					// from the left end rather than assuming there is only 3 fields, 
+					// whereas now there are actually 5 fields separated by 4 colons of the form:
+					// \v 36:173:0efc66f02b1438b8f2dbf9c7428d69b1:eol:0 [verse with text]
+					// \v 36:0:0:eol:0 [empty verse - no text in verse]
+					int posColon = tempStr.Find(_T(':'), FALSE); // TRUE); // find first colon from left end
 					wxASSERT(posColon != wxNOT_FOUND);
 					wxString extent;
+					// Skip initial tempStr chars up to and including first colon; putting remaining chars in extent
 					extent = tempStr.Mid(posColon + 1);
+					posColon = extent.Find(_T(':'), FALSE); // find next (2nd) colon from left end in extent
+					extent = extent.Mid(0, posColon); // put initial chars up to but not incl colon nor remaining chars in extent
 					extent.Trim(FALSE);
 					extent.Trim(TRUE);
 					if (extent == _T("0"))
@@ -658,7 +667,12 @@ extern bool gbDoingInitialSetup;
 			// The emptyVersesStr has NO content, so there are no empty verses in the chapter. The
 			// emptyVersesStr ref parameter remains empty.
 			if (cTextType == collabTgtText)
-				statusStr = statusStr.Format(_("All %d verses have translation text"), nLastVerseNumber);
+			{
+				if (nLastVerseNumber == 0)
+					statusStr = _("No verses were translated - no verses found in the translation text!");
+				else
+					statusStr = statusStr.Format(_("All %d verses have translation text"), nLastVerseNumber);
+			}
 			else if (cTextType == collabFreeTransText)
 				statusStr = statusStr.Format(_("All %d verses have free translations"), nLastVerseNumber);
 			else if (cTextType == collabSrcText)
@@ -1161,7 +1175,11 @@ extern bool gbDoingInitialSetup;
 	// if the value passed in is collab_freeTrans_text if makes the path to the free
 	// translation file there, or an empty path string if m_bCollaborationExpectsFreeTrans is
 	// FALSE.
-	wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
+	// whm 8Apr2026 added two parameters  wxString& pathOnly, wxString& fileNameOnly in order
+	// to allow the caller to be able to call the ::wxSetWorkingDirectory to the path of the
+	// --file component of the commandLine when working with Paratext Lite.
+	wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind,
+		wxString& pathOnly, wxString& fileNameOnly) // whm 8Apr2026 added
 	{
 		wxString chStrForFilename;
 		if (gpApp->m_bCollabByChapterOnly)
@@ -1177,18 +1195,21 @@ extern bool gbDoingInitialSetup;
 		wxString shortProjName;
 		tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
 		path = tempFolder + gpApp->PathSeparator;
+		pathOnly = path; // whm 8Apr2026 added assignment to the pathOnly ref parameter
 		switch (textKind)
 		{
 		case collab_source_text:
 		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
-			path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+			fileNameOnly = gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+			path += fileNameOnly;
 		}
 			break;
 		case collab_target_text:
 		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
-			path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+			fileNameOnly = gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+			path += fileNameOnly;
 		}
 			break;
 		case collab_freeTrans_text:
@@ -1196,7 +1217,8 @@ extern bool gbDoingInitialSetup;
 			if (gpApp->m_bCollaborationExpectsFreeTrans)
 			{
 				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
-				path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+				fileNameOnly = gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+				path += fileNameOnly;
 			}
 			else
 			{
@@ -1217,10 +1239,12 @@ extern bool gbDoingInitialSetup;
 	// Paratext or Bible edit is being supported, and whether or not free translation is
 	// expected, the bookCode required, and the shortName to be used for the project which
 	// pertains to the textKind passed in
-	// TODO: Check below where --rdwrtp7 is used, and see whether PT8 and PT9 for Linux should 
-	// use a --rdwrtp8 command-line option, and if so, change the cmdLine below to use --rdwrtp8 
-	// instead of --rdwrtp7.
-	wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
+	// Note: The 2 CommandLineFor enum items are: reading or 
+	// Note: The 3 DoFor enum items are: collab_source_text collab_target_text or collab_freeTrans_text
+	// 
+	// whm 7-8Apr2026 revised for Paratext Lite support.
+	wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind,
+		wxString& pathOnly, wxString& fileNameOnly) // whm 8Apr2026 added
 	{
 		wxString cmdLine; cmdLine.Empty();
 
@@ -1228,13 +1252,34 @@ extern bool gbDoingInitialSetup;
 		if (gpApp->m_bCollabByChapterOnly)
 			chStrForCommandLine = gpApp->m_CollabChapterSelected;
 		else
-			chStrForCommandLine = _T("0");
+		{
+			if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			{
+				chStrForCommandLine = _T(""); // Paratext Lite omits --chapter n if whole book is involved
+			}
+			else
+				chStrForCommandLine = _T("0");
+		}
 
 		wxString readwriteChoiceStr;
 		if (lineFor == reading)
-			readwriteChoiceStr = _T("-r"); // reading
+		{
+			if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			{
+				readwriteChoiceStr = _T("read"); // reading
+			}
+			else
+				readwriteChoiceStr = _T("-r"); // reading
+		}
 		else
-			readwriteChoiceStr = _T("-w"); // writing
+		{
+			if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			{
+				readwriteChoiceStr = _T("write"); // reading
+			}
+			else
+				readwriteChoiceStr = _T("-w"); // writing
+		}
 
 		wxString cmdLineAppPath;
 
@@ -1245,7 +1290,17 @@ extern bool gbDoingInitialSetup;
 			// whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the
 			// rdwrtp7.exe or rdwrtp8.exe (being different for PT7 and PT8), so I'm adding a parameter to 
 			// GetPathToRdwrtPT() to indicate the specific version of PT we want the path for.
-			cmdLineAppPath = GetPathToRdwrtPT(gpApp->m_ParatextVersionForProject);
+			// 
+			// whm 7Apr2026 modified for support of Paratext Lite. On Linux, the path to the
+			// paratextlite executable is: _T("/snap/bin/paratextlite")
+			if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			{
+				cmdLineAppPath = GetPathToParatextLiteExec();
+			}
+			else
+			{
+				cmdLineAppPath = GetPathToRdwrtPT(gpApp->m_ParatextVersionForProject);
+			}
 		}
 		else
 		{
@@ -1259,23 +1314,60 @@ extern bool gbDoingInitialSetup;
 		case collab_source_text:
 		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
-			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind, pathOnly, fileNameOnly);
+			//if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			//{
+			//	// For Paratext Lite we shorten the commandLine returned from this function
+			//	// so that when caller TransferTextBetweenAdaptItAndExternalEditor() calls the
+			//	// ::SetWorkingDirectory(pathOnly) before it calls ::wxExecute(commandLine...),
+			//	// will have a better chance of succeeding (with a shorter commandLine fed into
+			//	// the ::wxExecute() command. So, here we set the pathToFile to just use the 
+			//	// fileNameOnly rather than the full pathOnly + fileNameOnly that was returned
+			//	// from the MakePathToFileInTempFolder_For_Collab() function call above.
+			//	pathToFile = fileNameOnly;
+			//}
 		}
 			break;
 		case collab_target_text:
 		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
-			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind, pathOnly, fileNameOnly);
+			//if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			//{
+			//	// For Paratext Lite we shorten the commandLine returned from this function
+			//	// so that when caller TransferTextBetweenAdaptItAndExternalEditor() calls the
+			//	// ::SetWorkingDirectory(pathOnly) before it calls ::wxExecute(commandLine...),
+			//	// will have a better chance of succeeding (with a shorter commandLine fed into
+			//	// the ::wxExecute() command. So, here we set the pathToFile to just use the 
+			//	// fileNameOnly rather than the full pathOnly + fileNameOnly that was returned
+			//	// from the MakePathToFileInTempFolder_For_Collab() function call above.
+			//	pathToFile = fileNameOnly;
+			//}
 		}
 			break;
 		case collab_freeTrans_text:
 		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
-			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind); // will  be returned empty if
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind, pathOnly, fileNameOnly); // will  be returned empty if
 							// m_bCollaborationExpectsFreeTrans is FALSE
+			//if (gpApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+			//{
+			//	// For Paratext Lite we shorten the commandLine returned from this function
+			//	// so that when caller TransferTextBetweenAdaptItAndExternalEditor() calls the
+			//	// ::SetWorkingDirectory(pathOnly) before it calls ::wxExecute(commandLine...),
+			//	// will have a better chance of succeeding (with a shorter commandLine fed into
+			//	// the ::wxExecute() command. So, here we set the pathToFile to just use the 
+			//	// fileNameOnly rather than the full pathOnly + fileNameOnly that was returned
+			//	// from the MakePathToFileInTempFolder_For_Collab() function call above.
+			//	pathToFile = fileNameOnly;
+			//}
 		}
 			break;
 		} // end of switch (textKind)
+
+		// For debugging purposes only
+		wxString projPath = wxGetenv(_T("PROJECTS_PATH"));
+		wxUnusedVar(projPath);
 
 		wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
 
@@ -1286,14 +1378,39 @@ extern bool gbDoingInitialSetup;
 			// whm 23Aug11 added quotes around shortProjName since Bibledit only uses the language name
 			// for its project name and language names, unlike PT shortnames, can be more than one word
 			// i.e., "Tok Pisin".
-			if (cmdLineAppPath.Contains(_T("paratext")))
+			if (cmdLineAppPath.Contains("paratextlite"))
+			{
+				wxString ptLiteProjectsPath = gpApp->GetParatextProjectsDirPath(_T("PTLinuxParatextLite"));
+				wxString chOrWholeBook;
+				if (!chStrForCommandLine.IsEmpty())
+					chOrWholeBook = _T("--chapter ") + chStrForCommandLine;
+				else
+					chOrWholeBook = wxEmptyString;
+				if (chOrWholeBook.IsEmpty())
+				{
+					// Paratext Lite omits the --chapter n parameter for whole book 
+					cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") +
+						readwriteChoiceStr +  _T(" --project ") + shortProjName +
+						_T(" --projectsPath ") + ptLiteProjectsPath +
+						_T(" --book ") + bookCode + 
+						_T(" --file ") + _T("\"") + pathToFile + _T("\"");
+				}
+				else
+				{
+					// chOrWholeBook has a chapter number in it
+					cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") +
+						readwriteChoiceStr + _T(" --project ") + shortProjName +
+						_T(" --projectsPath ") + ptLiteProjectsPath +
+						_T(" --book ") + bookCode + _T(" ") + chOrWholeBook + 
+						_T(" --file ") + _T("\"") + pathToFile + _T("\"");
+				}
+			}
+			else if (cmdLineAppPath.Contains(_T("paratext")))
 			{
 				// PT on linux -- command line is /usr/bin/paratext --rdwrtp7
 				// (calls a mono script to set up the environment, then the mono script calls rdwrtp7.exe
 				// with the rest of the params)
-				// TODO: Once PT8 for Linux moves from experimental to the normal PSO release, and we
-				// verify that PT8 for Linux can take a --rdwrtp8 command-line option, change the cmdLine
-				// below to use --rdwrtp8 instead of --rdwrtp7.
+				// For PT8 for Linux takes a --rdwrtp8 command-line option instead of --rdwrtp7.
 				cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" --rdwrtp7 ") +
 					readwriteChoiceStr + _T(" ") + _T("\"") + shortProjName + _T("\"") +
 					_T(" ") + bookCode + _T(" ") + chStrForCommandLine +
@@ -1534,7 +1651,9 @@ extern bool gbDoingInitialSetup;
 		} // end of switch (textKind)
 		beProjPath += gpApp->PathSeparator + shortProjName;
 		wxString fullBookName = gpApp->m_CollabBookSelected;
-		wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
+		wxString pathOnly; // whm 8Apr2026 added
+		wxString fileNameOnly; // whm 8Apr2026 added
+		wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind, pathOnly, fileNameOnly);
 
 		wxASSERT(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit); // whm added 4Mar12
 
@@ -1547,8 +1666,14 @@ extern bool gbDoingInitialSetup;
 			{
 				// Use the wxExecute() override that takes the two wxStringArray parameters. This
 				// also redirects the output and suppresses the dos console window during execution.
-				wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+				// whm 8Apr2026 Note: The commandLine value returned from BuildCommandLineFor() below
+				// is shortened to the fileNameOnly part when it is for Paratext Lite text transfer.
+				wxString commandLine = BuildCommandLineFor(lineFor, textKind, pathOnly, fileNameOnly);
+				wxString saveDir = ::wxGetCwd(); // whm 8Apr2026 added
+				wxLogNull logNo;
+				::wxSetWorkingDirectory(pathOnly); // whm 8Apr2026 added
 				resultCode = ::wxExecute(commandLine, textIOArray, errorsIOArray);
+				::wxSetWorkingDirectory(saveDir); // whm 8Apr2026 added
 				gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
 					// the code pointer will pass thru here, so it's a suitable place to
 					// reinitialize the flag to FALSE; because operations which open and close
@@ -1586,8 +1711,14 @@ extern bool gbDoingInitialSetup;
 			{
 				// Use the wxExecute() override that takes the two wxStringArray parameters. This
 				// also redirects the output and suppresses the dos console window during execution.
-				wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+				// whm 8Apr2026 Note: The commandLine value returned from BuildCommandLineFor() below
+				// is shortened to the fileNameOnly part when it is for Paratext Lite text transfer.
+				wxString commandLine = BuildCommandLineFor(lineFor, textKind, pathOnly, fileNameOnly);
+				wxString saveDir = ::wxGetCwd(); // whm 8Apr2026 added
+				wxLogNull logNo;
+				::wxSetWorkingDirectory(pathOnly); // whm 8Apr2026 added
 				resultCode = ::wxExecute(commandLine, textIOArray, errorsIOArray);
+				::wxSetWorkingDirectory(saveDir); // whm 8Apr2026 added
 			}
 			else if (gpApp->m_bCollaboratingWithBibledit)
 			{
@@ -2438,8 +2569,22 @@ extern bool gbDoingInitialSetup;
 #else
 		bAddBOM = bAddBOM; // to prevent compiler warning
 #endif
-	// make the file's path (the file will live in the .temp folder)
-		wxString path = MakePathToFileInTempFolder_For_Collab(textKind);
+		// make the file's path (the file will live in the .temp folder)
+		// whm 8Apr2026 Note:  The pathOnly and fileNameOnly vars below are
+		// declared to pass into the MakePathToFileInTempFolder_For_Collab()
+		// function as ref parameters, but their return values are not used 
+		// here since ::wxExecute() not called here in MoveTextToTempFolderAndSave()
+		// and the pathOnly part of path isn't required for the ff.Open() and ff.Write()
+		// operations below.
+		wxString pathOnly; // whm 8Apr2026 added
+		wxString fileNameOnly; // whm 8Apr2026 added
+		
+		wxString path = MakePathToFileInTempFolder_For_Collab(textKind, pathOnly, fileNameOnly);
+		
+		// whm 8Apr2026 Note: The ref parameters pathOnly and fileNameOnly are not used
+		// within the remainder of this function.
+		wxUnusedVar(pathOnly); // whm 8Apr2026 added
+		wxUnusedVar(fileNameOnly); // whm 8Apr2026 added
 		wxASSERT(path.Find(_T(".temp")) != wxNOT_FOUND);
 
 		// make the wxFFile object and save theText to the path created above
@@ -4389,6 +4534,10 @@ extern bool gbDoingInitialSetup;
 			{
 				projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 			}
+			else if (ptEditorVersion == _T("PTLinuxParatextLite")) // whm 4Apr2026 added
+			{
+				projList = gpApp->GetListOfPTProjects(_T("PTLinuxParatextLite")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+			}
 		}
 		else if (collabEditor == _T("Bibledit"))
 		{
@@ -4447,6 +4596,7 @@ extern bool gbDoingInitialSetup;
 	/// the errors apply to, i.e., "source" or "source:freetrans", etc.
 	/// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
 	/// whm 4Feb2020 Checked for PT 9 compatibility - no changes other than in \param ptEditorVersion description above
+	/// whm 4Apr2026 - no changes needed for Paratext Lite support.
 	bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
 		wxString freeTransCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 		wxString& errorStr, wxString& errorProjects)
@@ -4769,9 +4919,26 @@ extern bool gbDoingInitialSetup;
 		else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
 			rdwrtPTPathAndFileName = _T("/usr/bin/paratext9");
 		wxASSERT(::wxFileExists(rdwrtPTPathAndFileName));
+		// whm 7Apr2026 NOTE: This GetPathToRdwrtPT() function is not called from
+		// the BuildCommandLineFor() function when Paratext Lite is the Paratext editor
+		// but BuildCommandLineFor() builds the paratextlite command line without the
+		// services of the rdwrtp8 utility (which paratextlite considers "obsolete").
 
 #endif
 		return rdwrtPTPathAndFileName;
+	}
+
+	// whm 3Apr2026 added. Gets the path to the Paratext Lite's symbolic link to
+	// its executable. This path is normally: /snap/bin/paratextlite where 
+	// paratextlite is a symbolic link to the snap executable at: /usr/bin/snap
+	wxString GetPathToParatextLiteExec()
+	{
+		wxString path = _T("/snap/bin/paratextlite");
+		wxLogNull logNo; // eliminates any spurious messages from the system while reading read-only folders/files
+		if (::wxFileExists(path))
+			return path;
+		else
+			return wxEmptyString;
 	}
 
 	wxString GetPathToBeRdwrt()
@@ -5395,10 +5562,28 @@ extern bool gbDoingInitialSetup;
 		// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
 		// called on an empty string
 		wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
-		int posColon = str.Find(_T(':'), TRUE); // TRUE - find from right end
+		// whm 4Apr2026 revised/corrected. The usfm struct string now has 4 colons 
+		// delimiting 5 fields, instead of 2 colons delimiting 3 fields which it 
+		// had previously. 
+		// The 5 fields separated by 4 colons are illustrated by the following examples:
+		// \v 36:173:0efc66f02b1438b8f2dbf9c7428d69b1:eol:0 [verse with text]
+		// \v 36:0:0:eol:0 [empty verse - no text in verse]
+		// To fix this, and to be safer against future field additions on the right end 
+		// of usfm struct lines, I'll work from the left more stable end to isolate the 
+		// MD5str value.
+		int posColon = str.Find(_T(':'), FALSE); // find 1st colon from left end 
 		wxASSERT(posColon != wxNOT_FOUND);
-		wxString tempStr = str.Mid(posColon + 1);
-		return tempStr;
+		wxString MD5str;
+		// Skip initial str chars up to and including first colon; putting remaining chars in MD5str
+		MD5str = str.Mid(posColon + 1);
+		posColon = MD5str.Find(_T(':'), FALSE); // find next (2nd) colon from left end in MD5str
+		// Again skip initial MD5str chars up to and including next colon from left end in MD5str
+		MD5str = MD5str.Mid(posColon + 1);
+		posColon = MD5str.Find(_T(':'), FALSE); // find next (3rd) colon from left end in MD5str
+		MD5str = MD5str.Mid(0, posColon); // put initial chars up to but not incl colon nor remaining chars in MD5str
+		MD5str.Trim(FALSE);
+		MD5str.Trim(TRUE);
+		return MD5str;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7369,8 +7554,17 @@ extern bool gbDoingInitialSetup;
 				wxBell();
 				return emptyStr;
 			}
+			wxString pathOnly; // whm 8Apr2026 added
+			wxString fileNameOnly; // whm 8Apr2026 added
+
+			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text, pathOnly, fileNameOnly);
+			
+			// whm 8Apr2026 Note: The ref parameters pathOnly and fileNameOnly are not used
+			// within the remainder of this function.
+			wxUnusedVar(pathOnly); // whm 8Apr2026 added
+			wxUnusedVar(fileNameOnly); // whm 8Apr2026 added
+			
 			// remove BOM if present and get the data into wxString fromEditorText
-			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
 			// whm 21Sep11 Note: When grabbing the free translation text, we don't need
 			// to ensure the existence of any \id XXX line, therefore the second parameter
 			// in the GetTextFromAbsolutePathAndRemoveBOM() call below is wxEmptyString
@@ -7423,8 +7617,17 @@ extern bool gbDoingInitialSetup;
 				wxBell();
 				return emptyStr;
 			}
+			wxString pathOnly; // whm 8Apr2026 added
+			wxString fileNameOnly; // whm 8Apr2026 added
+
+			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text, pathOnly, fileNameOnly);
+
+			// whm 8Apr2026 Note: The ref parameters pathOnly and fileNameOnly are not used
+			// within the remainder of this function.
+			wxUnusedVar(pathOnly); // whm 8Apr2026 added
+			wxUnusedVar(fileNameOnly); // whm 8Apr2026 added
+			
 			// remove the BOM and get the data into wxString fromEditorText
-			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text);
 			// whm 21Sep11 Note: When grabbing the target text, we don't need
 			// to ensure the existence of any \id XXX line, therefore the second parameter
 			// in the GetTextFromAbsolutePathAndRemoveBOM() call below is wxEmptyString
@@ -10864,14 +11067,33 @@ extern bool gbDoingInitialSetup;
 			// the .temp folder -- functions for this are in CollabUtilities.cpp
 			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_source_text, outputSrc,
 				errorsSrc, resultSrc);
+			// whm 8Apr2026 added. Include the errorSrc content to the message displayed
+			// below when resultSrc is not 0.
+
 			if (resultSrc != 0)
 			{
+				wxString errorsStr; errorsStr.Empty();
+				for (int ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
+				{
+					if (!errorsStr.IsEmpty())
+						errorsStr += _T('\n');
+					errorsStr += errorsSrc.Item(ct);
+				}
 				// not likely to happen so an English warning will suffice
 				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
 				gpApp->m_bUserDlgOrMessageRequested = TRUE;
-				wxMessageBox(_(
-					"Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
-					_T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
+				wxString msg = _("Could not read data from the Paratext/Bibledit projects.\nErrors reported:\n%s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+				msg = msg.Format(msg, errorsStr.c_str());
+				// whm 7Apr2026 modified to use wxMessageDialog instead of wxMessageBox in order to make the
+				// error message selectable and copyable - so user can select and copy the message on a report
+				// to developers.
+				wxWindow* pParent = pApp->GetMainFrame()->canvas;
+				wxMessageDialog dlg(pParent, _("Problem communicating with external editor"), msg, wxICON_EXCLAMATION | wxOK);
+				dlg.SetExtendedMessage(msg);
+				dlg.ShowModal();
+				//wxMessageBox(_(
+				//	"Could not read data from the Paratext/Bibledit projects.\nErrors reported: %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu)."),
+				//	_T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 				wxString temp;
 				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "), resultSrc);
 				pApp->LogUserAction(temp);
@@ -10979,7 +11201,15 @@ extern bool gbDoingInitialSetup;
 		// earlier source text in order to compare with what is coming from the external editor
 		// in the new session; this call understands the difference between chapter and
 		// wholebook filenames & builds accordingly
-		wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text);
+		wxString pathOnly; // whm 8Apr2026 added
+		wxString fileNameOnly; // whm 8Apr2026 added
+
+		wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text, pathOnly, fileNameOnly);
+
+		// whm 8Apr2026 Note: The ref parameters pathOnly and fileNameOnly are not used
+		// within the remainder of this function.
+		wxUnusedVar(pathOnly); // whm 8Apr2026 added
+		wxUnusedVar(fileNameOnly); // whm 8Apr2026 added
 
 		nStep = 3;
 		msgDisplayed = progMsg.Format(progMsg, nStep, nTotal);

@@ -5596,8 +5596,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 
 	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
+	
+	wxString m_PTLiteProjectPath; // whm 4Apr2026 added
+	
+								  //bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
 	bool     m_bEnableDelayedGet_Handler; // BEW added 15Sep14
+
+	// whm 3Apr2026 added for ParatextLite support
+	wxArrayString GetListOfPTLiteProjects();
 
 	// whm 17Oct11 for collaboration support
     wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function

@@ -21797,7 +21797,9 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 			int pNewIndx = 1;
 			int nWhiteSp = 0;
 			dummyChar = *(pNew - pNewIndx);
-			while (IsWhiteSpace(pNew - pNewIndx) && pNew >= pBufStart)
+			// whm 2Apr2026 modified. The second condition below should be pNew >= pBuff2 
+			// and not pNew >= pBufStart, since pNew is initialized on pBuff2 above.
+			while (IsWhiteSpace(pNew - pNewIndx) && pNew >= pBuff2) //while (IsWhiteSpace(pNew - pNewIndx) && pNew >= pBufStart)
 			{
 				nWhiteSp++;
 				pNewIndx++;

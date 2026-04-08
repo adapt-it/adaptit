@@ -1039,6 +1039,8 @@ void CCollabProtectEditorBulkSettingsDlg::DoSetControlsFromConfigFileCollabData(
         // whm 4Feb2020 added test below for PTLinuxVersion9
         else if (m_TempCollabEditorVersion == _T("PTLinuxVersion9"))
             PTversionNum = _T("9 (Linux)");
+        else if (m_TempCollabEditorVersion == _T("PTLinuxParatextLite")) // whm 3Apr2026 added
+            PTversionNum = _T("Lite (Linux)");
 
         pStaticTextCollabEditor->SetLabel(m_TempCollaborationEditor + _T(" ") + PTversionNum);
     }

@@ -79,6 +79,7 @@ extern bool gbPTVer9Installed;
 extern bool gbPTLinuxVer7Installed;
 extern bool gbPTLinuxVer8Installed;
 extern bool gbPTLinuxVer9Installed;
+extern bool gbPTLinuxParatextLiteInstalled; // whm 1Apr2026 added
 
 extern bool gbPTNotInstalled;
 
@@ -88,6 +89,7 @@ extern bool gbPTVer9OnlyInstalled;
 extern bool gbPTLinuxVer7OnlyInstalled;
 extern bool gbPTLinuxVer8OnlyInstalled;
 extern bool gbPTLinuxVer9OnlyInstalled;
+extern bool gbPTLinuxParatextLiteOnlyInstalled; // whm 1Apr2026 added
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
@@ -220,6 +222,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
     gbPTLinuxVer7OnlyInstalled = FALSE;
     gbPTLinuxVer8OnlyInstalled = FALSE;
     gbPTLinuxVer9OnlyInstalled = FALSE;
+	gbPTLinuxParatextLiteOnlyInstalled = FALSE; // whm 1Apr2026 added
 
 	// We have no Cancel button so no need to reverse buttons
 }
@@ -284,8 +287,10 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
     //   ( ) Paratext 8
     //   ( ) Paratext 9
     //   ( ) Bibledit
+	//   ( ) Paratext Lite  whm 3Apr2026 added
     // For either "Paratext 7", "Paratext 8", or "Paratext 9" options, the m_TempColllaborationEditor is still just "Paratext",
-    // but the m_TempCollabEditorVersion will one of: "PTVersion7", "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9".
+    // but the m_TempCollabEditorVersion will one of: "PTVersion7", "PTVersion8", "PTVersion9", 
+	// "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9" or "PTLinuxParatextLite".
     
     // These bool values below represent what versions of Paratext are installed when
     // this dialog is called up by the Administrator.
@@ -293,11 +298,12 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
     // if that particular PT version is found to be installed by calls made by the App's 
     // IsThisParatextVersionInstalled() function below.
     gbPTVer7Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTVersion7"));
-    gbPTVer8Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTVersion8"));;
-    gbPTVer9Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTVersion9"));;
-    gbPTLinuxVer7Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion7"));;
-    gbPTLinuxVer8Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));;
-    gbPTLinuxVer9Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));;
+    gbPTVer8Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTVersion8"));
+    gbPTVer9Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTVersion9"));
+    gbPTLinuxVer7Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion7"));
+    gbPTLinuxVer8Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));
+    gbPTLinuxVer9Installed = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));
+	gbPTLinuxParatextLiteInstalled = m_pApp->IsThisParatextVersionInstalled(_T("PTLinuxParatextLite")); // whm 1Apr2026 added
 
     // Set up the boolean logic for other possible PT installations.
     // Set some convenience bools that indicate when ONLY a certain version is installed on this machine
@@ -313,9 +319,12 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
         gbPTLinuxVer8OnlyInstalled = TRUE;
     if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
         gbPTLinuxVer9OnlyInstalled = TRUE;
-    // Set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
+	if (gbPTLinuxParatextLiteInstalled && !gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
+		gbPTLinuxParatextLiteOnlyInstalled = TRUE; // whm 1Apr2026 added
+	// Set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
     // on this machine.
-    if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+    if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed 
+		&& !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTNotInstalled = TRUE;
 
     // whm 4Feb2020 Note: The above usage of the App's IsThisParatextVersionInstalled() need only be
@@ -409,6 +418,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
     // 2. Paratext 8 (radio box index value 1)
     // 3. Paratext 9 (radio box index value 2), and
     // 3. Bibledit (radio box index value 3)
+	// 4. Paratext Lite (radio box index value 4) // whm 1Apr2026 added here and in wxDesigner's SetupCollaborationBetweenAIandEditorFunc()
     //
     // The function IsThisParatextVersionInstalled() was called in InitDialog() on all possible
     // installations to determine which versions are currently installed.
@@ -418,7 +428,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
     pRadioBoxScriptureEditor->Enable(1, gbPTVer8Installed || gbPTLinuxVer8Installed); // radiobox index 1 is "Paratext 8"
     pRadioBoxScriptureEditor->Enable(2, gbPTVer9Installed || gbPTLinuxVer9Installed); // radiobox index 2 is "Paratext 9"
     pRadioBoxScriptureEditor->Enable(3, m_pApp->m_bBibleditIsInstalled); // radiobox index 3 is "Bibledit"
-
+	pRadioBoxScriptureEditor->Enable(4, gbPTLinuxParatextLiteInstalled); // "Paratext Lite" whm 1Apr2026 added
 	// Now that radiobox items are enabled/disabled appropriately, set a reasonable initial 
     // default for editor selection radio button.
     // Note: These initial selections should agree with the enabled/disabled state of the radio boxes set above!
@@ -1392,8 +1402,10 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 				{
 					// At least one colon ':' character is present in string therefore it was previously
 					// using Paratext. Assign "Paratext" as editor (if it is installed).
-                    // whm 4Feb2020 added tests for PTVer9 and PTLinuxVer9 below
-                    if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed)
+					// whm 4Feb2020 added tests for PTVer9 and PTLinuxVer9 below
+					if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed
+						|| gbPTLinuxVer8Installed || gbPTLinuxVer9Installed 
+						|| gbPTLinuxParatextLiteInstalled) // whm 4Apr2026 added
                         m_TempCollaborationEditor = _T("Paratext");
 				}
 				else
@@ -1452,7 +1464,9 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 // Bibledit is the editor according to the config file, but Bibledit is not installed,
                 // so if Paratext is installed, assign it instead.
                 // whm 4Feb2020 added tests for PTVer9 and PTLinuxVer9 below
-                if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed)
+                if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed 
+					|| gbPTLinuxVer8Installed || gbPTLinuxVer9Installed
+					|| gbPTLinuxParatextLiteInstalled) // whm 4Apr2026 added
                     m_TempCollaborationEditor = _T("Paratext");
                 else
                     bNoCollabEditorfIsInstalled = TRUE;
@@ -3034,8 +3048,9 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event))
 {
-    // Clicking the "Paratext 7" button returns nSel = 0; clicking the "Paratext 8" button returns nSel 1;
-    // clicking the "Paratext 9" button returns nSel = 2; clicking the "Bibledit" button returns nSel = 3
+    // Clicking the "Paratext 7" button returns nSel = 0; clicking the "Paratext 8" button returns nSel 1
+    // Clicking the "Paratext 9" button returns nSel = 2; clicking the "Bibledit" button returns nSel = 3
+	// Clicking the "Paratext Lite" button returns nSel = 4
 	unsigned int nSelNew = pRadioBoxScriptureEditor->GetSelection();
 	if (nSelNew == 0)
 	{
@@ -3055,12 +3070,18 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
         m_TempCollaborationEditor = _T("Paratext");
         m_TempCollabEditorVersion = _T("PTVersion9");
     }
-    else
+    else if (nSelNew == 3)
     {
 		// "Bibledit" button selected
 		m_TempCollaborationEditor = _T("Bibledit");
         // for a Bibledit selection the m_TempCollabEditorVersion is ignored
     }
+	else if (nSelNew == 4)
+	{
+		// "Paratext Lite" button selected
+		m_TempCollaborationEditor = _T("Paratext");
+		m_TempCollabEditorVersion = _T("PTLinuxParatextLite");
+	}
 
     if (m_TempCollabEditorVersion == _T("PTVersion7"))
     {
@@ -3094,11 +3115,14 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
 // (assigned values above) to set an appropriate radio button for the radiobox in the dialog.
 // This function is called from: CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 // and CSetupEditorCollaboration::DoInit().
+// whm 1Apr2026 revised for support of Paratext Lite.
 void CSetupEditorCollaboration::SetRadioBoxCollabEditorSelection()
 {
     if (m_TempCollaborationEditor == _T("Paratext"))
     {
-        if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed)
+        if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed 
+			|| gbPTLinuxVer8Installed || gbPTLinuxVer9Installed 
+			|| gbPTLinuxParatextLiteInstalled) // whm 1Apr2026 added
         {
             // Only select a PT version radio button if that version of Paratext is installed
             if ((m_TempCollabEditorVersion == _T("PTVersion7") && gbPTVer7Installed) || (m_TempCollabEditorVersion == _T("PTLinuxVersion7") && gbPTLinuxVer7Installed))
@@ -3114,6 +3138,11 @@ void CSetupEditorCollaboration::SetRadioBoxCollabEditorSelection()
             {
                 pRadioBoxScriptureEditor->SetSelection(2); // radiobox index 2 is "Paratext 9"
             }
+			// whm 1Apr2026 added for support of ParatextLite
+			else if ((m_TempCollabEditorVersion == _T("PTLinuxParatextLite") && gbPTLinuxParatextLiteInstalled))
+			{
+				pRadioBoxScriptureEditor->SetSelection(4); // radiobox index 4 is "Paratext Lite"
+			}
         }
         else if (m_pApp->BibleditIsInstalled())
         {

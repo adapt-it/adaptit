@@ -101,6 +101,7 @@ public:
 	wxArrayString FreeTransChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtPTPathAndFileName;
+	wxString m_PTLitePathAndFileName; // whm 3Apr2026 added
 	wxString m_bibledit_rdwrtPathAndFileName;
 	
 	wxString m_collabEditorName;

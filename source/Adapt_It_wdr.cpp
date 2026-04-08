@@ -6959,9 +6959,10 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
         _("Paratext 7"), 
         _("Paratext 8"), 
         _("Paratext 9"), 
-        _("Bibledit")
+        _("Bibledit"), 
+        _("Paratext Lite")
     };
-    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 4, strs13, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 5, strs13, 1, wxRA_SPECIFY_COLS );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString *strs14 = (wxString*) NULL;
