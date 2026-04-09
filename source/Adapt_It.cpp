@@ -14686,6 +14686,14 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
         // Paratext 8 for Linux, or Paratext 9 for Linux.
         // $HOME/snap/paratextlite/current/Paratext8Projects   or
         // $HOME/snap/paratextlite/current/Paratext9Projects
+        // For new installs of Paratext Lite on Linux for Linux users who did not
+        // previously have the mono oriented Paratext 8, or 9 for Linux installed,
+        // new/fresh installs of Paratext Lite should have a "Paratext9Projects" 
+        // folder created within their $HOME directory. Therefore, we first check
+        // for a Paratext8Projects or Paratext9Projects folder in the 
+        // /snap/paratextlite/current/ folder. If present we use it for PTLiteProjPath
+        // but if not present, we check for "Paratext9Projects" folder in the $HOME
+        // directory, and use it, if present, instead.
         wxString homeDir = wxGetenv(_T("HOME"));
         PTLiteProjectPath9 = homeDir;
         PTLiteProjectPath9 += _T("/snap/paratextlite/current/Paratext9Projects/");
@@ -14695,12 +14703,26 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
         {
             if (!::wxDirExists(PTLiteProjectPath8))
             {
-                wxLogDebug(_T("In GetParatextProjectsDirPath(): Unable to locate a projects dir for Paratext Lite!!"));
-                wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath8.c_str());
-                wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath9.c_str());
-                wxLogDebug(_T("Returning empty string from GetParatextProjectsDirPath()"));
-                PTLiteProjectPath8 = wxEmptyString;
-                PTLiteProjPath = wxEmptyString; // return wxEmptyString;
+                // Neither Paratext8Projects nor Paratext9Projects folder is present in 
+                // the /snap/paratextlite/current/ folder. So check for a Paratext9Projects 
+                // folder within the user's $HOME directory, and if present, we use it 
+                // instead.
+                wxString PTLiteHomeDirProjectPath9 = homeDir;
+                PTLiteHomeDirProjectPath9 += _T("/Paratext9Projects/");
+                if (::wxDirExists(PTLiteHomeDirProjectPath9))
+                {
+                    PTLiteProjPath = PTLiteHomeDirProjectPath9;
+                    wxLogDebug(_T("Found projects dir for Paratext Lite at: %s"), PTLiteHomeDirProjectPath9.c_str());
+                }
+                else
+                {
+                    wxLogDebug(_T("In GetParatextProjectsDirPath(): Unable to locate a projects dir for Paratext Lite!!"));
+                    wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath8.c_str());
+                    wxLogDebug(_T("   %s does not exist!"), PTLiteProjectPath9.c_str());
+                    wxLogDebug(_T("Returning empty string from GetParatextProjectsDirPath()"));
+                    PTLiteProjectPath8 = wxEmptyString;
+                    PTLiteProjPath = wxEmptyString; // return wxEmptyString;
+                }
             }
             else
             {
