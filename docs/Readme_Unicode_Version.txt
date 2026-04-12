@@ -10,7 +10,7 @@ Version 6.12.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
-and the Macintosh. See http://adapt-it.org for more information.
+and the Macintosh. See https://adapt-it.org for more information.
 
 See the file "Adapt It changes.txt" for a description of the latest
 changes that have been incorporated into this version.
@@ -58,7 +58,7 @@ translated text or the source text to legacy encoding again. However,
 if your legacy encoding is a hacked ANSI encoding, the conversions 
 will not be done correctly. For the latter, it is preferable for you 
 to use the non-Unicode ANSI version, called Adapt It WX. It is 
-available from the same source, at http://adapt-it.org/.
+available from the same source, at https://adapt-it.org/.
 
 Adapt It WX Unicode will only run reliably on Windows NT, 2000, XP, 
 or later systems. It will run on Windows 98 but the screen will show 

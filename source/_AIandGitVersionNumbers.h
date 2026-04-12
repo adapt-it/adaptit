@@ -49,11 +49,11 @@
 #define AI_VERSION_BUILD_PART 0
 
 // when changing these string values make sure to also change the corresponding int values below
-#define VERSION_DATE_DAY_STR "21"
-#define VERSION_DATE_MONTH_STR "2"
+#define VERSION_DATE_DAY_STR "18"
+#define VERSION_DATE_MONTH_STR "4"
 #define VERSION_DATE_YEAR_STR "2026"
-#define VERSION_DATE_DAY 21
-#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_DAY 18
+#define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2026
 
 // set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
