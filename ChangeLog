@@ -1,4 +1,130 @@
 ﻿----------------------------------------------
+Version 6.12.0  18 April 2026
+----------------------------------------------
+Feature changes and new features in 6.12.0
+--------------------------------------------------------------------------------------
+* Adapt It 6.12.0 changes the structure of its xml documents that are stored within
+a project's "Adaptations" folder. XML documents created with version 6.12.0 now are
+identified by the docVersion="11" value at the beginning of the xml doc's <Settings
+... /> tag. This latest version of Adapt It 6.12.0 can read and convert previous
+versions (docVersion="10" and earlier) created by versions of Adapt It before 6.12.0,
+however, the reverse is not true. Earlier versions of Adapt It (6.11.1 and earlier)
+can open, but will not be able to accurately read the docVersion="11" xml files 
+created by this new version (6.12.0) of Adapt It. Using an older version of Adapt It
+to open a document created by version 6.12.0 is likely to result in some usfm 
+markers and punctuation becoming duplicated within the document and especially 
+within exported documents. If you accidentally open a 6.12.0 version document with
+an earlier version of Adapt It you should close the document without saving it, and
+upgrade to the latest version of Adapt It available from: https://www.adapt-it.org 
+or from the SIL Linux repository if using the Linux version.
+Therefore, it is important that teams with multiple contributing members that use 
+Adapt It, all upgrade to same Adapt It version 6.12.0 at the same time. 
+* The Linux version of Adapt It now supports collaboration with Paratext Lite as
+well as any previous Mono-enabled versions of Paratext 8 and 9 that were installed
+on versions of Ubuntu/Wasta 20.04 and earlier. The collaboration setup and process 
+is the same as has been available with previous versions of Paratext 8 and 9 that 
+ran on older 20.04 and earlier versions of Ubuntu and Wasta Linux. Paratext Lite, however, is the only Paratext version that runs on more recent versions of 
+Ubuntu/Wasta Linux including 22.04, 24.04 and the upcoming Linux version 26.04. 
+* The collaboration setup process has had a few bug fixes and should recognize
+an installation of Paratext Lite on recent versions of Ubuntu/Wasta Linux. 
+Collaboration setup remains available to Adapt It Administrators via the 
+"Administrator" menu that can be displayed via Adapt It's View menu option:
+[ ] Show Administrator Menu... (Password protected)
+The Administrator's menu item: "Setup or Remove Collaboration" displays the same
+dialog as previously, but the dialog now detects when Paratext Lite is installed 
+on the underlying Linux system, displays the projects that Paratext Lite has 
+available to it, and allows the administrator to designate the appropriate 
+Paratext source text and target text projects for collaboration with Paratext 
+Lite. 
+Note: In most cases, if an Adapt It project was previously set up to collaborate 
+with any version of Paratext 7, 8 or 9, and one or more of those Paratext 
+versions are still installed on the user's computer, Adapt It should still be
+able to collaborate with those versions of Paratext. 
+In the case a user's computer was configured with both Paratext and Adapt It on 
+Windows, and later that computer is to be "upgraded" from Windows to Linux, the
+steps to get collaboration working again between Adapt It and Paratext Lite 
+would be as follows:
+Upgrading from Windows to Linux:
+1. Run Paratext and do a Send/Receive operation from Paratext to ensure your
+   Paratext work was saved to the external Paratext server. Make sure all of
+   your Paratext project are included when doing the Send/Receive operation,
+   and that you have written down your Paratext registration name and code.
+2. Back up all your data from the Windows computer to a thumb drive or external
+   hard drive. The backup should include the "My Paratext 8 Projects" or
+   "My Paratext 9 Projects" folder located on the Local Disk (C:) drive, 
+   AND include the "Adapt It Unicode Work" folder and its contents located
+   in the "Documents" folder of the Windows system.
+3. Install Ubuntu 24.04 or Wasta 24.04 on the computer. Whether you make it
+   dual-boot Windows and Linux, or overwrite Windows with Linux, is a matter 
+   of preference, but we recommend overwriting Windows entirely with Linux.   
+4. Boot to Linux and install Paratext Lite.
+   In a Terminal type: sudo snap install paratextlite
+5. Run Paratext Lite, fill in the Paratext registration information, and do a
+   Send/Receive to retrieve all Paratext projects including any Paratext
+   project that Adapt It would use as "source text" and any Paratext project 
+   that Adapt It would use to store/receive its adaptation or "translation 
+   text" (within Paratext Lite this "receiving project" would initially be
+   created with empty verse and chapter markers).
+6. Install the Linux version of Adapt It 6.12.x from the appropriate Linux
+   repository. If you installed Wasta Linux, you can use the "Software 
+   Updater" or "Synaptic Package Manager" - or using the Terminal 
+   type: sudo apt install adaptit
+7. Plug in the backup drive, and copy the "Adapt It Unicode Work" directory 
+   from the backup you made in step 2 above, over to the Linux system, 
+   copying/pasting it into the "Documents" folder on the Linux system.
+8. Run Adapt It on the Linux system. It should recognize, convert, and use 
+   the basic and project settings, as well as the project data that was
+   copied over from the Windows version in step 7 above. In some cases you
+   may see a message saying: "This document is owned by someone else, so you 
+   have READ-ONLY access.  Do you want to take ownership of this document 
+   in order to change it?" Just respond "Yes" if any such message appears.
+9. If the project you wish to access was originally set up for collaboration
+   with Paratext, does not appear to be available for collaboration on the
+   new system, you should access the Administrator menu (see above) and 
+   select the "Setup or Remove Collaboration" dialog and follow the steps
+   there to re-establish collaboration with Paratext Lite on the Linux 
+   system.
+* The exports of source text and target text should now be more accurate and robust.
+In addition to the user being able to explicitly ask for such exports from Adapt It's
+main Export-Import menu, Adapt It rebuilds the source text for a number of other 
+purposes that require greater accuracy than the rebuilds/exports that Adapt It was
+previously capable of producing.
+* The docVersion that is stored within the header settings of Adapt It's xml document
+is now set at docVersion 11. Adapt It should still be able to read and use its adapted 
+documents that were created with docVersion 10 and prior versions. This change of 
+docVersion was done to be able to catch and correct some incorrectly stored internal 
+values used by Adapt It's parsing/input routines for documents created prior to this 
+docVersion 11. The effect of this change for users is that when a user opens an old
+document that was created with docVersion 10 or earlier, Adapt It will automatically
+convert the xml document to the current docVersion 11.
+* 
+----------------------------------------------
+Bug fixes in 6.12.0 update
+---------------------------------------------
+* Adapt It now more robustly handles the large variety and uses of the USFM 3.x 
+marker inventory. Previously Adapt It would choke or crash on unexpected combinations
+of markers inserted near punctuation including brackets, parentheses, quote markers
+and so on. The markers that were especially problematic were markers such as /add
+... \add* and any unknown markers not recognized by the USFM 3.x standard. Sometimes
+these would cause program crashes, or Adapt It would present the user with a message
+that reads: 
+   "Warning: Unexpected markers, spaces and/or punctuation in <chapter:verse>..." 
+accompanied by this explanation: 
+   "When Adapt It encounters "Unexpected" markers, spaces and/or punctuation, it 
+   can indicate that leading spaces have interfered with Adapt It's ability to
+   recognize certain end punctuation and/or where it should be stored. 
+   Unexpected markers may indicate the use of markers inappropriately - such as 
+   target references \\xt ... \\xt* embedded within other marker content such 
+   as footnotes. The result may be markers appearing within the text, or 
+   punctuation that appears as a separate word in the display rather than being 
+   bound to some text.
+   Fix the input source text file, then re-load to re-create the document.
+   Do you want to continue loading the file?"
+In most cases Adapt It can now better handle the many possible combinations of such
+markers, spaces and punctuation, so that the above Warning should not appear during
+the loading of a new text for adaptation work.
+* 
+----------------------------------------------
 Version 6.11.6  7 March 2025
 ----------------------------------------------
 Feature changes and new features in 6.11.6
