@@ -307,20 +307,27 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
     // Set up the boolean logic for other possible PT installations.
     // Set some convenience bools that indicate when ONLY a certain version is installed on this machine
-    if (gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+    if (gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTVer7OnlyInstalled = TRUE;
-    if (gbPTVer8Installed && !gbPTVer7Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+
+    if (gbPTVer8Installed && !gbPTVer7Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTVer8OnlyInstalled = TRUE;
-    if (gbPTVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+
+    if (gbPTVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTVer9OnlyInstalled = TRUE;
-    if (gbPTLinuxVer7Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+
+    if (gbPTLinuxVer7Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
         gbPTLinuxVer7OnlyInstalled = TRUE;
-    if (gbPTLinuxVer8Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer9Installed)
-        gbPTLinuxVer8OnlyInstalled = TRUE;
-    if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
-        gbPTLinuxVer9OnlyInstalled = TRUE;
+
+    if (gbPTLinuxVer8Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer9Installed && !gbPTLinuxParatextLiteInstalled)
+		gbPTLinuxVer8OnlyInstalled = TRUE;
+
+    if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxParatextLiteInstalled)
+		gbPTLinuxVer9OnlyInstalled = TRUE;
+
 	if (gbPTLinuxParatextLiteInstalled && !gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
 		gbPTLinuxParatextLiteOnlyInstalled = TRUE; // whm 1Apr2026 added
+
 	// Set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
     // on this machine.
     if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed 
