@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2026-04-14 08:40-0500\n"
-"PO-Revision-Date: 2026-04-14 08:40-0500\n"
+"POT-Creation-Date: 2026-04-18 14:19-0500\n"
+"PO-Revision-Date: 2026-04-18 14:19-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: az\n"
@@ -85,7 +85,7 @@ msgstr "<Uyğunlaşma olmadan>"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: Adapt_It.cpp:10465 Adapt_It.cpp:54853 Adapt_It_wdr.cpp:288
+#: Adapt_It.cpp:10465 Adapt_It.cpp:54864 Adapt_It_wdr.cpp:288
 #: Adapt_It_wdr.cpp:5164
 msgid "Glossing"
 msgstr "Glossing"
@@ -900,7 +900,7 @@ msgid ""
 "Change Username..."
 msgstr ""
 
-#: Adapt_It.cpp:19013 Adapt_It.cpp:64675 Adapt_It.cpp:64748
+#: Adapt_It.cpp:19013 Adapt_It.cpp:64686 Adapt_It.cpp:64759
 msgid "KBserver discovery failed"
 msgstr ""
 
@@ -1125,8 +1125,8 @@ msgid "a gloss"
 msgstr "Gloss"
 
 # Priority 1
-#: Adapt_It.cpp:24848 Adapt_ItDoc.cpp:31633 Adapt_ItDoc.cpp:31796
-#: Adapt_ItDoc.cpp:32064 Adapt_ItDoc.cpp:32904 ConsistencyCheckDlg.cpp:87
+#: Adapt_It.cpp:24848 Adapt_ItDoc.cpp:31857 Adapt_ItDoc.cpp:32020
+#: Adapt_ItDoc.cpp:32288 Adapt_ItDoc.cpp:33128 ConsistencyCheckDlg.cpp:87
 msgid "Inconsistency Found"
 msgstr "Uyğunsuzluq Aşkar Edilmişdir"
 
@@ -1190,7 +1190,7 @@ msgid "Adapt It"
 msgstr "Adapt It"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: Adapt_It.cpp:25672 Adapt_It.cpp:54953 Adapt_It.cpp:55208
+#: Adapt_It.cpp:25672 Adapt_It.cpp:54964 Adapt_It.cpp:55219
 #: Adapt_It_wdr.cpp:8518
 msgid "Adaptations"
 msgstr "Adaptations (Mexanizmlər)"
@@ -1226,11 +1226,11 @@ msgid ""
 "you Cancelled in order to force the application to abort now."
 msgstr ""
 
-#: Adapt_It.cpp:29211 Adapt_It.cpp:46949 Adapt_It.cpp:46960 Adapt_It.cpp:47085
+#: Adapt_It.cpp:29211 Adapt_It.cpp:46960 Adapt_It.cpp:46971 Adapt_It.cpp:47096
 msgid "Error of file named CustomWorkFolderLocation"
 msgstr ""
 
-#: Adapt_It.cpp:30133 Adapt_ItDoc.cpp:5016
+#: Adapt_It.cpp:30133 Adapt_ItDoc.cpp:5218
 msgid "Untitled - Adapt It"
 msgstr ""
 
@@ -1328,13 +1328,13 @@ msgstr ""
 msgid "Initializing help system file %s..."
 msgstr ""
 
-#: Adapt_It.cpp:32680
+#: Adapt_It.cpp:32691
 msgid ""
 "Initialization complete in OnInit(). Now, OnIdle() will call Start Working "
 "wizard..."
 msgstr ""
 
-#: Adapt_It.cpp:34205
+#: Adapt_It.cpp:34216
 msgid ""
 "WARNING: Adapt It detected that you held the Shift key down during program "
 "startup.\n"
@@ -1352,11 +1352,11 @@ msgid ""
 "continue using your old settings."
 msgstr ""
 
-#: Adapt_It.cpp:34206
+#: Adapt_It.cpp:34217
 msgid "Detected Shift key down during startup"
 msgstr ""
 
-#: Adapt_It.cpp:34295
+#: Adapt_It.cpp:34306
 msgid ""
 "WARNING: Adapt It detected that you held the Shift key down while opening a "
 "project.\n"
@@ -1375,12 +1375,12 @@ msgid ""
 "continue using your old settings."
 msgstr ""
 
-#: Adapt_It.cpp:34296
+#: Adapt_It.cpp:34307
 msgid "Detected Shift key down during project opening"
 msgstr ""
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
-#: Adapt_It.cpp:34430
+#: Adapt_It.cpp:34441
 #, c-format
 msgid ""
 "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this "
@@ -1390,7 +1390,7 @@ msgstr ""
 "adını dəyişdirin, çünki Adapt İt-in bu addan qovluğun əvəzinə istifadə "
 "etməsi lazımdır. "
 
-#: Adapt_It.cpp:34450
+#: Adapt_It.cpp:34461
 #, c-format
 msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your "
@@ -1400,7 +1400,7 @@ msgstr ""
 "Təəssüf, sizin Mənim Sənədlərim qovluğunuzda  \"Adapt İt %s Work\" qovluğunu "
 "yaradan səhv var. Adapt İt %s düzgün yerləşdirilməmişdir və bağlanmalıdır."
 
-#: Adapt_It.cpp:34518
+#: Adapt_It.cpp:34529
 #, c-format
 msgid ""
 "Warning: a project with the name \"%s\" already exists. Adapt It will "
@@ -1411,7 +1411,7 @@ msgstr ""
 
 # Also do not translate  Adapt It %sWork
 # Note that the %s place holders are filled with text in the same order as the original English text. Therefore it is important to translate the first sentence if possible so that the \"%s to %s adaptations\"  and the Adapt It %sWork parts remain in the same order, i.e., Adapt It %sWork should not precede \"%s to %s adaptations\" in the sentence.
-#: Adapt_It.cpp:34536
+#: Adapt_It.cpp:34547
 #, fuzzy, c-format
 msgid ""
 "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It "
@@ -1423,7 +1423,7 @@ msgstr ""
 "etməlisiniz, çünki Adapt İt-in bu addan qovluq üçün istifadə etməsi lazımdır."
 
 # Do not translate the \"s% to %s adaptions\" part. Added %s so that there are three in the message, but the English word Work is not present and needs to be (if düzgün means Work, change it to Work; or if Adapt It %s Work has been omitted from the translation, it must be included).
-#: Adapt_It.cpp:34560
+#: Adapt_It.cpp:34571
 #, fuzzy, c-format
 msgid ""
 "Sorry, there was an error creating the \"%s to %s adaptations\" folder in "
@@ -1435,7 +1435,7 @@ msgstr ""
 "baxlanmalıdr. "
 
 # The word "Adaptations" should not be translated.
-#: Adapt_It.cpp:34599
+#: Adapt_It.cpp:34610
 #, c-format
 msgid ""
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please "
@@ -1447,7 +1447,7 @@ msgstr ""
 "kataloq üçün istifadə etməlidir."
 
 # Do not translate the \"Adaptations\" part of the sentence.
-#: Adapt_It.cpp:34617
+#: Adapt_It.cpp:34628
 msgid ""
 "Sorry, there was an error creating the \"Adaptations\" folder in your "
 "project folder. Adapt It is not set up properly and so must close down."
@@ -1456,7 +1456,7 @@ msgstr ""
 "idi. Adapt İt düzgün quraşdırılmamışdır və bağlanmalıdır."
 
 # Do not translate the \"s% to %s adaptions\" part. Added %s so that there are three in the message, but the English word Work is not present and needs to be (if düzgün means Work, change it to Work; or if Adapt It %s Work has been omitted from the translation, it must be included).
-#: Adapt_It.cpp:34634
+#: Adapt_It.cpp:34645
 #, fuzzy, c-format
 msgid ""
 "Sorry, there was an error creating the following folder(s) in your Adapt It "
@@ -1468,19 +1468,19 @@ msgstr ""
 "yaradan səhv var idi. Adapt İt  %s düzgün quraşdırılmamışdır və "
 "baxlanmalıdr. "
 
-#: Adapt_It.cpp:36398 Adapt_It.cpp:36525 XML.cpp:1027
+#: Adapt_It.cpp:36409 Adapt_It.cpp:36536 XML.cpp:1027
 #, c-format
 msgid "Reading File %s - part %d of %d"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:36401 Adapt_It.cpp:36429 Adapt_It.cpp:36457 Adapt_It.cpp:36464
-#: Adapt_It.cpp:36481
+#: Adapt_It.cpp:36412 Adapt_It.cpp:36440 Adapt_It.cpp:36468 Adapt_It.cpp:36475
+#: Adapt_It.cpp:36492
 #, fuzzy
 msgid "Loading the Glossing Knowledge Base"
 msgstr "Bilik bazasını (BB) yaddaşa vermək"
 
-#: Adapt_It.cpp:36441
+#: Adapt_It.cpp:36452
 msgid ""
 "Warning: a knowledge base for storing glosses was not found. An empty one "
 "has been created for your use instead."
@@ -1489,13 +1489,13 @@ msgstr ""
 "etməyiniz üçün boşu yaradılmışdır."
 
 # Priority 1
-#: Adapt_It.cpp:36528 Adapt_It.cpp:36556 Adapt_It.cpp:36609 Adapt_It.cpp:36613
-#: Adapt_It.cpp:36648
+#: Adapt_It.cpp:36539 Adapt_It.cpp:36567 Adapt_It.cpp:36620 Adapt_It.cpp:36624
+#: Adapt_It.cpp:36659
 #, fuzzy
 msgid "Loading the Knowledge Base"
 msgstr "Bilik Bazasını Redaktə et və ya Yoxla"
 
-#: Adapt_It.cpp:36568
+#: Adapt_It.cpp:36579
 msgid ""
 "Warning: a knowledge base for storing adaptations was not found. An empty "
 "one has been created for your use instead. "
@@ -1503,7 +1503,7 @@ msgstr ""
 "Xəbərdarlıq: mexanizmləri yerləşdirmək üçün bilik bazası tapılmadı. İstifadə "
 "etməyiniz üçün boşu yaradılmışdır."
 
-#: Adapt_It.cpp:36755
+#: Adapt_It.cpp:36766
 #, fuzzy
 msgid ""
 "Loading the knowledge base failed. You should now try the Restore Knowledge "
@@ -1515,7 +1515,7 @@ msgstr ""
 "menyusunda Bilik Bazasını Bərp Et əmrindən istifadə etməlisiniz. Bundan "
 "sonra hər hansı bir iş görmək istəsəniz sizə etibarlı bilik bazası lazımdır."
 
-#: Adapt_It.cpp:36794
+#: Adapt_It.cpp:36805
 #, fuzzy
 msgid ""
 "Creating the knowledge base failed. Ensure that no other program is using "
@@ -1528,14 +1528,14 @@ msgstr ""
 "menyusunda Bilik Bazasını Bərp Et əmrindən istifadə etməlisiniz. Bundan "
 "sonra hər hansı bir iş görmək istəsəniz sizə etibarlı bilik bazası lazımdır."
 
-#: Adapt_It.cpp:36841 Adapt_It.cpp:39907
+#: Adapt_It.cpp:36852 Adapt_It.cpp:39918
 msgid ""
 "Error: loading the glossing knowledge base failed. The application will now "
 "close."
 msgstr ""
 "Səhv: Glossing bilik bazasını yükləmək alınmadı. Proqram indi bağlanacaqdır."
 
-#: Adapt_It.cpp:36878
+#: Adapt_It.cpp:36889
 #, fuzzy
 msgid ""
 "Creating the glossing knowledge base failed. Ensure that no other program is "
@@ -1548,40 +1548,40 @@ msgstr ""
 "menyusunda Bilik Bazasını Bərp Et əmrindən istifadə etməlisiniz. Bundan "
 "sonra hər hansı bir iş görmək istəsəniz sizə etibarlı bilik bazası lazımdır."
 
-#: Adapt_It.cpp:37261
+#: Adapt_It.cpp:37272
 msgid "Loading Prefixes"
 msgstr ""
 
-#: Adapt_It.cpp:37265
+#: Adapt_It.cpp:37276
 msgid "Warning: a prefix file was found, but it was not readable."
 msgstr ""
 
-#: Adapt_It.cpp:37295
+#: Adapt_It.cpp:37306
 msgid "Loading Suffixes"
 msgstr ""
 
-#: Adapt_It.cpp:37299
+#: Adapt_It.cpp:37310
 msgid "Warning: a suffix file was found, but it was not readable."
 msgstr ""
 
-#: Adapt_It.cpp:37629
+#: Adapt_It.cpp:37640
 msgid ""
 "Failed to set the current directory when getting existing adaptation "
 "documents"
 msgstr ""
 
-#: Adapt_It.cpp:37725
+#: Adapt_It.cpp:37736
 #, c-format
 msgid ""
 "Creating folder: \"%s\" failed. This folder will be skipped, processing will "
 "continue."
 msgstr ""
 
-#: Adapt_It.cpp:38263
+#: Adapt_It.cpp:38274
 msgid "Error opening glossing KB file for writing with path:\n"
 msgstr ""
 
-#: Adapt_It.cpp:38265
+#: Adapt_It.cpp:38276
 msgid ""
 "\n"
 "The glossing knowledge base was not saved.\n"
@@ -1589,46 +1589,46 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38280 Adapt_It.cpp:38379 KB.cpp:6916
+#: Adapt_It.cpp:38291 Adapt_It.cpp:38390 KB.cpp:6924
 #, fuzzy, c-format
 msgid "Saving KB %s - %d of %d Total entries and senses"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
-#: Adapt_It.cpp:38286 Adapt_It.cpp:38287 Adapt_It.cpp:38311 Adapt_It.cpp:38329
+#: Adapt_It.cpp:38297 Adapt_It.cpp:38298 Adapt_It.cpp:38322 Adapt_It.cpp:38340
 msgid "Saving the Glossing KB"
 msgstr ""
 
-#: Adapt_It.cpp:38308 Adapt_It.cpp:38499
+#: Adapt_It.cpp:38319 Adapt_It.cpp:38510
 msgid "Removing backup glossing kb file failed."
 msgstr ""
 
-#: Adapt_It.cpp:38362
+#: Adapt_It.cpp:38373
 msgid "Error opening KB file for writing with path:\n"
 msgstr ""
 
-#: Adapt_It.cpp:38364
+#: Adapt_It.cpp:38375
 msgid ""
 "\n"
 "The knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
 
-#: Adapt_It.cpp:38384 Adapt_It.cpp:38387 Adapt_It.cpp:38407 Adapt_It.cpp:38423
+#: Adapt_It.cpp:38395 Adapt_It.cpp:38398 Adapt_It.cpp:38418 Adapt_It.cpp:38434
 msgid "Saving the KB"
 msgstr ""
 
-#: Adapt_It.cpp:38404 Adapt_It.cpp:38456
+#: Adapt_It.cpp:38415 Adapt_It.cpp:38467
 msgid "Removing backup kb file failed."
 msgstr ""
 
-#: Adapt_It.cpp:38713
+#: Adapt_It.cpp:38724
 msgid ""
 "You cancelled the dialog - You may turn collaboration off if you want to "
 "access a different project from the Start Working Wizard.\n"
 "Do you want to turn collaboration off?"
 msgstr ""
 
-#: Adapt_It.cpp:38763
+#: Adapt_It.cpp:38774
 #, c-format
 msgid ""
 "Adapt It cannot collaborate with this project (%s). There is a problem with "
@@ -1636,30 +1636,30 @@ msgid ""
 "Please ask your administrator for help."
 msgstr ""
 
-#: Adapt_It.cpp:38802
+#: Adapt_It.cpp:38813
 msgid "No project folder defined yet. "
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38805
+#: Adapt_It.cpp:38816
 msgid ""
 "\n"
 "If you want to continue, you must choose a project or create a new project.\n"
 "Do you want to continue? "
 msgstr ""
 
-#: Adapt_It.cpp:38806
+#: Adapt_It.cpp:38817
 msgid "Basic Configuration File Not Read"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38830
+#: Adapt_It.cpp:38841
 #, c-format
 msgid "Failed to find the %s folder."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38833
+#: Adapt_It.cpp:38844
 msgid ""
 "\n"
 "If you want to continue, you must choose a different project or create a new "
@@ -1667,88 +1667,88 @@ msgid ""
 "Do you want to continue? "
 msgstr ""
 
-#: Adapt_It.cpp:38834
+#: Adapt_It.cpp:38845
 msgid "Bad path in config file"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:39512
+#: Adapt_It.cpp:39523
 msgid "Adapt It cannot create its work folder: "
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:39513
+#: Adapt_It.cpp:39524
 msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:39514
+#: Adapt_It.cpp:39525
 msgid "Critical Error"
 msgstr ""
 
-#: Adapt_It.cpp:39778 Adapt_It.cpp:39790
+#: Adapt_It.cpp:39789 Adapt_It.cpp:39801
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
 msgstr ""
 
-#: Adapt_It.cpp:39809
+#: Adapt_It.cpp:39820
 #, c-format
 msgid ""
 "Error renaming glossing KB Backup file, path %s, to be the new glossing KB "
 "file."
 msgstr ""
 
-#: Adapt_It.cpp:39832 Adapt_It.cpp:39876
+#: Adapt_It.cpp:39843 Adapt_It.cpp:39887
 msgid ""
 "Error: saving the knowledge base failed. The application will now close."
 msgstr ""
 "Səhv: Bilik bazasının yaddaşa verilməsi alınmadı. Proqram indi bağlanacaqdır."
 
-#: Adapt_It.cpp:39849
+#: Adapt_It.cpp:39860
 #, c-format
 msgid "Error renaming KB Backup file with path %s to become the new KB file."
 msgstr ""
 
-#: Adapt_It.cpp:39918
+#: Adapt_It.cpp:39929
 msgid "Glossing KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: Adapt_It.cpp:39945
+#: Adapt_It.cpp:39956
 msgid "Error: loading a knowledge base failed. The application will now close."
 msgstr ""
 "Səhv: Bilik bazasının yüklənməsi alınmadı. Proqram indi bağlanacaqdır. "
 
-#: Adapt_It.cpp:39956
+#: Adapt_It.cpp:39967
 msgid "KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: Adapt_It.cpp:40080 Adapt_It.cpp:40099
+#: Adapt_It.cpp:40091 Adapt_It.cpp:40110
 msgid "The clipboard was empty; there is nothing to do."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:40081 Adapt_It.cpp:40100
+#: Adapt_It.cpp:40092 Adapt_It.cpp:40111
 #, fuzzy
 msgid "No Source Text"
 msgstr "Mənbə Mətn:"
 
 # Priority 1
-#: Adapt_It.cpp:40270
+#: Adapt_It.cpp:40281
 #, fuzzy
 msgid "Clipboard"
 msgstr "Seçilmiş hissəni kəs və onu köçürmə lövhəsinə qoymaq"
 
-#: Adapt_It.cpp:40401 Adapt_It.cpp:40461
+#: Adapt_It.cpp:40412 Adapt_It.cpp:40472
 msgid "The clipboard could not be opened for writing."
 msgstr ""
 
-#: Adapt_It.cpp:40402 Adapt_It.cpp:40462
+#: Adapt_It.cpp:40413 Adapt_It.cpp:40473
 msgid "Clipboard Unavailable"
 msgstr ""
 
-#: Adapt_It.cpp:41585
+#: Adapt_It.cpp:41596
 #, c-format
 msgid ""
 "Warning: the consistent changes table number %d, and any further tables, "
@@ -1757,7 +1757,7 @@ msgstr ""
 "Xəbərdarlıq: Ardıcıl dəyişikliklər cədvəli nömrəsi %d və hər hansı başqa "
 "cədvəllər yüklənməyibdir."
 
-#: Adapt_It.cpp:41724
+#: Adapt_It.cpp:41735
 msgid ""
 "The computer will need to restart before Git will be activated and the "
 "document histories can be managed. After closing this dialog, quit Adapt It, "
@@ -1765,13 +1765,13 @@ msgid ""
 "history items will work on the Adapt It File menu."
 msgstr ""
 
-#: Adapt_It.cpp:41747
+#: Adapt_It.cpp:41758
 msgid ""
 "Do NOT install Git. I'll use Adapt It without Git, or I will install Git "
 "later."
 msgstr ""
 
-#: Adapt_It.cpp:41748
+#: Adapt_It.cpp:41759
 #, c-format
 msgid ""
 "This option installs Git version %s. This option requires access to the "
@@ -1779,21 +1779,21 @@ msgid ""
 "is saved to the Adapt It installation directory."
 msgstr ""
 
-#: Adapt_It.cpp:41750
+#: Adapt_It.cpp:41761
 msgid ""
 "This option installs Git using a previously downloaded Git installer. Git "
 "can be installed this way without accessing the Internet."
 msgstr ""
 
-#: Adapt_It.cpp:41755
+#: Adapt_It.cpp:41766
 msgid "A Git installation is on this computer, but you still have options."
 msgstr ""
 
-#: Adapt_It.cpp:41764
+#: Adapt_It.cpp:41775
 msgid "Git is NOT installed on this computer, but you still have options."
 msgstr ""
 
-#: Adapt_It.cpp:41800
+#: Adapt_It.cpp:41811
 #, c-format
 msgid ""
 "The version of git that is already installed is the same as the version that "
@@ -1802,7 +1802,7 @@ msgid ""
 "one of options on the next dialog. Do you want to continue?"
 msgstr ""
 
-#: Adapt_It.cpp:41802
+#: Adapt_It.cpp:41813
 #, c-format
 msgid ""
 "The version of git that is already installed (%s) is older than the "
@@ -1811,7 +1811,7 @@ msgid ""
 "to continue?"
 msgstr ""
 
-#: Adapt_It.cpp:41804
+#: Adapt_It.cpp:41815
 #, c-format
 msgid ""
 "The version of git that is already installed (%s) is newer than the version "
@@ -1820,12 +1820,12 @@ msgid ""
 "on the next dialog. Do you want to continue?"
 msgstr ""
 
-#: Adapt_It.cpp:41813 Adapt_It.cpp:41818 Adapt_It.cpp:41824
+#: Adapt_It.cpp:41824 Adapt_It.cpp:41829 Adapt_It.cpp:41835
 #: InstallGitOptionsDlg.cpp:161
 msgid "Git Installation Information"
 msgstr ""
 
-#: Adapt_It.cpp:42013
+#: Adapt_It.cpp:42024
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this "
@@ -1844,22 +1844,22 @@ msgstr ""
 "Siz belə davam etmək istəyirsinizmi?"
 
 # Priority 1
-#: Adapt_It.cpp:42046 Adapt_ItDoc.cpp:2063 Adapt_ItDoc.cpp:3957
-#: Adapt_ItDoc.cpp:4399
+#: Adapt_It.cpp:42057 Adapt_ItDoc.cpp:2063 Adapt_ItDoc.cpp:4135
+#: Adapt_ItDoc.cpp:4593
 #, fuzzy, c-format
 msgid "Saving File %s  - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
 # Priority 1
-#: Adapt_It.cpp:42049 Adapt_It.cpp:42053 Adapt_It.cpp:42061 Adapt_It.cpp:42072
+#: Adapt_It.cpp:42060 Adapt_It.cpp:42064 Adapt_It.cpp:42072 Adapt_It.cpp:42083
 #: Adapt_ItDoc.cpp:2070 Adapt_ItDoc.cpp:2085 Adapt_ItDoc.cpp:2092
-#: Adapt_ItDoc.cpp:2096 Adapt_ItDoc.cpp:8235 Adapt_ItDoc.cpp:8251
-#: Adapt_ItDoc.cpp:8256 Adapt_ItDoc.cpp:8262 Adapt_ItDoc.cpp:8265
-#: Adapt_ItDoc.cpp:32270
+#: Adapt_ItDoc.cpp:2096 Adapt_ItDoc.cpp:8450 Adapt_ItDoc.cpp:8466
+#: Adapt_ItDoc.cpp:8471 Adapt_ItDoc.cpp:8477 Adapt_ItDoc.cpp:8480
+#: Adapt_ItDoc.cpp:32494
 msgid "Saving File"
 msgstr ""
 
-#: Adapt_It.cpp:42058
+#: Adapt_It.cpp:42069
 msgid ""
 "Could not save the current document. Restore Knowledge Base command "
 "aborted.\n"
@@ -1867,7 +1867,7 @@ msgid ""
 "relaunch, even if you loose your unsaved edits."
 msgstr ""
 
-#: Adapt_It.cpp:42095
+#: Adapt_It.cpp:42106
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For "
 "This Item\" checkbox,\n"
@@ -1883,20 +1883,20 @@ msgstr ""
 "\n"
 "Bu əlavə riski sınaqdan keçirmək istərdinizmi?"
 
-#: Adapt_It.cpp:42131
+#: Adapt_It.cpp:42142
 #, c-format
 msgid "Restoring the KB - Step %d of %d"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:42133 Adapt_It.cpp:42137 Adapt_It.cpp:42158 Adapt_It.cpp:42199
-#: Adapt_It.cpp:42254 Adapt_It.cpp:42260 Adapt_It.cpp:42318 Adapt_It.cpp:42369
-#: Adapt_It.cpp:42376 Adapt_It.cpp:42528 Adapt_It.cpp:42547 Adapt_It.cpp:42609
+#: Adapt_It.cpp:42144 Adapt_It.cpp:42148 Adapt_It.cpp:42169 Adapt_It.cpp:42210
+#: Adapt_It.cpp:42265 Adapt_It.cpp:42271 Adapt_It.cpp:42329 Adapt_It.cpp:42380
+#: Adapt_It.cpp:42387 Adapt_It.cpp:42539 Adapt_It.cpp:42558 Adapt_It.cpp:42620
 #, fuzzy
 msgid "Restoring Knowledge Base..."
 msgstr "Bə&rpa etmə bilik ba&zası..."
 
-#: Adapt_It.cpp:42231 Adapt_It.cpp:52290 Retranslation.cpp:5333
+#: Adapt_It.cpp:42242 Adapt_It.cpp:52301 Retranslation.cpp:5333
 msgid ""
 "Sorry, there are no saved document files yet for this project. At least one "
 "document file is required for the operation you chose to be successful. The "
@@ -1907,7 +1907,7 @@ msgstr ""
 "Əmr rədd ediləcəkdir."
 
 # Priority 1
-#: Adapt_It.cpp:42554
+#: Adapt_It.cpp:42565
 #, fuzzy, c-format
 msgid ""
 "Your rebuilt knowledge base is now in operation. It was built from %d source "
@@ -1916,18 +1916,18 @@ msgstr ""
 "Sizin bərpa olunmuş bilik bazanız indi fəaldır. Onun daxilində %d "
 "sənədlərdən götürülmüş mənbə sözləri və ifadələr vardır %d."
 
-#: Adapt_It.cpp:43079
+#: Adapt_It.cpp:43090
 msgid ""
 "There are no files in the '__SOURCE_INPUTS' folder.\n"
 "Therefore the user is not protected from folder navigation."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:43080
+#: Adapt_It.cpp:43091
 msgid "No source text files for document creation"
 msgstr ""
 
-#: Adapt_It.cpp:43120
+#: Adapt_It.cpp:43131
 #, c-format
 msgid ""
 "Some of the '__SOURCE_INPUTS' folder's files are not suitable for creating "
@@ -1936,11 +1936,11 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:43122 Adapt_It.cpp:43131
+#: Adapt_It.cpp:43133 Adapt_It.cpp:43142
 msgid "Warning: do not input these files"
 msgstr ""
 
-#: Adapt_It.cpp:43129
+#: Adapt_It.cpp:43140
 #, c-format
 msgid ""
 "Folder navigation protection is not turned on, because none of the "
@@ -1949,16 +1949,16 @@ msgid ""
 "The unsuitable ones are: %s"
 msgstr ""
 
-#: Adapt_It.cpp:44621
+#: Adapt_It.cpp:44632
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr ""
 
-#: Adapt_It.cpp:44622
+#: Adapt_It.cpp:44633
 msgid "Error parsing font information"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:45074 Adapt_It.cpp:48416 Adapt_ItDoc.cpp:20785 XML.cpp:566
+#: Adapt_It.cpp:45085 Adapt_It.cpp:48427 Adapt_ItDoc.cpp:21001 XML.cpp:566
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -1966,17 +1966,17 @@ msgid ""
 "and then you should use the Unicode version of Adapt It."
 msgstr ""
 
-#: Adapt_It.cpp:45076
+#: Adapt_It.cpp:45087
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
 msgstr ""
 
-#: Adapt_It.cpp:45078 Adapt_It.cpp:48420 Adapt_ItDoc.cpp:20788 XML.cpp:569
+#: Adapt_It.cpp:45089 Adapt_It.cpp:48431 Adapt_ItDoc.cpp:21004 XML.cpp:569
 msgid "Warning: Invalid Characters Detected"
 msgstr ""
 
-#: Adapt_It.cpp:46245
+#: Adapt_It.cpp:46256
 #, c-format
 msgid ""
 "Adapt It was not able to upgrade the collaboration settings for use in this "
@@ -1988,7 +1988,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47021
+#: Adapt_It.cpp:47032
 #, c-format
 msgid ""
 "Adapt It did not find your work folder at\n"
@@ -2004,43 +2004,43 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47023
+#: Adapt_It.cpp:47034
 msgid "Failed to find the custom work folder"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47032
+#: Adapt_It.cpp:47043
 msgid "1. Plug in the missing external drive, then click OK here."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47033
+#: Adapt_It.cpp:47044
 msgid ""
 "2. Close the other application, or use a text editor to fix the path in the "
 "file CustomWorkFolderLocation; then click OK here."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47034
+#: Adapt_It.cpp:47045
 msgid ""
 "3. Ignore the custom work folder location, use the default location instead. "
 "(Then ask your administrator to help you.)"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47035
+#: Adapt_It.cpp:47046
 msgid ""
 "4. Forget the custom work folder location. The command Custom Work Folder "
 "Location will then run, use it to relocate the folder."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47036
+#: Adapt_It.cpp:47047
 msgid "Choose Recovery Action or Cancel (to abort)"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47037
+#: Adapt_It.cpp:47048
 msgid ""
 "Select from the list of recovery actions, then click OK. The Cancel button "
 "will abort the application. \n"
@@ -2055,7 +2055,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47051
+#: Adapt_It.cpp:47062
 msgid ""
 "The path to the custom work folder did not find a directory with the "
 "required name. Did you plug in the external drive containing the work folder "
@@ -2064,12 +2064,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47052
+#: Adapt_It.cpp:47063
 msgid "Recovery By Plugging In The Missing External Drive Failed"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47084
+#: Adapt_It.cpp:47095
 msgid ""
 "Failed to open the CustomWorkFolderLocation file at default work folder "
 "location. Is the CustomWorkFolderLocation file still open in another "
@@ -2079,7 +2079,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47095
+#: Adapt_It.cpp:47106
 msgid ""
 "The path to the custom work folder did not find a directory with the "
 "required name. Did you check the path specification using a file browser, to "
@@ -2090,12 +2090,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47096
+#: Adapt_It.cpp:47107
 msgid "Recovery By Editing The Path Specificiation Failed"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47171
+#: Adapt_It.cpp:47182
 msgid ""
 "You did not succeed in locating the work folder location. Aborting now. Next "
 "time you launch, you or your administrator will need to use the "
@@ -2103,32 +2103,32 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:47172
+#: Adapt_It.cpp:47183
 msgid "One chance to relocate the work folder failed"
 msgstr ""
 
-#: Adapt_It.cpp:48418
+#: Adapt_It.cpp:48429
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Project Configuration File's punctuation string (see below):"
 msgstr ""
 
 # Note: leave a space after the colon.
-#: Adapt_It.cpp:49197
+#: Adapt_It.cpp:49208
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr ""
 
 # Refers to the type of configuration file.
-#: Adapt_It.cpp:50324
+#: Adapt_It.cpp:50335
 msgid "basic"
 msgstr ""
 
 # Refers to the type of configuration file.
-#: Adapt_It.cpp:50326
+#: Adapt_It.cpp:50337
 msgid "project"
 msgstr "Layihə"
 
-#: Adapt_It.cpp:50360
+#: Adapt_It.cpp:50371
 #, c-format
 msgid ""
 "The %s configuration file exists but it is empty (has no content). Default "
@@ -2138,7 +2138,7 @@ msgstr ""
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: Adapt_It.cpp:50376
+#: Adapt_It.cpp:50387
 #, fuzzy, c-format
 msgid ""
 "Unable to open the %s configuration file for reading. Default values will be "
@@ -2153,7 +2153,7 @@ msgstr ""
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: Adapt_It.cpp:50428
+#: Adapt_It.cpp:50439
 #, c-format
 msgid ""
 "Unable to read %s font data from the %s configuration file. Default values "
@@ -2162,7 +2162,7 @@ msgstr ""
 
 # Priority 1
 # Refers to the source (language) from which the translation is being made
-#: Adapt_It.cpp:50434 EditPreferencesDlg.cpp:572 EditPreferencesDlg.cpp:618
+#: Adapt_It.cpp:50445 EditPreferencesDlg.cpp:572 EditPreferencesDlg.cpp:618
 #: EditPreferencesDlg.cpp:766 EditPreferencesDlg.cpp:790
 #: EditPreferencesDlg.cpp:822
 msgid "source"
@@ -2170,7 +2170,7 @@ msgstr "mənbə"
 
 # Priority 1
 # Refers to the target (language) into which the translation is being made
-#: Adapt_It.cpp:50444 EditPreferencesDlg.cpp:585 EditPreferencesDlg.cpp:628
+#: Adapt_It.cpp:50455 EditPreferencesDlg.cpp:585 EditPreferencesDlg.cpp:628
 #: EditPreferencesDlg.cpp:776 EditPreferencesDlg.cpp:800
 #: EditPreferencesDlg.cpp:832
 msgid "target"
@@ -2178,23 +2178,23 @@ msgstr "hədəf"
 
 # Priority 1
 # Refers to the navigation (language) that is used to display chapter and verse number, paragraph, etc above the text where those items begin
-#: Adapt_It.cpp:50454 EditPreferencesDlg.cpp:598
+#: Adapt_It.cpp:50465 EditPreferencesDlg.cpp:598
 msgid "navigation"
 msgstr "Keçid"
 
-#: Adapt_It.cpp:52073 Adapt_ItDoc.cpp:4755 Adapt_ItDoc.cpp:8536 KB.cpp:2658
+#: Adapt_It.cpp:52084 Adapt_ItDoc.cpp:4957 Adapt_ItDoc.cpp:8751 KB.cpp:2658
 #, c-format
 msgid "Reading file %s - part %d of %d"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:52076 Adapt_It.cpp:52083 Adapt_It.cpp:52105 Adapt_It.cpp:52280
-#: Adapt_It.cpp:52306 Adapt_It.cpp:52363 Adapt_It.cpp:52433 Adapt_It.cpp:52483
+#: Adapt_It.cpp:52087 Adapt_It.cpp:52094 Adapt_It.cpp:52116 Adapt_It.cpp:52291
+#: Adapt_It.cpp:52317 Adapt_It.cpp:52374 Adapt_It.cpp:52444 Adapt_It.cpp:52494
 #, fuzzy
 msgid "Loading the Other Project's Knowledge Base"
 msgstr "Bilik Bazasını Redaktə et və ya Yoxla"
 
-#: Adapt_It.cpp:52089
+#: Adapt_It.cpp:52100
 msgid ""
 "Error: the application could not find the other project's knowledge base, or "
 "failed to open and load it. The command has therefore been ignored."
@@ -2203,24 +2203,24 @@ msgstr ""
 "bağlamağı alınmadı. Buna görə də əmr rədd edilmişdir."
 
 # Priority 1
-#: Adapt_It.cpp:52643
+#: Adapt_It.cpp:52654
 #, fuzzy, c-format
 msgid "Transforming File %s  - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
 # Priority 1
-#: Adapt_It.cpp:52646 Adapt_It.cpp:52681 Adapt_It.cpp:52695
+#: Adapt_It.cpp:52657 Adapt_It.cpp:52692 Adapt_It.cpp:52706
 msgid "Transformations To Glosses"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:52703
+#: Adapt_It.cpp:52714
 #, c-format
 msgid ""
 "The document with pathname: %s, was not opened and therefore not processed."
 msgstr ""
 
-#: Adapt_It.cpp:52727
+#: Adapt_It.cpp:52738
 #, fuzzy, c-format
 msgid ""
 "The documents you chose from the other project have been transformed and "
@@ -2233,7 +2233,7 @@ msgstr ""
 "bunlar %d sənədlərində görünürlər."
 
 # Priority 1
-#: Adapt_It.cpp:52934
+#: Adapt_It.cpp:52945
 msgid ""
 "Automatic capitalization support will work only provided the source language "
 "distinguishes between upper case and lower case letters. A \"No\" response "
@@ -2246,7 +2246,7 @@ msgstr ""
 "həm böyük ölçülü, həm də kiçik ölçülü hərflər vardır?"
 
 # Priority 1
-#: Adapt_It.cpp:52966 Adapt_It.cpp:52987
+#: Adapt_It.cpp:52977 Adapt_It.cpp:52998
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. "
 "Until they do, automatic captialization cannot be turned on.\n"
@@ -2259,101 +2259,101 @@ msgstr ""
 "bilərsiniz."
 
 # Priority 1
-#: Adapt_It.cpp:53076 Adapt_It.cpp:53246
+#: Adapt_It.cpp:53087 Adapt_It.cpp:53257
 msgid ""
 "The Startup Wizard failed to open. Use the File menu's Open command to open "
 "a document."
 msgstr ""
 
-#: Adapt_It.cpp:54769
+#: Adapt_It.cpp:54780
 #, c-format
 msgid "[Custom Work Folder Location] Project: %s"
 msgstr ""
 
-#: Adapt_It.cpp:54775
+#: Adapt_It.cpp:54786
 #, c-format
 msgid "[Temporary Work Folder Location] Project: %s"
 msgstr ""
 
-#: Adapt_It.cpp:54786
+#: Adapt_It.cpp:54797
 msgid "Collaborating with "
 msgstr ""
 
-#: Adapt_It.cpp:54797
+#: Adapt_It.cpp:54808
 #, c-format
 msgid "[Default Work Folder Location] Project: %s"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54811
+#: Adapt_It.cpp:54822
 #, fuzzy
 msgid "from Book: "
 msgstr "...dən"
 
-#: Adapt_It.cpp:54849
+#: Adapt_It.cpp:54860
 msgid "Glossing & Sharing Glosses KB"
 msgstr ""
 
-#: Adapt_It.cpp:54871
+#: Adapt_It.cpp:54882
 msgid "Adapting & Sharing Adaptations KB"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54875
+#: Adapt_It.cpp:54886
 msgid "Adapting"
 msgstr "Uyğunlaşdırma"
 
-#: Adapt_It.cpp:54889
+#: Adapt_It.cpp:54900
 msgid "Reviewing & Sharing Adaptations KB"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54893
+#: Adapt_It.cpp:54904
 #, fuzzy
 msgid "Reviewing"
 msgstr "Yenidən nəzərdən keçirmə"
 
 # Priority 1
-#: Adapt_It.cpp:54907 Adapt_It.cpp:54926 Adapt_It.cpp:54944
+#: Adapt_It.cpp:54918 Adapt_It.cpp:54937 Adapt_It.cpp:54955
 #, fuzzy
 msgid " : Clipboard Text"
 msgstr "&Dəyişmə lövhəsinə köüçürmək"
 
 # Priority 1
 # The %s will be filled either with U+nnnn where nnnn is a decimal number, or it will be filled with the word İşarələr (characters). One of the forms of the verb may not agree with the object properly. Use your discretion on this one. The resulting phrase is the label of a button in the Punctuation page of the Prefrences, and also the same page when it appears in the Start Working wizard.
-#: Adapt_It.cpp:54912 Adapt_It.cpp:54931 Adapt_It.cpp:54949
+#: Adapt_It.cpp:54923 Adapt_It.cpp:54942 Adapt_It.cpp:54960
 #, fuzzy, c-format
 msgid " %s"
 msgstr "Xəbərdarlıq: Sənəd %s-dən istifadə edir. Layihə isə standartlar %s."
 
 # Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: Adapt_It.cpp:54916 Adapt_It.cpp:54936 Adapt_It.cpp:54953
+#: Adapt_It.cpp:54927 Adapt_It.cpp:54947 Adapt_It.cpp:54964
 #, fuzzy, c-format
 msgid "  Folder: %s"
 msgstr "  Cari Qovluq: %s"
 
 # Priority 1
-#: Adapt_It.cpp:54925 Adapt_ItView.cpp:7681
+#: Adapt_It.cpp:54936 Adapt_ItView.cpp:7681
 msgid " Undefined"
 msgstr " Təyin edilməmiş"
 
-#: Adapt_It.cpp:54962
+#: Adapt_It.cpp:54973
 msgid "!! TRANSLITERATING !!"
 msgstr "TRANSLİTERASİYA ETMƏ!!"
 
-#: Adapt_It.cpp:54976
+#: Adapt_It.cpp:54987
 msgid ""
 "Choose a translation from the drop-down list, or type a new translation. "
 "Press F8 for more options."
 msgstr ""
 
-#: Adapt_It.cpp:55042
+#: Adapt_It.cpp:55053
 #, c-format
 msgid "Deleting %d of %d"
 msgstr ""
 
-#: Adapt_It.cpp:57988
+#: Adapt_It.cpp:57999
 #, fuzzy
 msgid ""
 "Setup of the chapter and verse range failed. This printing operation has "
@@ -2364,89 +2364,89 @@ msgstr ""
 "əməliyyatı dayandırılmışdır. Ola bilsin ki, sənəddə sizing təyin etdiyiniz "
 "silsilədə fəsil və ya misra nömrələri yoxdur. "
 
-#: Adapt_It.cpp:58024
+#: Adapt_It.cpp:58035
 msgid ""
 "Setup of your chosen range of pages for printing, failed. This printing "
 "operation has been aborted. Please alert the developers."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:58246
+#: Adapt_It.cpp:58257
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr ""
 
-#: Adapt_It.cpp:58362
+#: Adapt_It.cpp:58373
 #, c-format
 msgid ""
 "Adapt It needs to close the currently open project (%s) in order to set up "
 "collaboration with %s."
 msgstr ""
 
-#: Adapt_It.cpp:58404
+#: Adapt_It.cpp:58415
 msgid ""
 "There are no collaboration projects set up yet for this user. Use the "
 "\"Setup Or Remove Collaboration\" menu item on the Administrator menu to set "
 "up collaboration projects."
 msgstr ""
 
-#: Adapt_It.cpp:58405
+#: Adapt_It.cpp:58416
 msgid "No Adapt It collaboration projects found"
 msgstr ""
 
-#: Adapt_It.cpp:58460
+#: Adapt_It.cpp:58471
 #, c-format
 msgid ""
 "Chapter %s of the book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:58465
+#: Adapt_It.cpp:58476
 #, c-format
 msgid ""
 "The whole book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:58468 Adapt_It.cpp:58572
+#: Adapt_It.cpp:58479 Adapt_It.cpp:58583
 msgid "Command ignored"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:58477 Adapt_It.cpp:58581
+#: Adapt_It.cpp:58488 Adapt_It.cpp:58592
 #: CollabProtectEditorBulkSettingsDlg.cpp:1519 GetSourceTextFromEditor.cpp:311
 #, fuzzy
 msgid "Chapter"
 msgstr "Fəsil:"
 
-#: Adapt_It.cpp:58499
+#: Adapt_It.cpp:58510
 #, c-format
 msgid "Changes to %s will no longer be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:58501 Adapt_It.cpp:58605
+#: Adapt_It.cpp:58512 Adapt_It.cpp:58616
 msgid "Collaboration settings changed"
 msgstr ""
 
-#: Adapt_It.cpp:58564
+#: Adapt_It.cpp:58575
 #, c-format
 msgid ""
 "Chapter %s of the book %s is not marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:58569
+#: Adapt_It.cpp:58580
 #, c-format
 msgid ""
 "The whole book %s is not marked to prevent changes from being transferred to "
 "%s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:58603
+#: Adapt_It.cpp:58614
 #, c-format
 msgid "Changes to %s will now be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:58839 GuesserAffixesListsDlg.cpp:430 MainFrm.cpp:2579
+#: Adapt_It.cpp:58850 GuesserAffixesListsDlg.cpp:430 MainFrm.cpp:2579
 #, c-format
 msgid ""
 "Could not launch the default browser to open the HTML file's URL at:\n"
@@ -2460,20 +2460,20 @@ msgid ""
 "instead?"
 msgstr ""
 
-#: Adapt_It.cpp:58841 GuesserAffixesListsDlg.cpp:434 MainFrm.cpp:2583
+#: Adapt_It.cpp:58852 GuesserAffixesListsDlg.cpp:434 MainFrm.cpp:2583
 msgid "Browser launch error"
 msgstr ""
 
-#: Adapt_It.cpp:58845
+#: Adapt_It.cpp:58856
 msgid "Help for Administrators"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:58904
+#: Adapt_It.cpp:58915
 msgid "Type A Password"
 msgstr ""
 
-#: Adapt_It.cpp:58906
+#: Adapt_It.cpp:58917
 msgid ""
 "The password can be a mix of letters, numbers and punctuation. Less than "
 "five characters will not be accepted.\n"
@@ -2483,16 +2483,16 @@ msgid ""
 msgstr ""
 
 # Refers to the typed password having less than four characters
-#: Adapt_It.cpp:58953
+#: Adapt_It.cpp:58964
 msgid "Too short."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:59329
+#: Adapt_It.cpp:59340
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr ""
 
-#: Adapt_It.cpp:59380
+#: Adapt_It.cpp:59391
 #, c-format
 msgid ""
 "You have selected the following folder to be used as a custom work folder:\n"
@@ -2504,44 +2504,44 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:59831
+#: Adapt_It.cpp:59842
 msgid ""
 "Someone just opened the project folder on the remote computer, so you have "
 "READ-ONLY access."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:59831 ReadOnlyProtection.cpp:1082
+#: Adapt_It.cpp:59842 ReadOnlyProtection.cpp:1082
 msgid "Another process owns write permission"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:60341 Adapt_It_wdr.cpp:649
+#: Adapt_It.cpp:60352 Adapt_It_wdr.cpp:649
 #, fuzzy
 msgid "Source Font Name"
 msgstr "Şriftin adı"
 
 # Priority 1
-#: Adapt_It.cpp:60426 Adapt_It_wdr.cpp:717
+#: Adapt_It.cpp:60437 Adapt_It_wdr.cpp:717
 #, fuzzy
 msgid "Target Font Name"
 msgstr "Şriftin adı"
 
 # Priority 1
-#: Adapt_It.cpp:60511 Adapt_It_wdr.cpp:785
+#: Adapt_It.cpp:60522 Adapt_It_wdr.cpp:785
 #, fuzzy
 msgid "Navigation Font Name"
 msgstr "Şriftin adı"
 
 # Priority 1
-#: Adapt_It.cpp:60534
+#: Adapt_It.cpp:60545
 msgid ""
 "The following fonts (in the project configuration file) cannot be found on "
 "your computer:"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:60537
+#: Adapt_It.cpp:60548
 #, c-format
 msgid ""
 "\n"
@@ -2551,41 +2551,41 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:60539
+#: Adapt_It.cpp:60550
 msgid "Font name in configuration file not found"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:60817 Adapt_It.cpp:61264 Adapt_It.cpp:61486 Adapt_It.cpp:61542
-#: Adapt_It.cpp:61589
+#: Adapt_It.cpp:60828 Adapt_It.cpp:61275 Adapt_It.cpp:61497 Adapt_It.cpp:61553
+#: Adapt_It.cpp:61600
 msgid "Unable to write updated config file, so just did nothing"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:61690
+#: Adapt_It.cpp:61701
 #, fuzzy
 msgid "Export Knowledge Base"
 msgstr "&Eksport etmə bilik bazası..."
 
-#: Adapt_It.cpp:61691
+#: Adapt_It.cpp:61702
 msgid "Choose type of format for export of data from the Knowledge Base:"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:61787
+#: Adapt_It.cpp:61798
 #, fuzzy
 msgid "dictionary records"
 msgstr "Lüğət yazıları.txt"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: Adapt_It.cpp:61791 Adapt_It.cpp:61837
+#: Adapt_It.cpp:61802 Adapt_It.cpp:61848
 #, fuzzy
 msgid "glossing"
 msgstr "Glossing"
 
 # Priority 1
-#: Adapt_It.cpp:61866
+#: Adapt_It.cpp:61877
 #, fuzzy
 msgid ""
 "SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
@@ -2594,23 +2594,23 @@ msgstr ""
 "Adapt İt bilik bazası eksport edir (*.txt)|*.txt| Bütün Fayllar (*.*)|*.* ||"
 
 # Priority 1
-#: Adapt_It.cpp:61870
+#: Adapt_It.cpp:61881
 #, fuzzy
 msgid "XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr ""
 "Adapt İt bilik bazası eksport edir (*.txt)|*.txt| Bütün Fayllar (*.*)|*.* ||"
 
 # Priority 1
-#: Adapt_It.cpp:61874
+#: Adapt_It.cpp:61885
 msgid "Filename For KB Export"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:61926
+#: Adapt_It.cpp:61937
 msgid "Unable to open knowledge base export file."
 msgstr ""
 
-#: Adapt_It.cpp:61974 ExportFunctions.cpp:932 ExportFunctions.cpp:2187
+#: Adapt_It.cpp:61985 ExportFunctions.cpp:932 ExportFunctions.cpp:2187
 #: ExportFunctions.cpp:2384 ExportFunctions.cpp:9102 Retranslation.cpp:5575
 #, c-format
 msgid ""
@@ -2623,19 +2623,19 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Adapt_It.cpp:61977 ExportFunctions.cpp:2190 ExportFunctions.cpp:2388
+#: Adapt_It.cpp:61988 ExportFunctions.cpp:2190 ExportFunctions.cpp:2388
 #: ExportFunctions.cpp:9106 Retranslation.cpp:5578
 msgid "Export operation successful"
 msgstr ""
 
-#: Adapt_It.cpp:64672
+#: Adapt_It.cpp:64683
 msgid ""
 "KBserver Discovery did not run. Probably the scanner file: do_mdns.exe , was "
 "not in\n"
 "Adapt It Unicode Work's child folder: _DATA_KB_SHARING."
 msgstr ""
 
-#: Adapt_It.cpp:64745
+#: Adapt_It.cpp:64756
 msgid ""
 "KBserver Discovery failed. The scanner, do_mdns.exe, was tried, but it "
 "indicated an internal error.\n"
@@ -2643,16 +2643,16 @@ msgid ""
 "Adapt It will continue running okay, but KB sharing may not work."
 msgstr ""
 
-#: Adapt_It.cpp:65070 MainFrm.cpp:2966
+#: Adapt_It.cpp:65081 MainFrm.cpp:2966
 msgid "No KBserver discovered. Ensure one is running and then try again."
 msgstr ""
 
-#: Adapt_It.cpp:66052
+#: Adapt_It.cpp:66063
 #, c-format
 msgid "Language name for 'glossing mode': %s"
 msgstr ""
 
-#: Adapt_It.cpp:66055
+#: Adapt_It.cpp:66066
 #, c-format
 msgid ""
 "The language for adapting mode is: %s\n"
@@ -2944,7 +2944,7 @@ msgid "There are no previous versions in the history!"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3159 Adapt_ItDoc.cpp:8260
+#: Adapt_ItDoc.cpp:3159 Adapt_ItDoc.cpp:8475
 msgid "Warning: document save failed for some reason.\n"
 msgstr ""
 
@@ -3008,22 +3008,20 @@ msgstr "Adapt İt sənədi yenidən düzəldənə qədər gözləyin..."
 msgid "Please wait while the free translation is sent to Bibledit..."
 msgstr "Adapt İt sənədi yenidən düzəldənə qədər gözləyin..."
 
-# Priority 1
-# Do not translate the |*.xml| or the |*.xml|| parts
-#: Adapt_ItDoc.cpp:3706
+#: Adapt_ItDoc.cpp:3718
 msgid ""
-"New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in "
-"versions 3, 4 or 5. |*.xml||"
+"New XML format, for 6.12.0 and later (default)|*.xml|Legacy XML format, as "
+"in versions 6.0.0 to 6.11.1. |*.xml||"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3712
+#: Adapt_ItDoc.cpp:3724
 #, fuzzy
 msgid "Save As"
 msgstr "Yaddaşa ver"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3747
+#: Adapt_ItDoc.cpp:3763
 msgid ""
 "You must not use the Save As... dialog to change where Adapt It stores its "
 "document files. You can only rename the file, or make a different 'Save as "
@@ -3031,22 +3029,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3750
+#: Adapt_ItDoc.cpp:3766
 msgid "Folder Change Is Not Allowed"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:3777
-msgid ""
-"Adapt It documents cannot be renamed when collaborating with Paratext or "
-"Bibledit."
-msgstr ""
-
-#: Adapt_ItDoc.cpp:3780
-msgid "Cannot Change The Document's Filename"
-msgstr ""
-
 # Priority 1
-#: Adapt_ItDoc.cpp:3799
+#: Adapt_ItDoc.cpp:3798
 #, c-format
 msgid ""
 "Filenames cannot include these characters: %s Please type a valid filename "
@@ -3054,70 +3042,96 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3802
+#: Adapt_ItDoc.cpp:3801
 msgid "Bad Characters In Filename"
 msgstr ""
 
-# Priority 1
-#: Adapt_ItDoc.cpp:3812
+#: Adapt_ItDoc.cpp:3816
+msgid ""
+"Adapt It documents cannot be renamed when collaborating with Paratext or "
+"Bibledit."
+msgstr ""
+
+#: Adapt_ItDoc.cpp:3819
+msgid "Cannot Change The Document's Filename"
+msgstr ""
+
+#: Adapt_ItDoc.cpp:3851
 msgid ""
 "The new filename you have typed conflicts with an existing filename. You "
-"cannot use that name, please type another."
+"cannot use that name, please type another (or make the filename slightly "
+"different)."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3815
+#: Adapt_ItDoc.cpp:3854 Adapt_ItDoc.cpp:3880
 msgid "Conflicting Filename"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:4136
+#: Adapt_ItDoc.cpp:3871
+#, c-format
+msgid ""
+"The filename %s conflicts with an existing filename.\n"
+"If you want to overwrite that file with the legacy 6.0.0 - 6.11.1 format, "
+"select \"Yes\",\n"
+"otherwise select \"No\" to change the filename slightly\n"
+"(or select \"Cancel\" to abort this Save As...).\n"
+"Continue and overwrite the file?"
+msgstr ""
+
+#: Adapt_ItDoc.cpp:3875
+#, c-format
+msgid ""
+"The filename %s conflicts with an existing filename.\n"
+"If you want to overwrite that file select \"Yes\",\n"
+"otherwise select \"No\" to change the filename slightly\n"
+"(or select \"Cancel\" to abort this Save As...).\n"
+"Continue and overwrite the file?"
+msgstr ""
+
+#: Adapt_ItDoc.cpp:4330
 msgid "Warning: the attempt to backup the current document failed."
 msgstr "Xəbərdarlıq: cari sənədi arxiv surətini yaratmaq üçün cəhd boşa çıxdı."
 
-#: Adapt_ItDoc.cpp:4198
+#: Adapt_ItDoc.cpp:4392
 #, c-format
 msgid ""
-"This document (%s) is now saved on disk in the older (version 3, 4, 5) xml "
-"format.\n"
+"This document (%s) is now saved on disk in the older (App version 6.0.0 - "
+"6.11.1) xml format.\n"
 "However, if you now make any additional changes to this document or cause it "
 "to be saved using this version (%s) of Adapt It, the format of the disk file "
-"will be upgraded again to the newer format.\n"
+"will be upgraded again to the newer %s format.\n"
 "If you do not want this to happen, you should immediately close the "
 "document, or exit from this version of Adapt It."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:4435 Adapt_ItDoc.cpp:4498
+#: Adapt_ItDoc.cpp:4635 Adapt_ItDoc.cpp:4700
 msgid ""
 "Warning: the SaveAs... attempt failed for some reason, the file was not "
 "created."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:4436 Adapt_ItDoc.cpp:4443 Adapt_ItDoc.cpp:4473
-#: Adapt_ItDoc.cpp:4499 Adapt_ItDoc.cpp:4506
+#: Adapt_ItDoc.cpp:4636 Adapt_ItDoc.cpp:4643 Adapt_ItDoc.cpp:4701
+#: Adapt_ItDoc.cpp:4708
 msgid "SaveAs... failed"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:4441 Adapt_ItDoc.cpp:4504
+#: Adapt_ItDoc.cpp:4641 Adapt_ItDoc.cpp:4706
 #, c-format
 msgid ""
 "Warning: the SaveAs... attempt failed for some reason, the file: %s was not "
 "created."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:4472
-msgid ""
-"Warning: a SaveAs... file with the same name is illegal, so nothing was done."
-msgstr ""
-
 # Priority 1
-#: Adapt_ItDoc.cpp:4759 Adapt_ItDoc.cpp:4765 Adapt_ItDoc.cpp:4785
-#: Adapt_ItDoc.cpp:4804 Adapt_ItDoc.cpp:4815 Adapt_ItDoc.cpp:4819
+#: Adapt_ItDoc.cpp:4961 Adapt_ItDoc.cpp:4967 Adapt_ItDoc.cpp:4987
+#: Adapt_ItDoc.cpp:5006 Adapt_ItDoc.cpp:5017 Adapt_ItDoc.cpp:5021
 #, fuzzy
 msgid "Opening Document In Another Project"
 msgstr "Digər Qovluqda olan sənədlər"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4801 Adapt_ItDoc.cpp:8662 CollabUtilities.cpp:3052
+#: Adapt_ItDoc.cpp:5003 Adapt_ItDoc.cpp:8877 CollabUtilities.cpp:3052
 msgid ""
 "There was an error parsing in the XML file.\n"
 "If you edited the XML file earlier, you may have introduced an error.\n"
@@ -3125,13 +3139,13 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4812
+#: Adapt_ItDoc.cpp:5014
 msgid ""
 "Sorry, the wxWidgets version of Adapt It does not read legacy .adt document "
 "format; it only reads the .xml format."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:5132 Adapt_ItDoc.cpp:5136
+#: Adapt_ItDoc.cpp:5334 Adapt_ItDoc.cpp:5338
 #, c-format
 msgid "Warning: document backup failed for the path:  %s   No backup was done."
 msgstr ""
@@ -3139,14 +3153,14 @@ msgstr ""
 "%s  Heç bir arxiv surət yaradılmadı."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:5175
+#: Adapt_ItDoc.cpp:5377
 #, c-format
 msgid ""
 "Could not remove the backed up document file: %s; the application will "
 "continue"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:5190
+#: Adapt_ItDoc.cpp:5392
 #, fuzzy, c-format
 msgid ""
 "Warning: document backup failed because the following name is not valid: "
@@ -3155,38 +3169,38 @@ msgstr ""
 "Xəbərdarlıq: aşağıdakı ad mümükün olmadığından sənədin arxiv surətinin "
 "yaradılması məğlubiyyətə uğradı: %s  Heç bir arxivləşmə olmadı."
 
-#: Adapt_ItDoc.cpp:5202
+#: Adapt_ItDoc.cpp:5404
 #, c-format
 msgid ""
 "Could not open a file stream for backup, in BackupDocument(), for file %s"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:8063
+#: Adapt_ItDoc.cpp:8278
 #, c-format
 msgid "When transforming documents, the Open function failed, for the path: %s"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:8203
+#: Adapt_ItDoc.cpp:8418
 #, c-format
 msgid "The document %s has changed. Do you want to save it? "
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:8230
+#: Adapt_ItDoc.cpp:8445
 #, fuzzy, c-format
 msgid "Saving file %s - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
-#: Adapt_ItDoc.cpp:8539 Adapt_ItDoc.cpp:8636 Adapt_ItDoc.cpp:8668
-#: Adapt_ItDoc.cpp:8696 Adapt_ItDoc.cpp:8732 Adapt_ItDoc.cpp:8774
-#: Adapt_ItDoc.cpp:8789 Adapt_ItDoc.cpp:8992 Adapt_ItDoc.cpp:9012
-#: Adapt_ItDoc.cpp:9058
+#: Adapt_ItDoc.cpp:8754 Adapt_ItDoc.cpp:8851 Adapt_ItDoc.cpp:8883
+#: Adapt_ItDoc.cpp:8911 Adapt_ItDoc.cpp:8947 Adapt_ItDoc.cpp:8989
+#: Adapt_ItDoc.cpp:9004 Adapt_ItDoc.cpp:9207 Adapt_ItDoc.cpp:9227
+#: Adapt_ItDoc.cpp:9273
 #, fuzzy
 msgid "Opening the Document"
 msgstr "Mövcud olan sənədin açılması"
 
-#: Adapt_ItDoc.cpp:8784
+#: Adapt_ItDoc.cpp:8999
 msgid ""
 "Nothing was read in successfully.\n"
 "This can happen if the document being loaded was created with a later "
@@ -3204,7 +3218,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:8987 ExportFunctions.cpp:2246
+#: Adapt_ItDoc.cpp:9202 ExportFunctions.cpp:2246
 #, c-format
 msgid ""
 "Unable to open the file for exporting the target text with path:\n"
@@ -3212,25 +3226,25 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:10241
+#: Adapt_ItDoc.cpp:10456
 #, fuzzy, c-format
 msgid "Pass 1 - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:10245 Adapt_ItDoc.cpp:11313 Adapt_ItDoc.cpp:11360
-#: Adapt_ItDoc.cpp:11367 Adapt_ItDoc.cpp:11516 Adapt_ItDoc.cpp:11641
-#: Adapt_ItDoc.cpp:11759 Adapt_ItDoc.cpp:13033 Adapt_ItDoc.cpp:13053
+#: Adapt_ItDoc.cpp:10460 Adapt_ItDoc.cpp:11528 Adapt_ItDoc.cpp:11575
+#: Adapt_ItDoc.cpp:11582 Adapt_ItDoc.cpp:11731 Adapt_ItDoc.cpp:11856
+#: Adapt_ItDoc.cpp:11974 Adapt_ItDoc.cpp:13248 Adapt_ItDoc.cpp:13268
 msgid "Processing Filtering Change(s)"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:11365
+#: Adapt_ItDoc.cpp:11580
 #, fuzzy, c-format
 msgid "Pass 2 - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
-#: Adapt_ItDoc.cpp:12968
+#: Adapt_ItDoc.cpp:13183
 msgid ""
 "Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n"
 "\n"
@@ -3238,11 +3252,11 @@ msgid ""
 "markers in correct sequence."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18893
+#: Adapt_ItDoc.cpp:19108
 msgid "Caution: maybe location lacks closing parenthesis )"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18895
+#: Adapt_ItDoc.cpp:19110
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , the text in (...) was too long (max "
@@ -3250,11 +3264,11 @@ msgid ""
 "running."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18916
+#: Adapt_ItDoc.cpp:19131
 msgid "Warning: a closing ) character was missing"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18918
+#: Adapt_ItDoc.cpp:19133
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , a closing parenthesis ) was inserted by "
@@ -3262,11 +3276,11 @@ msgid ""
 "source text."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18996
+#: Adapt_ItDoc.cpp:19211
 msgid "Caution: maybe location lacks closing brace }"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:18998
+#: Adapt_ItDoc.cpp:19213
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , the text in {...} was too long (max "
@@ -3274,11 +3288,11 @@ msgid ""
 "running."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19019
+#: Adapt_ItDoc.cpp:19234
 msgid "Warning: a closing } character was missing"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19021
+#: Adapt_ItDoc.cpp:19236
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , a closing brace } was inserted by Adapt "
@@ -3286,11 +3300,11 @@ msgid ""
 "text."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19086
+#: Adapt_ItDoc.cpp:19301
 msgid "Caution: maybe location lacks closing bracket ]"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19088
+#: Adapt_ItDoc.cpp:19303
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , the text in [...] was too long (max "
@@ -3298,11 +3312,11 @@ msgid ""
 "running."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19101
+#: Adapt_ItDoc.cpp:19316
 msgid "Warning: a closing ] character was missing"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19103
+#: Adapt_ItDoc.cpp:19318
 #, c-format
 msgid ""
 "Function: %s(): At source word: %s , a closing bracket ] was inserted by "
@@ -3311,13 +3325,13 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:20786
+#: Adapt_ItDoc.cpp:21002
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "input document:"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:22277
+#: Adapt_ItDoc.cpp:22493
 #, c-format
 msgid ""
 "Warning: While loading source text, encountered unexpected end-marker: %s \n"
@@ -3329,45 +3343,45 @@ msgstr ""
 
 # Priority 1
 # An abbreviation for "End of Footnote". Any translation should be as brief/short as possible
-#: Adapt_ItDoc.cpp:22954 Adapt_ItDoc.cpp:56219 Adapt_ItDoc.cpp:56651
+#: Adapt_ItDoc.cpp:23170 Adapt_ItDoc.cpp:56443 Adapt_ItDoc.cpp:56875
 #: ExportFunctions.cpp:6262 ExportFunctions.cpp:6267 Pile.cpp:1347
 msgid "end fn"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23606 ExportFunctions.cpp:4272 Retranslation.cpp:248
+#: Adapt_ItDoc.cpp:23822 ExportFunctions.cpp:4272 Retranslation.cpp:248
 #: Retranslation.cpp:264 Retranslation.cpp:5177
 #, fuzzy, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "%s - %d  Bütün sözlər və ifadələr: %d"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23611 Adapt_ItDoc.cpp:23705 Adapt_ItDoc.cpp:23725
-#: Adapt_ItDoc.cpp:23738 Adapt_ItDoc.cpp:23777 Adapt_ItDoc.cpp:23812
-#: Adapt_ItDoc.cpp:23830 Adapt_ItDoc.cpp:23853 Adapt_ItDoc.cpp:23866
-#: Adapt_ItDoc.cpp:23988 Adapt_ItDoc.cpp:24072
+#: Adapt_ItDoc.cpp:23827 Adapt_ItDoc.cpp:23921 Adapt_ItDoc.cpp:23941
+#: Adapt_ItDoc.cpp:23954 Adapt_ItDoc.cpp:23993 Adapt_ItDoc.cpp:24028
+#: Adapt_ItDoc.cpp:24046 Adapt_ItDoc.cpp:24069 Adapt_ItDoc.cpp:24082
+#: Adapt_ItDoc.cpp:24204 Adapt_ItDoc.cpp:24288
 #, fuzzy
 msgid "Packing Document"
 msgstr "Sənə&di sıxışdırmaq (qablaşdır)..."
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: Adapt_ItDoc.cpp:23971 Adapt_ItDoc.cpp:27965
+#: Adapt_ItDoc.cpp:24187 Adapt_ItDoc.cpp:28189
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "Sıxılmış Sənədlər (*.aip)|*.aip||"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23974
+#: Adapt_ItDoc.cpp:24190
 msgid "Filename For Packed Document"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:24040
+#: Adapt_ItDoc.cpp:24256
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:24065
+#: Adapt_ItDoc.cpp:24281
 #, c-format
 msgid ""
 "The packed document file was named:\n"
@@ -3380,18 +3394,18 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:24068
+#: Adapt_ItDoc.cpp:24284
 #, fuzzy
 msgid "Packing of document successful"
 msgstr "Sənədin bir yerdən digərinə keçirilməsi uğurlu oldu."
 
-#: Adapt_ItDoc.cpp:24736
+#: Adapt_ItDoc.cpp:24952
 msgid ""
 "Before closing the document, you must either ACCEPT the revision or RETURN "
 "to the latest one."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:25031
+#: Adapt_ItDoc.cpp:25247
 #, fuzzy
 msgid ""
 "There were places where automatic rebuilding of the document potentially did "
@@ -3402,14 +3416,14 @@ msgstr ""
 "yaxud da ki, görünən material filtr olunmur. Zəhmət olmazsa, sənədi gözlə "
 "nəzərdən keçirin və lazım gələn yerdə bəlkə redaktə edsiniz."
 
-#: Adapt_ItDoc.cpp:25041
+#: Adapt_ItDoc.cpp:25257
 msgid ""
 "Locate the following chapter:verse locations for potential errors in the "
 "rebuild of the document. Visually check and edit where necessary: "
 msgstr ""
 
 # The actual filename must use the English name, as that is hard coded.
-#: Adapt_ItDoc.cpp:25300
+#: Adapt_ItDoc.cpp:25516
 msgid ""
 " ... for additional later locations needing manual editing please check the "
 "document visually. The full list has been saved in your project folder in "
@@ -3419,7 +3433,7 @@ msgstr ""
 "sənədi əyani surətdə yoxlayın. Tam siyahı sizin layinə qovluğunuzdakı "
 "\"Rebuild Log.txt\" faylda yadaşa verilmişdir. "
 
-#: Adapt_ItDoc.cpp:25308
+#: Adapt_ItDoc.cpp:25524
 msgid ""
 "    This list has been saved in your project folder in the file \"Rebuild "
 "Log.txt\""
@@ -3428,31 +3442,31 @@ msgstr ""
 "yaddaşa verilmişdir. "
 
 # Priority 1
-#: Adapt_ItDoc.cpp:27963
+#: Adapt_ItDoc.cpp:28187
 msgid "Load And Unpack The Compressed Document"
 msgstr "Kompress olunmuş (qısaldılmış) Sənədi Yüklə və Aç"
 
-#: Adapt_ItDoc.cpp:28008
+#: Adapt_ItDoc.cpp:28232
 #, c-format
 msgid ""
 "Choose a Packed Document from the following list:\n"
 "(from the location: %s):"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28052
+#: Adapt_ItDoc.cpp:28276
 msgid ""
 "Error uncompressing; Adapt It cannot read the information in the packed .aip "
 "file."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28053
+#: Adapt_ItDoc.cpp:28277
 #, fuzzy
 #| msgid "Save the active document"
 msgid "Unable to unpack the packed document"
 msgstr "Aktiv sənədi yaddaşda saxlamaq"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28078
+#: Adapt_ItDoc.cpp:28302
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
@@ -3461,13 +3475,13 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: Adapt_ItDoc.cpp:28094
+#: Adapt_ItDoc.cpp:28318
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28412
+#: Adapt_ItDoc.cpp:28636
 msgid ""
 "There is a document of the same name in an Adapt It project of the same name "
 "on this computer."
@@ -3475,7 +3489,7 @@ msgstr ""
 "Bu kompyuterdə eyni adı layihənin Adapt İt-ində eyni adlı sənəd vardır."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28413
+#: Adapt_ItDoc.cpp:28637
 #, c-format
 msgid ""
 "\n"
@@ -3484,7 +3498,7 @@ msgstr ""
 
 # Priority 1
 # The %s refers to the path of the project
-#: Adapt_ItDoc.cpp:28414
+#: Adapt_ItDoc.cpp:28638
 #, c-format
 msgid ""
 "\n"
@@ -3492,7 +3506,7 @@ msgid ""
 msgstr ""
 
 # Do not translate the %s%s%s part
-#: Adapt_ItDoc.cpp:28416
+#: Adapt_ItDoc.cpp:28640
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -3505,25 +3519,25 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: Adapt_ItDoc.cpp:28435
+#: Adapt_ItDoc.cpp:28659
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28514
+#: Adapt_ItDoc.cpp:28738
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr ""
 
 # Priority 1
 # Leave two spaces at the beginning.
-#: Adapt_ItDoc.cpp:28516
+#: Adapt_ItDoc.cpp:28740
 msgid "  Aborting the command."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28535
+#: Adapt_ItDoc.cpp:28759
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration "
@@ -3532,40 +3546,40 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28552
+#: Adapt_ItDoc.cpp:28776
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr ""
 
 # Priority 1
 # Sentence starts with two spaces
-#: Adapt_ItDoc.cpp:28555
+#: Adapt_ItDoc.cpp:28779
 msgid ""
 "  Exit Adapt It and manually change .BAK to .aic for the project "
 "configuration file."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28571
+#: Adapt_ItDoc.cpp:28795
 msgid "Writing out the project configuration file's content failed."
 msgstr ""
 
 # Priority 1
 # Sentence starts with a space
-#: Adapt_ItDoc.cpp:28574
+#: Adapt_ItDoc.cpp:28798
 msgid ""
 " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension "
 "on the renamed project configuration file to .aic before launching again. "
 "Beware, that configuration file may now be corrupted."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28592
+#: Adapt_ItDoc.cpp:28816
 msgid ""
 "Removing the renamed earlier project configuration file failed. Do it "
 "manually later in Windows Explorer - it has a .BAK extension."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28627
+#: Adapt_ItDoc.cpp:28851
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
@@ -3573,24 +3587,24 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28640
+#: Adapt_ItDoc.cpp:28864
 msgid "Writing out the xml document file's content failed."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28659
+#: Adapt_ItDoc.cpp:28883
 msgid ""
 "Opening the xml document file for Unpack Document... failed. (It was stored "
 "successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28685
+#: Adapt_ItDoc.cpp:28909
 #, fuzzy
 msgid "A message about knowledge base sharing"
 msgstr "&İdxal etmə bilik bazası..."
 
-#: Adapt_ItDoc.cpp:28689
+#: Adapt_ItDoc.cpp:28913
 #, c-format
 msgid ""
 "The person who packed the document was sharing the adaptations knowledge "
@@ -3599,7 +3613,7 @@ msgid ""
 "be shared, you may wish to do the same."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28695
+#: Adapt_ItDoc.cpp:28919
 #, c-format
 msgid ""
 "The person who packed the document was sharing the glossing knowledge base "
@@ -3608,7 +3622,7 @@ msgid ""
 "be shared, you may wish to do the same."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:28702
+#: Adapt_ItDoc.cpp:28926
 #, c-format
 msgid ""
 "The person who packed the document was sharing both the adapting and the "
@@ -3618,38 +3632,38 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29037 Adapt_ItDoc.cpp:29375 Adapt_ItDoc.cpp:29379
-#: Adapt_ItDoc.cpp:29448 Adapt_ItDoc.cpp:29553 Adapt_ItDoc.cpp:29589
-#: Adapt_ItDoc.cpp:29593 Adapt_ItDoc.cpp:29642 Adapt_ItDoc.cpp:29646
-#: Adapt_ItDoc.cpp:29663 Adapt_ItDoc.cpp:29677 Adapt_ItDoc.cpp:29694
-#: Adapt_ItDoc.cpp:29716
+#: Adapt_ItDoc.cpp:29261 Adapt_ItDoc.cpp:29599 Adapt_ItDoc.cpp:29603
+#: Adapt_ItDoc.cpp:29672 Adapt_ItDoc.cpp:29777 Adapt_ItDoc.cpp:29813
+#: Adapt_ItDoc.cpp:29817 Adapt_ItDoc.cpp:29866 Adapt_ItDoc.cpp:29870
+#: Adapt_ItDoc.cpp:29887 Adapt_ItDoc.cpp:29901 Adapt_ItDoc.cpp:29918
+#: Adapt_ItDoc.cpp:29940
 #, fuzzy
 msgid "Performing Consistency Check"
 msgstr "Ardıcıllıq yoxlanışı"
 
-#: Adapt_ItDoc.cpp:29369
+#: Adapt_ItDoc.cpp:29593
 msgid ""
 "No document is open. First have a document open, then the choice to check it "
 "will work."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29379
+#: Adapt_ItDoc.cpp:29603
 #, fuzzy
 msgid "Checking current document"
 msgstr "&Yalnız bu sənədi yoxla"
 
-#: Adapt_ItDoc.cpp:29443 Adapt_ItDoc.cpp:29489
+#: Adapt_ItDoc.cpp:29667 Adapt_ItDoc.cpp:29713
 msgid "Checking Book"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29553 Adapt_ItDoc.cpp:29593 Adapt_ItDoc.cpp:30358
+#: Adapt_ItDoc.cpp:29777 Adapt_ItDoc.cpp:29817 Adapt_ItDoc.cpp:30582
 #, fuzzy
 msgid "Starting Consistency Check"
 msgstr "Ardıcıllıq yoxlanışı"
 
-#: Adapt_ItDoc.cpp:29561
+#: Adapt_ItDoc.cpp:29785
 #, fuzzy
 msgid ""
 "There are no saved document files yet for this project. At least one "
@@ -3661,20 +3675,20 @@ msgstr ""
 "Əmr rədd ediləcəkdir."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29646
+#: Adapt_ItDoc.cpp:29870
 #, fuzzy
 msgid "Cleaning up..."
 msgstr "Axtarış:"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29663
+#: Adapt_ItDoc.cpp:29887
 #, fuzzy
 msgid "Finishing Consistency Check"
 msgstr "Ardıcıllıq yoxlanışı"
 
 # Priority 1
 # The message is going to have to be retranslated so that the numbers are associated with the text which refers to them, that is, source word count will be first, and file count must be second.
-#: Adapt_ItDoc.cpp:29671
+#: Adapt_ItDoc.cpp:29895
 #, c-format
 msgid ""
 "The consistency check was successful. There were %d source words and "
@@ -3684,17 +3698,17 @@ msgstr ""
 "idi."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29694
+#: Adapt_ItDoc.cpp:29918
 #, fuzzy
 msgid "Saving Current Document"
 msgstr "Sənə&di sıxışdırmaq (qablaşdır)..."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:29700
+#: Adapt_ItDoc.cpp:29924
 msgid "Could not save the current document. Consistency Check Command aborted."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:30164
+#: Adapt_ItDoc.cpp:30388
 #, c-format
 msgid ""
 "A bad autocorrect.txt file was found for the \"%s\" project.\n"
@@ -3705,40 +3719,40 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:30358 Adapt_ItDoc.cpp:30422 Adapt_ItDoc.cpp:32303
+#: Adapt_ItDoc.cpp:30582 Adapt_ItDoc.cpp:30646 Adapt_ItDoc.cpp:32527
 #: ChooseConsistencyCheckTypeDlg.cpp:60
 msgid "Consistency Check"
 msgstr "Ardıcıllıq yoxlanışı"
 
-#: Adapt_ItDoc.cpp:30421
+#: Adapt_ItDoc.cpp:30645
 #, c-format
 msgid "Checking: %s (file %d of %d)"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:32284 Adapt_ItDoc.cpp:33149
+#: Adapt_ItDoc.cpp:32508 Adapt_ItDoc.cpp:33373
 msgid "Warning: failure on document save operation."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:33482 UsfmFilterPage.cpp:402
+#: Adapt_ItDoc.cpp:33706 UsfmFilterPage.cpp:402
 msgid "[UNKNOWN MARKER]"
 msgstr "[NAMƏLUM MƏTN]"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:33491
+#: Adapt_ItDoc.cpp:33715
 msgid "[FILTERED]"
 msgstr "[FİLTRDƏN KEÇİRİLMİŞ]"
 
-#: Adapt_ItDoc.cpp:34028
+#: Adapt_ItDoc.cpp:34252
 msgid "Set or Clear a Book Name"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:34160
+#: Adapt_ItDoc.cpp:34384
 msgid "study Bible sidebar end"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:35786
+#: Adapt_ItDoc.cpp:36010
 #, c-format
 msgid ""
 "Failed to find the expected end-marker: %s somewhere after chapter:verse %s\n"
@@ -3748,12 +3762,12 @@ msgid ""
 "end-marker, save, then re-create the document"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:35790
+#: Adapt_ItDoc.cpp:36014
 msgid "Warning: end-marker omitted?"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:42643
+#: Adapt_ItDoc.cpp:42867
 #, c-format
 msgid ""
 "Adapt It does not recognise this marker: %s which is in the input file.\n"
@@ -3763,12 +3777,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:45425 Adapt_ItDoc.cpp:53646
+#: Adapt_ItDoc.cpp:45649 Adapt_ItDoc.cpp:53870
 #, fuzzy
 msgid "Unknown location"
 msgstr "Axırıncı aktiv yerə geri atılmaq"
 
-#: Adapt_ItDoc.cpp:45433
+#: Adapt_ItDoc.cpp:45657
 #, c-format
 msgid ""
 "Warning: While loading the source text file at chapter:verse %s, unexpected "
@@ -3778,7 +3792,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:45436
+#: Adapt_ItDoc.cpp:45660
 msgid ""
 "When Adapt It encounters \"Unexpected\" markers, spaces and/or punctuation, "
 "it can indicate that leading spaces have interferred with Adapt It's ability "
@@ -3794,11 +3808,11 @@ msgid ""
 "Do you want to continue loading the file?"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:45445 Adapt_ItDoc.cpp:53669
+#: Adapt_ItDoc.cpp:45669 Adapt_ItDoc.cpp:53893
 msgid "User selected No"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:45448 Adapt_ItDoc.cpp:53672
+#: Adapt_ItDoc.cpp:45672 Adapt_ItDoc.cpp:53896
 msgid ""
 "Adapt It will now stop running.\n"
 "\n"
@@ -3806,52 +3820,52 @@ msgid ""
 "edited text into Adapt."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:45455
+#: Adapt_ItDoc.cpp:45679
 msgid "User selected Yes"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48719
+#: Adapt_ItDoc.cpp:48943
 msgid "Unexpected or isolated end marker"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48727 Adapt_ItDoc.cpp:48737
+#: Adapt_ItDoc.cpp:48951 Adapt_ItDoc.cpp:48961
 #, c-format
 msgid ""
 "The input source text was mis-parsed, causing an isolated end marker: %s , "
 "in the "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48728 Adapt_ItDoc.cpp:48738
+#: Adapt_ItDoc.cpp:48952 Adapt_ItDoc.cpp:48962
 #, c-format
 msgid ""
 "chapter:verse: %s    Adapt It will not fail if you ignore this warning. "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48729 Adapt_ItDoc.cpp:48739
+#: Adapt_ItDoc.cpp:48953 Adapt_ItDoc.cpp:48963
 msgid ""
 "We recommend you let the input document finish loading, but do not save it. "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48730 Adapt_ItDoc.cpp:48740
+#: Adapt_ItDoc.cpp:48954 Adapt_ItDoc.cpp:48964
 msgid "Instead, close Adapt It. Open your input source file in a text editor. "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48731 Adapt_ItDoc.cpp:48741
+#: Adapt_ItDoc.cpp:48955 Adapt_ItDoc.cpp:48965
 msgid ""
 "Find the unexpected end marker, fix the USFM markup there, save, then open "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48732
+#: Adapt_ItDoc.cpp:48956
 #, c-format
 msgid ""
 "Adapt It again and retry loading the fixed document. Error after: [%s,%s]"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:48742
+#: Adapt_ItDoc.cpp:48966
 msgid "Adapt It again and retry loading the fixed document."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:53655
+#: Adapt_ItDoc.cpp:53879
 #, c-format
 msgid ""
 "Warning: While loading the source text file at chapter:verse %s, unexpected "
@@ -3861,7 +3875,7 @@ msgid ""
 "%s."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:53660
+#: Adapt_ItDoc.cpp:53884
 msgid ""
 "When Adapt It encounters \"Unexpected\" markers, it means that either Adapt "
 "It doesn't recognize the markers, or they are not located where Adapt It "
@@ -3874,29 +3888,29 @@ msgid ""
 "Do you want to continue loading the file?"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:53679
+#: Adapt_ItDoc.cpp:53903
 msgid "User selected Yex"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:56261
+#: Adapt_ItDoc.cpp:56485
 msgid "footnote"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:56677
+#: Adapt_ItDoc.cpp:56901
 msgid "end note"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:56688
+#: Adapt_ItDoc.cpp:56912
 msgid "end endnote"
 msgstr ""
 
 # References refering to number of instances of use in documents.
-#: Adapt_ItDoc.cpp:56700
+#: Adapt_ItDoc.cpp:56924
 #, fuzzy
 msgid "end crossReference"
 msgstr "İstinadlar:"
 
-#: Adapt_ItDoc.cpp:56710
+#: Adapt_ItDoc.cpp:56934
 msgid "end ext xref note"
 msgstr ""
 
@@ -15324,27 +15338,27 @@ msgstr ""
 "Xəbərdarlıq: Bilik bazasında saxlanılmalı mexanizm üçün bu ifadədə həddən "
 "çox mənbə dil sözləri vardır."
 
-#: KB.cpp:7307 KB.cpp:7333 KB.cpp:7420
+#: KB.cpp:7315 KB.cpp:7341 KB.cpp:7428
 msgid "DoKBRestore"
 msgstr ""
 
 # Priority 1
-#: KB.cpp:7307
+#: KB.cpp:7315
 #, fuzzy
 msgid "Restoring KB"
 msgstr "Bə&rpa etmə bilik ba&zası..."
 
-#: KB.cpp:7332
+#: KB.cpp:7340
 #, c-format
 msgid "Restoring KB for File: %s (%d of %d)"
 msgstr ""
 
-#: KB.cpp:7415
+#: KB.cpp:7423
 msgid "Warning: something went wrong doing a save of the KB"
 msgstr ""
 
 # Priority 1
-#: KB.cpp:7454
+#: KB.cpp:7462
 #, c-format
 msgid ""
 "Adapt It changed the punctuation in one or more of your documents.\n"
@@ -18287,7 +18301,7 @@ msgstr ""
 "redaktə etmisiniz və UTF-8 nəticəsini müəyyən etməmisiniz. Zəhmət olmazsa, "
 "sənədi yenidən açmağa cəhd etməyin. "
 
-#: XML.cpp:10598
+#: XML.cpp:10749
 #, c-format
 msgid ""
 "Summary:\n"
