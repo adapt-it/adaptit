@@ -97,7 +97,9 @@ values used by Adapt It's parsing/input routines for documents created prior to 
 docVersion 11. The effect of this change for users is that when a user opens an old
 document that was created with docVersion 10 or earlier, Adapt It will automatically
 convert the xml document to the current docVersion 11.
-* 
+* Updated the File Save As... dialog's "Save as type" settings to have the option to
+save the current document from docVersion 11 to docVersion 10 which is now considered
+to be the "Legacy" xml format for App versions 6.0.0 through 6.11.1.
 ----------------------------------------------
 Bug fixes in 6.12.0 update
 ---------------------------------------------
@@ -123,7 +125,8 @@ accompanied by this explanation:
 In most cases Adapt It can now better handle the many possible combinations of such
 markers, spaces and punctuation, so that the above Warning should not appear during
 the loading of a new text for adaptation work.
-* 
+* Fixed some potential bugs in the File > Save As... routines, that could result in
+the truncation of the xml document if the user cancels from that Save As dialog.
 ----------------------------------------------
 Version 6.11.6  7 March 2025
 ----------------------------------------------
