@@ -3583,7 +3583,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	m_bLegacyDocVersionForSaveAs = FALSE; // initialize private member
 	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
 	//bool bDummySrcPhraseAdded = FALSE; whm 18Apr2026 removed
-	SPList::Node* posLast = NULL;
+	//SPList::Node* posLast = NULL;
 
 	// refactored 9Mar09
 	wxFile f; // create a CFile instance with default constructor
