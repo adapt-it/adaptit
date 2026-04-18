@@ -260,7 +260,8 @@ public:
 	CSourcePhrase&	operator =(const CSourcePhrase& sp);
 	void			CopySameTypeParams(const CSourcePhrase& sp);
 	CBString		MakeXML(int nTabLevel); // nTabLevel specifies how many tabs are to start each line,
-												// nTabLevel == 1 inserts one, 2 inserts two, etc
+											// nTabLevel == 1 inserts one, 2 inserts two, etc
+	void			RemoveDocVersion11WsAndMkrsFromFilteredInfo(wxString filteredStr); // whm 16Apr2026 added
 	void			DeepCopy(void); // BEW added 16Apr08, to obtain copies of any saved original
 									// CSourcePhrases from a merger, and have pointers to the copies
 									// replace the pointers in the m_pSavedWords member of a new instance

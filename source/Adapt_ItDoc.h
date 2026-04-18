@@ -599,8 +599,8 @@ public:
 	int				ScanToNextMarker(wxChar* pChar, wxChar* pEnd);
 
 	// more unfiltering stuff goes just above, if needed
-
-	bool			IsLegacyDocVersionForFileSaveAs();
+	// whm 16Apr2026 removed the following IsLegacyDocVersionForFileSaveAs()
+	//bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList* LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis* LookupSFM(wxChar* pChar);
 	// Overloaded variant used in ParseWord()

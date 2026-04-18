@@ -3576,9 +3576,13 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	// wxFileDialog below may result in a different value being set by the code further
 	// below
 	RestoreCurrentDocVersion();  // assume the default
+	// whm 16Apr2026 revision note: As of this date the current docVersion is 11.
+	// The m_bLegacyDocVersionForSaveAs now means a "LegacyDocVersion" of docVersion=10 
+	// instead of its original meaning of docVersion=4.
+	// In the if (type == save_as) block below we now offer only a 
 	m_bLegacyDocVersionForSaveAs = FALSE; // initialize private member
 	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
-	bool bDummySrcPhraseAdded = FALSE;
+	//bool bDummySrcPhraseAdded = FALSE; whm 18Apr2026 removed
 	SPList::Node* posLast = NULL;
 
 	// refactored 9Mar09
@@ -3664,32 +3668,37 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	wxString unwantedPathToSaveFolder;
 	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath,
 		unwantedPathToSaveFolder); // we don't use 3rd param here
-	if (!f.Open(gpApp->m_curOutputFilename, wxFile::write))
-	{
-		gpApp->LogUserAction(_T("Failed f.Open() for writing in DoFileSave()"));
-		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
-					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
-	}
 
-	CSourcePhrase* pSrcPhrase;
-	CBString aStr;
-	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+	// whm 17Apr2026 moved the f.Open() and initial DoWrite(f, aStr) stuff below
+	// down to below the if (type == save_as) block. This prevents a partial xml
+	// file being written if there is an abrupt return from DoFileSave() which
+	// could happen if the user cancels from the file dialog.
+	//if (!f.Open(gpApp->m_curOutputFilename, wxFile::write))
+	//{
+	//	gpApp->LogUserAction(_T("Failed f.Open() for writing in DoFileSave()"));
+	//	return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
+	//				  // to happen, so we'll not worry about it - it wouldn't matter much anyway
+	//}
 
-	// prologue (Changed BEW 02July07 at Bob Eaton's request)
-	gpApp->GetEncodingStringForXmlFiles(aStr);
-	DoWrite(f, aStr);
+	//CSourcePhrase* pSrcPhrase;
+	//CBString aStr;
+	//CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
-	// add the comment with the warning about not opening the XML file in MS WORD
-	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-	// the latter goes into an infinite loop when the file is being parsed in.
-	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+	//// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	//gpApp->GetEncodingStringForXmlFiles(aStr);
+	//DoWrite(f, aStr);
 
-	// doc opening tag
-	aStr += "<";
-	aStr += xml_adaptitdoc;
-	aStr += ">\r\n"; // eol chars OK for cross-platform???
-	DoWrite(f, aStr);
+	//// add the comment with the warning about not opening the XML file in MS WORD
+	//// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	//// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	//// the latter goes into an infinite loop when the file is being parsed in.
+	//aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+	//// doc opening tag
+	//aStr += "<";
+	//aStr += xml_adaptitdoc;
+	//aStr += ">\r\n";
+	//DoWrite(f, aStr);
 
 	// in case file rename is wanted... from the Save As dialog
 	wxString theNewFilename = _T("");
@@ -3703,7 +3712,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		// version number in this dialog)
 		wxString defaultDir = pathToSaveFolder; // set above
 		wxString filter;
-		filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||");
+		// whm 16Apr2026 modified. Our "New XML format" is now 6.12.0, and the "Legacy XML format"
+		// is "versions 6.0.0 through 6.11.1"
+		//filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||");
+		filter = _("New XML format, for 6.12.0 and later (default)|*.xml|Legacy XML format, as in versions 6.0.0 to 6.11.1. |*.xml||");
 		wxString filename = gpApp->m_curOutputFilename;
 
 	retry:	bFileIsRenamed = FALSE;
@@ -3735,6 +3747,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 			return FALSE;
 		}
 
+		// whm 17Apr2026 moved the filterIndex assignment from the fildDlg up here
+		// from below
+		int filterIndex = fileDlg.GetFilterIndex();
+
 		// check that the user did not change the folder's path, the user must not be able
 		// to do this in Adapt It, the location for saving documents is fixed and the
 		// pathToSaveFolder has been set to whatever it is for this session
@@ -3765,6 +3781,29 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		// renaming the document until control returns to OnFileSaveAs(); and we'll leave
 		// OnFileSaveAs to do the needed path updates for the renamed doc file.)
 		theNewFilename = fileDlg.GetFilename();
+
+		// check for illegal characters in the user's typed new filename (this code
+		// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
+		wxString fileN = theNewFilename;
+		wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
+		wxString scanned = SpanExcluding(fileN, illegals);
+		if (scanned != fileN)
+		{
+			// there is at least one illegal character,; beep and show the illegals to the
+			// user and then re-enter the dialog to start over from scratch; illegals
+			// are characters such as:  :?*\"\|/<>
+			::wxBell();
+			wxString message;
+			message = message.Format(
+				_("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."), illegals.c_str());
+			// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION | wxOK);
+			theNewFilename.Empty();
+			gpApp->LogUserAction(_T("Bad Characters In Filename"));
+			goto retry;
+		}
+
 		if (theNewFilename != filename)
 		{
 			// whm added 27Jun11 check for attempt to rename a _Collab... file using the
@@ -3783,33 +3822,33 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 				goto retry;
 			}
 
-			// check for illegal characters in the user's typed new filename (this code
-			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
-			wxString fn = theNewFilename;
-			wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
-			wxString scanned = SpanExcluding(fn, illegals);
-			if (scanned != fn)
-			{
-				// there is at least one illegal character,; beep and show the illegals to the
-				// user and then re-enter the dialog to start over from scratch; illegals
-				// are characters such as:  :?*\"\|/<>
-				::wxBell();
-				wxString message;
-				message = message.Format(
-					_("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."), illegals.c_str());
-				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-				gpApp->m_bUserDlgOrMessageRequested = TRUE;
-				wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION | wxOK);
-				theNewFilename.Empty();
-				gpApp->LogUserAction(_T("Bad Characters In Filename"));
-				goto retry;
-			}
+			//// check for illegal characters in the user's typed new filename (this code
+			//// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
+			//wxString fn = theNewFilename;
+			//wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
+			//wxString scanned = SpanExcluding(fn, illegals);
+			//if (scanned != fn)
+			//{
+			//	// there is at least one illegal character,; beep and show the illegals to the
+			//	// user and then re-enter the dialog to start over from scratch; illegals
+			//	// are characters such as:  :?*\"\|/<>
+			//	::wxBell();
+			//	wxString message;
+			//	message = message.Format(
+			//		_("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."), illegals.c_str());
+			//	// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			//	gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			//	wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION | wxOK);
+			//	theNewFilename.Empty();
+			//	gpApp->LogUserAction(_T("Bad Characters In Filename"));
+			//	goto retry;
+			//}
 
 			// check for a name conflict
 			if (FilenameClash(theNewFilename))
 			{
 				wxString msg;
-				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."));
+				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another (or make the filename slightly different)."));
 				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
 				gpApp->m_bUserDlgOrMessageRequested = TRUE;
 				wxMessageBox(msg, _("Conflicting Filename"), wxICON_EXCLAMATION | wxOK);
@@ -3822,6 +3861,109 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 				bFileIsRenamed = TRUE; // theNewFilename has the renamed filename string
 			}
 		}
+		else if (!pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+		{
+			if (FilenameClash(theNewFilename))
+			{
+				wxString msg;
+				if (filterIndex > 0)
+				{
+					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file with the legacy 6.0.0 - 6.11.1 format, select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+				}
+				else
+				{
+					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+				}
+				msg = msg.Format(msg, theNewFilename.c_str());
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				int result = wxMessageBox(msg, _("Conflicting Filename"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+				switch (result)
+				{
+				case wxCANCEL:
+				{
+					RestoreCurrentDocVersion(); // ensure a subsequent save uses latest doc version number
+					m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+					m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+					f.Close();
+					bUserCancelled = TRUE; // inform the caller that the user hit the Cancel button
+					gpApp->LogUserAction(_T("Cancelled from Save As at wxFileDialog()"));
+					return FALSE;
+				}
+				case wxYES:
+				{
+					// Continue on to save/overwrite the existing docVersion 10 xml file 
+					// with the newer docVersion (11) xml. 
+					break;
+				}
+				case wxNO:
+				{
+					// Go back to the file dialog to adjust the filename
+					theNewFilename.Empty();
+					goto retry;
+				}
+				default:
+				{
+					wxASSERT(FALSE);
+					break;
+				}
+				} // end of switch (result)
+			}
+			else
+			{
+				bFileIsRenamed = TRUE; // theNewFilename has the renamed filename string
+			}
+		}
+
+		// whm 17Apr2026 modified. We arrive here if the theNewFilename == filename
+		// I've copied the 'if (FilenameClash(theNewFilename))' block above to also
+		// be tested in this location, but only when not collaborating with PT/BE,
+		// and when the filterIndex > 0 (doing a legacy save as to docVersion 10).
+
+		// whm 17Apr2026 moved the setting of filterIndex up here from below
+		// Get the docVersion number the user wants used for the save, an index value of 0
+		// always uses the VERSION_NUMBER as currently set, as does leaving any any
+		// parameter (since 0 is the default if left out), but index values 1 or higher
+		// select a legacy docVersion number (which gives different XML structure)
+		// (currently the only other index value supported is 1, which maps to doc version
+		// 10) Don't permit the possibility of a File Type change until the tests above
+		// leading to reentrancy have been passed successfully
+		// 
+		// whm 17Apr2026 moved the filterIndex assignment up to just after the file dialog
+		//int filterIndex = fileDlg.GetFilterIndex(); 
+		SetDocVersion(filterIndex);
+		
+		// whm 17Apr2026 moved the if/else test up here from below, and adjusted 
+		// the comments below:
+		// Execution control now takes one of two paths: if the user chose filterIndex ==
+		// 0 item, which is VERSION_NUMBER's docVersion (currently == 11), then the code
+		// for a norm Save is to be executed (except that in the Save As.. dialog he may
+		// have also requested a document rename, in which case a block at the end of this
+		// function will do that as well, as well as for when he makes the docVersion 10
+		// choice). But if he chose filterIndex == 1 item, this is for docVersion set to
+		// DOCVERSION10, in which case extra work has to be done - control is passed to 
+		// a conversion function FromDocVersion11ToDocVersion10() and the XML is built 
+		// from the converted list of the App's m_pSourcePhrases.
+		// 
+		// [OLD] BEW 13Feb12, the old test won't work right now that 6 rather than 5 is the
+		// current value of VERSION_NUMBER, so comment out the legacy way to set the
+		// boolean, and do a better way -- that will work right if we later version the
+		// document to 7 or 8, etc
+		//m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		if (filterIndex > 0)
+		{
+			// docVersion4 is wanted
+			m_bLegacyDocVersionForSaveAs = TRUE;
+		}
+		else
+		{
+			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 8
+			m_bLegacyDocVersionForSaveAs = FALSE;
+		}
+
+		// Having a copy of that test here would allow the user to retry, or to go
+		// ahead and overwrite the existing document of the same name.
+
 		if (bFileIsRenamed)
 		{
 			m_bDocRenameRequestedForSaveAs = TRUE; // set the private member, as the caller
@@ -3879,64 +4021,100 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		}
 		// delay any requested doc file rename to the end of the calling function...
 
-		// get the docVersion number the user wants used for the save, an index value of 0
-		// always uses the VERSION_NUMBER as currently set, as does leaving any any
-		// parameter (since 0 is the default if left out), but index values 1 or higher
-		// select a legacy docVersion number (which gives different XML structure)
-		// (currently the only other index value supported is 1, which maps to doc version
-		// 4) Don't permit the possibility of a File Type change until the tests above
-		// leading to reentrancy have been passed successfully
-		int filterIndex = fileDlg.GetFilterIndex();
-		SetDocVersion(filterIndex);
+		//// get the docVersion number the user wants used for the save, an index value of 0
+		//// always uses the VERSION_NUMBER as currently set, as does leaving any any
+		//// parameter (since 0 is the default if left out), but index values 1 or higher
+		//// select a legacy docVersion number (which gives different XML structure)
+		//// (currently the only other index value supported is 1, which maps to doc version
+		//// 4) Don't permit the possibility of a File Type change until the tests above
+		//// leading to reentrancy have been passed successfully
+		//int filterIndex = fileDlg.GetFilterIndex();
+		//SetDocVersion(filterIndex);
 
-		// Execution control now takes one of two paths: if the user chose filterIndex ==
-		// 0 item, which is VERSION_NUMBER's docVersion (currently == 6), then the code
-		// for a norm Save is to be executed (except that in the Save As.. dialog he may
-		// have also requested a document rename, in which case a block at the end of this
-		// function will do that as well, as well as for when he makes the docVersion 4
-		// choice). But if he chose filterIndex == 1 item, this is for docVersion set to
-		// DOCVERSION4 (always == 4), in which case extra work has to be done - deep
-		// copies of CSourcePhrase need to be created, and passed to a conversion function
-		// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
-		// (to prevent corrupting the internal data structures which are docVersion5
-		// compliant)
-		// BEW 13Feb12, the old test won't work right now that 6 rather than 5 is the
-		// current value of VERSION_NUMBER, so comment out the legacy way to set the
-		// boolean, and do a better way -- that will work right if we later version the
-		// document to 7 or 8, etc
-		//m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
-		if (filterIndex > 0)
-		{
-			// docVersion4 is wanted
-			m_bLegacyDocVersionForSaveAs = TRUE;
-		}
-		else
-		{
-			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 8
-			m_bLegacyDocVersionForSaveAs = FALSE;
-		}
+		//// whm 16Apr2026 adjusted comments below:
+		//// Execution control now takes one of two paths: if the user chose filterIndex ==
+		//// 0 item, which is VERSION_NUMBER's docVersion (currently == 11), then the code
+		//// for a norm Save is to be executed (except that in the Save As.. dialog he may
+		//// have also requested a document rename, in which case a block at the end of this
+		//// function will do that as well, as well as for when he makes the docVersion 10
+		//// choice). But if he chose filterIndex == 1 item, this is for docVersion set to
+		//// DOCVERSION10, in which case extra work has to be done - control is passed to 
+		//// a conversion function FromDocVersion11ToDocVersion10() and the XML is built 
+		//// from the converted list of the App's m_pSourcePhrases.
+		//// 
+		//// [OLD] BEW 13Feb12, the old test won't work right now that 6 rather than 5 is the
+		//// current value of VERSION_NUMBER, so comment out the legacy way to set the
+		//// boolean, and do a better way -- that will work right if we later version the
+		//// document to 7 or 8, etc
+		////m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		//if (filterIndex > 0)
+		//{
+		//	// docVersion4 is wanted
+		//	m_bLegacyDocVersionForSaveAs = TRUE;
+		//}
+		//else
+		//{
+		//	// docVersion = the current VERSION_NUMBER value is wanted; currently it's 8
+		//	m_bLegacyDocVersionForSaveAs = FALSE;
+		//}
 
-		if (m_bLegacyDocVersionForSaveAs)
-		{
-			// Saving in doc version 4 may require the addition of a doc-final dummy
-			// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
-			// but only when needed, and remove it when done. It's needed if the very last
-			// CSourcePhrase instance has a non-empty m_endMarkers member.
-			posLast = gpApp->m_pSourcePhrases->GetLast();
-			CSourcePhrase* pLastSP = posLast->GetData();
-			wxASSERT(pLastSP != NULL);
-			if (!pLastSP->GetEndMarkers().IsEmpty())
-			{
-				// we need a dummy one at the end
-				bDummySrcPhraseAdded = TRUE;
-				int aCount = gpApp->m_pSourcePhrases->GetCount();
-				CSourcePhrase* pDummyForLast = new CSourcePhrase;
-				gpApp->m_pSourcePhrases->Append(pDummyForLast);
-				pDummyForLast->m_nSequNumber = aCount;
-			}
-		}
+		// whm 16Apr2026 removed the following block. All adjustments (if any) in the
+		// inventory of CSourcePhrase instances would now be accomplished in the call of
+		// the FromDocVersion11ToDocVersion10() function below.
+		//if (m_bLegacyDocVersionForSaveAs)
+		//{
+		//	// Saving in doc version 4 may require the addition of a doc-final dummy
+		//	// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
+		//	// but only when needed, and remove it when done. It's needed if the very last
+		//	// CSourcePhrase instance has a non-empty m_endMarkers member.
+		//	posLast = gpApp->m_pSourcePhrases->GetLast();
+		//	CSourcePhrase* pLastSP = posLast->GetData();
+		//	wxASSERT(pLastSP != NULL);
+		//	if (!pLastSP->GetEndMarkers().IsEmpty())
+		//	{
+		//		// we need a dummy one at the end
+		//		bDummySrcPhraseAdded = TRUE;
+		//		int aCount = gpApp->m_pSourcePhrases->GetCount();
+		//		CSourcePhrase* pDummyForLast = new CSourcePhrase;
+		//		gpApp->m_pSourcePhrases->Append(pDummyForLast);
+		//		pDummyForLast->m_nSequNumber = aCount;
+		//	}
+		//}
 	} // end of TRUE block for test: if (type == save_as)
 
+	// whm 17Apr2026 moved the f.Open() and first DoWrite(f, aStr) calls down
+	// here below the 'if (type == save_as)'block above, to prevent having
+	// a partial xml created if the user cancels from a file dialog in the
+	// Save As section above, after having written the encoding string, the
+	// MSWORDWarning and the xml_adaptitdoc (stuff up to the Settings part)
+	// - which if left above could leave a badly truncated xml file.
+	// 
+	if (!f.Open(gpApp->m_curOutputFilename, wxFile::write))
+	{
+		gpApp->LogUserAction(_T("Failed f.Open() for writing in DoFileSave()"));
+		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
+					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
+	}
+
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+
+	// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f, aStr);
+
+	// add the comment with the warning about not opening the XML file in MS WORD
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n";
+	DoWrite(f, aStr);
 	// place the <Settings> element at the start of the doc (this has to know what the
 	// user chose for the SaveType, so this call has to be made after the
 	// SetDocVersion() call above - as that call sets the doc's save state which
@@ -3972,67 +4150,82 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 
 	// process through the list of CSourcePhrase instances, building an xml element from
 	// each
+	// whm 16Apr2026 Note: The pos_pSP node pointer is no longer used within the
+	// if (m_bLegacyDocVersionForSaveAs) block below, but in the else block that
+	// follows it.
 	SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
 
+	// whm 16Apr2026 modified comment below:
 	// Branch and loop according to which doc version number is wanted. For a File / Save
 	// it is VERSION_NUMBER's docVersion, also that is true for a Save As... in which the
 	// top item (the default) was chosen as the filterIndex value of 0; but for a
-	// filterIndex value of 1, the choice was for a legacy save (only DOCVERSION4 is
-	// supported so far), and in this latter case, and only in this latter case, does
+	// filterIndex value of 1, the choice was for a legacy save (only DOCVERSION10 is
+	// supported now), and in this latter case, and only in this latter case, does
 	// m_bLegacyDocVersionForSaveAs have a value of TRUE
 	if (m_bLegacyDocVersionForSaveAs)
 	{
-		// user chose a legacy xml doc build, and so far there is only one such
-		// choice, which is docVersion == 4
-		wxString endMarkersStr; endMarkersStr.Empty();
-		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
-		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
-		while (pos_pSP != NULL)
-		{
-			if (bShowWaitDlg)
-			{
-				counter++;
-				if (counter % 1000 == 0)
-				{
-					msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), counter, nTotal);
-					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
-					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
-					// wxProgressDialog(). Therefore we must test for NULL here.
-					if (bShowWaitDlg)
-					{
-						pStatusBar->UpdateProgress(progressItem, counter, msgDisplayed);
-					}
-				}
-			}
-			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
-			// get a deep copy, so that we can change the data to what is compatible with
-			// doc version 4 without corrupting the pSrcPhrase which remains in doc
-			// version 5
-			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
-			pDeepCopy->DeepCopy();
+		// whm 16Apr2026 Revised. 
+		// User chose a legacy xml doc build, and there is currently only one such
+		// choice, which is docVersion == 10 (that is legacy app version's 6.0.0 through
+		// 6.11.1).
+		// The old call of FromDocVersion5ToDocVersion4() has been removed (below) and 
+		// we now call FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f) which 
+		// has its own internal loop to scan through all of the App's m_pSourcePhrases.
+		// This following function also outputs to the opened wxFile f all of the
+		// individual CBString instances of each internal call of: pSrcPhrase->MakeXML(1).
+		FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f);
 
-			// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
-			// passed in non-empty, the endmarkers are inserted internally at the start of
-			// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
-			// inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
-			// member too); and before returning it must check for endmarkers stored on
-			// pDeepCopy (whether a merger or not makes no difference in this case) and
-			// reset endMarkersStr to whatever endmarker(s) are found there - so that the
-			// next iteration of the caller's loop can place them on the next pDeepCopy
-			// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
-			// legacy code for docVersion 4 xml construction knows nothing about the new
-			// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
-			// m_markers member is reset correctly, and m_endMarkers's content is returned
-			// to the caller for placement on the next iteration, the legacy xml code will
-			// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
-			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
-				&inlineBindingEndMkrs);
+		// whm 16Apr2026 The following code is now obsolete/removed:
+		//wxString endMarkersStr; endMarkersStr.Empty();
+		//wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
+		//wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
+		//while (pos_pSP != NULL)
+		//{
+		//	if (bShowWaitDlg)
+		//	{
+		//		counter++;
+		//		if (counter % 1000 == 0)
+		//		{
+		//			msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), counter, nTotal);
+		//			// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
+		//			// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
+		//			// wxProgressDialog(). Therefore we must test for NULL here.
+		//			if (bShowWaitDlg)
+		//			{
+		//				pStatusBar->UpdateProgress(progressItem, counter, msgDisplayed);
+		//			}
+		//		}
+		//	}
+		//	pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+		//	// get a deep copy, so that we can change the data to what is compatible with
+		//	// doc version 4 without corrupting the pSrcPhrase which remains in doc
+		//	// version 5
+		//	CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+		//	pDeepCopy->DeepCopy();
 
-			pos_pSP = pos_pSP->GetNext();
-			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
-			DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
-			DoWrite(f, aStr);
-		}
+		//	// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
+		//	// passed in non-empty, the endmarkers are inserted internally at the start of
+		//	// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
+		//	// inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
+		//	// member too); and before returning it must check for endmarkers stored on
+		//	// pDeepCopy (whether a merger or not makes no difference in this case) and
+		//	// reset endMarkersStr to whatever endmarker(s) are found there - so that the
+		//	// next iteration of the caller's loop can place them on the next pDeepCopy
+		//	// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
+		//	// legacy code for docVersion 4 xml construction knows nothing about the new
+		//	// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
+		//	// m_markers member is reset correctly, and m_endMarkers's content is returned
+		//	// to the caller for placement on the next iteration, the legacy xml code will
+		//	// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
+		//	FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
+		//		&inlineBindingEndMkrs);
+
+		//	pos_pSP = pos_pSP->GetNext();
+		//	aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+		//	DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
+		//	DoWrite(f, aStr);
+		//}
+
 	}
 	else // use chose a normal docVersion 5 (or later) xml build
 	{
@@ -4087,16 +4280,17 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	f.Close();
 
 	// remove the dummy that was appended, if we did append one in the code above
-	if (type == save_as && m_bLegacyDocVersionForSaveAs)
-	{
-		if (bDummySrcPhraseAdded)
-		{
-			posLast = gpApp->m_pSourcePhrases->GetLast();
-			CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
-			wxASSERT(pDummyWhichIsLast != NULL);
-			gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
-		}
-	}
+	// whm 18Apr2026 removed the following now obsolete block
+	//if (type == save_as && m_bLegacyDocVersionForSaveAs)
+	//{
+	//	if (bDummySrcPhraseAdded)
+	//	{
+	//		posLast = gpApp->m_pSourcePhrases->GetLast();
+	//		CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
+	//		wxASSERT(pDummyWhichIsLast != NULL);
+	//		gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
+	//	}
+	//}
 
 	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
 	// because the path computed at the end of OnOpenDocument() will have been invalidated
@@ -4195,11 +4389,11 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		wxString msg;
 		wxString appVerStr;
 		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
-		msg = msg.Format(_("This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."), gpApp->m_curOutputFilename.c_str(), appVerStr.c_str());
+		msg = msg.Format(_("This document (%s) is now saved on disk in the older (App version 6.0.0 - 6.11.1) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer %s format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."), gpApp->m_curOutputFilename.c_str(), appVerStr.c_str(), appVerStr.c_str());
 		// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
 		gpApp->m_bUserDlgOrMessageRequested = TRUE;
 		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		gpApp->LogUserAction(_T("Save As done as version 3,4,5 xml format."));
+		gpApp->LogUserAction(_T("Save As done as App version 6.0.0 - 6.11.1 xml format."));
 	}
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 	// whm 20Aug11 note: since a file save operation is very frequent, we avoid inflating the user log
@@ -4412,8 +4606,14 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			// a rename is wanted, make the renamed copy from the temp copy created above
 			// by moving and renaming (::wxRenameFile() does both at the one time)
 			// FALSE is bool overwrite, which defaults to TRUE, but we want FALSE here
+			// whm 17Apr2026 changed the last parameter to TRUE, otherwise doing File >
+			// Save As... and just clicking OK to do a normal save will cause the 
+			// ::wxRenameFile() call below to return a FALSE value to bSuccess, and the
+			// Warning messages "SaveAs... failed" below will wrongly get shown to the 
+			// user. 
 			newAbsPath = pathToSaveFolder + gpApp->PathSeparator + renamedFilename;
-			bool bSuccess = ::wxRenameFile(tempFileAbsPath, newAbsPath, FALSE);
+			//bool bSuccess = ::wxRenameFile(tempFileAbsPath, newAbsPath, FALSE);
+			bool bSuccess = ::wxRenameFile(tempFileAbsPath, newAbsPath, TRUE);
 			if (bSuccess)
 			{
 				// The renamed file copy was created, nothing to do but make sure no temp
@@ -4439,7 +4639,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				else
 				{
 					msg = _("Warning: the SaveAs... attempt failed for some reason, the file: %s was not created.");
-					msg = msg.Format(renamedFilename.c_str());
+					msg = msg.Format(msg, renamedFilename.c_str());
 					wxMessageBox(msg, _("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call."));
 				}
@@ -4469,9 +4669,11 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			{
 				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
-				wxString msg = _("Warning: a SaveAs... file with the same name is illegal, so nothing was done.");
-				wxMessageBox(msg, _("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
-				gpApp->LogUserAction(msg);
+				// whm 17Apr2026 removed the following warning which appears even when
+				// a Save As has succeeded and bRemovedSuccessfully is TRUE.
+				//wxString msg = _("Warning: a Save As... file with the same name is illegal, so nothing was done.");
+				//wxMessageBox(msg, _("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+				//gpApp->LogUserAction(msg);
 			}
 			return;
 		}
@@ -4502,7 +4704,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			else
 			{
 				msg = _("Warning: the SaveAs... attempt failed for some reason, the file: %s was not created.");
-				msg = msg.Format(renamedFilename.c_str());
+				msg = msg.Format(msg, renamedFilename.c_str());
 				wxMessageBox(msg, _("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call."));
 			}
@@ -5241,29 +5443,41 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 
 	if (m_bLegacyDocVersionForSaveAs)
 	{
+		// whm 16Apr2026 Revised. 
+		// User chose a legacy xml doc build, and there is currently only one such
+		// choice, which is docVersion == 10 (that is legacy app version's 6.0.0 through
+		// 6.11.1).
+		// The old call of FromDocVersion5ToDocVersion4() has been removed (below) and 
+		// we now call FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f) which 
+		// has its own internal loop to scan through all of the App's m_pSourcePhrases.
+		// This following function also outputs to the opened wxFile f all of the
+		// individual CBString instances of each internal call of: pSrcPhrase->MakeXML(1).
+		FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f);
+		
+		// whm 16Apr2026 The following code is now obsolete/removed:
 		// user chose a legacy xml doc build, and so far there is only one such
 		// choice, which is docVersion == 4
-		wxString endMarkersStr; endMarkersStr.Empty();
-		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
-		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
-		while (pos_pSP != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
-			// get a deep copy, so that we can change the data to what is compatible
-			// with doc version 4 without corrupting the pSrcPhrase which remains in
-			// doc version 5
-			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
-			pDeepCopy->DeepCopy();
+		//wxString endMarkersStr; endMarkersStr.Empty();
+		//wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
+		//wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
+		//while (pos_pSP != NULL)
+		//{
+		//	pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+		//	// get a deep copy, so that we can change the data to what is compatible
+		//	// with doc version 4 without corrupting the pSrcPhrase which remains in
+		//	// doc version 5
+		//	CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+		//	pDeepCopy->DeepCopy();
 
-			// see comments in DoFileSave()
-			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
-				&inlineBindingEndMkrs);
+		//	// see comments in DoFileSave()
+		//	FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
+		//		&inlineBindingEndMkrs);
 
-			pos_pSP = pos_pSP->GetNext();
-			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
-			DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
-			DoWrite(f, aStr);
-		}
+		//	pos_pSP = pos_pSP->GetNext();
+		//	aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+		//	DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
+		//	DoWrite(f, aStr);
+		//}
 	}
 	else // use chose a normal docVersion 5 xml build
 	{
@@ -7285,7 +7499,8 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 	}
 	case 1:
 	{
-		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
+		//m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
+		m_docVersionCurrent = (int)DOCVERSION10;  // whm 16Apr2026 #defined as 10 in AdaptitConstants.h
 		break;
 	}
 	}
@@ -20091,10 +20306,11 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar* pChar, wxChar* p
 	return TRUE;
 }
 
-bool CAdapt_ItDoc::IsLegacyDocVersionForFileSaveAs()
-{
-	return m_bLegacyDocVersionForSaveAs;
-}
+// whm 16Apr2026 removed the following IsLegacyDocVersionForFileSaveAs()
+//bool CAdapt_ItDoc::IsLegacyDocVersionForFileSaveAs()
+//{
+//	return m_bLegacyDocVersionForSaveAs;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also a
@@ -22850,7 +23066,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =,
 									  // so we must clear its contents first
 #if defined (_DEBUG) && !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber == 22)
+		if (pSrcPhrase->m_nSequNumber == 168)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -25387,6 +25603,14 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 		index++; // next sequence number
+#ifdef _DEBUG
+		// whm 17Apr2026 added a debug check for corrupted m_nSrcWords
+		if (pSrcPhrase->m_nSrcWords < 1 || pSrcPhrase->m_nSrcWords > 9)
+		{
+			int break_here = 1;
+			break_here = break_here;
+		}
+#endif
 		pSrcPhrase->m_nSequNumber = index;
 	}
 }

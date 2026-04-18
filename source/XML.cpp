@@ -4929,6 +4929,10 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			// globals.
 			DoDocVersion6toCurrentConversion(gpApp->m_pSourcePhrases);
 
+			// whm 17Apr2026 added after discovering a crash in DoMarkerHousekeeping()
+			// due to apparently encountering a negative sequence number.
+			gpDoc->UpdateSequNumbers(0, NULL); // in case there were empty source phrases deleted
+
 			// whm 25Mar2026 added a call to DoMarkerHousekeeping() to straighten out
 			// any textType issues that may have resulted from the incorporation of
 			// poetry markers that were stored in empty source phrases and that were
@@ -6480,7 +6484,7 @@ void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
 			// all inline type begin markers like \w, \x, \f, etc.
 
 #ifdef _DEBUG
-			if (pSrcPhrase->m_nSequNumber >= 533)
+			if (pSrcPhrase->m_nSequNumber >= 168)
 			{
 				int break_here = 1;
 				break_here = break_here;
@@ -6567,11 +6571,24 @@ void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
 				// and then deleted in ReadDoc_XML() after the ParseXML() call.
 
 				gpDummySrcPhrase = new CSourcePhrase(*pSrcPhrase); // a shallow copy is all we need
-				// Now Delete the current empty pSrcPhrase and return from this instance of the
-				// FromDocVersion10ToDocVersionCurrent() function
+				// Now Delete the current empty pSrcPhrase and continue processing 
+				// source phrases here within our DoDocVersion6ToCurrentConversion() 
+				// function
+				// whm 17Apr2026 we also need to call pList->DeleteNode(pos_SP2Del) to
+				// remove the pSrcPhrase from the App's m_pSourcePhrases list, and
+				// also reset the pos_pList to a valid pSrcPhrase.
+				SPList::Node* pos_SP2Del = pSrcPhraseList->Find(pSrcPhrase);
+				pList->DeleteNode(pos_SP2Del);
+				// I think we can wait until DoDocVersion6toCurrentConversion() exits
+				// to call pDoc->UpdateSequNumbers(0, NULL);
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 				pSrcPhrase = NULL;
-				return;
+				//pos_pList = pos_pList->GetNext();
+				// whm 17Apr2026 corrected. Since DoDocVersion6toCurrentConversion() has its
+				// own while loop to process all the source phrases within the function, we
+				// must not return here, but continue to process at the top of the 
+				// while (pos_pList != NULL) loop.
+				continue; // return;
 			}
 
 			// If the pSrcPhrase is a merger, we need to also update the
@@ -7499,6 +7516,9 @@ wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* p
 // of the storage used for docV4, so we just create the docV4 data in the right places,
 // and then the xml-building code for docV4 will not know of the docV5 additions, and thus
 // build valid docV4 from what we've stored within here
+// whm 16Apr2026 removed. No longer needed since we removed the calling function
+// FromDocVersion5ToDocVersion4().
+/*
 void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr,
 				 wxString* pInlineNonbindingEndMkrs, wxString* pInlineBindingEndMkrs)
 {
@@ -7665,7 +7685,131 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 	*pInlineBindingEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
 	*pEndMarkersStr = storedEndMarkers;
 }
+*/
 
+// whm 16Apr2026 added. This function replaces the old function that was named
+// From DocVersion5ToDocVersion4() that was called from the Doc's Save As...
+// code block within DoFileSave(). The default "Legacy version" for File > Save As...
+// is now based on xml docVersion 10 instead of docVersion 4.
+// This function converts or back-ports the entire pList of the currently open 
+// document's CSourcePhrase instances from docVersion=11 back to docVersion=10.
+// The pList parameter is the current list of CSourcePhrases of the open document,
+// and the wxFile f is the already opened and writeable output in which the call of
+// XML.cpp's DoWrite(f, aStr) function is made internally - and in which aStr is a 
+// CBString that is built from pSrcPhrase->MakeXML(1) calls - again made internally
+// in FromDocVersion11ToDocVersion10(). When this function is finished, all of the
+// xml encoded CBStrings will have been output to the opened wxFile f output stream.
+void FromDocVersion11ToDocVersion10(SPList* pList, wxFile& f)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CSourcePhrase* pLastSrcPhrase = NULL;
+	CBString aStr;
+	SPList::Node* pos_pSP = pList->GetFirst();
+	while (pos_pSP != NULL)
+	{
+
+		pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+
+		pos_pSP = pos_pSP->GetNext();
+
+		// Modify the pPrevSrcPhrase and/or pSrcPhrase to downgrade its data members from 
+		// docVersion 11 to docVersion 10.
+		if (pPrevSrcPhrase != NULL)
+		{
+			// whm 16Apr2026 added. The docVersion 11 encoding stores some of the whitespace,
+			// punctuation and non-filtered that follow a filtered marker and its filtered 
+			// associated text, storing such following the end bracket \~FILTER* of the filtered
+			// information. The docVersion 10 does not know how to handle such non-filtered
+			// whitespace, punctuation and non-filtered markers, and as a result will cause some
+			// duplication of such material when it does exports of source and target text.
+			// To prevent such duplication we need to ensure here in this conversion function
+			// that such whitespace, punctuation and non-filtered markers that are stored 
+			// following the actual filtered info are removed from the m_filteredInfo member
+			// and the docVersion 10 xml output.
+			// Note: There were likely instances in docVersion 10 in which exports were not
+			// output due to imperfections in the build source text and build target text
+			// routines. Any such imperfections would still occur after this conversion of
+			// the m_filteredInfo material, but at least duplication of some whitespace, 
+			// punctuation and/or non-filtered markers should not occur in such exports.
+			// 
+			// Ensure that any extra whitespace, punct and un-filtered markers that might be
+			// stored in m_filteredInfo by docVersion 11 are removed.
+			wxString filteredInfoStr = pPrevSrcPhrase->GetFilteredInfo();
+			if (!filteredInfoStr.IsEmpty())
+			{
+				// When pPrevSrcPhrase is a merged source phrase the removal of WsAndMkrs from
+				// the filtered information needs to also be done in the last original merged word
+				// that is stored within the merged source phrase's m_pSavedWords.
+				// The removal of WsAndMkrs from the last word of a merged m_pSavedWords is
+				// done within the RemoveDocVersion11WsAndMkrsFromFilteredInfo() call
+				// below.
+				pPrevSrcPhrase->RemoveDocVersion11WsAndMkrsFromFilteredInfo(filteredInfoStr);
+			}
+			// TODO: implement any other changes needed for the pPrevSrcPhrase here 
+			// before the MakeXML() call below:
+			// 
+			// Possible change candidate 1: Check pPrevSrcPhrase->m_srcSinglePattern 
+			// for any MetaData (presence of bar char in m_srcSinglePattern).
+			// Observation: There is NO conversion needed for metadata since metadata
+			// was also stored in docVersion 10 and no change to this was made in 
+			// docVersion 11.
+			// 
+			// Possible change candidate 2: The docVersion 10 xml had instances where
+			// a marker such as a poetry marker \q1 was on a separate line when parsed
+			// and that resulted in two source phrases being created with an extra
+			// source phrase being created having an empty m_key and empty m_srcPhrase, 
+			// the extra source phrase existing only to store the poetry marker \q1 and 
+			// possibly any end markers and final punctuation.
+			// The docVersion 11 parsing of the same data does not create an empty source
+			// phrase for such instances, but stores the maker(s) and punctuation
+			// more appropriately on the preceding and/or following non-emtpy source 
+			// phrase. My testing indicates that docVersion 10 can readily handle such
+			// storage, and NO conversion needs to be done here.
+			//
+			// Possible change candidate 3: The current docVersion 11 xml has instances
+			// of partially empty source phrases where the m_key is empty, but the m_srcPhrase
+			// has one or more punctuation characters. These source phrases are created
+			// in order to hold isolated final punctuation - isolated from the previous
+			// source phrase due to an intervening begin marker which requires a new
+			// source phrase to be stored on.
+			// TODO: Investigate how a docVersion 10 reading app might handle such data
+			// which is present in a number of instances within the Kimaragang data.
+			// Any conversion needed here???
+
+			aStr = pPrevSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+			DoWrite(f, aStr);
+		}
+		pPrevSrcPhrase = pSrcPhrase;
+	}
+	// Any changes that were made were made to pPrevSrcPhrase in the while loop above.
+	// Now that the end of the pList has been reached, we still need to process any change
+	// that needs to be done to the last pSrcPhrase of the pList.
+	// 
+	pos_pSP = pList->GetLast();
+	if (pos_pSP != NULL)
+	{
+		pLastSrcPhrase = pos_pSP->GetData();
+		if (pLastSrcPhrase != NULL)
+		{
+			wxString filteredInfoStr = pLastSrcPhrase->GetFilteredInfo();
+			if (!filteredInfoStr.IsEmpty())
+			{
+				pLastSrcPhrase->RemoveDocVersion11WsAndMkrsFromFilteredInfo(filteredInfoStr);
+				//	pLastSrcPhrase->SetFilteredInfo(filteredInfoStr);
+				// Normally filtered info would not be stored within a final pSrcPhrase
+				// of an xml doc. If we encounter such a situation at this point should 
+				// we add a final pSrcPhrase to pList here???
+				// TODO: 
+			}
+			// TODO: implement any other changes needed for the pLastSrcPhrase of pList 
+			// here before the MakeXML() call below.
+			//
+			aStr = pLastSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+			DoWrite(f, aStr);
+		}
+	}
+}
 
 // return a docversion 4 m_markers wxString with the docversion 5 filter storage members'
 // contents rewrapped with \~FILTER and \FILTER* bracketing markers, but leave addition of
@@ -7674,6 +7818,9 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 // order of information in m_markers is:
 // endmarker filteredinfo collectedbacktranslation note freetranslation SF markers (and
 // verse or chapter number as appropriate)
+// whm 16Apr2026 removed. No longer needed since we removed the calling function
+// FromDocVersion5ToDocVersion4().
+/*
 wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmarkers)
 {
 	wxASSERT(endmarkers.IsEmpty());
@@ -7785,6 +7932,7 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 	}
 	return str;
 }
+*/
 
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
 // Used in the conversion of documents that were saved in docVersion 4, to docVersion 5.
@@ -8090,6 +8238,9 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 	return bTransferred;
 }
 
+// whm 16Apr2026 removed. No longer needed since we removed the calling function
+// FromDocVersion5ToDocVersion4().
+/*
 void TransferEndmarkersToStartOfMarkersStrForDocV4(CSourcePhrase* pSrcPhrase, wxString& endMkrs,
 					wxString& inlineNonbindingEndMkrs, wxString& inlineBindingEndMkrs)
 {
@@ -8109,7 +8260,7 @@ void TransferEndmarkersToStartOfMarkersStrForDocV4(CSourcePhrase* pSrcPhrase, wx
 		pSrcPhrase->m_markers = inlineBindingEndMkrs + pSrcPhrase->m_markers;
 	}
 }
-
+*/
 
 /* I wrote this months ago and then never used it! It's not quite what I want now.
 // returns TRUE if endmarkers were transferred to the start of the pNextSrcPhrase, FALSE

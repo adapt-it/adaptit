@@ -32431,7 +32431,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // it will suppress the mechanism for decrementing the m_refCount value, etc, if
         // the box is made to land on a non-hole
 
-    // BEW added 19Apr for Save As... support. The document version will henceforth be
+    // [OLD] BEW added 19Apr for Save As... support. The document version will henceforth be
     // parameterized. The doc class now has a private int member, m_docVersionCurrent which
     // is used for constructing the XML for doc and KB which has the docVersion parameter
     // value; and the Save As... dialog now lets the user choose to save in doc versions 5
@@ -32447,8 +32447,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // mapped to DOCVERSION4. (If later we have a docVersion 6, 5 would be assigned to a
     // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
     // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
-    // whatever is the current value of m_docVersionCurrent. So set the current value:
-                                                            //
+    // whatever is the current value of m_docVersionCurrent. 
+    // 
+    // whm 16Apr2026 revision of above comment by BEW. The Save As... framework stays the
+    // same but the docVersion's involved are now different. In the File > Save As... the
+    // 'Save Type As' combobox, the index 0 remains the default which now docVersion=11 or
+    // later. The "Legacy version" set as index 1 via the Save As... dropdown is 
+    // docVersion=10, currently mapped to the DOCVERSION10 define. The Save As... dialog
+    // continues to have only 2 options for saving - since the option to save as docVersion
+    // 4 has been removed and replaced by the option to save as docVersion 10. The function
+    // GetCurrentDocVersion() continues to return whatever is the current value of 
+    // m_docVersionCurrent.
+
+    // So set the current value:
     GetDocument()->RestoreCurrentDocVersion(); // sets to the value of VERSION_NUMBER
 
     // whm removed the NavProtectNewDoc* m_pNavProtectDlg pointer below after creating

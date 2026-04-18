@@ -38,12 +38,27 @@
 // RestoreCurrentDocVersion() returning void, to reset m_docVersionCurrent back to the
 // VERSION_NUMBER value after the Save As... is done; and an access function
 // GetCurrentDocVersion() to get its value whenever needed.
+// 
+// whm 16Apr2026 revision of BEW's 19Apr10 comments above. The app version 6.12.0's current
+// docVersion is 11. So now, the Save As... operation as of app version 6.12.0 treats the 
+// docVersion 6 through 10 as the "legacy version" for File > Save As... purposes. Therefore,
+// the #define DOCVERSION4 is obsolete and has been removed, and the DOCVERSION10 define now
+// represents the "legacy version". Hence, when the SetDocVersion(int index) function is
+// called with index 0 it will return whatever VERSION_NUMBER is as before as default, but 
+// index 1 will now return DOCVERSION10. The doc class'es m_docVersionCurrent will still be
+// used by saves of the doc and KB. The RestoreCurrentDocVersion() function still resets 
+// m_docVersionCurrent back to the current VERSION_NUMBER define value after a Save As... is
+// done. The GetCurrentDocVersion() returns the current value of m_docVersionCurrent at an int
+// value, and is called only from CSourcePhrase::MakeXML() and the Doc's 
+// ConstructSettingsInfoAsXML() functions.
 
 // The following is also defined at line 31 in Adapt_It.h 
 // *********** IMPORTANT:  commment out both together or uncomment out both together *********
 
 // whm 10Jan2026 changed the active VERSION_NUMBER define to 11
 #define VERSION_NUMBER      11  // as of 10Jan2026, supportng the new member m_follWsMkrsAndPuncts wxString in CSourcePhrase
+
+#define DOCVERSION10		10	// as of 16Apr2026, supporting Save As to Legacy docVersion=10
 
 //#define VERSION_NUMBER      10  // as of 5May23, supportng 5 new member 'Pattern' wxStrings in CSourcePhrase
 
@@ -53,7 +68,7 @@
 //#define VERSION_NUMBER	7	// as of 20Apr12
 //#define VERSION_NUMBER	6   // as of 13Feb12
 //#define VERSION_NUMBER	5   // superceded on 13Feb12
-#define DOCVERSION4			4
+//#define DOCVERSION4			4 // whm 16Apr2026 removed this define (see DOCVERSION10 above)
 
 //#define VERSION_NUMBER		4 // version 2: from 3rd Jan 2001, flags on CSourcePhrase for start
 							  // and end of a retranslation; from 14th May 2003, capacity to do

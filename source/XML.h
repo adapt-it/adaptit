@@ -397,14 +397,24 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 // because this function will modify the content in each deep copied instance in order that
 // the old legacy doc version 4 xml construction code will correctly build the legacy
 // document xml format, without corrupting the original doc version 5 storage regime.
-void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr,
-				wxString* pInlineNonBindingEndMkrs, wxString* pInlineBindingEndMkrs);
+// whm 16Apr2026 Removed
+//void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr,
+//				wxString* pInlineNonBindingEndMkrs, wxString* pInlineBindingEndMkrs);
+
+// whm 16Apr2026 added. This FromDocVersion11ToDocVersion10() is
+// only called from the Save As...  block of the Doc's DoFileSave()
+// function. It is declared here and defined in XML.cpp because of
+// it's conceptual similarity to the docVersion downgrade conversion 
+// function FromDocVersion5ToDocVersion4() above, which it replaces.
+void FromDocVersion11ToDocVersion10(SPList* pList, wxFile &f);
 
 // return a docversion 4 m_markers wxString with the docversion 5 filter storage members'
 // contents rewrapped with \~FILTER and \FILTER* bracketing markers, but leave addition of
 // any endmarkers to be done by its caller, just return any stored endmarkers in the
 // second parameter letting the caller decide what to do with them
-wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmarkers);
+// whm 16Apr2026 removed. No longer needed since we removed the calling
+// function FromDocVersion5ToDocVersion4()
+//wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmarkers);
 
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
 // use this function within FromDocVersion4ToDocVersion5() to transfer endmarkers from the
@@ -420,8 +430,10 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 // command, when saving to legacy doc format, needs to use this)
 //bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase);
 // BEW 11Oct10, a different one is needed, I never used the above one
-void TransferEndmarkersToStartOfMarkersStrForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmkrs,
-					wxString& inlineNonbindingEndMkrs, wxString& inlineBindingEndMkrs);
+// whm 16Apr2026 removed. No longer needed since we removed the calling function
+// FromDocVersion5ToDocVersion4().
+//void TransferEndmarkersToStartOfMarkersStrForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmkrs,
+//					wxString& inlineNonbindingEndMkrs, wxString& inlineBindingEndMkrs);
 
 // next function used in FromDocVersion4ToDocVersion5(), returns whatever any content
 // which should be put in m_filteredInfo (already wrapped with filter bracket markers)

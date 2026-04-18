@@ -488,6 +488,85 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	return *this;
 }
 
+// whm 16Apr2026 added. This function removes whitespace and un-filtered markers that docVersion
+// 11 may have stored outside and following the \~FILTER* end bracket that identifies the end of
+// a filtered marker instance and its associated text. It also removes that material from the 
+// last source phrase of any m_pSavedWords group when this source phrase is a merged one.
+void CSourcePhrase::RemoveDocVersion11WsAndMkrsFromFilteredInfo(wxString filteredStr)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	wxString filterStr = filteredStr;
+	// First remove any whitespace, punct and non-filtered markers that got added to the 
+	// m_filteredInfo material after the end filter bracket \~FILTER*.
+	// Note: This source phrase's m_filteredInfo may contain more that one filtered marker,
+	// so we mainly will deal with whitespace, punct and non-filtered markers that may have
+	// been added by docVersion 11 AFTER the LAST \~FILTER* bracket within the m_filteredInfo
+	// member.
+	//wxString endFltBracket = _T("\\~FILTER*");
+	//int lenFilterStr = filterStr.Length();
+	//int lenEndFltBracket = endFltBracket.Length();
+	wxArrayString segmentsArr;
+	wxArrayString wsMkrsAndPunctsArr;
+	// Get the filterStr's filtered "segments". A given segment may now 
+	// have a swept up marker like \c 11 prefixing the bracketed filtered 
+	// material.
+	// whm 7Mar2026 revised the GetFilteredInfoSegments() to be a void
+	// function, returning two arrays as ref parameters, the original
+	// segmentsArr, and a new one for tracking whitespace, markers, and
+	// puncts that follow the end bracket \~FILTER* of the filtered info.
+	pDoc->GetFilteredInfoSegments(filterStr, segmentsArr, wsMkrsAndPunctsArr);
+	int totSegments = (int)segmentsArr.GetCount();
+	wxString buildStr; buildStr.Empty();
+	for (int i = 0; i < totSegments; i++)
+	{
+		buildStr += segmentsArr.Item(i);
+		// Add any wxMkrsAndPunctsArr content except for last item in array
+		if (i < (int)(totSegments - 1))
+		{
+			buildStr += wsMkrsAndPunctsArr.Item(i);
+		}
+	}
+	bool bFilterStrHadWsMkrsRemoved = FALSE;
+	if (buildStr != filterStr)
+		bFilterStrHadWsMkrsRemoved = TRUE;
+
+	if (bFilterStrHadWsMkrsRemoved)
+	{
+		this->SetFilteredInfo(buildStr);
+		// Now get the last word of this source phrase's m_pSavedWords
+		if (this->m_nSrcWords > 1)
+		{
+			// This source phrase is a merger, so we need to ensure that any whitespace,
+			// punct and non-filtered markers that get removed from this top-level source
+			// phrase, also get removed from the last source phrase of this source phrase's
+			// m_pSavedWords instance.
+			SPList* pOriginals = this->m_pSavedWords;
+			SPList::Node* pos_pOriginals = pOriginals->GetLast();
+			if (pos_pOriginals != NULL)
+			{
+				CSourcePhrase* pLastOriginal = pos_pOriginals->GetData();
+				wxASSERT(pLastOriginal != NULL);
+				// The content of the pLastOriginal->m_filteredInfo should be 
+				// identical to what is stored within the top-level merged
+				// source phrase's m_filteredInfo.
+				// Even so, we'll do a sanity check here just in case something 
+				// is not as expected within the docVersion 11 data.
+				wxString lastOriginalFilteredInfo = pLastOriginal->GetFilteredInfo();
+				wxString filterStrLast = pLastOriginal->GetFilteredInfo();
+				if (lastOriginalFilteredInfo.IsEmpty() || filterStrLast != filteredStr)
+				{
+					// Break point to detect this irregularity. Diffs here might
+					// be that filteredStr might have a leading space before \~FILTER
+					int break_here = 1;
+					break_here = break_here;
+				}
+				pLastOriginal->SetFilteredInfo(buildStr);
+			}
+		}
+	}
+}
+
 // BEW added 16Apr08, to obtain copies of any saved original
 // CSourcePhrases from a merger, and have pointers to the copies
 // replace the pointers in the m_pSavedWords member of a new instance
@@ -1035,7 +1114,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty() || !m_follOuterPunct.IsEmpty())
 		{
 			// there is something on this line, so form the line
-			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bstr += "\r\n"; 
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
@@ -1203,7 +1282,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			)
 		{
 			// there is something in this group, so form the needed lines
-			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bstr += "\r\n";
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
@@ -1314,7 +1393,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			)
 		{
 			// there is something in this group, so form the needed line
-			bstr += "\r\n"; // TODO?: EOL chars may need to be changed under Linux and Mac
+			bstr += "\r\n";
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
@@ -1383,7 +1462,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			)
 		{
 			// there is something in this group, so form the needed line
-			bstr += "\r\n"; // EOL chars may need to be changed under Linux and Mac
+			bstr += "\r\n";
 			bool bStarted = FALSE; // init
 			for (i = 0; i < nTabLevel; i++)
 			{
@@ -1439,19 +1518,33 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			//	bStarted = TRUE;
 			//}
 			// fourth string in 11th line... for src merger pattern
+			
 			// whm 10Jan2026 added provision for use of m_follWsMkrsAndPuncts in the place
 			// of the m_srcMergerPattern xml creation above.
 			if (!m_follWsMkrsAndPuncts.IsEmpty())
 			{
-				if (bStarted)
-					bstr += " fwsmp=\"";
+				// whm 16Apr2026 added. Check if we're saving to xml docVersion <= 10, and if so,
+				// ensure that the m_follWsMkrsAndPuncts member is empty.
+				if (docVersion <= 10)
+				{
+					// The m_follWsMkrsAndPuncts member did not exist before docVersion 11,
+					// so if the docVersion current being saved here is <= 10, we'll simply
+					// ensure that m_follWsMkrsAndPuncts string member is empty. 
+					m_follWsMkrsAndPuncts.Empty();
+				}
 				else
-					bstr += "fwsmp=\"";
-				btemp = gpApp->Convert16to8(m_follWsMkrsAndPuncts);
-				InsertEntities(btemp);
-				bstr += btemp; // add m_follWsMkrsAndPuncts string
-				bstr += "\"";
-				bStarted = TRUE;
+				{
+					// docVersion == 11 or greater
+					if (bStarted)
+						bstr += " fwsmp=\"";
+					else
+						bstr += "fwsmp=\"";
+					btemp = gpApp->Convert16to8(m_follWsMkrsAndPuncts);
+					InsertEntities(btemp);
+					bstr += btemp; // add m_follWsMkrsAndPuncts string
+					bstr += "\"";
+					bStarted = TRUE;
+				}
 			}
 			// fifth string in 11th line... for tgt merger pattern
 			if (!m_tgtMergerPattern.IsEmpty())
@@ -2085,7 +2178,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		   )
 		{
 			// there is something in this group, so form the needed line
-			bstr += "\r\n"; // TODO?: EOL chars may need to be changed under Linux and Mac
+			bstr += "\r\n";
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
