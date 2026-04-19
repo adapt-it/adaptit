@@ -4828,11 +4828,11 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 
 			// whm 10Jun2024 change. The next test needs to test gnDocVersion >= 6 && gnDocVersion <= 9 
 			// in order to include gnDocVersion from 6 through 9. Those versions all stored filtered information
-			// on a following source phrase instead of a previous source phrase. AI Version 6.11.1 is the
+			// on a following source phrase instead of a previous source phrase. AI Version 6.11.6 is the
 			// first version to store filtered information on a previous source phrase. The function call 
 			// below FromDocVersion6through9ToDocVersionCurrent() moves the filtered information to a
 			// previous non-placeholder source phrase, to make the xml document being input compatible with
-			// version 6.11.1.
+			// version 6.11.6.
 			if (gnDocVersion >= 6 && gnDocVersion <= 9)
 			{
 				FromDocVersion6through9ToDocVersionCurrent(gpSrcPhrase);
@@ -5168,7 +5168,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// Note: The gnDocVersion value that was detected in the Settings of the document
 			// remains constance until the document xml is fully parsed in. The doc version of
 			// the xml doesn't change until the parsed in document is actually saved, at which
-			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// point it becomes the current doc version which for AI version 6.11.6 is doc version
 			// 10.
 			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
 			// 
@@ -5342,7 +5342,7 @@ void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 			// Note: The gnDocVersion value that was detected in the Settings of the document
 			// remains constance until the document xml is fully parsed in. The doc version of
 			// the xml doesn't change until the parsed in document is actually saved, at which
-			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// point it becomes the current doc version which for AI version 6.11.6 is doc version
 			// 10.
 			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
 		}
@@ -5464,7 +5464,7 @@ void DoDocVersion5toCurrentConversion(SPList*& pSrcPhraseList)
 				// Note: The gnDocVersion value that was detected in the Settings of the document
 				// remains constance until the document xml is fully parsed in. The doc version of
 				// the xml doesn't change until the parsed in document is actually saved, at which
-				// point it becomes the current doc version which for AI version 6.11.1 is doc version
+				// point it becomes the current doc version which for AI version 6.11.6 is doc version
 				// 10.
 				pPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(pPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
 			}
@@ -5603,7 +5603,7 @@ void FromDocVersion6through9ToDocVersionCurrent(CSourcePhrase* pSrcPhrase)
 			// Note: The gnDocVersion value that was detected in the Settings of the document
 			// remains constance until the document xml is fully parsed in. The doc version of
 			// the xml doesn't change until the parsed in document is actually saved, at which
-			// point it becomes the current doc version which for AI version 6.11.1 is doc version
+			// point it becomes the current doc version which for AI version 6.11.6 is doc version
 			// 10.
 			gpPreviousSrcPhrase = pDoc->GetPreviousNonPlaceholderSrcPhrase(gpPreviousSrcPhrase, TRUE); // TRUE for bXMLInput
 		}

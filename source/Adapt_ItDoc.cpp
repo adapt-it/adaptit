@@ -3713,9 +3713,9 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		wxString defaultDir = pathToSaveFolder; // set above
 		wxString filter;
 		// whm 16Apr2026 modified. Our "New XML format" is now 6.12.0, and the "Legacy XML format"
-		// is "versions 6.0.0 through 6.11.1"
+		// is "versions 6.0.0 through 6.11.6"
 		//filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||");
-		filter = _("New XML format, for 6.12.0 and later (default)|*.xml|Legacy XML format, as in versions 6.0.0 to 6.11.1. |*.xml||");
+		filter = _("New XML format, for 6.12.0 and later (default)|*.xml|Legacy XML format, as in versions 6.0.0 to 6.11.6. |*.xml||");
 		wxString filename = gpApp->m_curOutputFilename;
 
 	retry:	bFileIsRenamed = FALSE;
@@ -3868,7 +3868,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 				wxString msg;
 				if (filterIndex > 0)
 				{
-					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file with the legacy 6.0.0 - 6.11.1 format, select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file with the legacy 6.0.0 - 6.11.6 format, select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
 				}
 				else
 				{
@@ -4167,7 +4167,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		// whm 16Apr2026 Revised. 
 		// User chose a legacy xml doc build, and there is currently only one such
 		// choice, which is docVersion == 10 (that is legacy app version's 6.0.0 through
-		// 6.11.1).
+		// 6.11.6).
 		// The old call of FromDocVersion5ToDocVersion4() has been removed (below) and 
 		// we now call FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f) which 
 		// has its own internal loop to scan through all of the App's m_pSourcePhrases.
@@ -4389,11 +4389,11 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		wxString msg;
 		wxString appVerStr;
 		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
-		msg = msg.Format(_("This document (%s) is now saved on disk in the older (App version 6.0.0 - 6.11.1) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer %s format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."), gpApp->m_curOutputFilename.c_str(), appVerStr.c_str(), appVerStr.c_str());
+		msg = msg.Format(_("This document (%s) is now saved on disk in the older (App version 6.0.0 - 6.11.6) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer %s format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."), gpApp->m_curOutputFilename.c_str(), appVerStr.c_str(), appVerStr.c_str());
 		// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
 		gpApp->m_bUserDlgOrMessageRequested = TRUE;
 		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		gpApp->LogUserAction(_T("Save As done as App version 6.0.0 - 6.11.1 xml format."));
+		gpApp->LogUserAction(_T("Save As done as App version 6.0.0 - 6.11.6 xml format."));
 	}
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 	// whm 20Aug11 note: since a file save operation is very frequent, we avoid inflating the user log
@@ -5446,7 +5446,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		// whm 16Apr2026 Revised. 
 		// User chose a legacy xml doc build, and there is currently only one such
 		// choice, which is docVersion == 10 (that is legacy app version's 6.0.0 through
-		// 6.11.1).
+		// 6.11.6).
 		// The old call of FromDocVersion5ToDocVersion4() has been removed (below) and 
 		// we now call FromDocVersion11ToDocVersion10(gpApp->m_pSourcePhrases, f) which 
 		// has its own internal loop to scan through all of the App's m_pSourcePhrases.
@@ -6305,7 +6305,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 		// RebuildSourceText(). If a previous and valid usfmstruct file already
 		// exists, we can just open it and get our m_UsfmStructArr array filled
 		// with the content of the existing usfmstruct file.
-		// For some users with documents created before version 6.11.1, their
+		// For some users with documents created before version 6.11.6, their
 		// existing documents won't have any usfmstruct file in existence.
 		wxLogNull nolog; // avoid spurious messages from the system
 		if (!::wxFileExists(m_usfmStructFilePathAndName) || bTextFileNeedsRecreating)
@@ -9277,7 +9277,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// the Doc's variables and m_UsfmStructArr array are set up and populated for the current
 	// document being opened by calling the Doc's SetupUsfmStructArrayAndFile() function.
 	// When opening an existing document, there is a good chance that the user will be opening
-	// a document that AI created before version 6.11.1 and there would not be any existing
+	// a document that AI created before version 6.11.6 and there would not be any existing
 	// <filename>.usfmstruct file to process. 
 	// whm 2Apr2024 revision. The SetupUsfmStructArrayAndFile() function itself now internally
 	// checks for the existence of the m_usfmStructDirPath and an appropriately populated 
