@@ -3868,16 +3868,18 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 				wxString msg;
 				if (filterIndex > 0)
 				{
-					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file with the legacy 6.0.0 - 6.11.6 format, select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+					//msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file with the legacy 6.0.0 - 6.11.6 format, select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+					msg = _("The filename %s conflicts with an existing filename.\nIf you want to save this file with the legacy 6.0.0 - 6.11.6 format, you will need to change the filename slightly to avoid overwriting the existing file\n(or select \"Cancel\" to abort this Save As...).");
 				}
 				else
 				{
-					msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+					//msg = _("The filename %s conflicts with an existing filename.\nIf you want to overwrite that file select \"Yes\",\notherwise select \"No\" to change the filename slightly\n(or select \"Cancel\" to abort this Save As...).\nContinue and overwrite the file?");
+					msg = _("The filename %s conflicts with an existing filename.\nIf you want to save this file, you will need to change the filename slightly to avoid overwriting the existing file\n(or select \"Cancel\" to abort this Save As...).");
 				}
 				msg = msg.Format(msg, theNewFilename.c_str());
 				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
 				gpApp->m_bUserDlgOrMessageRequested = TRUE;
-				int result = wxMessageBox(msg, _("Conflicting Filename"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+				int result = wxMessageBox(msg, _("Conflicting Filename"), wxICON_EXCLAMATION | wxCANCEL | wxOK);
 				switch (result)
 				{
 				case wxCANCEL:
@@ -3890,13 +3892,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 					gpApp->LogUserAction(_T("Cancelled from Save As at wxFileDialog()"));
 					return FALSE;
 				}
-				case wxYES:
-				{
-					// Continue on to save/overwrite the existing docVersion 10 xml file 
-					// with the newer docVersion (11) xml. 
-					break;
-				}
-				case wxNO:
+				case wxOK:
 				{
 					// Go back to the file dialog to adjust the filename
 					theNewFilename.Empty();
@@ -3920,16 +3916,18 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		// be tested in this location, but only when not collaborating with PT/BE,
 		// and when the filterIndex > 0 (doing a legacy save as to docVersion 10).
 
-		// whm 17Apr2026 moved the setting of filterIndex up here from below
-		// Get the docVersion number the user wants used for the save, an index value of 0
-		// always uses the VERSION_NUMBER as currently set, as does leaving any any
-		// parameter (since 0 is the default if left out), but index values 1 or higher
-		// select a legacy docVersion number (which gives different XML structure)
-		// (currently the only other index value supported is 1, which maps to doc version
-		// 10) Don't permit the possibility of a File Type change until the tests above
-		// leading to reentrancy have been passed successfully
+		// whm 17Apr2026 Note:
+		// Set the docVersion number the user wants used for the save, an index 
+		// value of 0 always uses the VERSION_NUMBER as currently set, as does 
+		// leaving any non-zero parameter (since 0 is the default if left out), but 
+		// index values 1 or higher selects a legacy docVersion number (which gives 
+		// different XML structure)
+		// The only other index value supported is 1, which currently maps to doc 
+		// version 10. We don't permit the possibility of a File Type change until 
+		// the tests above have been passed successfully.
 		// 
-		// whm 17Apr2026 moved the filterIndex assignment up to just after the file dialog
+		// whm 17Apr2026 moved the filterIndex assignment up above to just after the 
+		// file dialog.
 		//int filterIndex = fileDlg.GetFilterIndex(); 
 		SetDocVersion(filterIndex);
 		

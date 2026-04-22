@@ -2589,6 +2589,11 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 		if (ptStripTopLeft.y >= rectClient.GetBottom())
 		{
 			nLastStrip = --j;
+			if (!(nLastStrip > nFirstStrip))
+			{
+				int break_here = 1;
+				break_here = break_here;
+			}
 			wxASSERT(nLastStrip > nFirstStrip);
 			break;
 		}
