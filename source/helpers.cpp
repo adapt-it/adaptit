@@ -9769,8 +9769,7 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 	wxUnusedVar(pList);
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString str; str.Empty();
-	wxString srcStr;
-	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
+	wxString srcStr; srcStr.Empty();
 	wxString filteredInfoStr;
 
 #ifdef _DEBUG
@@ -9807,28 +9806,36 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 
 	// This block would likely execute for the first pSingleSrcPhrase instance 
 	// of any sub-list rebuild of source text.
-	if (pSingleSrcPhrase->m_nSequNumber == 0 && pSingleSrcPhrase->m_markers.Find(_T("\\id")) != wxNOT_FOUND)
+	// whm 23Apr2026 modified. The first pSingleSrcPhrase instance of non-Scripture
+	// text may have whitespace, begin marker(s) and/or punctuation occurring before
+	// the first word of text, so don't restrict that stuff from rebuilds of source
+	// text
+	if (pSingleSrcPhrase->m_nSequNumber == 0) // && pSingleSrcPhrase->m_markers.Find(_T("\\id")) != wxNOT_FOUND)
 	{
-		// For the first pSingleSrcPhrase start the srcStr with the contents of
-		// the m_markers which would usually be the \id marker for scipture books and/or
-		// Scripture chapters during collaboration. Our scheme for collecting and using 
-		// the m_follWsAMkrsAndPuncts as our main tool for reconstructing the source 
+		// We are at the first pSingleSrcPhrase in the pList or pSublist of export.
+		// For the first pSingleSrcPhrase, start the srcStr with the contents of
+		// whitespace, markers and punctuation preceding the m_key word. This would
+		// usually be the \id marker for scipture books and/or Scripture chapters 
+		// during collaboration. Our scheme for collecting and using the 
+		// m_follWsAMkrsAndPuncts as our main tool for reconstructing the source 
 		// text only tells us what follows each m_key word. It won't tell us what if 
 		// anything other than \id might occur before the first m_key in a Scripture
 		// file. For normal Scripture files then, it is not likely that the 
 		// pSingleSrcPhrase at m_nSequNum of 0 would have any other markers occuring 
 		// before the m_key which would usually be the book abbreviation for Scripture 
-		// data. However, I've added the test for the presence of \id in m_markers
-		// for entry into this block, so that if RebuildSourceText() is called during an
-		// Edit Source Text where a rebuild of a sub-list is done, and no \id is present
-		// it would be quite possible that the first source phrase being rebuilt here 
-		// may not have an \id markers, and may have other kinds of markup for which 
-		// this block should not be executed, and the addition of m_follWsMkrsAndPuncts
-		// should be done via the blocks farther below.
-		if (!pSingleSrcPhrase->m_markers.IsEmpty())
-		{
-			srcStr = markersStr;
-		}
+		// data.
+		// whm 23Apr2026 modified to include the possibility that the first pSincleSrcPhrase
+		// could potentially have m_markers other than \id, and also could have m_precPunct, 
+		// and/or m_inlineNonbindingMarkers, and/or m_inlineBindingMarkers occuring BEFORE 
+		// its key word. The m_key word itself is treated below.
+		srcStr = pSingleSrcPhrase->m_markers
+			+ pSingleSrcPhrase->m_precPunct
+			+ pSingleSrcPhrase->GetInlineNonbindingMarkers()
+			+ pSingleSrcPhrase->GetInlineBindingMarkers();
+		//if (!pSingleSrcPhrase->m_markers.IsEmpty())
+		//{
+		//	srcStr += pSingleSrcPhrase->m_markers;
+		//}
 	}
 
 	// General pattern for output str is:
