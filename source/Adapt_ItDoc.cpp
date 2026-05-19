@@ -10834,7 +10834,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxString nextWholeMkrInFilterBrackets; nextWholeMkrInFilterBrackets.Empty();
 					wxString previousWholeMkrInFilterBrackets; previousWholeMkrInFilterBrackets.Empty();
 					bool bThisMkrToBeUnfiltered;
-					//bool bNextMkrToBeUnfiltered;
+					bool bNextMkrToBeUnfiltered;
 					//bool bPreviousMkrWasUnfiltered;
 					bool bAnyPreviousMkrWasUnfiltered = FALSE;
 					// whm 7Mar2026 modified the GetFilteredInfoSegments() function call below
@@ -10864,11 +10864,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							bThisMkrToBeUnfiltered = TRUE;
 						else
 							bThisMkrToBeUnfiltered = FALSE;
-						//int posNextFilteredMkr = nextWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
-						//if (posNextFilteredMkr != wxNOT_FOUND)
-						//	bNextMkrToBeUnfiltered = TRUE;
-						//else
-						//	bNextMkrToBeUnfiltered = FALSE;
+						int posNextFilteredMkr = nextWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
+						if (posNextFilteredMkr != wxNOT_FOUND)
+							bNextMkrToBeUnfiltered = TRUE;
+						else
+							bNextMkrToBeUnfiltered = FALSE;
 						//int posPrevFilteredMkr = previousWholeMkrInFilterBrackets.Find(augMkrWithInitialFilterBracket);
 						//if (posPrevFilteredMkr != wxNOT_FOUND)
 						//	bPreviousMkrWasUnfiltered = TRUE;
@@ -10972,6 +10972,34 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// sending it to the TokenizeTextString().
 							extractedStr = extractedStr + thisFiltItemFollWsMkrsAndPuncts;
 
+							// whm 19May2026 added. If the nextWholeMkrInFilterBrackets is ALSO 
+							// to be filtered then we need to add its begin marker (stored within
+							// the augMarkerBeingUnfiltered value) to the extractedStr after 
+							// adding the thisFiltItemFollWsMkrsAndPuncts above.
+							// This is so the TokenizeTextString() call below can properly populate
+							// the m_follWsMkrsAndPuncts field so that it contains the following
+							// marker being filtered. 
+							// whm 19May2026 Update/New Issue: While the addition of the 
+							// augMarkerBeingUnfiltered to the end of the extractedStr enabled the
+							// TokenizeTextString() to properly populate the m_follWsMkrsAndPuncts
+							// field of the current filter item being unfiltered, it had the side
+							// effect of TokenizeTextString() processing the augMarkerBeingUnfiltered
+							// as an added empty source phrase to simply store the \m\f in its m_markers
+							// field, which resulted in having a superfluous empty source phrase
+							// created between the two adjacent filter segments. Not good!
+							// Therefore, we need to somehow get the desired content of the 
+							// m_follWsMkrsAndPuncts field updated without ending up with an empty
+							// source phrase between adjacent filtered items being unfiltered.
+							// I think the best option here is to simply have a test block after the
+							// TokenizeTextString() call that for when (bNextMkrToBeUnfiltered) is 
+							// TRUE, examines the last source phrase in the generated pSublist, and
+							// verifies that it has an empty source phrase as its last item in the 
+							// list, and deletes that empty source phrase from pSubList.
+							if (bNextMkrToBeUnfiltered)
+							{
+								extractedStr = extractedStr + augMarkerBeingUnfiltered;
+							}
+
 							// tokenize the substring (using this we get its inline marker handling for free)
 							// whm 22Mar2024 added. If the marker-being-unfiltered is \x the extractedStr will
 							// have "\\x " at the beginning of its string. If the \x marker is indeed the marker
@@ -10994,20 +11022,40 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// embedded \xt marker in the m_inlineNonbindingMarkers member. Presumably, an \xt marker
 							// would never be both within a m_bIsWithinFootnote_F_Span and a m_bIsWithinCrossRef_X_Span
 							// at the same time during parsing.
-							if ((augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
-								|| (augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
+							// whm 24Apr2026 corrected. Not sure what I was thinking back on 6Nov2025. The backslashes 
+							// were missing from the footnote string constants below, so I added them. 
+							if ((augMarkerBeingUnfiltered == _T("\\f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+								|| (augMarkerBeingUnfiltered == _T("\\fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
 							{
 								m_bIsWithinFootnote_F_Span = TRUE;
 							}
 							int count = pView->TokenizeTextString(pSublist, extractedStr, pSrcPhrase->m_nSequNumber);
+							// whm 19May2026 addition. When bNextMkrToBeUnfiltered is TRUE, the filtered marker
+							// was added to the extractedStr above before the TokenizeTextString() call in order
+							// to have a properly populated m_follWsMkrsAndPuncts field, but it had the side effect
+							// of TokenizeTextString() creating an empty source phrase item as its last item. We
+							// remove that emtpy item from the pSublist, as we don't want an empty source phrase
+							// between two adjacent filtered items that are being unfiltered.
+							if (bNextMkrToBeUnfiltered)
+							{
+								// Since the next marker is to be unfiltered, the last item in pSublist should 
+								// be an empty source phrase item, which needs to be removed.
+								// Verify that the last item in pSublist is indeed an empty source phrase.
+								SPList::Node* posLast = pSublist->GetLast();
+								CSourcePhrase* pLastSP = posLast->GetData();
+								if (pLastSP->m_key.IsEmpty() && pLastSP->m_srcPhrase.IsEmpty())
+								{
+									pSublist->DeleteNode(posLast);
+									count--;
+								}
+							}
+							// Reset the m_bIsWithin... flags to FALSE
 							if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
 							{
 								m_bIsWithinCrossRef_X_Span = FALSE;
 							}
-							// whm 6Nov2025 added. See comment above. 
-							// whm 6Dec2025 added parentheses to avoid g++ warning as done above prior to TokenizeTextString()
-							if ((augMarkerBeingUnfiltered == _T("f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
-								|| (augMarkerBeingUnfiltered == _T("fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
+							if ((augMarkerBeingUnfiltered == _T("\\f ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+								|| (augMarkerBeingUnfiltered == _T("\\fe ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0))
 							{
 								m_bIsWithinFootnote_F_Span = FALSE;
 							}
@@ -11656,7 +11704,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 			#if defined (_DEBUG) //&& !defined(NOLOGS)
 			{
-				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 39)
+				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 9)
 				{
 					int halt_here = 1;
 					wxUnusedVar(halt_here);
@@ -11741,7 +11789,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						m_bIsWithinFootnote_F_Span = FALSE;
 					}
 				}
-
 				continue;
 			}
 
@@ -11853,7 +11900,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						msgDisplayed = progMsg.Format(progMsg, nOldCount, nOldTotal);
 						pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 					}
-
 					continue;
 				}
 				else
@@ -11971,7 +12017,6 @@ g:				bIsUnknownMkr = FALSE;
 						msgDisplayed = progMsg.Format(progMsg, nOldCount, nOldTotal);
 						pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 					}
-
 					continue;
 				}
 				else
@@ -12134,7 +12179,7 @@ g:				bIsUnknownMkr = FALSE;
 			// for the matching endMarker in m_inlineNonbindingEndMarkers versus m_endMarkers
 #if defined (_DEBUG) && !defined(NOLOGS)
 			{
-				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
+				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 9)
 				{
 					int halt_here = 1;
 					wxUnusedVar(halt_here);
@@ -12376,6 +12421,8 @@ g:				bIsUnknownMkr = FALSE;
 												// the above FindFromPos() call
 					// The g jump label is at start of the 
 					// if (pSrcPhrase != NULL && !pSrcPhrase->m_markers.IsEmpty() && !bMarkerInNonbindingSet) block about a 1,000 lines above
+					// whm 28Apr2026 Note: We don't assign pPrevSrcPhrase = pSrcPhrase here because the g: label
+					// is within the same pSrcPhrase, so pPrevSrcPhrase need not be updated here.
 					goto g;
 				} // end of TRUE block for test:
 				// if ((wholeMkrBeingFiltered != _T("\\f")) && (wholeMkrBeingFiltered != _T("\\x")) &&
@@ -12639,25 +12686,27 @@ g:				bIsUnknownMkr = FALSE;
 				// until a halt is achieved - then control breaks from the loop and the
 				// last pSrcPhrase (deep copy) is made & is added to the sublist which
 				// constitutes the filtering span of instances.
+				// 
+				// whm 23Apr2026 revised the faulty logic here. The calling of 
+				// HasMatchingEndMarker() with and without the last TRUE parameter within
+				// the if (bMarkerInNonbindingSet) versus the else block of NOT 
+				// bMarkerInNonbindindSet with the last paratemet being TRUE, ends up
+				// excluding the search for an end marker within the m_endMarkers member!
+				// When HasMatchingEndMarker() searches for a matching end marker it can 
+				// simply look in all three possible pSrcPhrase locations: m_endMarkers,
+				// m_inlineBindingEndMarkers, and m_inlineNonbindingEndMarkers, and return
+				// TRUE if it finds the matching end marker in any of those possible 
+				// locations, otherwise return FALSE. With that logic in HasMatchingEndMarker()
+				// we need not here test for whether bMarkerInNonbindingSet is TRUE or not TRUE,
+				// but just simply make a single call to HasMatchingEndMarker(). See the
+				// new internals of HasMatchingEndMarker(). It now searches all 3 possible 
+				// end marker storage locations, and returns the result of its search.
 				bool bHasMatchingEndMkr;
-				if (bMarkerInNonbindingSet)
-				{
-					// 3rd param below is bSearchInNonbindingMkrs, which is default FALSE
-					// for doing the search in m_markers content.
-					bHasMatchingEndMkr = HasMatchingEndMarker(wholeMkrBeingFiltered, pSrcPhr);
-				}
-				else
-				{
-					// 3rd param below is bSearchInNonbindingMkrs, which is explicit TRUE
-					// here for doing the search in m_inlineNonbindingMarkers content.
-					bHasMatchingEndMkr = HasMatchingEndMarker(wholeMkrBeingFiltered, pSrcPhr, TRUE);
-				}
+				bHasMatchingEndMkr = HasMatchingEndMarker(wholeMkrBeingFiltered, pSrcPhr);
 				if (bHasMatchingEndMkr)
-				// bSearchInNonbindingMkrs, which is default FALSE for
-				// doing the search in m_markers content
 				{
 					// halt here, this pSrcPhr is last in the filterable span
-					break;
+					break; // from inner for loop to outer while (pos_pList != NULL) loop
 				}
 				else if (pSrcPhraseNext != NULL)
 				{
@@ -12669,7 +12718,7 @@ g:				bIsUnknownMkr = FALSE;
 						// this 'next' CSourcePhrase instance causes a halt, and is not
 						// itself to be within the filterable span, so the present
 						// pSrcPhr instance is last in the span
-						break;
+						break; // from inner for loop to outer while (pos_pList != NULL) loop
 					}
 					// a FALSE value in the above test means that scanning should
 					// continue, so just fall through to the code below which makes and
@@ -12678,7 +12727,7 @@ g:				bIsUnknownMkr = FALSE;
 				else // pSrcPhraseNext does not exist (the pointer is NULL)
 				{
 					// so pSrcPhr is the last CSourcePhrase instance in the document
-					break;
+					break; // from inner for loop to outer while (pos_pList != NULL) loop
 				}
 				// if control has not broken out of the loop, then we must continue
 				// scanning over more CSourcePhrase instances till we halt; but first we
@@ -12871,6 +12920,17 @@ g:				bIsUnknownMkr = FALSE;
 				{
 					whiteSpAndMkrsAtEndOfRebuiltSrcText = strFilteredStuff.Mid(posEndStuff + singleSrcPattern.Length());
 					assocTextProper = strFilteredStuff.Mid(0, posEndStuff + singleSrcPattern.Length());
+					// whm 23Apr2026 modified. The assocTextProper string above will contain
+					// the wholeMkrBeingFiltered at position 0 of assocTextProper (any prefixed
+					// sweptUpStr was removed from strFilteredStuff and stored in sweptUpStr above).
+					// We need to remove the wholeMkrBeingFiltered from its initial position on
+					// assocTextProper, for assembly in our filteredStr below.
+					int posFiltMkr = assocTextProper.Find(wholeMkrBeingFiltered);
+					if (posFiltMkr != wxNOT_FOUND)
+					{
+						assocTextProper = assocTextProper.Mid(posFiltMkr + wholeMkrBeingFiltered.Length());
+						assocTextProper.Trim(FALSE); // trim initial left-over space from removal of whole marker
+					}
 				}
 			}
 			// whm 8Mar2026 Determine any punctuation that precedes the first 
@@ -13034,13 +13094,10 @@ g:				bIsUnknownMkr = FALSE;
 				msg = msg.Format(msg, wholeMkrBeingFiltered.c_str());
 				gpApp->LogUserAction(msg);
 			}
-			// We are done with wholeMkrBeingFiltered for this filtering span, so clear it, likewise strFilteredStuff
-			wholeMkrBeingFiltered = wxEmptyString;
-			strFilteredStuff = wxEmptyString;
 
 			// whm Note: When not dealing with inline nonbinding markers we put code
 			// here to prepend markers into m_markers.
-			if (!bMarkerInNonbindingSet)
+			if (!bMarkerInNonbindingSet && pPrevSrcPhrase != NULL) // whm 28Apr2026 added second condition
 			{
 				// fill its m_markers with the material it needs to store,
 				// in the correct order
@@ -13138,7 +13195,9 @@ g:				bIsUnknownMkr = FALSE;
 			// which we appended above) to the start of m_filteredInfo on the CSourcePhrase
 			// which follows the filtered out section - that one might have filtered material
 			// already, so we have to check and take the appropriate branch.
-			wxString filteredStuff = pPrevSrcPhrase->GetFilteredInfo();
+			wxString filteredStuff;
+			if (pPrevSrcPhrase != NULL) // whm 28Apr2026 added safeguard
+				filteredStuff = pPrevSrcPhrase->GetFilteredInfo();
 
 			// whm 15Nov2023 update to the previous strategy, which was not sufficiently robust 
 			// for when multiple adjacent markers are filtered. Before storing the filteredStuff,
@@ -13163,6 +13222,44 @@ g:				bIsUnknownMkr = FALSE;
 			// existing material, I now think it generally results in a more natural order by
 			// suffixing the newly filtered material to the existing material.
 			//filteredStuff = filteredStr + filteredStuff; // inserted at start of string, but it may need reordering
+			// 
+			// whm 23Apr2026 modified. When concatenating two adjacent filter items the routine 
+			// needs to be smarter and do something a bit similar to what the CSourcePhrase::
+			// AddToFilteredInfo() does, which is to search the existing filteredStuff and determine
+			// the "LastMkr" that is in filteredStuff, and if it is the same as the marker-being-filtered,
+			// then it chops off that last filter marker from filteredStuff before it concatenates the
+			// filteredStr on to the right end of filteredStuff. For example, in our unit test named:
+			// filtering_test_new_13Jan2026.txt there are two footnotes that are adjacent to each 
+			// other only separated by an \m marker in the original text, i.e.,:
+			// \v 2 Next is footnote following "puncts."\f 1st footnote. \f*
+			// \m
+			// \f Text of footnote.\f*
+			// At this point filteredStuff is: "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*\r\n\\m\r\n\\f "
+			// and to be added filteredStr is: "\\m\r\n\\~FILTER \\f Text of footnote.\\f*\\~FILTER*\r\n\\p\r\n\\v 3 "
+			// To properly concatenate these two filtered footnotes and surrounding markers and whitespace
+			// together - avoiding duplication of elements - we need to remove the last marker "\f " from the 
+			// filteredStuff string, and also remove common (overlapping) parts that the resulting end of
+			// filteredStuff have in common with the markers at the beginning of filteredStr, namely
+			// the "\\m\r\n" at the beginning of filteredStr, before the filteredStr is to be added 
+			// to filteredStuff.
+			if (!filteredStuff.IsEmpty())
+			{
+				// First identify the lastMkr on filteredStuff.
+				int posLastMkr = -1;
+				wxString lastMkr = GetLastWholeMarker(filteredStuff, posLastMkr);
+				if (lastMkr == wholeMkrBeingFiltered && posLastMkr >= 0)
+				{
+					// Chop off the lastMkr and anything beyond the lastMkr from filteredStuff
+					filteredStuff = filteredStuff.Mid(0, posLastMkr);
+				}
+				// Next determine what overlaps between the right end of filteredStuff and
+				// the left end of filteredStr, and chop the duplicate stuff off the beginning
+				// of the filteredStr. This often is everything before the begin filter bracket
+				// \~FILTER of the filteredStr.
+				wxString commonStr = FindOverlap(filteredStuff, filteredStr);
+				filteredStr = filteredStr.Mid(commonStr.Length());
+			}
+			// Now concatenate the filteredStr to the filteredStuff string
 			filteredStuff = filteredStuff + filteredStr; // insert at end of string; it still may need reordering
 			// To avoid un-needed warnings, test filteredStuff to see if more than one filtered 
 			// item is in filteredStuff. If it only has a single filtered item reordering isn't
@@ -13170,7 +13267,7 @@ g:				bIsUnknownMkr = FALSE;
 			// warn the user about it.
 			if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
 			{
-				if (m_bUsfmStructEnabled)
+				if (m_bUsfmStructEnabled && pPrevSrcPhrase != NULL) // whm 28Apr2026 added second condition
 				{
 					wxString ChVs = pView->GetChapterAndVerse(pPrevSrcPhrase);
 					filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
@@ -13185,8 +13282,15 @@ g:				bIsUnknownMkr = FALSE;
 				}
 			}
 			// Store it back on the pPrevSrcPhrase CSourcePhrase.
-			pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
+			if (pPrevSrcPhrase != NULL)
+				pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
 
+			// whm 23Apr2026 moved the setting of wxEmptyString to wholeMkrBeingFiltered and
+			// strFilteredStuff to here from their original position above.
+			// We are done with wholeMkrBeingFiltered for this filtering span, so clear it, likewise strFilteredStuff
+			wholeMkrBeingFiltered = wxEmptyString;
+			strFilteredStuff = wxEmptyString;
+			
 			// These should be empty already, but make sure
 			preStr.Empty();
 			remainderStr.Empty();
@@ -13217,7 +13321,8 @@ g:				bIsUnknownMkr = FALSE;
 				// returns an empty string when m_markers is empty which then, wipes out the
 				// already correct m_inform value of markers like \fig.
 				// However, here it doesn't seem to have negative effects.
-				pPrevSrcPhrase->m_inform = RedoNavigationText(pPrevSrcPhrase);
+				if (pPrevSrcPhrase != NULL) // whm 28Apr2026 added safeguard
+					pPrevSrcPhrase->m_inform = RedoNavigationText(pPrevSrcPhrase);
 			}
 
 			// Turn off the boolean for dealting with filtering nonbinding begin mkr
@@ -14256,21 +14361,68 @@ bool CAdapt_ItDoc::IsCrossReferenceInternalEndMarker(wxChar* pChar)
 // If the return value is TRUE, then that passed in pSrcPhrase is the end-of-span one,
 // and the caller will not call the safety checking function IsEndingSrcPhrase() on
 // pSrcPhraseNext which acts to prevent span overrun or marker content overlap.
-bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs)
+// 
+// whm 23Apr2026 Refactored to remove the last bool bSearchInNonbindingEndMkrs parameter,
+// and simply search in the three possible end markers storage areas: m_endMarkers,
+// m_inlineBindingEndMarkers, and m_inlineNonbindingEndMarkers within pSrcPhrase. The
+// function will now search all three locations and immediately returns TRUE if it finds
+// the end marker equivalent to the whole marker input as mkr, or return FALSE if the
+// end marker equivalent is not found anywhere within the 3 end marker storage locations 
+bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase) // , bool bSearchInNonbindingEndMkrs)
 {
-	wxString mymkr = mkr;
-	wxString endMkr = wxEmptyString;
+	wxString endMkr = mkr;
 	// Handle \esb and \esbe  in USFM3 standard
-	if (mymkr == wxString(_T("\\esb")))
+	if (endMkr == wxString(_T("\\esb")))
 	{
 		endMkr = _T("\\esbe");
 	}
 	else
 	{
-		mymkr = mymkr.Trim(); // remove any ending whitespace (there shouldn't be any anyway)
-		mymkr += _T('*');
+		endMkr = endMkr.Trim(); // remove any ending whitespace (there shouldn't be any anyway)
+		endMkr += _T('*');
 
 	}
+	
+	// whm 23Apr2026 refactored.
+	// Check the m_endMarkers location first.
+	wxString m_EndMarkers = pSrcPhrase->GetEndMarkers();
+	if (m_EndMarkers.Find(endMkr) != wxNOT_FOUND)
+	{
+		if (endMkr == _T("\\x*"))
+		{
+			m_bIsWithinCrossRef_X_Span = FALSE;
+		}
+		// whm 6Nov2025 added. If we are at a \f* or \fe* endmarker we reset the 
+		// m_bIsWithinFootnote_F_Span flag to FALSE.
+		if (endMkr == _T("\\f*") || _T("\\fe*"))
+		{
+			m_bIsWithinFootnote_F_Span = FALSE;
+		}
+		// For old times sake...
+		if (gpApp->gCurrentSfmSet == PngOnly)
+		{
+			// check for one of the 'footnote end' markers, the only endmarkers in the PNG 1998
+			// marker set
+			if (m_EndMarkers.Find(_T("\\fe")) != wxNOT_FOUND || m_EndMarkers.Find(_T("\\F")) != wxNOT_FOUND)
+			{
+					return TRUE;
+			}
+		}
+		return TRUE;
+	}
+
+	wxString m_InlineNonbindingEndMarkers = pSrcPhrase->GetInlineNonbindingEndMarkers();
+	if (m_InlineNonbindingEndMarkers.Find(endMkr) != wxNOT_FOUND)
+		return TRUE;
+
+	wxString m_InlineBindingEndMarkers = pSrcPhrase->GetInlineBindingEndMarkers();
+	if (m_InlineBindingEndMarkers.Find(endMkr) != wxNOT_FOUND)
+		return TRUE;
+	
+	return FALSE;
+
+	/*
+	// The code below is flawed
 	// Check in the non-binding end marker storage...
 	if (bSearchInNonbindingEndMkrs)
 	{
@@ -14371,6 +14523,7 @@ bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase,
 		}
 		return FALSE; // no match
 	} // end of else block for test: if (bSearchInNonbindingEndMkrs)
+	*/
 }
 
 // NOTE: the endmarker for endnote is included in the test, so while the name of this
@@ -18208,17 +18361,85 @@ void CAdapt_ItDoc::GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkr
 // bracket of the info in the filterStr. I changed the previous version to be
 // a void function and added both wxArrayStrings as reference parameters to
 // the function. 
+// whm 24Apr2026 Refactored. Previous coding was not returning a second filter
+// segment properly especially with whitespace before and after each filter
+// segment. For multiple filtered segments, the first array element of the
+// filteredStrItemsWithBrackets array, will now contain any prefixed swept up
+// markers that occur before the first filtered item's begin \~FILTER bracket
+// along with the actual \~FILTER <fltMkr> ... \~FILTER* material.
+// Any whitespace, markers, and/or punct that occurs between the first end
+// bracket \~FILTER* and a subsequent begin bracket \~FILTER will be stored in
+// the first element of the filteredStrItemsWsMkrsAndPuncts array, so that any
+// additional filteredStrItemsWithBrackets array items will only ever start with
+// begin \~FILTER brackets and contain only that segment's \~FILTER <fltMkr> ... \~FILTER*
+// material. When there is no whitespace, markers or punct occuring AFTER 
+// each end \~FILTER* bracket, the filteredStrItemsWsMkrsAndPuncts array item for
+// that segment will be an empty string. 
+// Hence, when GetFilteredInfoSegments() returns both arrays should always have
+// the same number of elements which represents the total number of filtered
+// marker segments.
+// For example, for a filterStr input that contains: 
+// "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*\r\n\\m\r\n\\~FILTER \\f Text of footnote.\\f*\\~FILTER*\r\n\\p\r\n\\v 3 "
+// each array will end up having 2 items:
+// filteredStrItemsWithBrackets will have: "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*", 
+//    and "\\~FILTER \\f Text of footnote.\\f*\\~FILTER*"
+// filteredStrItemsWsMkrsAndPuncts will have: "\r\n\\m\r\n", and "\r\n\\p\r\n\\v 3 "
+// Note: If the first element had swept up markers such as "\\p\r\n\\c 2 " those
+// swept up markers would be stored prefixed to the first element of the 
+// filteredStrItemsWithBrackets array - stored as:
+// "\\p\r\n\\c 2 \\~FILTER \\f 1st footnote. \\f*\\~FILTER*
 void CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 added
 	wxArrayString& filteredStrItemsWithBrackets, // whm 7Mar2026 added
 	wxArrayString& filteredStrItemsWsMkrsAndPuncts) // whm 7Mar2026 added
 {
-	//wxArrayString segmentsArr;
-	//wxArrayString wsMkrsAndPunctsArr;
-	filteredStrItemsWithBrackets.Clear(); // segmentsArr.Clear();
+	filteredStrItemsWithBrackets.Clear();
 	filteredStrItemsWsMkrsAndPuncts.Clear();
 	int posEndFilterBracket = -1;
-	wxString remainingStr = filterStr; // start with the whole string
+	int posBeginFilterBracket = -1;
+	wxString remainingStr = filterStr; // start with the whole incoming string
+	wxString currentSegment; currentSegment.Empty();
+	wxString follWsMkrsAndPuncts; follWsMkrsAndPuncts.Empty();
+	wxString beginFilterBracket = _T("\\~FILTER");
 	wxString endFilterBracket = _T("\\~FILTER*");
+	int lenEndFltBracket = endFilterBracket.Length();
+	// The .Replace() call in the following statement gets a count of the number
+	// of end bracket _T("\\~FILTER*") instances within the filterStr, effectively
+	// giving us the number of filtered marker items (numSegments) in filterStr.
+	int numSegments = (int)remainingStr.Replace(endFilterBracket, endFilterBracket);
+	// Rather than a while loop we can use a simpler for loop for numSegments
+	for (int i = 0; i < numSegments; i++)
+	{
+		posEndFilterBracket = remainingStr.Find(endFilterBracket);
+		wxASSERT(posEndFilterBracket != wxNOT_FOUND);
+		currentSegment = remainingStr.Mid(0, posEndFilterBracket + lenEndFltBracket);
+		// 1st pass: currentSegment "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*"
+		remainingStr = remainingStr.Mid(posEndFilterBracket + lenEndFltBracket);
+		// 1st pass: remainingStr "\r\n\\m\r\n\\~FILTER \\f Text of footnote.\\f*\\~FILTER*\r\n\\p\r\n\\v 3 "
+		posBeginFilterBracket = remainingStr.Find(beginFilterBracket);
+		//wxASSERT(posBeginFilterBracket != wxNOT_FOUND);
+		//if (i == 0)
+		//{
+			// The first filtered segment includes any prefixed swept up stuff
+			filteredStrItemsWithBrackets.Add(currentSegment);
+			// 1st pass: currentSegment is: "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*"
+			// 2nd pass: currentSegment is: ""
+			//
+			// Include any follWsMkrsAndPuncts that precedes the begin \~FILTER 
+			// bracket in the remainingStr.
+			follWsMkrsAndPuncts = remainingStr.Mid(0, posBeginFilterBracket);
+			// 1st pass: follWsMkrsAndPuncts is: "\r\n\\m\r\n"
+			// 2nd pass: gollWsMkrsAndPuncts is: ""
+			filteredStrItemsWsMkrsAndPuncts.Add(follWsMkrsAndPuncts); // follWsMkrsAndPuncts may be empty string
+		//}
+		//else
+		//{
+		//	follWsMkrsAndPuncts = currentSegment.Mid(0, posBeginFilterBracket);
+		//	// 2nd pass: follWsMkrsAndPuncts ""
+
+		//}
+	}
+
+	/*
 	int nLenEndnFilterBracket = (int)endFilterBracket.Length();
 	posEndFilterBracket = remainingStr.Find(endFilterBracket);
 	while (posEndFilterBracket != wxNOT_FOUND)
@@ -18269,8 +18490,8 @@ void CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 a
 			filteredStrItemsWsMkrsAndPuncts.Add(wxEmptyString);
 		}
 	}
+	*/
 	wxASSERT(filteredStrItemsWithBrackets.GetCount() == filteredStrItemsWsMkrsAndPuncts.GetCount());
-	//return segmentsArr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

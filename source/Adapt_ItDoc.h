@@ -489,7 +489,7 @@ public:
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
 	// BEW 30Sep19 next one has added bool, default FALSE; function is called only twice in the app
-	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
+	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase); // whm 23Apr2026 removed last param // , bool bSearchInNonbindingEndMkrs = FALSE);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar* pChar);
 	bool			IsStringWhiteSpace(wxString str); // whm 20Feb2026 added

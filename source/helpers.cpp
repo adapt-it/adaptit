@@ -9773,7 +9773,7 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 	wxString filteredInfoStr;
 
 #ifdef _DEBUG
-	if (pSingleSrcPhrase->m_nSequNumber >= 15)
+	if (pSingleSrcPhrase->m_nSequNumber >= 12)
 	{
 		int break_here = 1;
 		break_here = break_here;
