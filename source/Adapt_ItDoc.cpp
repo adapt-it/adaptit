@@ -18,7 +18,7 @@
 
 //#define _debugLayout
 // comment out next line to turn of the wxLogDebug calls in this file
-#define LOG_USFM3
+//#define LOG_USFM3
 #define maxLen 60
 //#define _AT_PTR
 //#define FIXORDER
@@ -31873,7 +31873,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						if (tempStr != pApp->m_strNotInKB)
 						{
 							// the user chose a normal adaptation or empty string
-//#if defined(FWD_SLASH_DELIM)
+							//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 							tempStr = FwdSlashtoZWSP(tempStr);
 							//#endif
@@ -31958,7 +31958,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						case store_nonempty_meaning:
 						{
 							//#if defined(FWD_SLASH_DELIM)
-																// BEW added 23Apr15
+							// BEW added 23Apr15
 							pApp->m_bInhibitMakeTargetStringCall = TRUE;
 							pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 							pApp->m_bInhibitMakeTargetStringCall = FALSE;
@@ -32107,7 +32107,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								pAutoFixRec->finalAdaptation = dlg.m_aorgTextCtrlStr;
 								//#if defined(FWD_SLASH_DELIM)
-																// BEW added 23Apr15
+								// BEW added 23Apr15
 								pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 								//#endif
 							}
@@ -32190,8 +32190,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								// just requires a simple store operation ( and no store
 								// in pKCopy should be done)
-//#if defined(FWD_SLASH_DELIM)
-									// BEW added 23Apr15
+								//#if defined(FWD_SLASH_DELIM)
+								// BEW added 23Apr15
 								pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 								//#endif
 								pApp->m_bInhibitMakeTargetStringCall = TRUE;
@@ -32261,7 +32261,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// get and store the FixItAction
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							//pAutoFixRec->finalAdaptation is already set
-//#if defined(FWD_SLASH_DELIM)
+							//#if defined(FWD_SLASH_DELIM)
 							// BEW added 23Apr15
 							pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 							//#endif
@@ -32385,7 +32385,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								// user's final string
 								pAutoFixRec->fixAction = dlg.actionTaken;
 								pAutoFixRec->finalAdaptation = dlg.m_finalAdaptation; // could be "<Not In KB>"
-	//#if defined(FWD_SLASH_DELIM)
+								//#if defined(FWD_SLASH_DELIM)
 								if (pAutoFixRec->finalAdaptation != pApp->m_strNotInKB)
 								{
 									// BEW added 23Apr15
@@ -32529,7 +32529,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// get and store the FixItAction
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							//pAutoFixRec->finalAdaptation is already set
-//#if defined(FWD_SLASH_DELIM)
+							//#if defined(FWD_SLASH_DELIM)
 							// BEW added 23Apr15
 							pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 							//#endif
@@ -33258,7 +33258,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						case store_nonempty_meaning:
 						{
 							//#if defined(FWD_SLASH_DELIM)
-																// BEW added 23Apr15
+							// BEW added 23Apr15
 							pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
 							//#endif
 																// just requires a simple store operation ( and no store
@@ -33306,7 +33306,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						else
 						{
 							//#if defined(FWD_SLASH_DELIM)
-															// BEW added 23Apr15
+							// BEW added 23Apr15
 							tempStr = FwdSlashtoZWSP(tempStr);
 							//#endif
 							pKB->StoreText(pSrcPhrase, tempStr);
@@ -33378,7 +33378,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							{
 								pAutoFixGRec->finalGloss = dlg.m_aorgTextCtrlStr;
 								//#if defined(FWD_SLASH_DELIM)
-																// BEW added 23Apr15
+								// BEW added 23Apr15
 								pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
 								//#endif
 							}
@@ -33409,8 +33409,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							{
 								// just requires a simple store operation ( and no store
 								// in pKCopy should be done)
-//#if defined(FWD_SLASH_DELIM)
-									// BEW added 23Apr15
+								//#if defined(FWD_SLASH_DELIM)
+								// BEW added 23Apr15
 								pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
 								//#endif
 								pKB->StoreText(pSrcPhrase, pAutoFixGRec->finalGloss);
@@ -33497,7 +33497,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								pAutoFixGRec->fixAction = dlg.actionTaken;
 								pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
 								//#if defined(FWD_SLASH_DELIM)
-																// BEW added 23Apr15
+								// BEW added 23Apr15
 								pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
 								//#endif
 															// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
@@ -33525,7 +33525,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								else
 								{
 									//#if defined(FWD_SLASH_DELIM)
-																	// BEW added 23Apr15
+									// BEW added 23Apr15
 									tempStr = FwdSlashtoZWSP(tempStr);
 									//#endif
 																	// glossing store can have punctuation in it
@@ -41212,10 +41212,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
 
-// #if defined (_DEBUG) && defined (LOGMKRS)
+//#if defined (_DEBUG) && defined (LOGMKRS)
 //		wxLogDebug(_T("1. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
 //			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
-////#endif
+//#endif
 	// BEW added test 21Mar17
 	if (len == 0 && ptr == pEnd)
 	{
@@ -52476,11 +52476,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								//}
 							}
 #if defined (_DEBUG) && !defined (NOLOGS)
-						{
-							wxString strPointAt = wxString(ptr, 16);
-							wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
-								__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								wxString strPointAt = wxString(ptr, 16);
 								wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
@@ -52994,7 +52989,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								{
 									// whm 2Mar2026 added. In some circumstances we may arrive
 									// here when wholeMkr is a chapter "\\c"
-									
+
 									// whm 5Oct2025 & 23Dec2025 Observation: In some circumstances the tokBuffer 
 									// here may have an inlineBindingMarker such as \add (from JamesJ's MAT data)
 									// and inlineBindingMarkers should be stored NOT in m_markers, but in 
@@ -53013,7 +53008,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										{
 											// There is something to add to m_markers, do so and clear tokBuffer
 											pSrcPhrase->m_markers = tokBuffer;
-										
+
 											int mmkrsLen;
 											mmkrsLen = pSrcPhrase->m_markers.Length();
 											ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
@@ -53025,7 +53020,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									{
 										// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
 										// or it might be empty. If empty, no harm in unilaterally appending
-										
+
 										// BEW 6Jul23 Don't lose the marker, add it to m_markers if non-empty
 										// ptr should have earlier been advanced to point past pSrcPhrase->m_markers
 										// so just advance ptr by how long tokBuffer is.
@@ -53112,28 +53107,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										else
 											goto parsing;
 									}
-
-							}
-#if defined (_DEBUG) && !defined (NOLOGS)
-							{
-								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokText() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], pointsAt= [%s] "),
-									__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 2)
-								{
-									int halt_here = 1; wxUnusedVar(halt_here);
 								}
-#if defined (_DEBUG) && !defined (NOLOGS)
-								{
-									wxString strPointAt = wxString(ptr, 16);
-									wxLogDebug(_T("TokText() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], pointsAt= [%s] "),
-										__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 5)
-									{
-										int halt_here = 1; wxUnusedVar(halt_here);
-									}
-								}
-#endif						
 								// whm 17Jan2024 Note: The old bogus period handling routine below was not
 								// reached here because ptr is still pointing at the backslash of the
 								// marker at this point.
@@ -53908,369 +53882,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										}
 									} // end of TRUE block for test: if (*pAux == _T(' ') && *(pAux + 1) == _T('['))
 								} // end of TRUE block for test: if (!IsEndMarker(ptr, pEnd))
-
-							} // end of TRUE block for test: if (pUsfmAnalysis != NULL)
-						} // end of TRUE block for test: if (*ptr == gSFescapechar)
-					} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
-#if defined (_DEBUG) && !defined (NOLOGS)
-					{
-						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokText() line  %d, chapter:verse= [%s], m_markers= [%s],  bIsToBeFiltered = %d , pointsAt= [%s] "),
-							__LINE__, pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
-					}
-					if (pSrcPhrase->m_nSequNumber >= 5)
-					{
-						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-					}
-#endif
-					// BEW 11Oct10, the block for detecting an inline marker which is not
-					// one of the \f set nor one of the \x set..., or the \e set (\ef, \ex).
-					// if the test succeeds, then in the block we set needed flags and then
-					// break out of the inner loop
-					//
-					// BEW 25Feb11, we don't want to hand off \va ...\va*, (verse alternate)
-					// nor \vp ...\vp* (verse published) to ParsePreWord() - which will correctly
-					// handle them as inline binding markers, but leave the number as adaptable
-					// text in the view; 
-					// instead, 
-					// these are default filtered in the AI_USFM.xml file, so we have to test
-					// for them here and skip this block if either ov these was what bareMkr is
-					// (only if the user unfilters them should their number be seeable and adaptable)
-					//
-					// BEW 30Sep19 on the fourth line, add test for bareMkr not beginning with
-					// "\e" so as to let USSFM3 extended markers \ef (extended footnote) or
-					// extend cross ref \ex also cause the TRUE block to be skipped. But beware,
-					// the character inline binding marker, \em begins with 'e', so 3rd line
-					// needs extra test to return TRUE if bareMkr is em - to bleed out confusion
-					// with the subsequent initial 'e' subtest.
-#if defined (_DEBUG) && !defined (NOLOGS)
-					{
-						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokText() line  %d, m_markers= [%s], chapter:verse= [%s], pointsAt= [%s] , after 2ndLookup"),
-							__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
-						{
-							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-						}
-					}
-#endif
-					if (pUsfmAnalysis != NULL			// indicates the marker is a USFM2 or 3 one
-						&& (pUsfmAnalysis->inLine		// the main subtest, is it inLine?
-							|| bareMkr.Find(_T("em")) == 0) // // bleed out \em, as it's inLine too
-						&& bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 && bareMkr.Find('e') != 0
-						// The 3 subtests above each return TRUE provided the marker is not beginning
-						// with f, x, or e. So, encountering \f, \x, or \ef, or \ex, will cause one
-						// of these subtests to fail, and so the TRUE block below will be skipped.
-						// Although those four are inLine, we want to deal with them here in
-						// TokenizeText() because we want to store them in m_markers. (Their endmarkers,
-						// and \esbe as well, will be dealt with in or after ParseWord().)
-						&& bareMkr.Find(_T("va")) != 0 && bareMkr.Find(_T("vp")) != 0
-						// The two subtests above each return TRUE provided the marker is
-						// not \va nor \vp -- these two are inline, but exceptions because
-						// where these occur in data is immediately after \v, and so we
-						// want these to be stored after \v in m_markers. So for \va or \vp,
-						// the test should fail, and the code further below in TokenizeText()
-						// will deal with them. The actual assignment of content to m_markers
-						// happens after ParseWord() has completed, the markers content is
-						// accumulated in tokBuffer
-						)
-					{
-						// inline markers are known to USFM, so pUsfmAnalysis will not be
-						// false; the test succeeds if it is not an unknown marker, and is an
-						// inline marker, but not one of the inline markers which begin with
-						// \x or \f or \e and neither is it \va nor \vp. Any marker that gets
-						// through those tests is one which we immediately hand off in this
-						// block for ParsePreWord() and then ParseWord() to deal with.
-						//
-						// BEW 24Oct14, none of \x \f \va or \vp can never be a nested marker,
-						// and so if ptr is pointing at the + of a nested marker, we want to
-						// hand any such off to ParsePreWord() then ParseWord() immediately too,
-						// so no change
-						// needed here - and the test using m_inlineNonbindindMarkers just
-						// below will correctly find any such, since they are included in
-						// this rapid access string for lookup purposes
-						// BEW 30Sep19 In USFM3, \q is an inLine marker taking an endmarker \q*
-
-						// the hand-off takes place outside the loop, so set the flags we need
-						// to know beforehand, they are needed for ParsePreWord()'s signature
-						bIsInlineNonbindingMkr = FALSE; // default
-						bIsInlineBindingMkr = FALSE;    // default
-						// Check for an endmarker that failed to be parse - the
-						// way to handle this should be to parse it and append it
-						// to an appropriate member in the previous CSourcePhrase
-						// instance.
-						wxString wholeEndMkr = wxEmptyString; // initialize
-						bool bIsAnEndMkr = FALSE; // initialize
-						int myOffset = wxNOT_FOUND;
-						myOffset = wholeMkr.Find(wxString(_T('*')));
-						if (myOffset != wxNOT_FOUND)
-						{
-							// The whole mkr contains *, so is an endmarker -- this is
-							// a parsing error because the endmarker should have been
-							// included in the parse done by ParseWord() for the previous
-							// CSourcePhrase instance, because it's ParseWord which handles
-							// post-word endmarkers
-							wholeEndMkr = wholeMkr;
-							bIsAnEndMkr = TRUE;
-						}
-						//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"),
-						//__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-
-						// Test for what kind of marker; binding or non-binding or char attribute mkr; 
-						// but in the case it was an unexpected end marker - deal with that
-						if (bIsAnEndMkr && !m_bWithinMkrAttributeSpan)
-						{
-							int previousLocation = pSrcPhrase->m_nSequNumber;
-							wxString strPrevKey = _T("unknown"); // whm 21Sep2023 changed to "unknown"
-							wxString strPrevAdaption = _T("unknown"); // whm 21Sep2023 changed to "unknown"
-							// BEW 29Sep22 Note: pSrcPhrase here may be a just-created instance
-							// which has nothing more than a sequNum set, because it is yet to be
-							// filled out with parsed data. Such a pSrcPhrase will not have a presence
-							// in m_pSourcePhrases list, nor will there be a partner pile created for
-							// it in the PileList. Control has gotten here because of an error in parsing,
-							// so it's that that needs to be fixed. Or the parsing code needs a fix.
-
-							pLayout->ClearPostWordDataPointers();
-
-							// BEW 27Sep22 add safe code if an errant endmarker is found
-							if (pSrcPhrase->m_nSequNumber >= 13)
-							{
-								// set sequNum for previous CSourcePhrase instance
-								pLayout->m_nSequNum_PrevSrcPhrase = pSrcPhrase->m_nSequNumber - 1;
-								// BEW 29Sep22, if pSrcPhrase is a just-created one, then it will
-								// have no presence in m_pSourcePhrases nor a pile ptr in the pile list.
-								// So while the above line generates a sequNum value, trying to get that
-								// pile will fail - returning NULL.
-							}
-							else
-							{
-								pLayout->m_nSequNum_PrevSrcPhrase = 0; // safe, if the document exists
-							}
-							wxString strApproxLocation;
-							//int badMkrLength = wholeEndMkr.Len();
-							CPile* pPile = this->GetPile(pLayout->m_nSequNum_PrevSrcPhrase);
-							if (pPile != NULL)
-							{
-								// BEW 29Sep22 - can't do this block if pPile was returned NULL, but there
-								// is likely a data error, or parsing error, that caused entry to the above
-								// code, that needs to be sorted out
-								CSourcePhrase* pPrevSP = pPile->GetSrcPhrase();
-								previousLocation = pSrcPhrase->m_nSequNumber;
-								// whm 16Mar2024 added protection against pPrevSP being NULL
-								if (pPrevSP != NULL)
-								{
-									strPrevKey = pPrevSP->m_key;
-									strPrevAdaption = pPrevSP->m_adaption;
-								}
-							}
-							// BEW15Dec22 try to provide an approximate src string for the error - 30 chars either side
-							// of the ptr value, or less if near start of end of input doc
-							// whm 21Sep2023 extended the approx location to be 120 chars wide - 60 either side.
-							wxChar* pDocStart = pBufStart;
-							wxChar* pLocBefore;
-							wxChar* pLocAfter;
-							if ((ptr - 60) > pDocStart)
-							{
-								pLocBefore = (ptr - 60);
-							}
-							else
-							{
-								pLocBefore = pDocStart;
-							}
-							if ((ptr + 60) < pEnd)
-							{
-								pLocAfter = (ptr + 60);
-							}
-							else
-							{
-								pLocAfter = pEnd;
-							}
-							size_t width = (size_t)(pLocAfter - pLocBefore);
-							if (width > 120)
-							{
-								width = 120;
-							}
-							strApproxLocation = wxString(pLocBefore, width);
-
-							// whm 28Sep2023 added a chapter:verse reference to the warning msg.
-							// Get the chapter and verse of the current context for the warning.
-							// Internally GetSourcePhraseByIndex() scans backwards till it finds the
-							// information needed, or comes to doc start. Here we need to start with 
-							// the m_nSequNumber before the current one, since the current one won't
-							// yet be stored in the App's pSrcPhrases list, otherwise the GetSourcePhraseByIndex()
-							// function would generate an index error.
-							CSourcePhrase* pSP = pApp->GetSourcePhraseByIndex(pSrcPhrase->m_nSequNumber - 1);
-							wxString cv = _T("");
-							if (pSP != NULL)
-								cv = pApp->GetView()->GetChapterAndVerse(pSP);
-							if (cv.IsEmpty())
-								cv = _("Unknown location");
-							// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
-							wxString wholeBeginMkr;
-							int posAsterisk = wholeEndMkr.Find(_T("*"));
-							if (posAsterisk != wxNOT_FOUND)
-							{
-								wholeBeginMkr = wholeEndMkr.Mid(0,posAsterisk);
-							}
-							// whm 30Sep2023 removed the strPrevKey, strPrevAdaption, previousLocation from message below as they were never clear/definitive in my tests.
-							wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur at sequence number: %d, and within the span:\n\n%s.");
-							//wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
-							//msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
-							msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), previousLocation, strApproxLocation.c_str());
-							wxString msg2;
-							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.\nYou should avoid putting punctuation between consecutive end markers. Put any final punctuation after consecutive end markers.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you want to continue loading the file?");
-							msg2 = _T("\n\n") + msg2;
-							msg = msg + msg2;
-							wxString title = _T("Warning: Unexpected Markers in chapter:verse %s");
-							title = title.Format(title, cv.c_str());
-							int response = 0;
-							response = wxMessageBox(msg, title, wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
-							if (response == wxNO)
-							{
-								wxString responseStr = _("User selected No");
-								pApp->LogUserAction(responseStr);
-								pApp->LogUserAction(msg);
-								wxString stopMsg = _("Adapt It will now stop running.\n\nWhen you have fixed the input text, run Adapt It again and try loading the edited text into Adapt.");
-								wxMessageBox(stopMsg, responseStr, wxOK);
-								pApp->LogUserAction(stopMsg);
-								wxKill(::wxGetProcessId(), wxSIGKILL); // Calling wxKill() on the current process is a quiet way to terminate.
-							}
-							else
-							{
-								wxString responseStr = _("User selected Yex");
-								pApp->LogUserAction(responseStr);
-								pApp->LogUserAction(msg);
-								wxString continueMsg = _T("Adapt It will continuing trying to load the input text.\n\nIf the input text completes loading, be sure to check it at chapter:verse %s for proper formatting.");
-								continueMsg = continueMsg.Format(continueMsg, cv.c_str());
-								wxMessageBox(continueMsg, responseStr, wxOK);
-								pApp->LogUserAction(continueMsg);
-							}
-						} // end of TRUE block for test: if (bIsAnEndMkr && !m_bWithinMkrAttributeSpan)
-						else
-						{
-							// Not an endmarker. 
-							// BEW 28Apr20 refactored the tests; 21Jul23
-
-							//m_bInRedSet = FALSE; // init  BEW 9Jan23, it's a doc.h member bool, 
-								// set only when augmented beginMkr is in m_RedBeginMarkers BEW 24Aug23 removed, it's unused 
-							bIsCharAttrMkr = FALSE; // init
-							// HERE following we just set booleans, we don't parse
-#if defined (_DEBUG) && !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 2)
-							{
-								//wxString ptrPointsAt;
-								ptrPointsAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_markers= [%s], wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
-									__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
-									pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
-								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-							}
-#endif
-							int offset = wxNOT_FOUND;
-							offset = gpApp->m_charAttributeMkrs.Find(augmentedWholeMkr); // \w, \fig, etc
-							if (offset >= 0)
-							{
-								if (offset != wxNOT_FOUND)
-								{
-									// it's one of the beginMkrs in the character attributes set
-									bIsInlineBindingMkr = FALSE;
-									bIsInlineNonbindingMkr = FALSE;
-									bIsCharAttrMkr = TRUE; // set the doc member bool, filterable
-									// whm 12Mar2024 addition. Below is a break statement to break out 
-									// of the inner loop, to get to ParsePreWord() etc.,  so since the
-									// current autmentedWholeMkr is an char attribute marker that include:
-									// _T("\\fig \\jmp \\+jmp \\w \\xt \\rb \\qt-s \\qt-e "), we don't
-									// want ParsePreWord() to execute for these, so as done elsewhere
-									// (such as as 48260) we should set the bKeepPtrFromAdvancing to TRUE.
-									bKeepPtrFromAdvancing = TRUE;
-								}
-								else
-								{
-									// It's not one of the markers in gpApp->m_charAttributeMkrs, so check out
-									// the formatting markers fast access string
-									offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
-									if (offset >= 0)
-									{
-										// It's one of the several markers like \k \it etc, textType 
-										// 'none' - binding ones
-										bIsInlineBindingMkr = TRUE;
-										bIsInlineNonbindingMkr = FALSE;
-										bIsCharAttrMkr = FALSE;
-									}
-									else
-									{
-										// It's not 'binding' type, check if it's 'non-binding' type
-										offset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
-										if (offset != wxNOT_FOUND)
-										{
-											// It's a nonbinding type
-											bIsInlineBindingMkr = FALSE;
-											bIsInlineNonbindingMkr = TRUE;
-											bIsCharAttrMkr = FALSE;
-
-											// BEW 6May23, we have to retest for inline binding beginMkr here.
-											// Why? Because the source text parse may have come to an
-											// inline nonbinding beginMkr (which very conceivably would precede
-											// a following inline binding beginMkr. I have such data, and it
-											// led to the inline binding beginMkr being placed by ParsePreWord()
-											// in the default location, m_markers, which it definitely does NOT belong.
-											// ParsePreWord will handle the inline binding beginMkr correctly if we
-											// here determine that something like the \k of  \k .... \k* (keyword)
-											// is the next beginMkr and so bIsInlineBindingMkr will be set TRUE.
-											// (ParsePreWord() is not marker-order-sensitive, fortunately)
-											int inlineNBMrkLen = augmentedWholeMkr.Length(); // for, say, \wj<space> that's 4
-											wxChar* pAux = (ptr + inlineNBMrkLen); // pAux might now be pointing at a binding beginMkr
-											if (*pAux == gSFescapechar)
-											{
-												wxString myBeginMkr = GetWholeMarker(pAux);
-												// use bool CAdapt_ItDoc::IsEndMarker2(wxChar* pChar)
-												if (!myBeginMkr.IsEmpty())
-												{
-													bool bIsNotEndMkr = !IsEndMarker2(pAux);
-													if (bIsNotEndMkr)
-													{
-														// It's a beginMkr
-														wxString augBeginMkr = myBeginMkr + _T(' '); // for fast-access test
-														int offset3 = wxNOT_FOUND; wxUnusedVar(offset3); // avoid compiler warning variable initialized but not referenced
-														bool bIsMyInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augBeginMkr);
-														if (bIsMyInlineBindingMkr)
-														{
-															// TRUE, it belongs to the marker set that has \k \it etc
-															bIsInlineBindingMkr = TRUE;
-														}
-														// If bIsInlineBindingMkr was not set TRUE here, then ParsePreWord() would
-														// probably "lose it", and it would get picked up as a member of m_markers,
-														// leading to m_srcSinglePattern not having it, when it should
-													}
-												}
-											}
-										}
-										// BEW 9Jan2023 I need to check the m_RedBeginMarkers set, that's where \rq is. m_RedEndMarkers has \rq*
-										// There are a heap of markers in these red sets, they are not necessarily inLine; but a not 'verse or 'poetry'
-										else
-										{
-											offset = pApp->m_RedBeginMarkers.Find(augmentedWholeMkr);
-											if (offset != wxNOT_FOUND)
-											{
-												// these markers are not for 'sacred' text, but for things like \rq etc, they store like \f would
-												bIsInlineBindingMkr = FALSE;
-												bIsInlineNonbindingMkr = FALSE;
-												// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
-												bIsCharAttrMkr = FALSE;
-											}
-											else
-											{
-												// It's not a character formatting mkr
-												// It's not a 'binding' type of mkr
-												// It's not a 'non-binding' type of mkr
-												// It's not one of the Red set
-												// So let the legacy code decide what to do
-												bIsInlineBindingMkr = FALSE;
-												bIsInlineNonbindingMkr = FALSE;
-												bIsCharAttrMkr = FALSE;
-											}
-										}
-									} // end of the else block for test: if (offset >= 0) - for char format mkrs
 
 							} // end of TRUE block for test: if (pUsfmAnalysis != NULL)
 						} // end of TRUE block for test: if (*ptr == gSFescapechar)
