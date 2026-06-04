@@ -242,6 +242,7 @@ public:
 	virtual bool OnSaveModified(); // in protected area of MFC app
 	bool			DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
 	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
+	bool			IsFinalPunctuationOnly(wxString str); // whm 11Dec2025 added
 
 	// Implementation
 protected:
@@ -275,6 +276,7 @@ protected:
 	// \xt marker within an unfiltered \f ... \f* span
 	bool			m_bIsWithinUnfilteredInlineSpan; // whm 4Mar2024 added
 	bool			m_bIsWithinCrossRef_X_Span;
+	bool			m_bIsWithinFootnote_F_Span; // whm 6Nov2025 added
 	wxString		m_strUnfilteredInlineBeginMarker;
 	// BEW 9Sep16 added next four
 	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
@@ -287,9 +289,12 @@ public:
 	bool			m_bWmkrAndHasBar; // BEW 12Sep22 added, to save value returned by IsWmkrWithBar(wxChar* ptr), used with caching some USFM 3 stuff
 	wxString		m_strInitialPuncts; // BEW 23Jun23 a set of 11 pre-word punctuation chars, taken from spacelessPuncts to
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
+	wxString		m_strStrictlyInitialPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
+	wxString		m_strStrictlyFinalPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
 	wxString		ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW added 16Nov23
+	wxString		ParseNumberPrefixedWord(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxString& finalPuncts); // whm 18Dec2025 added
 
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
@@ -333,11 +338,11 @@ protected:
 	void			RemoveVenturaOptionalHyphens(wxString*& pstr);
 	bool			ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
 		SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase, 
-		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
+		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 		wxString& fixesStr);
-	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& WXUNUSED(pList),
+	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
 		SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
-		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added
+		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
 		wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
 	bool			ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr);
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,
@@ -399,7 +404,7 @@ public:
 	wxString		GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, wxString ChVs, wxArrayString m_UsfmStructArr, 
 					wxString& filterStatusStr, wxString& filterableMkrStr);
 	*/
-	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& filterStatus);
+	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& MD5sum, wxString& whiteSpBeforeMkr, wxString& filterStatus);
 	wxArrayString	m_UsfmStructArr;
 	wxString		m_UsfmStructStringBuffer;
 	wxString		m_usfmStructFilePathAndName;
@@ -432,6 +437,10 @@ public:
 					// BEW added 4May23 -- GetPostwordExtras removes m_key, returns the rest
 	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr);
 
+	wxString		GetWsMkrsAndPunctsAtPtr(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 10Jan2026 added
+
+	wxString		GetWsMkrsAndPunctsFromPtrOnward(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 20Mar2026 added
+
 					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 					// whitespace(s), and getting to the puncts may require parsing over one or more endEndMarkers
 	//wxChar*			ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
@@ -457,7 +466,7 @@ public:
 	// **** end of functions for not having placement dialogs *******
 
 	bool			IsInitialPunctPlusWhite(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, wxString& strReturn); // BEW 22May23 added
-	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
+	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen, wxString wsMkrsAndPuncts); // whm 13Jan2026 added wsMkrsAndPuncts parameter
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs
 	CLayout* GetLayout(); // view class also has its own member function of the same name
@@ -473,14 +482,17 @@ public:
 	void			GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
 	void			GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str);
-	wxArrayString   GetFilteredInfoSegments(wxString filterStr); // whm 8Feb2024 added
+	void			GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 added
+					wxArrayString& filteredStrItemsWithBrackets, // whm 7Mar2026 added
+					wxArrayString& filteredStrItemsWsMkrsAndPuncts); // whm 7Mar2026 added
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
 	// BEW 30Sep19 next one has added bool, default FALSE; function is called only twice in the app
-	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
+	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase); // whm 23Apr2026 removed last param // , bool bSearchInNonbindingEndMkrs = FALSE);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar* pChar);
+	bool			IsStringWhiteSpace(wxString str); // whm 20Feb2026 added
 	int				ParseNumber(wxChar* pChar);
 	wxString		ParseNumberInStr(wxString strStartingWithNumber); // BEW 1Aug23, to get a number string without having to use wxChar*
 	wxString		m_firstVerseNum; // BEW added 1Aug23, to enable knowing when a contentless pSrcPhrase is
@@ -491,7 +503,8 @@ public:
 	bool			IsUnknownMarker(wxChar* pChar);
 	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
 	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
-	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);
+	bool			IsFootnoteOrCrossReferenceMarker(wxChar* pChar); // whm 12Nov2025 added
+	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar, wxChar* pEnd); // whm 12Nov2025 revised and added 2nd pEnd parameter
 	//bool			IsFootnoteOrCrossReferenceEndMarker(wxString str); //overload, str must start with endmarker
 	bool			IsFilteredBracketMarker(wxChar* pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar* pChar, wxChar* pEnd);
@@ -503,6 +516,7 @@ public:
 	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsClosingDoubleChevron(wxChar* pChar); // BEW 6Oct16 added, but no IsOpeningDoubleChevron() done yet
 	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
+	bool			IsACurrentFilterMarker(wxString augWholeMkr); // whm 6Nov2025 added to replace obsoleted one below.
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis); // whm 24Oct2023 see definition comments for warnings about use of this function!!
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
@@ -525,7 +539,7 @@ public:
 	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBraceAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBracketAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
-	wxString		ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
+	wxString		ParseChVerseAndDigitPrefixedWord(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
 							// be a digit, parse over things like 4:17, or 5:4-9. but do not include the 
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, bool& bWordNotParsed); // BEW 3Aug23 added bWordNotParsed
@@ -585,8 +599,8 @@ public:
 	int				ScanToNextMarker(wxChar* pChar, wxChar* pEnd);
 
 	// more unfiltering stuff goes just above, if needed
-
-	bool			IsLegacyDocVersionForFileSaveAs();
+	// whm 16Apr2026 removed the following IsLegacyDocVersionForFileSaveAs()
+	//bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList* LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis* LookupSFM(wxChar* pChar);
 	// Overloaded variant used in ParseWord()
@@ -607,9 +621,17 @@ public:
 							wxString& spacelessPuncts, int len, bool& bExitOnReturn,
 							bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
 
+	int				ParseStrictlyInitialPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // whm 19Dec2025 added
+	int				ParseStrictlyFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // whm 6Nov2025 added
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
 	int				ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 25Jul23 added
 
+	bool			StringHasPunctuation(wxString str,  // whm 22Mar2026 added
+						bool& bPunctIsInitial, 
+						bool& bPunctIsFinal, 
+						bool& bPunctIsMedial, 
+						bool& bStrIsAllPuncts);
+	wxString		RemoveAllPunctuationFromString(wxString strBefore);
 	// *********  NOTE ***** BEW 3Jun23 if I get a message, errorC2248: cannot access private member declared in class
 	// *********  regarding operator= , when using ParseFinalPuncts() , it's because I was assuming that the function
 	// *********  ParseFinaPuncts() returns a wxString, when it actually returns an int!!!!! Duh! Homer brain struck again
@@ -623,7 +645,7 @@ public:
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar* pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar* pChar,
-	wxChar*			pBuffStart, wxChar* pEnd);
+	wxChar*			pBuffStart, wxChar* pEnd, wxString& wsMkrsAndPuncts);
 	wxChar*			FindParseHaltLocation(wxChar* ptr, wxChar* pEnd, bool* pbFoundInlineBindingEndMarker,
 						bool* pbFoundFixedSpaceMarker, bool* pbFoundClosingBracket,
 						bool* pbFoundHaltingWhitespace, int& nFixedSpaceOffset,
@@ -652,6 +674,7 @@ public:
 	// ptr can be updated correctly from an int len counter internally, which uses int
 	// itemLen for parsing over things like puncts, beginMarkers, etc.
 	int ParsePreWord(wxChar* pChar,
+		wxChar* pBufStart, // whm 12Nov2025 added
 		wxChar* pEnd,
 		CSourcePhrase* pSrcPhrase,
 		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
@@ -659,7 +682,9 @@ public:
 		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 		bool& bIsInlineNonbindingMkr,
 		bool& bIsInlineBindingMkr,
-		bool bTokenizingTargetText);
+		bool bTokenizingTargetText,
+		bool& bForceEmptySrcPhrase,
+		bool& bParsePreWordParsedPuncts);
 
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
@@ -674,7 +699,8 @@ public:
 		// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
 		bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
 		bool bTokenizingTargetText,
-		bool& bProcessedOldBarCode); // whm 18Feb2024 added. TRUE when ParseWord() has processed an old bar code
+		bool& bProcessedOldBarCode,// whm 18Feb2024 added. TRUE when ParseWord() has processed an old bar code
+		bool& bParsePreWordParsedPuncts); // whm 22Dec2025 added
 
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
@@ -703,6 +729,7 @@ public:
 	void			UpdateFilenamesAndPaths(bool bKBFilename, bool bKBPath, bool bKBBackupPath,
 		bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
+	void			UpdateMergedSequNumbersAndTextTypes(); // whm 21Mar2026 added
 	void			SetFilename(const wxString& filename, bool notifyViews);
 
 
@@ -879,7 +906,7 @@ public:
 	bool IsEmptyMkr(wxChar* pChar, wxChar* pEnd, 
 		bool& bHasBogusPeriods, int& nWhitesLenIncludingBogusPeriods, int& nPeriodsInWhitesLen);
 	void IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd, int& nPeriods); 
-	bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
+	//bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
 
 
 

@@ -42,6 +42,8 @@ class CAdminEditMenuProfile : public wxScrollingDialog // use wxScrollingDialog 
 #endif
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CAdminEditMenuProfile(wxWindow* parent); // constructor
 	virtual ~CAdminEditMenuProfile(void); // destructor
 	wxNotebook* pNotebook;

@@ -36,6 +36,8 @@ class CWaitDlg : public wxDialog
 {
 // Construction
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CWaitDlg(wxWindow* parent);   // standard constructor
 //#if defined(_KBSERVER)
 	CWaitDlg(wxWindow* parent, bool bNoTitle); // alternate constructor for an empty titlebar

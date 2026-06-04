@@ -70,10 +70,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.11.0"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.12.0"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("April6, 2024"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 29, 2026"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->SetToolTip( wxT("This date should be the same as the executable file") );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -90,7 +90,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2024, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2026, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item13->Add( item14, 0, wxBOTTOM, 0 );
@@ -6959,9 +6959,10 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
         _("Paratext 7"), 
         _("Paratext 8"), 
         _("Paratext 9"), 
-        _("Bibledit")
+        _("Bibledit"), 
+        _("Paratext Lite")
     };
-    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 4, strs13, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 5, strs13, 1, wxRA_SPECIFY_COLS );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString *strs14 = (wxString*) NULL;

@@ -26,6 +26,8 @@
 class CListDocumentsInOtherFolderDialog : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CListDocumentsInOtherFolderDialog(wxWindow* parent); // constructor
 	virtual ~CListDocumentsInOtherFolderDialog(void); // destructor
 	//enum { IDD = IDD_LIST_DOCUMENTS_IN_OTHER_FOLDER_DLG };

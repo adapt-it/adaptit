@@ -260,7 +260,8 @@ public:
 	CSourcePhrase&	operator =(const CSourcePhrase& sp);
 	void			CopySameTypeParams(const CSourcePhrase& sp);
 	CBString		MakeXML(int nTabLevel); // nTabLevel specifies how many tabs are to start each line,
-												// nTabLevel == 1 inserts one, 2 inserts two, etc
+											// nTabLevel == 1 inserts one, 2 inserts two, etc
+	void			RemoveDocVersion11WsAndMkrsFromFilteredInfo(wxString filteredStr); // whm 16Apr2026 added
 	void			DeepCopy(void); // BEW added 16Apr08, to obtain copies of any saved original
 									// CSourcePhrases from a merger, and have pointers to the copies
 									// replace the pointers in the m_pSavedWords member of a new instance
@@ -368,7 +369,8 @@ public:
 	wxString m_srcSinglePattern;
 	wxString m_tgtSinglePattern;
 	wxString m_glossSinglePattern;
-	wxString m_srcMergerPattern;
+	// whm 10Jan2026 modification. We now store m_follWsMkrsAndPuncts in the place of m_srcMergerPattern
+	wxString m_follWsMkrsAndPuncts; // wxString m_srcMergerPattern;
 	wxString m_tgtMergerPattern;
 	wxString m_oldKey; // actually added on 10May23 to support changes of m_key value in rebuilding src
 

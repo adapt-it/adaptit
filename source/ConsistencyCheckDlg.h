@@ -42,6 +42,8 @@ class CSourcePhrase;
 class CConsistencyCheckDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CConsistencyCheckDlg(wxWindow* parent); // constructor
 	virtual ~CConsistencyCheckDlg(void); // destructor
 	// other methods

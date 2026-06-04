@@ -223,7 +223,9 @@ wxString  MakeUNNNN_Hex(wxString& chStr); // BEW 17Dec22 need this because 41MAT
 // whm 2Feb2024 added following function that appends sppendingStr to receivingStr ensuring that there
 // is singular whitespace between the two strings. Excess whitespace is removed from the right end of the
 // receivingStr. The receivingStr is returned to caller by reference and the appendingStr is not changed.
-void	  AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr);
+// whm 27Mar2026 This function is currently unused after implementing the more accurate handling
+// of whitespace via the CSourcePhrase->m_follWsMkrsAndPuncts member addition.
+//void	  AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr);
 
 // BEW removed this version of ExtractSubstring() as it's looking like I won't need it
 //wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);
@@ -340,7 +342,9 @@ void      EmptyMarkersAndFilteredStrings(
 								  wxString& collBackTransStr,
 								  wxString& filteredInfoStr); 
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
+wxString  GetLastMarker(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr); // whm 12Nov2025 added
 wxString  GetLastMarker(wxString markers);
+wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
 wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
 								// use in CAdapt_ItApp::EnsureProperCapitalization()
 //bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
@@ -361,6 +365,9 @@ bool      HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll = FALSE); //BEW 30Sep19
 bool      IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool      IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
+// whm 13Dec2025 added the following to ensure that identification markers like \rem are preceded
+// by an EOL "\r\n" sequence when they are being unfiltered
+void  FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filteredInfo);
 wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, 
 							bool bDoCount, 
 							bool bCountInTargetText, 
@@ -378,11 +385,17 @@ wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase,
 wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
 wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
-// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
 							wxString Tstr, bool bDoCount, 
-							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct);
-bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
+							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct,
+							SPList* pList); // whm 19Nov2025 added pList parameter
+bool	  AnalyseSstr(wxString s, 
+	wxArrayString& arrItems, 
+	wxString separator, 
+	wxString& CopiedTstr, 
+	wxString tgtWord,
+	wxString srcWord); // whm 18Feb2026 added srcWord parameter
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
 			// Each such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm
@@ -391,15 +404,71 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
+
+// whm 20Jan2026 added. This function checks for common characters at the end of str1 which
+// are also present at the beginning of str2.
+wxString FindOverlap(wxString str1, wxString str2);
+
+// whm 27Jan2026 added. This function collects the common parts shared between
+// str1 and str2. Then it returns those common parts in the order they occur in
+// the string designated by the int str1or2. The call might be, for example:
+//   wxString commonOrderedStr;
+//   commonOrderedStr = GetCommonNonTextStrPartsOrderedAccordingToStr1or2(keyWord, lastFiltStuff, 2);
+// where:
+//   str1 keyWord might be: “\add Ong
+//   str2 lastFiltStuff might be: \r\n\v 71 \add “
+//   2 says to return the common parts in the order found in str2
+// The common parts are “ and \add and str2 has those common parts ordered
+// as \add “  so the function would return str2's common parts \add “ to the caller.
+// If either str1 or str2 is empty, or there are no common parts, the string 
+// designated by the third parameter is returned unchanged.
+// Note: Where texts parts are present in the input strings only the markers, punct 
+// and whitespace are collected and compared that PRECEDE the first instance of any 
+// text part.
+// This function is used in the rebuilding of source text routine(s).
+wxString GetCommonNonTextStrPartsOrderedAccordingToStr1or2(wxString str1, wxString str2, int str1or2);
+
+// whm 26Feb2026 added.
+wxString RemoveCommonNonTextPartsOfStr1FromStr2IgnoringStr2WhiteSpace(wxString str1, wxString str2);
+
+// whm 25Jan2026 added. This function counts the number of non-overlapping occurrences
+// of a substring within a string.
+int CountSubstringOccurrences(wxString stringToSearch, wxString substring);
+
+// whm 21Jan2026 added for use in FromSingleMakeSstr2()
+void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	bool& bHasMetadata, 
+	bool& bHasFilteredInfo, 
+	bool& bHadFilteredInfoInPrevSrcPhrase,
+	bool& bHasEmptyKey, 
+	bool& bHasEmbeddedMarkerInKeyWord,
+	bool& bKeyHasOnlyPuncts); // whm 2Mar2026 added
+
+// whm 1Mar2026 refactored for simplification.
+// As of 4Mar2026 this function completely replaces the
+// previous FromSingleMakeSstr2() function below.
+wxString  FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	SPList* pList); 
+
 //wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
-// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
+// whm 4Mar2026 As of this date the following function is no longer
+// used/called anywhere within the application.
 wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-			CSourcePhrase* pPrevSingleSrcPhrase);
+			CSourcePhrase* pPrevSingleSrcPhrase,
+			SPList* pList); // whm 19Nov2025 added pList parameter
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
-wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
+wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, 
+			CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
+			SPList* pList); // whm 19Nov2025 added pList
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
+// whm 19Nov2025 added the IsInlineMarkerSpanEnclosedInParentheses() function below
+bool	  IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList);
 wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
-							bool& bAddedSomething); // like ExportFunctions.cpp's
+							bool& bAddedSomething,
+							SPList* pList); // like ExportFunctions.cpp's
 			// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
 			// filtered information, nor the m_markers member; because this
 			// function is used in FromMergerMakeSstr() which accesses those

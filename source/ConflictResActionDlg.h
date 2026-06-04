@@ -28,6 +28,8 @@
 class CConflictResActionDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CConflictResActionDlg(wxWindow* parent); // constructor
 	virtual ~CConflictResActionDlg(void);    // destructor
 	// other methods

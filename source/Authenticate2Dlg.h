@@ -31,6 +31,8 @@
 class Authenticate2Dlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	Authenticate2Dlg(wxWindow* parent, bool bUserAuthenticating);
 
 	virtual ~Authenticate2Dlg(void); // destructor

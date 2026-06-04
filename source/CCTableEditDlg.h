@@ -26,6 +26,8 @@
 class CCCTableEditDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CCCTableEditDlg(wxWindow* parent); // constructor
 	virtual ~CCCTableEditDlg(void); // destructor
 	//enum { IDD = IDD_TABLE_EDIT };

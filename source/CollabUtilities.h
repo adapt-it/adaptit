@@ -333,6 +333,7 @@ class CSetupEditorCollaboration;
                             wxString CollabEditor, wxString PT7Version, wxString PT8Version);
     wxString        GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion);
 	wxString		GetPathToRdwrtPT(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
+	wxString		GetPathToParatextLiteExec(); // whm 3Apr2026 added
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID);
@@ -346,8 +347,10 @@ class CSetupEditorCollaboration;
 	// intermediatory location for storage of the file holding the data being transferred
 	// in or out as the case may be - determined by the lineFor value, either 'reading' or
 	// 'writing'
-	wxString		MakePathToFileInTempFolder_For_Collab(enum DoFor textKind);
-	wxString		BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind);
+	wxString		MakePathToFileInTempFolder_For_Collab(enum DoFor textKind,
+					wxString& pathOnly, wxString& fileNameOnly); // whm 8Apr2026 added
+	wxString		BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind,
+					wxString& pathOnly, wxString& fileNameOnly); // whm 8Apr2026 added
 	void			TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
 							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
 	// Move the newSrc string of just-obtained (from PT or BE) source text, currently in the

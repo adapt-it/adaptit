@@ -149,6 +149,8 @@ public:
 class CFontPageWiz : public wxWizardPage
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CFontPageWiz();
 	CFontPageWiz(wxWizard* parent); // constructor
 	virtual ~CFontPageWiz(void); // destructor // whm make all destructors virtual
@@ -207,6 +209,8 @@ private:
 class CFontPagePrefs : public wxPanel
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CFontPagePrefs();
 	CFontPagePrefs(wxWindow* parent); // constructor
 	virtual ~CFontPagePrefs(void); // destructor // whm make all destructors virtual

@@ -10,15 +10,23 @@
 *.gmo
 *.pot
 x/bin/win32/Unicode Debug/
+/bin/win32/vc90.pdb
 /bin/win32/Unicode Release/
 /bin/win32/Debug/
 /bin/win32/Adapt_It.depend
 /bin/win32/Adapt_It.layout
 /bin/win32/Adapt_It.sdf
-/bin/win32/vc90.pdb
+/bin/linux/adaptit_wx3.0.depend
+/bin/linux/adaptit_wx3.0.layout
+/bin/linux/build_315_debug/
+/bin/linux/build_315_release/
+/bin/linux/config.log
+/bin/linux/configure~
+/bin/linux/libtool
 /bin/linux/build_debug/
 /bin/linux/build_release/
 /bin/linux/INSTALL
+/bin/linux/Makefile
 /bin/linux/Makefile.in
 /bin/linux/aclocal.m4
 /bin/linux/config.guess
@@ -39,19 +47,29 @@ x/bin/win32/Unicode Debug/
 /bin/linux/adaptit.layout
 /debian/control.bak
 /debian/control.save
+/platform_setup_docs/Notes for revising the Setting up wxWidgets and Adapt It on Windows.odt
+/po/Makefile
+/po/Makefile.in
+/po/POTFILES
+/po/wxstd-es.po
+/po/wxstd-fr.po
+/po/wxstd-pt.po
+/po/wxstd-ru.po
+/po/wxstd-zh.po
 /hlp_temp/
+/scripts/release_bak_23Apr2022.sh
 /setup Unicode/
 /setup Unicode - Minimal/
 /setup Unicode - No Html Help/
 /setup Unicode Documentation Only/
 /setup Unicode Localizations Only/
+/source/.deps/
 /source/adaptit.cbp
 /source/adaptit.depend
 /source/adaptit.layout
 /source/wxsmith/
 /AIWX Installers/
 /hlp/Adapt_It.htb
-
 
 *.xcuserstate
 /bin/win32/*.opendb

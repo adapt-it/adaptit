@@ -30,6 +30,8 @@
 class CEditSourceTextDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CEditSourceTextDlg(wxWindow* parent); // constructor
 	virtual ~CEditSourceTextDlg(void); // destructor
 	//enum { IDD = IDD_EDIT_SOURCE };

@@ -1277,6 +1277,7 @@ CPile* CAdapt_ItView::GetNextPile_forFreeTrans()
 	wxLogDebug(_T("GetNextPile_forFreeTrans() in View, check first sequNum, line= %d, sequNum= %d"),
 		__LINE__, pApp->m_nSN_forFreeTrans);
 	CSourcePhrase* pSP = NULL;
+	wxUnusedVar(pSP); // avoid gcc warning
 
 	iStart = pApp->m_nSN_forFreeTrans;
 	PileList* pilesPtr = GetLayout()->GetPileList();
@@ -2588,6 +2589,11 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 		if (ptStripTopLeft.y >= rectClient.GetBottom())
 		{
 			nLastStrip = --j;
+			if (!(nLastStrip > nFirstStrip))
+			{
+				int break_here = 1;
+				break_here = break_here;
+			}
 			wxASSERT(nLastStrip > nFirstStrip);
 			break;
 		}
@@ -3148,6 +3154,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 {
 	wxLogNull nolog;
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	// refactored 2Apr09
 	CLayout* pLayout = GetLayout();
 	//#if defined (_DEBUG)
@@ -3284,7 +3291,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 #endif
 		return;
 	}
-	CAdapt_ItDoc* pDoc = GetDocument();
 	pDoc->Modify(TRUE);
 
 	// if auto capitalization is on, determine the source text's case propertiess
@@ -3298,7 +3304,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 		}
 		else
 		{
-			bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
+			bNoError = pDoc->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 
 			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase(); // BEW 19May18 added
 			if (gbIsGlossing) { pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_gloss; }
@@ -3438,7 +3444,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 							pApp->m_targetPhrase = adaption;
 							pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 							wxString tgtStr = adaption;
-							pApp->GetView()->RemovePunctuation(GetDocument(), &adaption, from_target_text);
+							pApp->GetView()->RemovePunctuation(pDoc, &adaption, from_target_text);
 							pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(tgtStr); // should make it 'modified'
 									// and a block further below will do the store, and the content will 'stick'
 						}
@@ -4062,7 +4068,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	// get the auto capitalization parameters for the sourcephrase's key
 	if (gbAutoCaps)
 	{
-		bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+		bNoError = pDoc->SetCaseParameters(pSrcPhrase->m_key);
 	}
 
     // the next call factors out various blocks of code which all have one objective, to
@@ -4102,35 +4108,35 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	// to a FALSE value while the execution is not "within the empty markers loop".
 	// whm 17Jan2024 as of this date m_bWithinEmptyMkrsLoop is always FALSE since there is no more
 	// markers loop, nor EnterEmptyMkrsLoop() function to set it TRUE. Hence the 
-	// m_bWithinEmptyMkrsLoop boolen should be remove from the Doc and the enclosing if test below
+	// m_bWithinEmptyMkrsLoop boolen should be removed from the Doc and the enclosing if test below
 	// removed from the enclosed if ... else code blocks.
-	if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
+	//if (!pDoc->m_bWithinEmptyMkrsLoop)
+	//{
+	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
 	{
-		if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
-		{
-			str.Empty();
-		}
-		else
-		{
+		str.Empty();
+	}
+	else
+	{
 
-			DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
-				bHasNothing, bNoValidText, bCopySomethingFromSrc);
+		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
+			bHasNothing, bNoValidText, bCopySomethingFromSrc);
 
 #if defined (_DEBUG)
-			wxLogDebug(_T("PlacePhraseBox() RESULTS DoGetSuitableText... line %d, selector= %d, str= [%s], bHasNothing= %d, bNoValidText= %d, bCopySomethingFromSrc= %d"),
-				__LINE__, selector, str.c_str(), (int)bHasNothing, (int)bNoValidText, (int)bCopySomethingFromSrc);
-			if (pSrcPhrase->m_nSequNumber >= 0)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-			}
+		wxLogDebug(_T("PlacePhraseBox() RESULTS DoGetSuitableText... line %d, selector= %d, str= [%s], bHasNothing= %d, bNoValidText= %d, bCopySomethingFromSrc= %d"),
+			__LINE__, selector, str.c_str(), (int)bHasNothing, (int)bNoValidText, (int)bCopySomethingFromSrc);
+		if (pSrcPhrase->m_nSequNumber >= 0)
+		{
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+		}
 #endif
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-			wxLogDebug(_T("View, PlacePhraseBox() line  %d  after DoGetSuitableText...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
-				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+		wxLogDebug(_T("View, PlacePhraseBox() line  %d  after DoGetSuitableText...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
+			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
-		}
-	} // end of TRUE block for test: if (!m_bWithinEmptyMkrsLoop)
+	}
+	//} // end of TRUE block for test: if (!m_bWithinEmptyMkrsLoop)
 
 a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on
 				// 28April05 to the code now in the DoGetSuitableText_ForPlacePhraseBox()
@@ -4140,7 +4146,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 		{
-			bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_targetPhrase, FALSE);
+			bNoError = pDoc->SetCaseParameters(pApp->m_targetPhrase, FALSE);
 			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 			{
 				// change to upper case initial letter
@@ -4339,7 +4345,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		pDoc->ResetPartnerPileWidth(pSPhr);
 
-		bool bProhibited = pApp->GetDocument()->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
+		bool bProhibited = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
 		pApp->m_bDisablePlaceholderInsertionButtons = bProhibited;
 	}
 
@@ -4431,7 +4437,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// phrasebox sizing just above is no longer needed here in PlacePhraseBox(). The only thing
 	// we need here is a main frame size event to get alignment of pile correct.
 	pApp->GetMainFrame()->SendSizeEvent();
-	//pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+	//pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 	//pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 
 #if defined(_DEBUG) && defined(FLAGS)
@@ -15389,6 +15395,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 {
 	// whm modified 29Oct10 to handle Guessing
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxString str;
 	if (gbIsGlossing)
 	{
@@ -15396,7 +15403,32 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	}
 	else
 	{
-		str = pSrcPhrase->m_key;
+		// whm 11Dec2025 modified for testing if we can force CopySourceKey to return final
+		// punctuation only for empty source phrase instances that have only final punctuation
+		// within pSrcPhrase->m_srcPhrase, when pSrcPhrase->m_key is empty. This is to be
+		// able to properly display an empty source phrase whose m_srcPhrase member contains
+		// only final punctuation, such as "). " a situation that is needed in data such as
+		// the Kimaragang data which has instances within footnotes of text like this:
+		// "...patayo (intangay \xt Yes 53:8\ft ). Om..." in which the only way I've found to
+		// deal with the "). " that occurs after the \ft marker is to store the "). " and the
+		// \ft marker on an empty source phrase. Reason: The \ft introduces more footnote text
+		// which would ordinarily be a non-punct text word, but in this case it is actually 
+		// final punctuation which cannot be stored on the following source phrase's m_follPunct
+		// member, nor can it be stored on the previous source phrase "53:8" as m_follOuterPunct
+		// due to the intervening begin marker \ft.
+		if (pSrcPhrase->m_key.IsEmpty() && !pSrcPhrase->m_srcPhrase.IsEmpty() 
+			&& pDoc->IsFinalPunctuationOnly(pSrcPhrase->m_srcPhrase))
+		{
+			// Remove any whitespace from the final punctuation in pSrcPhrase->m_srcPhrase
+			wxString tempStr = pSrcPhrase->m_srcPhrase;
+			tempStr.Trim(TRUE);
+			tempStr.Trim(FALSE);
+			str = tempStr;
+		}
+		else
+		{
+			str = pSrcPhrase->m_key;
+		}
 	}
 	if (str.IsEmpty())
 	{
@@ -16868,7 +16900,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	bool bHandledPrecPuncts = FALSE; // init
 	bool bHandledFollPuncts = FALSE; // init BEW added 11Oct23
 
-	if (pSrcPhrase->m_nSequNumber >= 4447)
+	if (pSrcPhrase->m_nSequNumber >= 125)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -16954,7 +16986,16 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	}
 
 	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase);
-	if (!strGrabbedPrecPuncts.IsEmpty())
+	// whm 11Dec2025 added sanity check here. With my test case where m_targetPhrase
+	// could be only final punctuation such as ")." and have no actual text, We don't
+	// want any of the finalPuncts determined above to also be stored in m_precPunct,
+	// so check for this situation and disallow any strGrabbedPrecPuncts that are the
+	// same as strGrabbedFinalPuncts and same as the m_targetPhrase itself.
+	//if (!strGrabbedPrecPuncts.IsEmpty())
+	if (!strGrabbedPrecPuncts.IsEmpty() 
+		&& !(strGrabbedPrecPuncts == pApp->m_targetPhrase)
+		&& !(strGrabbedPrecPuncts == strGrabbedFinalPuncts)
+		)
 	{
 		wxString precPuncts = pSrcPhrase->m_precPunct;
 		if (precPuncts.IsEmpty())
@@ -17381,7 +17422,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					}
 				}
 				// do (2)
-				pSrcPhrase->m_targetStr = strGrabbedPrecPuncts + pSrcPhrase->m_targetStr; // that should give correct m_targetStr,
+				// whm 11Dec2025 modified to prevent duplication of punctuation in m_targetStr
+				if (strGrabbedPrecPuncts != pSrcPhrase->m_targetStr)
+				{
+					pSrcPhrase->m_targetStr = strGrabbedPrecPuncts + pSrcPhrase->m_targetStr; // that should give correct m_targetStr,
+				}
 
 #if defined (_DEBUG) && !defined (NOLOGS)
 				{
@@ -18527,7 +18572,15 @@ wxString CAdapt_ItView::GetManuallyAddedFinalPuncts(wxChar* pBeginBuff, wxChar* 
 		return typedPuncts; // it's still empty
 	}
 	ptr--; // point at last character in the string buffer
-	while (ptr > pBeginBuff)
+	// whm 11Dec2025 modified. If the buffer only has something like ")." within it, the
+	// while loop condition below would skip the examination of the first char within the
+	// buffer ')'. Although this would not normally be of concern since final punctuation
+	// that is manually typed would ordinarily not occur at the first char position within
+	// the buffer, my test case where the buffer only has ")." shows that the while condition
+	// should be while (ptr >= pBeginBuff) instead of while (ptr > pBeginBuff). So, I'm
+	// modifying it accordingly. This would not affect the normall getting of manually added 
+	// final puncts, but makes the algorithm more "correct", especially for my test case.
+	while (ptr >= pBeginBuff) //while (ptr > pBeginBuff)
 	{
 		offset = finalPuncts.Find(*ptr);
 		if (offset != wxNOT_FOUND)
@@ -28306,10 +28359,10 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	}
 
 	wxString srcStr; // collect in this
-	int length = 0;
+	//int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added, used in FromMergerMakeSstr() and FromSingleMakeSstr2()
 	while (pos_pSP != NULL)
 	{
 		pSrcPhrase = pos_pSP->GetData();
@@ -28319,78 +28372,56 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 		{
             // any sequence number meeting that condition lies within the editable span,
             // so collect from it...
+			//
+			// whm 11Mar2026 added. The new scheme of tracking whitespace markers and punctuatioin
+			// within the m_follWsMkrsAndPuncts member of CSourcePhrase requires that we extract
+			// some whitespace, markers and puncts from the previous source phrase's m_follWsMkrsAndPuncts
+			// member and put that into the srcStr here at the start of the while loop but only for the
+			// nStartingSN. The pPrevSrcPhrase's m_follWsMkrsAndPuncts is not readily available because
+			// pPrevSrcPhrase is NULL at this point. So instead of getting its m_follWsMkrsAndPuncts
+			// value, we'll add the m_markers and any other begin markers of the current pSrcPhrase to
+			// For example. If the first word of a span of source text being edited is at the beginning
+			// of a verse, there will be a verse number perhaps like "\\p\r\n\\v 1 " in m_markers which
+			// we want to put back into place preceding the first word that we include in srcStr. 
+			// Generally, we should include any other begin markers and preceding punctuation in the
+			// general rebuild order that precedes the first word of the span being edited.
+			wxString wsMkrsAndPuncts; wsMkrsAndPuncts.Empty();
+			if (pSrcPhrase->m_nSequNumber == nStartingSN)
+			{
+				// The general order that also was used in export functions. This order may not
+				// always be accurate, but the user can adjust that in the source text edit dialog.
+				wsMkrsAndPuncts += pSrcPhrase->m_markers;
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineNonbindingMarkers();
+				wsMkrsAndPuncts += pSrcPhrase->m_precPunct;
+				wsMkrsAndPuncts += pSrcPhrase->GetInlineBindingMarkers();
+			}
+			// 
 			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
 				// it's a genuine merger
-				srcStr = FromMergerMakeSstr(pSrcPhrase);
+				srcStr = FromMergerMakeSstr(pSrcPhrase, 
+						pPrevSrcPhrase, // whm 16Feb2026 added 2nd parameter
+						pSublist); // whm 19Nov2025 added pSublist
 			}
 			else
 			{
 				// whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
-				srcStr = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added 2nd parameter
+				// whm 4Mar2026 Changed the FromSingleMakeSstr2() below to the refactored
+				// FromSingleMakeSstr1().
+				// TODO: Need to do more testing of the EditSourceText operation that calls
+				// this ScanSpanDoingSourceTextReconstruction() to test out the refactored 
+				// function.
+				srcStr = FromSingleMakeSstr1(pSrcPhrase, //srcStr = FromSingleMakeSstr2(pSrcPhrase,
+					pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter 
+					pSrcPhrases); // whm 19Nov2025 added pSrcPhrases
 			}
-			// figure out how to concatenate the substrings - after an endmarker (we'll
-			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
-			// even if we did we'd just assume \fe or \F were not endmarkers and put a
-			// space after them for concatenation, and that would comply with what the old
-			// markup standard used to so anyway, so we are safe) For USFM endmarker,
-			// we'll not put a space after it unless the to-be-concatenated string does
-			// not begin with a backslash (ie. if punctuation or a word starts it, then
-			// we'd want an intervening space)
-			strSource.Trim(); // remove any space from its end
-			length = strSource.Len();
-			if (length == 0)
-			{
-				strSource = srcStr;
-			}
-			else if (strSource[length-1] != _T('*'))
-			{
-				// no endmarker at its end
-				// BEW refactored 21Jul14, need ZWSP here, since either a single or a
-				// merged pSrcPhrase yielded srcStr
-				if (srcStr[0] == gSFescapechar)
-				{
-					// srcStr starts with an SF marker - it's safe then to tuck it up to
-					// whatever precedes without any intervening space, but it will be
-					// more readable with a space, and this is a context where we won't
-					// have punctuation & filtering interacting, so add the space
-					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-				}
-				else
-				{
-					// srcStr doesn't start with a marker, so we'll need to insert a space
-					// provided strSource is not empty
-					if (strSource.IsEmpty())
-					{
-						strSource = srcStr;
-					}
-					else
-					{
-						strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-					}
-				}
-			}
-			else
-			{
-				// there's an endmarker at its end - we'll add a space only if srcStr does
-				// not begin with an SF marker
-				if (srcStr[0] == gSFescapechar)
-				{
-					// srcStr begins with a marker so we can tuck it up to the end of strSource
-					strSource += srcStr;
-				}
-				else
-				{
-					// no marker at the start of srcStr, so a space would help readability (though
-					// otherwise unnecessary)
-					// BEW 21Jul14 support restoring ZWSP here
-					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
-				}
-			}
+			// Prefix the wsMkrsAndPuncts to the rebuild source srcStr before output to strSource.
+			srcStr = wsMkrsAndPuncts + srcStr;
+			strSource += srcStr; // whm 11Mar2026 moved to here.
 			srcStr.Empty();
 		} // end of block for TRUE result from test of sequence number
-		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
-	} // end of loop
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
+	} // end of while (pos_pSP != NULL) loop
 
 	// Don't leak memory. In the next call, FALSE is bDoPartnerPileDeletionAlso; calls
 	// DeleteSingleSrcPhrase() on each instance in pSublist
@@ -31451,16 +31482,12 @@ bailout:	pAdaptList->Clear();
 		// whm 13Nov2023 added the following function call to update the filter status fields in the 
 		// .usfmstruct file that was created for the newly created document from the input source text
 		// file before the TokenizeText() call above.
-		// The following function uses the gCurrentFilterMarkers string to add or update the last colon
-		// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in
-		// gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in gCurrentFilterMarkers.
+		// The following function uses the IsACurrentFilterMarker() function  to add or update the last 
+		// colon delimited field in the .sfmstruct file, making the field ":1" if the marker is to be
+		// filtered, or making it ":0" if the marker is NOT to be filtered.
 		// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
 		// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
 		// AFTER the TokenizeText[String]() call is made here below.
-		// *****************************
-		// whm TODO: Verify that the gCurrentFilteredMarkers string is up to date before the
-		// call below.
-		// *****************************
 		if (pDoc->m_bUsfmStructEnabled)
 		{
 			pDoc->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(pDoc->m_usfmStructFilePathAndName);
@@ -32865,9 +32892,16 @@ void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec,
 	{
 		if (pApp->m_nActiveSequNum > pApp->GetMaxIndex())
 		{
+			// whm 13Mar2026 addition/correction. The App's m_vertEdit_LastActiveSequNum
+			// value need to be updated here, otherwise if the last active pile was at or 
+			// near the end of the doc and source phrases were removed in this 
+			// TransferCompletedSrcPhrase() function, downstream code that then executes: 
+			//    pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum)
+			// will result in an m_pActivePile value of NULL causing a program crash.
 			pApp->m_nActiveSequNum  = pRec->nStartingSequNum; // this is probably a
-															  // better active loc
+															// better active loc
 			pRec->nSaveActiveSequNum = pApp->m_nActiveSequNum;
+			pApp->m_vertEdit_LastActiveSequNum = pApp->m_nActiveSequNum; // whm 13Mar2026 added
 		}
 	}
 }
@@ -34380,7 +34414,28 @@ void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument(); int nIndex = 1; // BEW 29May24 added
 
-	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	// whm 12Mar2026 Discovered a crash is possible if the active sequence number
+	// at the time Edit Source Text was invoked, was at the last pile in the document,
+	// and there were one or more placeholder source phrases in a retranslation that
+	// was just edited by the Edit Source Text process. The pApp->m_vertEdit_LastActiveSequNum
+	// value will be out of range (above the actual number of actual source phrases in
+	// pApp->m_pSourcePhrases). The pApp->m_vertEdit_LastActiveSequNum value should have 
+	// been updated during the Edit Source Text or vertical edit process prior to this point,
+	// so I'm going to put a safety check here to see if the pApp->m_vertEdit_LastActiveSequNum
+	// is beyond the actual count within the pApp->m_pSourcePhrases list. If so, we'll make
+	// sure here that the View's GetPile() call gets the actual last pile of the document
+	// so that pApp->m_pActivePile doesn't become NULL.
+	// whm 13Mar2026 Note: By adding an update of the pApp->m_vertEdit_LastActiveSequNum
+	// value near the end of the TransferCompletedSrcPhrases() function, the if block of
+	// the test should not happen, but having the check here won't hurt.
+	if (pApp->m_vertEdit_LastActiveSequNum > ((int)pApp->m_pSourcePhrases->GetCount() - 1))
+	{
+		pApp->m_pActivePile = pView->GetPile(pApp->m_pSourcePhrases->GetCount() - 1);
+	}
+	else
+	{
+		pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	}
 	wxString phraseboxContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();// whm 12Jul2018 added ->GetTextCtrl() part
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 	pApp->m_targetPhrase = phraseboxContents;

@@ -1836,18 +1836,40 @@ void DoExportAsType(enum ExportType exportType)
 #endif
 
 		// format for text oriented output
+		// whm 21Jan2026 removed the FormatMarkerBufferForOutput() call here for rebuilding of
+		// source text. It is no longer needed with the addition of m_follWsMkrsAndPuncts member
+		// to CSourcePhrase, since whitespace, markers and punctuation are now more accurately
+		// rendered within the rebuilt text - rendering the FormatMarkerBufferForOutput() 
+		// redundant.
+		// whm 26Jan2026 reinstated, but with a disabled whitespace copying from the info stored
+		// within the .usfmstruct file. It is needed still, but mainly to remove space before EOLs.
+		// A bool flag bRemoveSpaceBeforeEOLsOnly is set to TRUE at the beginning of the 
+		// FormatMarkerBufferForOutput() function below that disables the copying from the info 
+		// stored witihin the .usfmstruct file. That flag can be temporarily set to FALSE which
+		// will then notify the developer via break points when it can't sync markers due
+		// to some reason.
 		FormatMarkerBufferForOutput(source, sourceTextExport);
 #if defined(_DEBUG)
 		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
 #endif
-		source = RemoveMultipleSpaces(source);
+		// whm 21Jan2026 removed the RemoveMultipleSpaces() call here for rebuilding of
+		// source text. It is no longer needed with the addition of m_follWsMkrsAndPuncts member
+		// to CSourcePhrase, since whitespace, markers and punctuation are now more accurately
+		// rendered within the rebuilt text - rendering the RemoveMultipleSpaces() 
+		// redundant.
+		//source = RemoveMultipleSpaces(source);
 #if defined(_DEBUG)
 		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
 #endif
 
 		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
 		// a single CRLF
-		NormalizeTextEOLsToCRLF(source, TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
+		// whm 21Jan2026 removed the NormalizeTextEOLsToCRLF() call here for rebuilding of
+		// source text. It is no longer needed with the addition of m_follWsMkrsAndPuncts member
+		// to CSourcePhrase, since whitespace, markers and punctuation are now more accurately
+		// rendered within the rebuilt text - rendering the NormalizeTextEOLsToCRLF() 
+		// redundant.
+		//NormalizeTextEOLsToCRLF(source, TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(source, bRTFOutput);
@@ -17136,6 +17158,142 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 	return appendHere;
 }
 
+// whm 21Oct2025 added this boolean function to more accurately help restore source
+// text when (final) m_follPunct is to be restored in source text exports BEFORE an 
+// InlineBindingEndMarker instead of AFTER it. 
+// This function compares the content of str1 and str2. It returns FALSE in most cases
+// except when all 3 of the following are TRUE:
+//    str1 and str2 has the same non-punctuation text content
+//    str1 and str2 has the same punctuation content
+//    the punctuation content in str1 differs in location from str2
+// For example, this function would return TRUE for the following values of str1 and str2
+//    str1 is "\\add*."
+//    str2 is ".\\add*"
+// In this example, the text of str1 and str2 are the same "\\add*", and the punctuation
+// is the same ".", but the punctuation "." is in a different location, after the text in str1
+// but before the text in str2.
+bool HasSameTextAndPunctButPunctDiffersInTextLocation(wxString str1, wxString str2)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	bool bRetValue = FALSE;
+	// Remove all punctuation from str1 and str2.
+	// Save the punctuation char(s) and save their position they were found in str1 and str2.
+	// Save the text-only content of str1 and str2.
+	// Continue the testing only if the text content of
+	// str1 and str2 are both non-empty, and str1 and str2 both have the same text content.
+	// Compare the removed punctuation from str1 with the removed punctuation of str2, and
+	// return TRUE ONLY IF the position of the str1 punctuation differed from the position of
+	// the str2 punctuation.
+	wxString str1TextOnlyContent; str1TextOnlyContent.Empty();
+	wxString str2TextOnlyContent; str2TextOnlyContent.Empty();
+	wxString str1PunctuationOnlyContent; str1PunctuationOnlyContent.Empty();
+	wxString str2PunctuationOnlyContent; str2PunctuationOnlyContent.Empty();
+	int lenStr1 = str1.Length();
+	int lenStr2 = str2.Length();
+	// If either str1 or str2 are empty string return FALSE
+	if (lenStr1 == 0 || lenStr2 == 0)
+		return bRetValue; // FALSE;
+	int srcIndex = 0;
+
+	wxString inStr1 = str1;
+	wxString inStr2 = str2;
+	wxString* pStr1 = &inStr1;
+	wxString* pStr2 = &inStr2;
+	if (pStr1->Length() == 0 || pStr2->Length() == 0)
+		return bRetValue; // FALSE;
+	// Remove all punctuataion from pStr1 and pStr2.
+	// Note: The RemovePunctuation() calls below internally call SmartTokenize() which remove all
+	// punctuation from all individual words for any input string that is made up of multiple words
+	// delimited by spaces.
+	pView->RemovePunctuation(pDoc, pStr1, srcIndex);
+	str1TextOnlyContent = *pStr1;
+	pView->RemovePunctuation(pDoc, pStr2, srcIndex);
+	str2TextOnlyContent = *pStr2;
+	if (str1TextOnlyContent != str2TextOnlyContent)
+		return bRetValue; // FALSE;
+	// If we get here str1 and str2 have the same non-empty content
+	// 
+	// Now extract the punctuation-only content of str1 and str2 storing the punct char(s) in wxStrings
+	// in the same ordering as the punct char(s) are found within str1 and str2. Also use a wxArrayInt
+	// to store the position of each punct char within its original str1 and str2
+	wxArrayInt arrStr1PunctsIndexPos;
+	wxArrayInt arrStr2PunctsIndexPos;
+	str1PunctuationOnlyContent = ExtractSpacelessPunctCharsFromString(str1, srcIndex, arrStr1PunctsIndexPos);
+	str2PunctuationOnlyContent = ExtractSpacelessPunctCharsFromString(str2, srcIndex, arrStr2PunctsIndexPos);
+	// If str1 and str2 have different punct content (are different length) return FALSE
+	if (str1PunctuationOnlyContent.Length() != str2PunctuationOnlyContent.Length())
+	{
+		return bRetValue; // FALSE;
+	}
+	// If we get this far, both str1 and str2 have the same number of punct chars and
+	// so we can scan through the arrays and compare their position values in a single for loop. 
+	// Are the punct chars in the same or different position within str1 and str2? The
+	// index position of each punct char is stored within the arrStr1PunctsIndexPos
+	// and arrStr2PunctsIndexPos arrays.
+	// Now test is to see if str1PunctuationOnlyContent has the same punct chars as are
+	// found in str2PunctuationOnlyContent, and if so, test if the puncts chars are 
+	// ordered the same or differently. We returned FALSE above if str1PunctuationOnlyChars
+	// was a different length from str2PunctuationOnlyChars. Here in the following tests
+	// we return FALSE if the positions of the punct chars in the two arrays are the same for
+	// each punction character. We return TRUE only if the positions of the punct chars in
+	// the two arrayis are DIFFERENT - even though the inventory of punctuation chars is the
+	// same.
+	wxString comparePunctStr1 = str1PunctuationOnlyContent;
+	wxString comparePunctStr2 = str2PunctuationOnlyContent;
+	int nLen = str1PunctuationOnlyContent.Length(); // both punct strings are same len at this point
+	bool bPunctCharHasDifferentPosn = FALSE;
+	for (int i = 0; i < nLen; i++)
+	{
+		if (arrStr1PunctsIndexPos.Index(i) == arrStr2PunctsIndexPos.Index(i))
+		{
+			bPunctCharHasDifferentPosn = FALSE;
+		}
+		else
+		{
+			bPunctCharHasDifferentPosn = TRUE;
+			break;
+
+		}
+	}
+	bRetValue = bPunctCharHasDifferentPosn;
+	return bRetValue;
+}
+
+// whm 21Oct2025 added. This function scans through each char of the input string str and
+// if the char is a punct char as defined in SrcOrTgtIndex, it stores the punctuation char
+// in the returned string in order of occurrence within the str. If no punct chars are encountered
+// the function returns an empty wxString. This function also records the position index of the
+// punctuation char found within the arrPunctPos array which is returned to the caller.
+wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, wxArrayInt & arrPunctPos)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString returnStr = wxEmptyString;
+	arrPunctPos.Empty(); 
+	int lenStr = str.Length();
+	if (lenStr == 0) return returnStr;
+	wxString spacelessPunctsStr; spacelessPunctsStr.Empty();
+	if (SrcOrTgtIndex > 0) // BEW 29May24 moved this determination of spacelessPunctsStr to here, instead of after SmartTokenize()
+	{
+		spacelessPunctsStr = pApp->m_strSpacelessTargetPuncts;
+	}
+	else
+	{
+		spacelessPunctsStr = pApp->m_strSpacelessSourcePuncts;
+	}
+
+	for (int i = 0; i < lenStr; i++)
+	{
+		if (spacelessPunctsStr.Find(str[i]) != wxNOT_FOUND)
+		{
+			arrPunctPos.Add(i); // store the position index of this punct char in arrPunctPos array
+			returnStr << str[i];
+		}
+	}
+	return returnStr;
+}
+
 // A useful utility which takes the information in m_markers m_inlineBindingMarkers,
 // m_precPunct, m_endMarkers, m_follOuterPunct, and m_inlineNonbindingEndMarkers, in that
 // order, and any of such which is non-empty is appended, with no spaces added anywhere (to
@@ -17162,6 +17320,28 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	// filtered information. To remedy this I'm calling .Trim(FALSE) to trim off any
 	// initial space, which shouldn't hurt even when there is filtered info returned
 	filteredInfo.Trim(FALSE); // trim of any leading space
+
+	// whm 13Dec2025 added. A way to add EOLs characters preceding certain filtered markers 
+	// like \rem that are being unfiltered during the RebuildSourceText() process.
+	// This should probably be done here within the AppendSrcPhraseEndingInfo() function 
+	// in ExportFunctions.cpp.
+	// We could scan the filteredInfo that is returned from the 
+	// GetFilteredStuffAsUnfiltered(pSrcPhrase, ...) function, and for each marker 
+	// found there, check it to see if it is in the App's m_identificationMkrs 
+	// which include these markers:
+	// _T("\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca 
+	// \\toca1 \\toca2 \\toca3 \\toca4 ") the \rem marker being the main one that is 
+	// filterable and used extensively within the Kimaragang data from James Johanssen.
+	FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(filteredInfo);
+
+#if defined(_DEBUG)
+	if (pSrcPhrase->m_nSequNumber >= 43)
+	{
+		int halt_here = 1;
+		wxUnusedVar(halt_here);
+	}
+#endif
+
 
 	// whm 6Mar2024 moved the RestoreUSFM3AttributeMetadata() function call to here within the
 	// AppendSrcPhraseEndingInfo() function placing it just before the appending of any
@@ -17224,7 +17404,18 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 			if (posFollStuff == 0 && lenSrcPh > 0)
 			{
 				wxString postSrcPhraseStuff = pSrcPhrase->m_srcSinglePattern.Mid(lenSrcPh);
-				if (postSrcPhraseStuff != appendHere)
+				// whm 10Oct2025 modified test below to add !postSrcPhraseStuff.IsEmpty()
+				// otherwise some instances have been observed where appendHere has final
+				// punctuation and/or end marker(s), but these were lost because postSrcPhraseStuff
+				// was empty. If postSrcPhraseStuff is empty, it's best to bypass the assigning
+				// of postSrcPhraseStuff to appendHere.
+				// whm 12Nov2025 modified. I had wrongly put ! in front of the 
+				// HasSameTextAndPunctButPunctDiffersInTextLocation() function test. When that
+				// function returns TRUE is when we need to assign postSrcPhraseStuff to appendHere
+				// since the m_srcPhrase info regarding its non-text stuff should be used in our
+				// rebuild of source text.
+				if (!postSrcPhraseStuff.IsEmpty() && postSrcPhraseStuff != appendHere
+					&& HasSameTextAndPunctButPunctDiffersInTextLocation(postSrcPhraseStuff, appendHere))
 				{
 					appendHere = postSrcPhraseStuff;
 				}
@@ -17267,12 +17458,17 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 
 // BEW created 11Oct10
 // BEW 22Jun15, refactored so that it returns no filtered information
+// whm 9Jan2025 restored to legacy form that returns filtered information
+// whm 29Mar2026 Revised to restrict export of markers to just \c n and/or \v n
+// when pSrcPhrase->m_adaption is empty AND the app is in collaboration with PT/BE.
 wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr,
-				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers)
+				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers,
+				CSourcePhrase* pSrcPhrase, bool bCollabWithEditor) // whm 29Mar2026 added
 {
 	// prefixStr was defined just before this function was called, and it was
 	// not initialized and so is empty, so the next line just results in
 	// markersPrefix being empty
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString markersPrefix = prefixStr;
 	wxString aSpace = _T(' '); // add a space
 	if (!markersStr.IsEmpty())
@@ -17280,31 +17476,89 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 		if (bAttach_m_markers)
 		{
 			// any content in m_markers is to be in the returned string
-			if (!markersStr.IsEmpty())
+			if (!markersStr.IsEmpty() || !markersPrefix.IsEmpty())
 			{
 				markersPrefix.Trim();
-				markersPrefix += aSpace + markersStr;
+				// whm 29Mar2026 added. When bCollabWithEditor is TRUE, we want to 
+				// limit the markers in markersPrefix to only \v n or \c n when
+				// there is no target text to output from the current pSrcPhrase.
+				if (!bCollabWithEditor)
+				{
+					// When not collaborating with Paratext/Bibledit export all.
+					if (!markersPrefix.IsEmpty())
+						markersPrefix += aSpace + markersStr;
+					else
+						markersPrefix = markersStr;
+				}
+				else
+				{
+					// We're collaborating with Paratext/Bibledit. In such cases
+					// we check whether there is actual target text stored in the
+					// current pSrcPhrase. If not, we only export the empty chapter
+					// and verse markers (\c n and \v n). Any other markers should
+					// not go into the export when there is no target text present.
+					// If target text is present, we export all markers contained
+					// in the markersPrefix and markerStr.
+					if (pSrcPhrase->m_adaption.IsEmpty())
+					{
+						// There is NO target text in pSrcPhrase and we're collaborating
+						// with Paratext/Bibledit. Here we only export the empty
+						// chapter and verse markers. All other markers present in
+						// markersPrefix and markerStr should not be exported.
+						// Combine all markers into markersPrefix and remove all markers
+						// found there that are non-id, non-chapter and non-verse markers.
+						if (!markersPrefix.IsEmpty())
+							markersPrefix += aSpace + markersStr;
+						else
+							markersPrefix = markersStr;
+						// Remove all markers from markersPrefix that are not \id,
+						// \c n, or \v n.
+						wxArrayString mkrsArr; mkrsArr.Clear();
+						pDoc->GetMarkersAndFollowingWhiteSpaceFromString(mkrsArr, markersPrefix);
+						wxString wholeMarker;
+						for (int i = 0; i < (int)mkrsArr.GetCount(); i++)
+						{
+							wholeMarker = mkrsArr.Item(i);
+							if (wholeMarker.Find(_T("\\v ")) == wxNOT_FOUND 
+								&& wholeMarker.Find(_T("\\c ")) == wxNOT_FOUND
+								&& wholeMarker.Find(_T("\\id")) == wxNOT_FOUND)
+							{
+								gpApp->RemoveMarkerFromString(markersPrefix, wholeMarker);
+							}
+						}
+					}
+					else
+					{
+						// There is target text in pSrcPhrase, and we're collaborating 
+						// with Paratext/Bibledit, so export all.
+						if (!markersPrefix.IsEmpty())
+							markersPrefix += aSpace + markersStr;
+						else
+							markersPrefix = markersStr;
+					}
+				}
 			}
-		}
-	}
-	wxUnusedVar(bAttachFilteredInfo);
-	// BEW 22Jun15, do not return filtered info
-	/*
-			if (!xrefStr.IsEmpty()  && bAttachFilteredInfo)
+			//}
+		//}
+		//wxUnusedVar(bAttachFilteredInfo);
+		// BEW 22Jun15, do not return filtered info
+		// whm 9Jan2025 restored the return of filtered info to this function, so
+		// uncommented the blocks below
+		// /*
+			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
-			// a xref follows a verse number, so make sure there is an intervening
-			// space
-			markersPrefix.Trim();
-			markersPrefix += aSpace + xrefStr;
+				// a xref follows a verse number, so make sure there is an intervening
+				// space
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
 			}
-
 		}
 		else
 		{
 			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
-			markersPrefix.Trim();
-			markersPrefix += aSpace + xrefStr;
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
 			}
 		} // end of else block for test: if (bAttach_m_markers)
 	}
@@ -17317,15 +17571,24 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 			markersPrefix += aSpace + xrefStr;
 		}
 	}
-	*/
+	// */ // whm 9Jan2025 restored the return of filtered info
 	return markersPrefix;
 }
 
 // BEW created 11Oct10
+// whm 29Mar2026 Revised to restrict the output from this function
+// when pSrcPhrase-m_adaption is empty (no target text present) AND the
+// app is in collaboration mode with PT/BE.
 wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	SPList* pSrcPhrases, wxString filteredInfo_NoXRef, wxString collBackTransStr,
-	wxString freeTransStr, wxString noteStr, bool bDoCount, bool bCountInTargetText)
+	wxString freeTransStr, wxString noteStr, bool bDoCount, bool bCountInTargetText,
+	bool bCollabWithEditor) // whm 29Mar2026 added
 {
+	// whm 29Mar2026 added test for bCollabWithEditor, and if true does immediate
+	// return of wxEmptyString
+	if (bCollabWithEditor)
+		return wxEmptyString;
+	
 	wxString markersPrefix; markersPrefix.Empty();
 	wxString aSpace = _T(' ');
 	wxString freeMkr(_T("\\free"));
@@ -17470,6 +17733,15 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
 // will have the same EOLs across the board, and not have mixed EOLs with some being
 // LF and some being CRLF.
+// whm 2Jan2026-20Jan2026 refactored the main function FromSingleMakeSstr2() function
+// for better formatting and ordering of whitespace, markers and punctuation in exports.
+// 
+// whm 1Mar2026 refactored the FromSingleMakeSstr2() and renamed it FromSingleMakeSstr1()
+// for simplification. The previous version named FromSingleMakeSstr2() was a patchwork 
+// and more complex than required to do the job of reconstructing the source text from a
+// pList of source phrases. The new scheme of storing the m_follWsMkrsAndPuncts member 
+// makes it possible to reconstruct the source text a simpler process for each source 
+// phrase instance being rebuilt.
 int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
@@ -17502,7 +17774,6 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	pStatusBar->StartProgress(_("Rebuilding Source Text"), msgDisplayed, nTotal);
 	int counter = 0;
 
-
 	// BEW 5Apr23, (legacy commenting...) As we traverse the list of CSourcePhrase 
 	// instances, the special things we must be careful of are:
 	// 1. source phrase placeholders (we ignore these, but we don't
@@ -17531,6 +17802,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// original CSourcePhrase instances in the m_pSavedWords array in the merged
 	// sourcephrase we must examine all those originals in that sublist - but the first
 	// must be given special treatment.
+	
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 	source.Empty();
@@ -17612,10 +17884,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	// whm 28Dec2024 added a pPrevSrcPhrase. This is needed to be able to get filtered information
 	// restored in correct position from a pPrevSrcPhrase to the pSrcPhrase currently being
-	// processed in the while loop below. Filtered information is stored on a previous source
-	// phrase in the incoming pList data.
+	// processed in the while loop below  - unused - may use in future. Filtered information is 
+	// stored on a previous source phrase in the incoming pList data.
 	CSourcePhrase* pPrevSrcPhrase = NULL;
-
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
@@ -17644,20 +17915,20 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
 		// BEW 16Apr23, but for sequNum == 0, there will be no preceding swbk content, so don't
 		// search for it when sequNum is zero
-		wxString aBreak; aBreak = wxEmptyString;
+		//wxString aBreak; aBreak = wxEmptyString;
 		if (pSrcPhrase->m_nSequNumber > 0)
 		{
 
 
 #if defined(_DEBUG)
-			if (pSrcPhrase->m_nSequNumber == 31)
+			if (pSrcPhrase->m_nSequNumber == 153)
 			{
 				int halt_here = 0; wxUnusedVar(halt_here);
 			}
 		
 #endif
-			aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
-			/* uncomment out, ifyou want to see what aBreak is, shown on every line of the Output in debug mode
+			//aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
+			/* uncomment out, if you want to see what aBreak is, shown on every line of the Output in debug mode
 #ifdef _DEBUG
 
 			int breakLen = aBreak.Length();
@@ -17705,13 +17976,14 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #endif
 */
 		} // end of TRUE block for test: if (pSrcPhrase->m_nSequNumber > 0)
-		if (!aBreak.IsEmpty())
-		{
-			str += aBreak;
-			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			//source << str; // do it now, as str is emptied in a few places further below
-			str.Empty();
-		}
+		// whm 14Jan2026 don't need the aBreak code with today's refactor
+		//if (!aBreak.IsEmpty())
+		//{
+		//	str += aBreak;
+		//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+		//	//source << str; // do it now, as str is emptied in a few places further below
+		//	str.Empty();
+		//}
 #if defined(_DEBUG)
 		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
@@ -17730,6 +18002,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// relocation until a non-placeholder CSourcePhrase is encountered. So if the
 			// bMarkersOnPlaceholder flag is TRUE, just have this placeholder ignored
 			// without the populatiing of any of the local wxString variables above
+			// whm 16Feb2026 TODO: TESTING NEEDED
+			// Determine if more code is needed within the refactored FromSingleMakeSstr1() to 
+			// handle the presence of placeholder source phrases. Doing so there would eliminate 
+			// dealing with anything here related to placeholder source phrases.
  			if (!bMarkersOnPlaceholder)
 			{
 				bool bAddedSomething = FALSE;
@@ -17742,6 +18018,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				bool bAddedHiddenMetaData = FALSE; 
+				// whm 16Feb2026 TODO: TESTING NEEDED
+				// Determine if the following AppendSrcPhraseEndingInfo() call is needed following 
+				// the current refactoring of the FromSingleMakeSstr2() function. This is the
+				// only call of AppendSrcPhraseEndingInfo() left in the code base.
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase, bAddedSomething, bAddedHiddenMetaData,
 					TRUE, TRUE, FALSE);
 
@@ -17750,6 +18030,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// bool bIncludeNote is FALSE
 				// bool bDoCountForFreeTrans is TRUE
 				// bool bCountInTargetTextLine is FALSE
+				// 
+				// whm 16Feb2026 TODO: TESTING NEEDED 
+				// Determine if strCollectedBeginnings is still relevant?
+				// The following AppendSrcPhraseBeginningInfo() call should not be needed following 
+				// the current refactoring of the FromSingleMakeSstr2() function. This is the
+				// only call of AppendSrcPhraseBeginningInfo() left in the code base.
 				strCollectedBeginnings = AppendSrcPhraseBeginningInfo(strCollectedBeginnings,
 					pSrcPhrase, bMarkersOnPlaceholder); // , FALSE, TRUE, FALSE);
 				// if bMarkersOnPlaceholder returns TRUE from the above call, it means that
@@ -17788,6 +18074,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// have its pre-word info stored on itself because its former content is now
 			// what we are attempting to replace by relocation from the preceding
 			// placeholder.
+			// whm 16Feb2026 TODO: TESTING NEEDED
+			// Determine if the following addition of strCollectedBeginnings is still relevant?
 			if (bMarkersOnPlaceholder)
 			{
 				// pSrcPhrase here is not a placeholder, so filtered material and any
@@ -17814,6 +18102,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
 			// because we don't gather those info types in the above function
+			// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+			// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+			/*
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				tempStr = pSrcPhrase->m_markers;
@@ -17831,17 +18122,33 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				}
 				tempStr.Empty();
 			}
+			*/
 			// 
 			// whm 2Jan2024 modification. When source ends with whitespace and str begins
 			// with whitespace, we should remove the whitespace from the end of the accumulated
 			// source - since I thnk a word-break char is most appropriately preserved at the
 			// beginning of the str being added.
-			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-				
-			// reconstitute the source text from the merger originals; anything from the
+			// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
+			// of the rebuilt source string
+			// whm 16Feb2025. Our current use of CSourcePhrase::m_follWsMkrsAndPuncts eliminates 
+			// the need for AppendStringToStringWithSingularMedialWhiteSpace.
+			//if (pSrcPhrase->m_nSequNumber > 0)
+			//{
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//}
+			//else
+			//{
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
+			//}
+
+			// Reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
-			// we just add the following material to it
-			str = FromMergerMakeSstr(pSrcPhrase);
+			// we just add the following material to it.
+			str = FromMergerMakeSstr(pSrcPhrase, 
+				pPrevSrcPhrase, // whm 16Feb2026 added pPrevSrcPhrase				
+				pList); // whm 19Nov2025 added pList
 
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
@@ -17850,8 +18157,20 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// with whitespace, we should remove the whitespace from the end of the accumulated
 			// source - since I thnk a word-break char is most appropriately preserved at the
 			// beginning of the str being added.
-			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			//source << str;
+			// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
+			// of the rebuilt source string
+			// whm 16Feb2025. Our current use of CSourcePhrase::m_follWsMkrsAndPuncts eliminates 
+			// the need for AppendStringToStringWithSingularMedialWhiteSpace.
+			//if (pSrcPhrase->m_nSequNumber > 0)
+			//{
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//}
+			//else
+			//{
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
+			//}
 			str.Empty();
 		}
 		else
@@ -17889,8 +18208,18 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// with whitespace, we should remove the whitespace from the end of the accumulated
 			// source - since I thnk a word-break char is most appropriately preserved at the
 			// beginning of the str being added.
-			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			//source << str;
+			// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
+			// of the rebuilt source string
+			//if (pSrcPhrase->m_nSequNumber > 0)
+			//{
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//}
+			//else
+			//{
+			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+			// at the beginning of the rebuild.
+			source << str;
+			//}
 			str.Empty();
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
@@ -17904,7 +18233,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #endif
 
 			// whm 5Feb2024 removed unused parameters
-			str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase); // whm 28Dec2024 added second parameter
+			//str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, pList); // whm 28Dec2024 added second parameter
+			// whm 1Mar2026 replaced The above FromSingleMakeSstr2() with a
+			// refactored and greatly simplified FromSingleMakeSstr1() function.
+			str = FromSingleMakeSstr1(pSrcPhrase, pPrevSrcPhrase, pList);
+
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
@@ -18003,11 +18336,14 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// space from the str when pSrcPhrase->m_key is empty.
 			// 
 			// will already have a final space.
-			if (pSrcPhrase->m_key.IsEmpty())
-			{
-				//str += aSpace; // needs to be a latin space, no ZWSP here
-				str.Trim(TRUE); // trim space from right end
-			}
+			// whm 26Jan2026 removed. An empty key source phrase may have filtered info
+			// and other data that is within the str here, so doing a Trim(TRUE) here
+			// has can cause some words to lose their separating space.
+			//if (pSrcPhrase->m_key.IsEmpty())
+			//{
+			//	//str += aSpace; // needs to be a latin space, no ZWSP here
+			//	str.Trim(TRUE); // trim space from right end
+			//}
 
 			// if we return ']' bracket, we don't want a preceding space
 			if (!str.IsEmpty() && str[0] == _T(']'))
@@ -18028,19 +18364,32 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// source - since I thnk a word-break char is most appropriately preserved at the
 				// beginning of the str being added.
 				//source << str;
-				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+				// whm 13Dec2025 modified. We should not add any singular whitespace at the beginning
+				// of the rebuilt source string
+				//if (pSrcPhrase->m_nSequNumber > 0)
+				//{
+				//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+				//}
+				//else
+				//{
+					// when m_nSequNum == 0 source will be empty string, so don't put medial white space
+					// at the beginning of the rebuild.
+					source << str;
+				//}
 			}
 			str.Empty();
 		} // end of else block, i.e., it's a single word sourcephrase
 
-		// whm 28Dec2024 added to keep track of previous source phrase data
+		// whm 28Dec2024 added to keep track of previous source phrase data - unused - may use in future
 		pPrevSrcPhrase = pSrcPhrase;
 
 	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
+
 	pStatusBar->FinishProgress(_("Rebuilding Source Text"));
 
-	source.Trim(); // trim the end
+	// whm 27Feb2026 Don't automatically trim whitespace, EOLs from end of source buffer.
+	//source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 
 	// update length
@@ -18128,6 +18477,9 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 
 // BEW 11Oct10, removed \x from the test, because \x occurs after \v and verse number in
 // USFM documentation, and so there should be a preceding space
+// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+/*
 wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -18174,6 +18526,7 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 	}
 	return str;
 }
+*/
 
 // This function takes the m_markers and m_gloss members from CSourcePhrase instances, and
 // builds the glosses as if they were connected text (in whatever edited state it happens
@@ -19019,12 +19372,7 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 				wxASSERT(itemLen == (int)wholeMkr.Len());
 
 				// get the bare marker, lookupable, (ie. no \ and no final *)
-				bareMkr = wholeMkr.Mid(1); // remove initial backslash
-				if (bareMkr.Last() == _T('*'))
-				{
-					bareMkr = bareMkr.Left(itemLen - 2);
-				}
-
+				bareMkr = pDoc->GetBareMarkerForLookup(wholeMkr);
 				// is it a marker of the type we want to remove?
 				bool bSatifiesAdditionalRemovalTests = FALSE; // BEW added 11Oct10
 				USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
@@ -19166,7 +19514,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
 
 	while (pos_pList != NULL)
 	{
@@ -19176,7 +19524,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber == 831) 
+		if (pSrcPhrase->m_nSequNumber >= 151) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -19296,8 +19644,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
-				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter
-					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
+				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
+					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct,
+					pList); // whm 19Nov2025 added pList parameter
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
@@ -19396,7 +19745,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 #endif
 
-		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added
+		pPrevSrcPhrase = pSrcPhrase; // whm 28Dec2024 added - unused - may use in future
 
 	}// end of while (pos_pList != NULL)
 
@@ -20593,6 +20942,16 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 // removed them at the ends of markers that have no associated text. There is no
 // detrimental effects either way.
 // whm 17Sep11 modified to ensure that the buffer for output ends with an eol
+// whm 13Dec2025 modified to format whitespace before markers according to the whitespace
+// stored now within the .usfmstruct file's 4th field.
+// 
+// whm 31Jan2026 modified. Our refactoring of how whitespace, markers and punctuation is
+// recorded in the new m_follWsMkrsAndPuncts member of CSourcePhrase now enables an accurate
+// re-creation of those elements when rebuilding output text. I believe we can now skip the 
+// changing of whitespace, EOL and nil chars before markers in this buffer to conform to 
+// the type of white space listed in the .usfmstruct file. The previous form of this 
+// function can be reactivated by changing the bool value bRemoveSpaceBeforeEOLsOnly to 
+// FALSE near the beginning of the function. 
 void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
 	// It could be an empty string...
@@ -20643,17 +21002,46 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	{
 		int textLen;
 		textLen = text.Length();
-		if (text.GetChar(textLen - 1) != _T('\n') || text.GetChar(textLen - 1) != _T('\r'))
+		if (textLen > 1 && (text.GetChar(textLen - 1) != _T('\n') || text.GetChar(textLen - 1) != _T('\r')))
 		{
 			// the text does not end with either \n or \r eol, so add the appropriate
 			// eol at the end of the text.
 			text += gpApp->m_eolStr;
 		}
 	}
+	// whm 1Mar2026 removed the block below. Determining whether
+	// a buffer ends with EOL is done elsewhere within a prior call 
+	// ApplyOutputFilterToText(...,..., TRUE or FALSE)
+	//else
+	//{
+	//	int textLen;
+	//	textLen = text.Length();
+	//	if (textLen > 1 && (text.GetChar(textLen - 1) != _T('\n') || text.GetChar(textLen - 1) != _T('\r')))
+	//	{
+	//		// the text does not end with either \n or \r eol, so add the appropriate
+	//		// eol at the end of the text.
+	//		text += gpApp->m_eolStr;
+	//	}
+	//}
 
-	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is
-	// present in str. It adds end-of-line characters before all standard format markers except
-	// for those which have the inLine attribute. It is not possible to completely reconstruct
+	// Change this to FALSE to get the legacy code that compares the .usfmstruct data for 
+	// whitespace, EOLs, or nil before markers and makes the text conform to what the 
+	// .usfmstruct data recorded.
+	bool bRemoveSpaceBeforeEOLsOnly = TRUE; 
+	
+	if (bRemoveSpaceBeforeEOLsOnly)
+	{
+		// whm 31Jan2026 provided an alternate processing while loop that doesn't try to 
+		// replace whitespace, eols and nil before markers, but only acts to remove any 
+		// and all space char(s) that occur before actual EOLs.
+		text.Replace(_T(" \r\n"), _T("\r\n"), TRUE);
+		// The text returns to caller via the text reference parameter.
+		return;
+	}
+
+	// [Old comment] FormatMarkerBufferForOutput assumes the complete text to be output as a text 
+	// file is present in str. It adds end-of-line characters before all standard format markers 
+	// except for those which have the inLine attribute. It is not possible to completely reconstruct
 	// the line breaks as they were in the input text. Instead this routine makes the output
 	// fairly easy to read, allowing the inLine markers and associated text to remain embedded
 	// within the lines of the text.
@@ -20668,8 +21056,26 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	//    closely to the word, such as one of the character formatting markers --- those
 	//    in the 'special set' of USFM
 	// See also notes below.
+	// 
+	// whm 13Dec2025 refactoring:
+	// Note: The comment about assumptions in above comments is now outdated.
+	// Refactored the FormatMarkerBufferForOutput() function to make it smarter by utilizing 
+	// and substituting the .usfmstruct's 4th field whitespace indicators preceding the markers
+	// within the text/buffer. 
+	// Note: The pDoc->m_UsfmStructArr is a wxArrayString that lives in memory and always 
+	// represents the current usfm marker structure, and now also contains each marker's
+	// preceding whitespace indicated in the 4th field of that marker's delimited data, 
+	// as "eol", "nil" or " " where the " " represents the actual non-eol whitespace -
+	// usually being the Latin (#32) space. The "nil" indicator indicates that there was
+	// no whitespace preceding the marker within the orignal input text.
+	// Since the Doc's m_UsfmStructArr is always residing in memory, we can easily access
+	// its information for a given marker, simply by keeping track of a marker count (zero
+	// based) as we encounter them in FormatMarkerBufferForOutput(). This zero-based marker
+	// count should precisely match the array's Item number for that given marker where we
+	// can find the whitespace information that was stored there from the original document
+	// when it was parsed into Adapt It.
+
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	int curMkrPos = 0;
 	int len = text.Length();
 	// Since we require a read-only buffer for our main buffer we
 	// use GetData which just returns a const wxChar* to the data in the string.
@@ -20677,6 +21083,15 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	wxChar* pBufStart = (wxChar*)pBuff;
 	wxChar* pEnd = pBufStart + len;
 	wxASSERT(*pEnd == _T('\0'));
+
+	// whm 31Jan2026 modified. If the buffer's markers get out of sync with the marker
+	// list stored within the hidden .usfmstruct file, the copying of whitespace, EOL 
+	// and nil chars from those specified in the .usfmstruct file over to the chars
+	// preceding markers in this buffer would only do more harm than good. If things 
+	// get out of sync we abort the whitespace/eol/nil processing and just process 
+	// the rest of the buffer text without changing any whitespace, EOL and nil chars. 
+	// The following bool flag will get set FALSE if things get out of sync.
+	bool bMarkersInSync = TRUE;
 
 	// For a copy-to buffer we'll base it on text2 with a double-sized buffer
 	wxString text2;
@@ -20693,12 +21108,15 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		//pEnd2 = pBufStart2 + len*2;
 		wxChar* pOld = pBufStart;
 		wxChar* pNew = pBuff2;
+		wxChar CR = _T('\r');
+		wxChar LF = _T('\n');
+		wxChar dummyChar = _T('x'); // for debug inspection only: value computed is not used below
 
 		wxString wholeMkr;
 		wholeMkr.Empty();
 		// BEW 11Oct10, changed signature so as to match the punctuation used to the export
 		// type - formerly a target text export was using source language's punctuation.
-	//
+		//
 		// Get a spaceless array of the appropriate language's punctuation characters
 		wxString spacelessPuncts;
 		if (expType == sourceTextExport)
@@ -20716,6 +21134,9 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 			spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
 			// used in DetachedNonQuotePunctuationFollows() below
 		}
+		/*
+		// whm 13Dec2025 removed along with code that uses these at end of 
+		// if (pDoc->IsMarker(pOld)) block below.
 		// whm 8Jun12 modified for wxWidgets-2.9.3 wxStrlen_() is invalid, use wxStrlen()
 		int lenEolStr = wxStrlen(gpApp->m_eolStr); //int lenEolStr = wxStrlen_(gpApp->m_eolStr);
 		bool bDetachedNonquotePunctuationFollows = FALSE;
@@ -20723,14 +21144,279 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		bool IsInLineMarker = FALSE;
 		int itemLen; // gets length of parsed item
 		int ctmkr;   // used to count item chars while copying from pOld to pNew
+		*/
+		// whm 13Dec2025 added the following:
+		int markerThisDocIndex = 0;
+		int markerUsfmStructIndex = 0;
+		int usfmStructArrTot = pDoc->m_UsfmStructArr.GetCount();
+		wxString usfmStructLineStr;
+		wxString marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus;
+		whiteSpBeforeMkr.Empty();
+		wxChar* pChar;
+
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
 			// scan the whole text for standard format markers
 			//if (pDoc->IsMarker(pOld, pBufStart))
-			if (pDoc->IsMarker(pOld))
+			if (pDoc->IsMarker(pOld) && markerUsfmStructIndex < usfmStructArrTot)
 			{
 				// we are pointing at a marker; get the marker into the wholeMkr
 				wholeMkr = pDoc->GetWholeMarker(pOld);
+
+				//markerThisDocIndex++;
+#ifdef _DEBUG
+				if (markerThisDocIndex >= 3 || wholeMkr == _T("\\x*"))
+				{
+					int break_here = 1;
+					break_here = break_here;
+				}
+#endif
+				// whm 13Dec2025 added. Get the whiteSpBeforeMkr for this markerUsfmStructIndex from 
+				// the Doc's in-memory m_UsfmStructArr array.
+				// First get the array string at markerUsfmStructIndex and parse its fields
+				usfmStructLineStr = pDoc->m_UsfmStructArr.Item(markerUsfmStructIndex);
+				pDoc->ParseUsfmStructLine(usfmStructLineStr, marker, numChars, MD5hashOrigStruct, whiteSpBeforeMkr, filterStatus);
+				
+				// whm 24Dec2025 added. We need to ensure that the marker found in the usfmStructLineStr 
+				// matches the wholeMkr of the document we are running through this FormatMarkerBufferForOutput().
+				if (wholeMkr == _T("\\v") || wholeMkr == _T("\\c"))
+				{
+					int len = 0;
+					int itemLen = 0;
+					pChar = pOld;
+					itemLen = pDoc->ParseMarker(pChar);
+					pChar = pChar + itemLen;
+					len += itemLen;
+					itemLen = pDoc->ParseWhiteSpace(pChar);
+					len += itemLen;
+					pChar = pChar + itemLen;
+					itemLen = pDoc->ParseNumber(pChar);
+					len += itemLen;
+					wxString wholeMkrAndNumber = wxString(pOld, len);
+					wholeMkr = wholeMkrAndNumber;
+				}
+
+				if (wholeMkr != marker)
+				{
+					// whm 11Jan2026 added code to re-sync the .usfmstruct marker being
+					// compared with the wholeMkr of the current buffer text.
+					// break point here for debugging
+					int break_here = 1;
+					break_here = break_here;
+					
+					// The marker stored in the .usfmstruct file doesn't match that wholeMkr
+					// encountered in the buffer being processed. Most likely, this is due
+					// to one of the following:
+					// 1. The .usfmstruct text has an AI's special marker such as \free
+					// \note or \bt... which are always filtered, and not exported by default
+					// in an exported text. The routine below is able to handle the absence of
+					// the special markers by skipping them and syncing to the correct marker
+					// in the .usfmstruct file comparison routine.
+					// 2. The user opted to NOT export a marker using the Export options dialog
+					// and ticked a particular marker to be excluded from export. The routine 
+					// below is able to handle the absence of the user's choice to omit the
+					// marker from output, by skipping them and syncing to the correct marker
+					// in the .usfmstruct file comparison routine.
+					// 3. The ApplyOutputFilterToText() function detected an isolated end marker
+					// \x* or \f* or \fe* in the output text that did not have a corresponding
+					// begin marker \x or \f or \fe preceding it in the text, and so the
+					// ApplyOutputFilterToText() removed the "errant" end marker from the text
+					// before applying its marker filtering. This is good behavior I think, and
+					// this FormatMarkerBufferForOutput() here is capable of skipping the now
+					// missing end marker when it syncs with the .usfmstruct file.
+					// 
+					// Note: AI's special markers \free, \note and \bt... all required end marker
+					// but some of the excludable markers in the export options dialog are 
+					// paragraph markers which don't have an end marker associated with them.
+					// Hence, our re-syncing cannot depend on looking for a corresponding end
+					// marker farther down in the list. 
+					// The best we can do is simply retrieve the usfmstruct data for successive
+					// markers until we find a match to the wholeMkr.
+					// Note: The usfmstruct file is generally quick to scan, and if we cannot
+					// find a match and reach the end of the file using a while loop, it won't
+					// be a time consuming search. 
+					//
+					// Increment the markerUsfmStructIndex and retrieve its data until we
+					// point markerUsfmStructIndex to whatever marker occurs AFTER the 
+					// corresponding end marker \free* \note* or \bt...* and verifying
+					// that the marker found there matches the wholeMkr that we are
+					// currently processing.
+					int tempIndex = markerUsfmStructIndex;
+					int usfmStructCt = pDoc->m_UsfmStructArr.GetCount();
+					wxString tempUsfmStructLineStr, tempMarker, tempNumChars, tempMD5hashOrigStruct, tempWhiteSpBeforeMkr, tempFilterStatus;
+					bool bFound = FALSE;
+					tempIndex++; 
+					while (tempIndex < usfmStructCt && !bFound)
+					{
+						tempUsfmStructLineStr = pDoc->m_UsfmStructArr.Item(tempIndex);
+						pDoc->ParseUsfmStructLine(tempUsfmStructLineStr, tempMarker, tempNumChars, tempMD5hashOrigStruct, tempWhiteSpBeforeMkr, tempFilterStatus);
+						if (tempMarker == wholeMkr)
+						{
+							// We found the wholeMkr so assign tempIndex to markerUsfmStructIndex
+							// so that the buffer format outer while loop can continue.
+							// We found our beffer marker wholeMkr at the current tempIndex++
+							// so assign tempIndex to markerUsfmStructIndex.
+							bFound = TRUE;
+							markerUsfmStructIndex = tempIndex;
+							break;
+						}
+						tempIndex++;
+					}
+					if (!bFound)
+					{
+						// Programmer Note: If this break point is hit, it generally means that
+						// something has gone wonky with one or more of the following:
+						// 1. The parsing of markers, or generation of the m_follWsMkrsAndPuncts 
+						//    data by the GetWsMkrsAndPunctsAtPtr() calls in TokenizeText().
+						// 2. The composition and/or updating of the .usfmstruct file, and/or 
+						//    the coding of this FormatMarkerBufferForOutput() function.
+						//    When the .usfmstruct file has a marker that is missing from this 
+						//    buffer, it usually means that the marker is missing here because
+						//    it was filtered from the output by design or explicitly by the user.
+						//    The code block above can advance the pointer in the .usfmstruct file
+						//    skipping a marker - up to a point. If that code doesn't find the 
+						//    missing marker farther down in the .usfmstruct file the bFound will
+						//    be FALSE and we enter this block. This error condition could also
+						//    occur if the current buffer has one or more extra markers that are 
+						//    not listed in the .usfmstruct file.
+						// In any case we now set our bMarkersInSync flag to FALSE.
+						bMarkersInSync = FALSE;
+						break;
+					}
+				}
+
+				// Protect from accessing pOld chars before pBufStart
+				if ((pOld - 2) >= pBufStart)
+				{
+					// Check first whether the usfmstruct specifies "nil" whitespace before marker
+					if (whiteSpBeforeMkr == _T("nil"))
+					{
+						// The usfmstruct data indicates there should be no whitespace before the marker,
+						// so see if that is the case, and if not, ensure that is the case by removing any
+						// whitespace that resides just before the marker.
+						// From the current pOld buffer, get any whitespace occurring before the marker
+						if (!IsWhiteSpace(pOld - 1))
+						{
+							// We expect this to be the case: no whitespace before the marker
+							; // do nothing in this case
+						}
+						else
+						{
+							// There is whitespace just before the marker which should be removed
+							// which we do by decrementing the pNew pointer to back up over the whitespace.
+							int pOldIndx = 1;
+							while (IsWhiteSpace(pOld - pOldIndx) && pOld >= pBufStart)
+							{
+								dummyChar = *pNew; // for debug inspection of pNew only
+								pNew--;
+								dummyChar = *pNew; // for debug inspeaction of pNew only
+								pOldIndx++;
+							}
+						}
+					}
+					else if (whiteSpBeforeMkr == _T("eol"))
+					{
+						// The usfmstruct specifies there should be "eol" whitespace before marker,
+						// that is now being pointed at by pOld. So see if (pOld - 1) does indeed
+						// point to an eol char (\n). If not, ensure that is the case by adding
+						// eols if no whitespace is there, or changing any existing non-eol whitespace
+						// to be eols. 
+						if (!IsWhiteSpace(pOld - 1))
+						{
+							// No whitespace present at pOld - 1, so add eols to pNew, incrementing 
+							// pNew pointer after the CR and LF assignments.
+							dummyChar = *pOld; // for debug inspection of pOld only
+							*pNew = CR;
+							dummyChar = *(pNew++);
+							*pNew = LF;
+							dummyChar = *(pNew++);
+						}
+						else
+						{
+							// There is at least one whitespace char before the marker.
+							// Backup pOld until it points to a non-whitespace char, then
+							// increment pOld and store \r there, increment pOld again and
+							// store \n there. Then add \r and \n to pNew incrementing pNew
+							// after each assignment
+							int pOldIndx = 1;
+							int nWhiteSp = 0;
+							while (IsWhiteSpace(pOld - pOldIndx) && pOld >= pBufStart)
+							{
+								nWhiteSp++;
+								pOldIndx++;
+							}
+							pNew = pNew - nWhiteSp; // to point pNew to the initial whitespace
+							// Now add eols to pNew, incrementing pointers after the assignments.
+							dummyChar = *pOld; // for debug inspection of pOld only
+							dummyChar = *pNew; // for debug inspection on pNew only
+							*pNew = CR;
+							dummyChar = *(pNew++);
+							*pNew = LF;
+							dummyChar = *(pNew++);
+						}
+					}
+					else if (!whiteSpBeforeMkr.IsEmpty() && IsWhiteSpace(whiteSpBeforeMkr))
+					{
+						// The usfmstruct specifies there should be a non-eol whitespace 
+						// of some kind normally a Latin space " " before the marker.
+						// Backup pOld until it points to a non-whitespace char, then
+						// increment pOld, and store the non-eol whitespace that is stored 						
+						// within the whiteSpBeforeMkr that was taken from the usfmstruct data.
+						int pOldIndx = 1;
+						int nWhiteSp = 0;
+						while (IsWhiteSpace(pOld - pOldIndx) && pOld >= pBufStart)
+						{
+							nWhiteSp++;
+							pOldIndx++;
+						}
+						pNew = pNew - nWhiteSp; // to point pNew to the initial whitespace
+						// Assign the whiteSpBeforeMkr value at this pNew location. Since
+						// whiteSpBeforeMkr is a string we need to do the storage one char
+						// at a time - if whiteSpBeforeMkr contains more than a single char.
+						int nLenWhiteSpBeforeMkr = whiteSpBeforeMkr.Length();
+						dummyChar = *pNew; // for debug inspecation of pNew only
+						for (int i = 0; i < nLenWhiteSpBeforeMkr; i++)
+						{
+							*pNew = whiteSpBeforeMkr.GetChar(i);
+							dummyChar = *pNew; // for debug inspecion of pNew only
+							pNew++;
+						}
+					}
+					// The above sub-blocks have added any necessary end-of-line char(s) and/or
+					// spaces. Now we parse the marker, copying it from pOld to pNew
+					int mkrLen = pDoc->ParseMarker(pOld);
+					wxString mkr = wxString(pOld, mkrLen);
+					if (mkr == _T("\\v") || mkr == _T("\\c"))
+					{
+						pChar = pOld + mkrLen;
+						int lenSp = pDoc->ParseWhiteSpace(pChar);
+						mkrLen += lenSp;
+						pChar += lenSp;
+						int lenNum = pDoc->ParseNumber(pChar);
+						mkrLen += lenNum;
+					}
+					for (int ctmkr = 0; ctmkr < mkrLen; ctmkr++)
+					{
+						dummyChar = *(pNew++) = *(pOld++);
+					}
+				}
+				else
+				{
+					// The if ((pOld - 2) >= pBufStart) test returned FALSE, so we are at the first
+					// marker in the buffer, likely the \id marker.
+					// The above sub-blocks have added any necessary end-of-line char(s) and/or
+					// spaces. Now we parse the marker, copying it from pOld to pNew
+					int itemLen = pDoc->ParseMarker(pOld);
+					for (int ctmkr = 0; ctmkr < itemLen; ctmkr++)
+					{
+						dummyChar = *(pNew++) = *(pOld++);
+					}
+				}
+
+				// whm 13Dec2025 I think the remainder of this block is no 
+				// longer necessary and may produce results that are detremental, 
+				// especially with the above changes just made 13Dec2025.
+				/*
 				wholeMkr = MakeReverse(wholeMkr);
 
 				// get the length of the marker
@@ -20740,16 +21426,16 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 				wxASSERT(itemLen == (int)wholeMkr.Length());
 
 				// We handle specific markers that need to have end-of-line char(s)
-			// inserted before them, or that need to have a certain kind of
+				// inserted before them, or that need to have a certain kind of
 				// spacing before or after them for properly formatted output. These
 				// specific markers include:
 				//    chapter markers \c n (no space after the number)
 				//    end markers: never a space before end markers
 				//      (tuck puncts left to be adjacent to end marker)
-			// All other markers encountered get end-of-line chars inserted before
+				// All other markers encountered get end-of-line chars inserted before
 				// them except for the following situations:
 				//    Don't add eol char(s) if the marker is at beginning of buffer
-			//    Don't add eol char(s) if the marker is an inline marker
+				//    Don't add eol char(s) if the marker is an inline marker
 				//    (defined in AI_USFM.xml)
 				//    Don't added eol char(s) if a [ bracket precedes
 				if (pDoc->IsEndMarker(pOld,pEnd))
@@ -20763,7 +21449,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 					// situation if a bogus space somehow crept in.
 					wholeMkr = MakeReverse(wholeMkr);
 					wxChar* pPosAfterMkr = pOld;
-				pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next
+					pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next
 													   // char after endmarker
 					bDetachedNonquotePunctuationFollows = DetachedNonQuotePunctuationFollows(
 													pOld,pEnd,pPosAfterMkr,spacelessPuncts);
@@ -20788,7 +21474,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 				else
 				{
 					// It is some other marker besides a chapter marker or an end marker;
-				// if we're not at the beginning of the file, insert the end-of-line
+					// if we're not at the beginning of the file, insert the end-of-line
 					// char(s) before the marker, except for certain conditions (see below).
 
 					// we don't do anything if the marker is at the start of the buffer
@@ -20953,15 +21639,26 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 					}
 					curMkrPos = (int)(pOld - pBufStart); // update value
 				}
+				*/
+				markerThisDocIndex++; // whm 16Jan2026 moved here from above
+				markerUsfmStructIndex++; // whm 13Dec2025 increment the marker usfmstruct index count
 			} // end of if (IsMarker  )
 			else
 			{
 				// Process the non-marker text.
-				// just copy whatever we are pointing at and then advance
-				*pNew++ = *pOld++;
-				curMkrPos = (int)(pOld - pBufStart); // update value
+				// just copy whatever we are pointing at and then advance the pointers
+				dummyChar = *(pNew++) = *(pOld++);
 			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+
+		if (!bMarkersInSync)
+		{
+			// Abort the above process and just return. The text is returned via reference.
+			return;
+		}
+
+		dummyChar = dummyChar;
+
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
 		// had the unfortunate effect of text2 never receiving the processed
@@ -21024,7 +21721,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 		wxChar CR = _T('\r');
 		wxChar LF = _T('\n');
 		int eolLen;
-		wxChar dummyChar = _T('x'); // for avoiding gcc warning: value computed is not used below
+		wxChar dummyChar = _T('x'); // for debug inspection only: value computed is not used below
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
 #if defined (_DEBUG)
@@ -21081,7 +21778,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 			}
 			else
 			{
-				// We're not at an EOL, so just process the non-EOL char.
+				// We're not at an EOL, so just process the non-EOL char,
 				// copying the char we are pointing at to pNew, and advancing
 				// the pointers.
 				dummyChar = *(pNew++) = *(pOld++);
@@ -21091,6 +21788,29 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 		wxASSERT(pOld == pEnd);
 		if (pOld == pEnd && bEndWithEOL)
 		{
+			// whm 13Dec2025 revised this block for bEndWithEOL. 
+			// If there are multiple EOL chars at the end of the file we will make them a single \r\n EOL.
+			// If there are no EOL chars at the end of the file we will add a single \r\n EOL.
+			// Backup pNew until it points to a non-whitespace char, then
+			// increment pNew and store \r there, increment pNew again and
+			// store \n there. 
+			int pNewIndx = 1;
+			int nWhiteSp = 0;
+			dummyChar = *(pNew - pNewIndx);
+			// whm 2Apr2026 modified. The second condition below should be pNew >= pBuff2 
+			// and not pNew >= pBufStart, since pNew is initialized on pBuff2 above.
+			while (IsWhiteSpace(pNew - pNewIndx) && pNew >= pBuff2) //while (IsWhiteSpace(pNew - pNewIndx) && pNew >= pBufStart)
+			{
+				nWhiteSp++;
+				pNewIndx++;
+			}
+			pNew = pNew - nWhiteSp; // to point pNew to the initial whitespace
+			// Now add eols to pNew, incrementing pointers after the assignments.
+			*pNew = CR;
+			dummyChar = *(pNew++);
+			*pNew = LF;
+			dummyChar = *(pNew++);
+			/*
 			int len1, len2;
 			wxChar ch1BeforeEnd = *(pOld - 1);
 			ch1BeforeEnd = ch1BeforeEnd;
@@ -21109,7 +21829,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				*(pNew-1) = CR; // replacing the previous EOL char with CR
 				*pNew = LF;
 				dummyChar = *(pNew++); // the (wxChar)0 will go after the LF here, done below
-				//*pNew = *pNew; // avoid gcc warning set but not used warning
+				//  *pNew = *pNew; // avoid gcc warning set but not used warning
 			}
 			else
 			{
@@ -21120,6 +21840,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				*pNew = LF;
 				dummyChar = *(pNew++); // the (wxChar)0 will go after the LF here, done below
 			}
+			*/
 		}
 
 		*pNew = (wxChar)0; // terminate the new buffer string with null char

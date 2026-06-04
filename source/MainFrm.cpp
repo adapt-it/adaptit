@@ -2085,7 +2085,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 class AboutDlg : public AIModalDialog
 {
 public:
-    AboutDlg(wxWindow *parent);
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
+	AboutDlg(wxWindow *parent);
 	wxSizer* pAboutDlgSizer;
 protected:
 	wxStaticBitmap* m_pbmpAI;
@@ -2508,7 +2510,9 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event))
 	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
 	bool bOK1;
 	m_pHelpController->SetTempDir(_T(".")); // whm added 15Jan09 enables caching of helps for faster startups
-	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX)); // whm added wxPATH_UNIX which is OK on Windows and seems to be needed for Ubuntu Intrepid
+	//bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX)); // whm added wxPATH_UNIX which is OK on Windows and seems to be needed for Ubuntu Intrepid
+	// whm 1Jan2024 changed. Roland F reported failure of AddBook() warning below, so to be safe I've changed the AddBook() call above to use wxPATH_NATIVE instead wxPATH_UNIX.
+	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_NATIVE));
 	if (!bOK1)
 	{
 		wxString strMsg;
@@ -4363,8 +4367,11 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
     // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
     // encountered when this OnUpdateViewComposeBar() update handler was being triggered at idle
     // time, but before the View object was created
-    if (pView == NULL)
-        return;
+	if (pView == NULL)
+	{
+		return;
+	}
+
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pApp->m_bFreeTranslationMode)

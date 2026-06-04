@@ -30,6 +30,8 @@
 class CExportInterlinearDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CExportInterlinearDlg(wxWindow* parent); // constructor
 	virtual ~CExportInterlinearDlg(void); // destructor
 	// other methods

@@ -30,6 +30,8 @@ class CWhichBook : public AIModalDialog
 	//DECLARE_DYNAMIC(CWhichBook)
 
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CWhichBook(wxWindow* parent);   // standard constructor
 	virtual ~CWhichBook(void);		// destructor
 

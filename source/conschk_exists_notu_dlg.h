@@ -35,6 +35,8 @@
 class conschk_exists_notu_dlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	conschk_exists_notu_dlg(
 		wxWindow* parent,
 		wxString* title,

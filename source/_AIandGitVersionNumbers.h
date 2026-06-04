@@ -40,21 +40,21 @@
 // **** NOTE: Version numbers and dates are defined in both string and integer forms below.  ****
 // **** Be sure to keep them in sync when changing version numbers/dates for a new release!! ****
 
-// when changing these string values make sure to also change the corresponding int values below
+// When changing these string values make sure to also change the corresponding int values below
 #define AI_VERSION_MAJOR_STR "6"
-#define AI_VERSION_MINOR_STR "11"
-#define AI_VERSION_BUILD_PART_STR "5"
+#define AI_VERSION_MINOR_STR "12"
+#define AI_VERSION_BUILD_PART_STR "0"
 #define AI_VERSION_MAJOR 6
-#define AI_VERSION_MINOR 11
-#define AI_VERSION_BUILD_PART 5
+#define AI_VERSION_MINOR 12
+#define AI_VERSION_BUILD_PART 0
 
 // when changing these string values make sure to also change the corresponding int values below
-#define VERSION_DATE_DAY_STR "27"
-#define VERSION_DATE_MONTH_STR "12"
-#define VERSION_DATE_YEAR_STR "2024"
-#define VERSION_DATE_DAY 27
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2024
+#define VERSION_DATE_DAY_STR "29"
+#define VERSION_DATE_MONTH_STR "5"
+#define VERSION_DATE_YEAR_STR "2026"
+#define VERSION_DATE_DAY 29
+#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_YEAR 2026
 
 // set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define PRE_RELEASE 1

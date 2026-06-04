@@ -1493,12 +1493,12 @@ x:					CCell* pCell = 0;
 						// m_bWithinEmptyMkrsLoop would have been significant only during
 						// TokenizeText() parsing, and would not be useful here in the OnLButtonDown()
 						// method at the time vertical edit is in progress!
-						if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
-						{
-							wxMessageBox(_(
-								"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-								_T(""), wxICON_EXCLAMATION | wxOK);
-						}
+						//if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
+						//{
+						wxMessageBox(_(
+							"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+							_T(""), wxICON_EXCLAMATION | wxOK);
+						//}
 						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 					}
                     return;

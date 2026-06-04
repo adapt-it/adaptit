@@ -65,6 +65,8 @@ WX_DECLARE_LIST(Chapter, ChList); // see list definition macro in .cpp file
 class CSplitDialog : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	//enum { IDD = IDD_UNITS_DLG };
 	CSplitDialog();
 	CSplitDialog(wxWindow* parent); // constructor

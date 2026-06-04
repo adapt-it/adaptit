@@ -25,6 +25,8 @@ class CGetSourceTextFromEditorDlg : public AIModalDialog
 {
 	//friend class CChangeCollabProjectsDlg;
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CGetSourceTextFromEditorDlg(wxWindow* parent); // constructor
 	virtual ~CGetSourceTextFromEditorDlg(void); // destructor
 	
@@ -99,6 +101,7 @@ public:
 	wxArrayString FreeTransChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtPTPathAndFileName;
+	wxString m_PTLitePathAndFileName; // whm 3Apr2026 added
 	wxString m_bibledit_rdwrtPathAndFileName;
 	
 	wxString m_collabEditorName;

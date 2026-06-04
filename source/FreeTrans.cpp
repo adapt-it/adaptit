@@ -4423,9 +4423,7 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 			// find out if it is an embedded marker with TextType of none
 			// - we don't halt for these
 			mkrLen = mkr.Length();
-			bareMkr = mkr;
-			bareMkr = bareMkr.Left(mkrLen - 1);
-			bareMkr = bareMkr.Mid(1);
+			bareMkr = pDoc->GetBareMarkerForLookup(mkr);
 			pAnalysis = pDoc->LookupSFM(bareMkr);
 			if (pAnalysis == NULL)
 				return TRUE; // halt for an unknown endmarker
@@ -9817,7 +9815,6 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 		// finally, do test 5 for this marker - if it fails, iterate the loop and test the
 		// next delineated marker for halt conditions 4 and 5
 		wxString bareMkr = pDoc->GetBareMarkerForLookup(ptr);
-		wxASSERT(!bareMkr.IsEmpty());
 		USFMAnalysis* pAnalysis = pDoc->LookupSFM(bareMkr);
 		if (pAnalysis)
 		{

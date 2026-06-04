@@ -254,7 +254,16 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
         // Paratext command line utility rdwrtp7.exe/rdwrtp8.exe/rdwrtp9.exe file which is different for 
         // PT7 and PT8, and potentially different for PT9 in the future, so I'm adding a parameter to 
         // GetPathToRdwrtPT() to indicate the specific version of PT we want the path for.
-		m_rdwrtPTPathAndFileName = GetPathToRdwrtPT(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
+		// whm 7Apr2026 modified. When Paratext Lite is our Paratext editor, we don't call
+		// the GetPathToRdwrtPT() function which will assert and we don't use rdwrtp8 utility
+		// for collaboration when Paratext Lite is involved
+		if (m_pApp->m_ParatextVersionForProject != _T("PTLinuxParatextLite"))
+			m_rdwrtPTPathAndFileName = GetPathToRdwrtPT(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
+		else
+		{
+			// whm 3Apr2026 added 
+			m_PTLitePathAndFileName = GetPathToParatextLiteExec();
+		}
 	}
 
     if (m_pApp->m_bCollaboratingWithBibledit)
@@ -755,7 +764,29 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 #endif
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
-	    if (m_rdwrtPTPathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
+		// whm 7Apr2026 added the following text for Paratext Lite support
+		if (!m_PTLitePathAndFileName.IsEmpty())
+		{
+			// We are running Linux and the Paratext Lite program link was
+			// found, so assume our commandLineSrc, commandLineTgt and
+			// commandLineFT will be used to fetch collaboration files from
+			// Paratext Lite.
+			// Example commandline that fetches from PT Lite a whole book to an external file:
+			// paratextlite save --project NYNT --projectsPath /home/bill/Paratext8Projects --book ACT --file ACT-2.txt
+			// Note: The whole book is fetched from Paratext Lite by ommiting the --chapter n 
+			// parameter from the command line.
+			commandLineSrc = m_PTLitePathAndFileName + _T(" save ") + _T("--project ") + +_T("\"") +
+				sourceProjShortName + _T("\"") + _T(" --book ") + bookCode + _T(" ") + _T("--file ") +
+				_T("\"") + sourceTempFileName + _T("\"");
+			commandLineTgt = m_PTLitePathAndFileName + _T(" save ") + _T("--project ") + _T("\"") +
+				targetProjShortName + _T("\"") + _T(" --book ") + bookCode + _T(" ") + _T("--file ") +
+				_T("\"") + targetTempFileName + _T("\"");
+			commandLineFT = m_PTLitePathAndFileName + _T(" save ") + _T("--project ") + _T("\"") + 
+				freeTransProjShortName + _T("\"") + _T(" --book ") + bookCode + _T(" ") + _T("--file ") +
+				_T("\"") + freeTransTempFileName + _T("\"");
+
+		}
+	    else if (m_rdwrtPTPathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
 	    {
 	        // PT on linux -- need to add --rdwrtp7 as the first param to the command line
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
@@ -901,7 +932,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
         wxString editor;
         if (m_pApp->m_bCollaboratingWithParatext)
         {
-            editor = _T("Paratext");
+			if (m_pApp->m_ParatextVersionForProject == _T("PTLinuxParatextLite"))
+				editor = _T("Paratext Lite");
+			else
+				editor = _T("Paratext");
         }
         else if (m_pApp->m_bCollaboratingWithBibledit)
         {
@@ -912,7 +946,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
 			{
 				if (!outputStr.IsEmpty())
-					outputStr += _T(' ');
+					outputStr += _T('\n');
 				outputStr += outputSrc.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -926,7 +960,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
             for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
-					errorsStr += _T(' ');
+					errorsStr += _T('\n');
 				errorsStr += errorsSrc.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -943,7 +977,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
 			{
 				if (!outputStr.IsEmpty())
-					outputStr += _T(' ');
+					outputStr += _T('\n');
 				outputStr += outputTgt.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -957,7 +991,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
             for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
-					errorsStr += _T(' ');
+					errorsStr += _T('\n');
 				errorsStr += errorsTgt.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -975,7 +1009,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			for (ct = 0; ct < (int)outputFT.GetCount(); ct++)
 			{
 				if (!outputStr.IsEmpty())
-					outputStr += _T(' ');
+					outputStr += _T('\n');
 				outputStr += outputFT.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -989,7 +1023,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
             for (ct = 0; ct < (int)errorsFT.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
-					errorsStr += _T(' ');
+					errorsStr += _T('\n');
 				errorsStr += errorsFT.Item(ct);
 			}
             // whm 4Feb2020 added to better clarify the type of project
@@ -1010,16 +1044,22 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			concatMsgs += errorsStr;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+			msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n%s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+			msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n%s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
 		}
 		msg = msg.Format(msg,concatMsgs.c_str());
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-        wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        //wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+		// whm 7Apr2026 modified to use wxMessageDialog instead of wxMessageBox in order to make the
+		// error message selectable and copyable - so user can select and copy the message on a report
+		// to developers.
+		wxMessageDialog dlg(this, _("Problem communicating with external editor"), msg, wxICON_EXCLAMATION | wxOK);
+		dlg.SetExtendedMessage(msg);
+		dlg.ShowModal();
 		m_pApp->LogUserAction(msg);
 		wxLogDebug(msg);
 
@@ -1764,6 +1804,24 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 
 	wxString collabProjShortName;
 	collabProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
+	
+	// whm 3Apr2026 Note. For Paratext Lite, the Settings.xml file for a given project is
+	// copied along with all other project files from an existing full Paratext for Linux
+	// 8 or 9 project that exists on the Linux machine when Paratext Lite is first installed
+	// The default location where Paratext Lite copies all of this is something like:
+	// [$HOME]/snap/paratextlite/current/Paratext8Projects/NYNT/
+	// for the "NYNT" project that existed on my Linux desktop at: 
+	// [$HOME]/Paratext8Projects/NYNT/
+	// The Paratext Lite's NYNT folder has the same books that were present in the original 
+	// installation of Paratext 8 for Linux which was named the Paratext8Projects folder.
+	// (for Linux installations that previously hade a PT 8 installation existing when
+	// PT 9 was installed kept the old folder name Paratext8Projects even after upgrading
+	// to PT 9. Where no older PT 8 installation existed before PT 9 was installed the
+	// Paratext repository folder on Linux is named Paratext9Projects instead of 
+	// Paratext8Projects.
+	// The App's m_pArrayOfCollabProjects was also populated for Paratext Lite using the
+	// Settings.xml file 
+	// 
 	int ct, tot;
 	tot = (int)m_pApp->m_pArrayOfCollabProjects->GetCount();
 	wxString tempStr;

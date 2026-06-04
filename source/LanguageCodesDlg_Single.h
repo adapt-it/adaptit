@@ -25,6 +25,8 @@
 class CLanguageCodesDlg_Single : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CLanguageCodesDlg_Single(wxWindow* parent); // constructor
 	//CLanguageCodesDlg_Single(wxWindow* parent, enum LangCodesChoice choice); // constructor for use in KB Sharing Manager GUI
 	virtual ~CLanguageCodesDlg_Single(void); // destructor

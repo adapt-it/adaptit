@@ -36,6 +36,8 @@ class CAdapt_ItApp;
 class CKBPage : public wxPanel
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CKBPage();
 	CKBPage(wxWindow* parent); // constructor
 	virtual ~CKBPage(void); // destructor // whm make all destructors virtual

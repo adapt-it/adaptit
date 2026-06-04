@@ -85,18 +85,35 @@ struct freq_analysis_data_t {
     const char* enc;
 };
 
-struct greater_char_count :
-        public binary_function<const char_count_t&,
-                               const char_count_t&,
-                               bool> {
-    result_type operator()(first_argument_type lhs, second_argument_type rhs)
+// whm 6Dec2025 modification. The g++ compiler now indicates that binary_function is deprecated.
+// Looking at the source code of tellenc.cpp on GitHub at:
+// https://github.com/adah1972/tellenc/blob/master/tellenc.cpp
+// this greater_char_count struct now uses a bool operator function, so I'm copying the newer
+// version here and commenting out the original struct below
+struct greater_char_count {
+    bool operator()(const char_count_t& lhs, const char_count_t& rhs)
     {
         if (lhs.second > rhs.second) {
             return true;
         }
-        return false;
+        else {
+            return false;
+        }
     }
 };
+
+//struct greater_char_count :
+//        public binary_function<const char_count_t&,
+//                               const char_count_t&,
+//                               bool> {
+//    result_type operator()(first_argument_type lhs, second_argument_type rhs)
+//    {
+//        if (lhs.second > rhs.second) {
+//            return true;
+//        }
+//        return false;
+//    }
+//};
 
 enum UTF8_State {
     UTF8_INVALID,

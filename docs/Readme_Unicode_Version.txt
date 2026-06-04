@@ -1,16 +1,16 @@
 IMPORTANT NOTES: (1) YOU MUST HAVE ADMINISTRATOR OR POWERUSER 
 PRIVILEGES TO INSTALL THIS SOFTWARE ON WINDOWS 10 & 11, Windows 8, 8.1
 and WINDOWS 7. (2) YOU SHOULD UNINSTALL ANY VERSION 5.X.X OF ADAPT IT 
-BEFORE INSTALLING VERSION 6.11.1. YOUR DATA IS NOT AFFECTED BY 
+BEFORE INSTALLING VERSION 6.12.0. YOUR DATA IS NOT AFFECTED BY 
 UNINSTALLING.
 ---------------------------------------------------------------------
 Adapt It WX Unicode
 ---------------------------------------------------------------------
-Version 6.11.1
+Version 6.12.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
-and the Macintosh. See http://adapt-it.org for more information.
+and the Macintosh. See https://adapt-it.org for more information.
 
 See the file "Adapt It changes.txt" for a description of the latest
 changes that have been incorporated into this version.
@@ -58,7 +58,7 @@ translated text or the source text to legacy encoding again. However,
 if your legacy encoding is a hacked ANSI encoding, the conversions 
 will not be done correctly. For the latter, it is preferable for you 
 to use the non-Unicode ANSI version, called Adapt It WX. It is 
-available from the same source, at http://adapt-it.org/.
+available from the same source, at https://adapt-it.org/.
 
 Adapt It WX Unicode will only run reliably on Windows NT, 2000, XP, 
 or later systems. It will run on Windows 98 but the screen will show 

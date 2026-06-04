@@ -32,6 +32,8 @@ class CAdapt_ItView;
 class CPlaceInternalPunct : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CPlaceInternalPunct(wxWindow* parent); // constructor
 	virtual ~CPlaceInternalPunct(void); // destructor // whm make all destructors virtual
 	

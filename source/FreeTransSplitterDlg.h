@@ -53,6 +53,8 @@ class CMainFrame; // use this for the dialog's parent
 class FreeTransSplitterDlg : public AIModalDialog
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	FreeTransSplitterDlg(wxWindow*	parent); // constructor
 	virtual ~FreeTransSplitterDlg(); // destructor
 

@@ -44,7 +44,9 @@ class CAdapt_ItView; // forward ref
 //enum UniqueFileIncrementMethod; // whm 28Jul12 removed; gives gcc compile error
 
 // main export functions:
-wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
+// whm 16Feb2026 The need for calling AddSpaceIfNotFFEorX() is eliminated with
+// the current use of CSourcePhrase::m_follWsMkrsAndPuncts data
+//wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
 
 // whm 12Feb2024 Revised to remove the treatment of filtered information in this
 // AppendSrcPhraseBeginningInfo() function and move it to the AppendSrcPhraseEndingInfo()
@@ -52,6 +54,10 @@ wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
 // my refactoring to store it on a previous pSrcPhrase.
 wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 					 bool& bAddedSomething); // BEW created 11Oct10 
+
+bool HasSameTextAndPunctButPunctDiffersInTextLocation(wxString str1, wxString str2); // whm added 21Oct2025
+wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, wxArrayInt& arrPunctPos); // whm added 21Oct2025
+
 //wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 	bool& bAddedSomething, bool& bAddedHiddenMetaData,
@@ -154,9 +160,11 @@ bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxStrin
 wxString	GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 							SPList* pSrcPhrases, wxString filteredInfo_NoXRef,
 							wxString collBackTransStr, wxString freeTransStr,
-							wxString noteStr, bool bDoCount, bool bCountInTargetText);
+							wxString noteStr, bool bDoCount, bool bCountInTargetText,
+							bool bCollabWithEditor); // whm 29Mar2026 added
 wxString	GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr, 
-							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers);
+							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers,
+							CSourcePhrase* pSrcPhrase, bool bCollabWithEditor); // whm 29Mar2026 added
 wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& endPos); // whm added 18Oct05
 bool		MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup); // whm added 18Nov05
 wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);

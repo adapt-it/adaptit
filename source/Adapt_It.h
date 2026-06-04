@@ -661,7 +661,8 @@ const char xml_tgtwdbrk[] = "twbk"; // for target wordbreak, in a retranslation
 const char xml_ssp[] = "ssp";  // m_srcSinglePattern
 const char xml_tsp[] = "tsp";  // m_tgtSinglePattern
 const char xml_gsp[] = "gsp";  // m_glossSinglePattern
-const char xml_smp[] = "smp";  // m_srcMergerPattern
+const char xml_smp[] = "smp";  // m_srcMergerPattern // whm 10Jan2026 removed from active use - except for read of any (empty) data xml
+const char xml_fwsmp[] = "fwsmp";  // m_follWsMkrsAndPuncts // whm 10Jan2026 added
 const char xml_tmp[] = "tmp";  // m_tgtMergerPattern
 const char xml_okey[] = "okey";  // m_oldKey
 
@@ -5599,8 +5600,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 
 	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
+	
+	wxString m_PTLiteProjectPath; // whm 4Apr2026 added
+	
+								  //bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
 	bool     m_bEnableDelayedGet_Handler; // BEW added 15Sep14
+
+	// whm 3Apr2026 added for ParatextLite support
+	wxArrayString GetListOfPTLiteProjects();
 
 	// whm 17Oct11 for collaboration support
     wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function
@@ -5633,8 +5640,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
-
-	bool    IsWithinFootnote(CSourcePhrase* pSrcPhrase); // BEW added 30Aug22
+	// whm 23Oct2025 added a definition for BEW's IsWithinFootnote() function below
+	// and also added a second parameter
+	bool    IsWithinFootnote(CSourcePhrase* pSrcPhrase, SPList* pSPList); // BEW added 30Aug22
 
 //#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12

@@ -42,6 +42,8 @@ class CViewFilteredMaterialDlg : public wxScrollingDialog // use wxScrollingDial
 #endif
 {
 public:
+	// Expose all overloads of InitDialog from the base class (wxWindowBase)
+	using wxWindowBase::InitDialog; // whm 6Dec2025 added to avoid gcc warning
 	CViewFilteredMaterialDlg(wxWindow* parent); // constructor
 	virtual ~CViewFilteredMaterialDlg(void); // destructor
 

@@ -1104,6 +1104,77 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 					__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str());
 			}
 #endif
+			// whm 11Dec2025 addition. To support our code having an empty source phrase (m_key is "") 
+			// and which has an isolated ")." or other bit of final punctuation in its m_srcPhrase member, the
+			// following code will detect that "rogue" situation and assign the value stored in m_srcPhrase
+			// to its m_targetStr member, before we return from this DoStore...() function at the return
+			// statement below. This allows the final punctuation to remain in the target line after an
+			// Enter press at the location of the otherwise empty source phrase (m_key is ""). We have nothing
+			// to Store() in the KB, so we go ahead and return immediately below.
+			if (pOldActiveSrcPhrase->m_key.IsEmpty() && pDoc->IsFinalPunctuationOnly(pOldActiveSrcPhrase->m_srcPhrase))
+			{
+				// Before we arrive here the user could have made a change to the target phrase punctuation
+				// of our otherwise empty source phrase. That change, if made, will appear in the 
+				// pApp->m_targetPhrase global. Any change should be discoverable by comparing the m_srcPhrase
+				// member of the pOldActiveSrcPhrase->m_srcPhrase with what is now stored in pApp->m_targetPhrase.
+				// If a user edit is evident, we need to use the edited version to store in the current
+				// pOldActiveSrcPhrase->m_targetStr, and also store the edited version in the current
+				// pOldActiveSrcPhrase->m_srcPhrase, as well as pOldActiveSrcPhrase->m_follPunct.
+				if (pOldActiveSrcPhrase->m_srcPhrase != pApp->m_targetPhrase)
+				{
+					// The user edited the punctuation in the phrasebox changing it to something other that
+					// what was there originally. The phrasebox might now contain:
+					// 1. Punctuation only, but different than what was there previouly.
+					// 2. Nothing. The punctuation was deleted and phrasebox emptied.
+					// 3. Text only, or text plus some punctuation.
+					// First deal with 1 and 2 above:
+					if (pDoc->IsFinalPunctuationOnly(pApp->m_targetPhrase) || pApp->m_targetPhrase.IsEmpty())
+					{
+						// The user type some different punctuation into the phrasebox without any text,
+						// or deleted the whole contents of the phrasebox.
+						// Adjust the pOldActiveSrcPhrase to reflect the changes
+						pOldActiveSrcPhrase->m_targetStr = pApp->m_targetPhrase;
+						//pOldActiveSrcPhrase->m_srcPhrase = pApp->m_targetPhrase;
+						//pOldActiveSrcPhrase->m_follPunct = pApp->m_targetPhrase;
+
+					}
+					// Deal with 3 above.  
+					else 
+					{
+						// The user added some text, or text plus punctuation.
+						// The text plus any punctuation should be stored in the m_targetStr
+						// when we don't want to store in the KB, we still have some things to do
+						// to get appropriate m_adaption and m_targetStr members set up for the doc...
+						// when adapting, fill out the m_targetStr member of the CSourcePhrase instance,
+						// and do any needed case conversion and get punctuation in place if required
+						//pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+
+						// Any punctuation added by the user is not stored in pOldActiveSrcPhrase->m_adaption.
+						// The m_targetStr member may now have punctuation, so get rid of it
+						// before assigning whatever is left to the m_adaption member.
+						wxString strKeyOnly = pApp->m_targetPhrase;
+						pView->RemovePunctuation(pDoc, &strKeyOnly, from_target_text);
+
+						// The text only should be stored in the m_adaption
+						pOldActiveSrcPhrase->m_adaption = strKeyOnly;
+
+						// whm 11Dec2025 In normal cases where source text m_key is not empty, we might
+						// let the user see the unpunctuated string in the phrase box as visual feedback,
+						// but for the present situation where source m_key is empty, we retain any
+						// punctuation in pApp->m_targetPhrase, and also in the source phrase' m_targetStr.
+						//pApp->m_targetPhrase = strKeyOnly;
+						pOldActiveSrcPhrase->m_targetStr = pApp->m_targetPhrase;
+					}
+				}
+				else
+				{
+					// The punctuation in the phrasebox was not changed when phrasebox moved away
+					// so to make the punctuation "stick" we must assign it to the current source phrase's
+					// m_targetStr.
+					pOldActiveSrcPhrase->m_targetStr = pOldActiveSrcPhrase->m_srcPhrase;
+				}
+			}
+
 			return TRUE; // wasFALSE;
 		}
 
@@ -6371,7 +6442,12 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		// pApp->m_nActiveSequNum was not -1. Need a more suitable test.
 		int maxindex = pApp->GetMaxIndex();
 		int curSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-		if (maxindex == curSequNum)
+		// whm 12Mar2026 added || !bSuccessful to the test below since when editing a fully
+		// adapted text, the phrasebox may not be at the maxindex, but it would still be
+		// helpful to display the "At end..." message, otherwise the user may feel that the
+		// app is unresponsive if the phrasebox doesn't move especially when the edit was
+		// a <no adaptation> edit at that location.
+		if (maxindex == curSequNum || !bSuccessful) 
 		{
 			// we got to the end of the doc...
 
@@ -6390,6 +6466,12 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 			// tell the user EOF has been reached
 			m_bCameToEnd = TRUE;
+			// whm 12Mar2026 added. We need to set the following two flags to FALSE to
+			// prevent the dropdown box from automatically opening when the phrasebox 
+			// jumps to the last location as it would have items in it that were left-
+			// overs from the dropdown's previous location.
+			pApp->m_bAutoInsert = FALSE; // whm 12Mar2026 added
+			pApp->m_bMovingToDifferentPile = FALSE; // whm 12Mar2026 added.
 			wxStatusBar* pStatusBar;
 			CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
 			if (pFrame != NULL)
@@ -7649,6 +7731,11 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 			pApp->m_bChooseTransInitializePopup = FALSE;
 			this->CloseDropDown(); // whm 21Aug2018 added. Unilaterally close the dropdown list when in free trans mode.
 		}
+		else if (m_bCameToEnd) // whm 12Mar2026 the dropdown shouldn't be executed/opened at eof situation)
+		{
+			pApp->m_bChooseTransInitializePopup = FALSE;
+			this->CloseDropDown(); // whm 21Aug2018 added. Unilaterally close the dropdown list when in free trans mode.
+		}
 		else
 		{
 			pApp->m_bChooseTransInitializePopup = TRUE;
@@ -8385,6 +8472,13 @@ bool CPhraseBox::IsPhraseBoxVisibleInClientWindow()
 		CAdapt_ItView* pView = gpApp->GetView();
 		int nFirstStrip;
 		int nLastStrip;
+		// whm 2Feb2025 added. Sometimes on Linux when exiting AI, this IsPhraseBoxVisibleInClientWindow() is
+		// called, but the pView has already become NULL, so I'll protect against possible Segmentation fault
+		// here
+		if (pView == NULL)
+		{
+			return bPhraseBoxIsVisible; // will be FALSE when pView is NULL
+		}
 		pView->GetVisibleStrips(nFirstStrip, nLastStrip);
 		// Get the strip index of the active pile, may be NULL
 		CPile* pile = pView->GetPile(gpApp->m_nActiveSequNum);
@@ -9385,7 +9479,24 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 #endif
 			pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
 			// Now use the user's actual phrasebox contents, with any puncts he may have typed
-			pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
+
+			// whm 4Mar2025 testing modification. It doesn't appear to me that we need a second call of
+			// the View's MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase) here
+			// as it is already called within the StoreText() call above, and within that first
+			// MakeTargetStringIncludingPunctuation() call, proper values assigned to pActiveSrcPhrase->m_targetStr 
+			// are done, and any manually typed final punctuation stored within pActiveSrcPhrase->m_follPunct, etc
+			// without any duplication. BEW reported that manually typed final punctuation was not appearing in
+			// the display when user clicks away to a different location, but the manually typed punct were being
+			// stored in the doc's xml. My tracing through the code shows that calling 
+			// MakeTargetStringIncludingPunctuation() a second time here wipes out the manually typed punctuation
+			// from being stored in the pActiveSrcPhrase->m_targetStr member - because its call count is > 1 in
+			// this case - and code that would actually "make the target string including punctuation" gets skipped
+			// when the call count is > 1.
+			// Therefore, I'm commenting out the following MakeTargetStringIncludingPunctuation() call and testing
+			// the effect.
+			// Test Results: This change appears to fix the issue of final punctuation not appearing in the display,
+			// but should be tested and verified by BEW to ensure that it doesn't cause other undesired side-effects.
+			// pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
 
 #if defined (_DEBUG)
 			{
