@@ -23133,6 +23133,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             if (rv == 0)
             {
                 bExecutedSucceeded = TRUE;
+                wxUnusedVar(bExecutedSucceeded); // whm 13Jun2026 added to avoid gcc set but unused var warning
                 bSuccessfulSwitch = TRUE;
             }
             // BEW 26Feb24 if the call of wxExecute succeeded, the new user, new fulname, and new password
