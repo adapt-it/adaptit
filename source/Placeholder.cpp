@@ -309,7 +309,14 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount, SelOrNoSel); // whm 30Dec2024 added SelOrNoSel paramter
-    m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+    // whm 15Jun2026 note:
+	// The default bool values are implied here of TRUE, FALSE, TRUE); since the params 
+	// are not here specified.
+	// Note that elsewhere within the corresponding InsertNullSrcPhraseAfter() function 
+	// the parameters are explicitly given as TRUE, FALSE, FALSE); where there, the last 
+	// param bInsertBefore is explicitly set FALSE, indicating there to "insert after".
+
+	m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 
 	// jump to it (can't use old pile pointers, the recalcLayout call will have 
 	// clobbered them)
@@ -474,8 +481,16 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,SelOrNoSel, // whm 30Dec2024 added SelOrNoSel parameter
-		TRUE,FALSE,FALSE); // here, never for
-	// Retransln if we inserted a dummy, now get rid of it and clear the global flag
+		TRUE,FALSE,FALSE); 
+	// whm 15Jun2026 note:
+	// The default bool values are TRUE, FALSE, TRUE); however, here the last bool 
+	// "bInsertBefore" is explicitly set to FALSE for this InsertNullSrcPhraseAfter() call.
+	// Note that elsewhere within the corresponding "Before" function call InsertNullSrcPhraseBefore(),
+	// the parameters not specified in the call, so their default values of TRUE, FALSE, TRUE); are 
+	// used and where last param bInsertBefore has its default value explicitly set to TRUE, i.e., 
+	// to "insert before".
+	// [BEW comment: here, never for Retransln if we inserted a dummy, now get rid of it 
+	// and clear the global flag]
     m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 	if (m_bDummyAddedTemporarily)
 	{
