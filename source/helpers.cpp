@@ -6851,6 +6851,7 @@ bool IsOpeningBracketWordBuilding(wxString& strPunctuationCharSet)
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase,
 	CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
+	CSourcePhrase* pNextSrcPhrase, // whm 18Jun2026 added
 	SPList* pList) // whm 19Nov2025 added pList
 {
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -6860,6 +6861,7 @@ wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase,
 	wxASSERT(pos_pSPsubList != 0);
 	SPList::Node* posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
+	CSourcePhrase* pLastMergedSrcPhraseWord = posLast->GetData(); // whm 18Jun2026 added
 
 	wxString str; // accumulate the source text here
 
@@ -6913,9 +6915,52 @@ wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase,
 		// whm 4Mar2026 Changed the FromSingleMakeSstr2() below to the refactored
 		// FromSingleMakeSstr1().
 		// TODO: Need to do more testing of the EditSourceText operation to test mergers.
-		str += FromSingleMakeSstr1(pMergedSrcPhrase, //str += FromSingleMakeSstr2(pMergedSrcPhrase,
-			pPrevSrcPhrase, pList);
+		// whm 18Jun2026 Here within FromMergerMakeSstr() the call to FromSingleMakeSstr1()
+		// needs to account for the possibility that the pNextSrcPhrase might be a placeholder
+		// source phrase onto which information needed for source text rebuilding is stored
+		// within the members of that placeholder source phrase. Namely, when a placeholder
+		// was inserted immediately after a merged source phrase, some of the whitespace, 
+		// markers and punctuation needed for source text rebuild will have been transferred
+		// from the last word of a merger onto the next placeholder source phrase. Hence,
+		// we need to examine and extract textual data that is returned to str from the 
+		// FromSingleMakeSstr1() function call for each of the original merged words, with
+		// special attention to the str returned from the last original merged word. The
+		// str returned from the last merged word will need to be adjusted if there is a
+		// following placeholder source phrase in pNextSrcPhrase. The reason is that the
+		// whitespace, punctuation, and markers that normally follow the last merged word
+		// and are normally stored in the m_follWsMkrsAndPuncts field of that last merged
+		// word source phrase, will have been transferred to any placeholder source phrase
+		// that may have been inserted directly following the merged phrase.
+		// Test whether we are processing the last merged word and if so, whether a 
+		// placeholder source phrase immediately follows this whole merger.
+		if (pMergedSrcPhrase == pLastMergedSrcPhraseWord // if we are processing the last merged word
+			&& pNextSrcPhrase != NULL && pNextSrcPhrase->m_bNullSourcePhrase)
+		{
+			// We are processing the last merged word and a placeholder source phrase 
+			// immediately follows this whole merger. We need to grab the m_follWsMkrsAndPuncts
+			// data from the inserted placeholder and merge it to our str that is returned
+			// from the FromSingleMakeSstr() call for this pLastMergedSrcPhraseWord. In
+			// this situation a FromSingleMakeSstr(pLastMergedSrcPhraseWord) returns to us
+			// only the source text word that represents the last word of the merger, but it
+			// suffixes that word with a whitespace char(s). Before we can add the 
+			// m_follWsMkrsAndPuncts string taken from the placeholder to str, we need to remove
+			// any whitespace that followed
+			wxString strTemp = FromSingleMakeSstr1(pLastMergedSrcPhraseWord, pPrevSrcPhrase, pList);
+			strTemp.Trim(TRUE); // trim whitespace from the right end
+			// Add the m_follWsMkrsAndPuncts data from the placeholder source phrase
+			strTemp += pNextSrcPhrase->m_follWsMkrsAndPuncts;
+			str += strTemp;
 
+		}
+		else
+		{
+			str += FromSingleMakeSstr1(pMergedSrcPhrase, //str += FromSingleMakeSstr2(pMergedSrcPhrase,
+				pPrevSrcPhrase, pList);
+		}
+#ifdef _DEBUG
+		int break_here;
+		wxUnusedVar(break_here);
+#endif
 		/*
 		// ---------- Previous coding before 16Feb2026 below this line -----------------
 		// filtered info can only be on the first, and it's copied to pMergedSrcPhrase
@@ -9773,7 +9818,7 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 	wxString filteredInfoStr;
 
 #ifdef _DEBUG
-	if (pSingleSrcPhrase->m_nSequNumber >= 12)
+	if (pSingleSrcPhrase->m_nSequNumber >= 747)
 	{
 		int break_here = 1;
 		break_here = break_here;

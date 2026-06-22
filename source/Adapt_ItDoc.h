@@ -339,6 +339,7 @@ protected:
 	bool			ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
 		SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase, 
 		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
+		CSourcePhrase*& pNextSrcPhrase, // whm 18Jun2026 added - used in FromMergerMakeSstr()
 		wxString& fixesStr);
 	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
 		SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,

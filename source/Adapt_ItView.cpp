@@ -16944,7 +16944,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	wxString boxContents = pApp->m_pTargetBox->GetValue();
 	pApp->m_targetPhrase = boxContents;
 
-	// BEW changed 6Feb23, pApp->m_TargetPhrase won't be uptodate with any manually type preceding or final
+	// BEW changed 6Feb23, pApp->m_TargetPhrase won't be uptodate with any manually typed preceding or final
 	// punctuation yet, but the passed in targetStr value WILL have what the phrasebox currently has, so
 	// change to grabbing what's in targetStr, instead, for next two calls
 	// 
@@ -28362,11 +28362,15 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	//int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added, used in FromMergerMakeSstr() and FromSingleMakeSstr2()
+	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added, used in FromMergerMakeSstr() and FromSingleMakeSstr1()
+	CSourcePhrase* pNextSrcPhrase = NULL; // whm 18Jun2026 added, used in FromMergerMakeSstr()
 	while (pos_pSP != NULL)
 	{
 		pSrcPhrase = pos_pSP->GetData();
 		pos_pSP = pos_pSP->GetNext();
+		if (pos_pSP != NULL)
+			pNextSrcPhrase = pos_pSP->GetData(); // whm 18Jun2026 added
+
 		nThisSN = pSrcPhrase->m_nSequNumber;
 		if (nThisSN >= nStartingSN && nThisSN <= nEndingSN)
 		{
@@ -28401,6 +28405,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 				// it's a genuine merger
 				srcStr = FromMergerMakeSstr(pSrcPhrase, 
 						pPrevSrcPhrase, // whm 16Feb2026 added 2nd parameter
+						pNextSrcPhrase, // whm 18Jun2026 added
 						pSublist); // whm 19Nov2025 added pSublist
 			}
 			else

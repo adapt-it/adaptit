@@ -70,7 +70,7 @@ class CPlaceholder : public wxEvtHandler
 		// methods
 		void		InsertNullSrcPhraseBefore();
 		void		InsertNullSrcPhraseAfter();
-		void		InsertNullSourcePhrase(
+		bool		InsertNullSourcePhrase( // whm 17Jun2026 changed from void to bool return value (TRUE is success; FALSE is user canceled)
 							CAdapt_ItDoc*		pDoc,
 							CPile*				pInsertLocPile,
 							const int			nCount,
@@ -78,6 +78,7 @@ class CPlaceholder : public wxEvtHandler
 							bool				bRestoreTargetBox = TRUE,
 							bool				bForRetranslation = FALSE,
 							bool bInsertBefore = TRUE);
+		wxString	GetTextOfSingleSPSelection();
 		void		RemoveNullSourcePhrase(
 							CPile*				pInsertLocPile, 
 							const				int nCount);

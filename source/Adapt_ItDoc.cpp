@@ -25502,17 +25502,22 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	{
 		pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
 		CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
+		// whm 18Jun2026 added pNextSrcPhrase below - used within ReconstituteAfterPunctuationChange()'s
+		// call of 
+		CSourcePhrase* pNextSrcPhrase = NULL; 
 		while (pos_pSP != NULL)
 		{
 			oldPos = pos_pSP;
 			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
 			pos_pSP = pos_pSP->GetNext();
-
+			if (pos_pSP != NULL)
+				pNextSrcPhrase = pos_pSP->GetData();
 			// acts on ONE instance of pSrcPhrase only each time it loops, & it may add
 			// many to the list, or remove some, or leave number in the list unchanged
 			bSuccessful = ReconstituteAfterPunctuationChange(pView,
 				gpApp->m_pSourcePhrases, oldPos, pSrcPhrase, 
 				pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
+				pNextSrcPhrase, // whm 19Jun2026 added - used in FromMergerMakeSstr()
 				fixesStr);
 			if (!bSuccessful)
 			{
@@ -27462,11 +27467,13 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// without loss, and alerting the user to where we think a visual inspection should be
 /// done in order to verify the results are acceptable - and edit if not.
 /// whm 28Dec2024 added a CSourcePhrase*& pPrevSrcPhrase parameter to the function header.
-/// whm 16Feb2026 pPrevSrcPhrase is nused in the FromMergerMakeSstr() call.
+/// whm 16Feb2026 pPrevSrcPhrase is used in the FromMergerMakeSstr() call.
+/// whm 18Jun2026 pNextSrcPhrase is used in the FromMergerMakeSstr() call.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList*& pList, SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase,
 	CSourcePhrase*& pPrevSrcPhrase, // whm 16Feb2026 used in FromMergerMakeSstr() call
+	CSourcePhrase*& pNextSrcPhrase, // whm 18Jun2026 added - used in FromMergerMakeSstr() call
 	wxString& fixesStr)
 {
 	int nOriginalCount = pSrcPhrase->m_nSrcWords;
@@ -27561,6 +27568,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		//srcPhrase = pSrcPhrase->m_srcPhrase;
 		srcPhrase = FromMergerMakeSstr(pSrcPhrase, 
 					pPrevSrcPhrase,
+					pNextSrcPhrase, // whm 18Jun2026 added
 					pOwnedList); // whm 19Nov2025 added pOwnedList
 		// Set targetStr only to the punctuated m_targetStr member, because we only want
 		// to deal with words, tgt punctuation and possibly fixed space marker (~) when we

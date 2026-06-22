@@ -17833,10 +17833,13 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// as the new storage strings for inline markers, as well as m_markers and m_endMarkers
 	// content as before -- so a lot more local storage strings for holding over data will
 	// be needed.
-	bool bMarkersOnPlaceholder = FALSE;
-	wxString strPlaceholderMarkers; // for m_markers content
-	wxString strPlaceholderEndMarkers; // for m_endMarkers content
-	wxString aSpace = _T(" ");
+	// 
+	// whm 20Jun2026 The following variables are no longer needed within RebuildSourceText()
+	//bool bMarkersOnPlaceholder = FALSE; // whm 20Jun2026 removed
+	//wxString strPlaceholderMarkers; // for m_markers content // whm 20Jun2026 removed
+	//wxString strPlaceholderEndMarkers; // for m_endMarkers content // whm 20Jun2026 removed
+	//wxString aSpace = _T(" "); // whm 20Jun2026 removed
+
 	// Note, placing the above information is tricky. We have to delay markers relocation
 	// until the first non-placeholder CSourcePhrase instance has been fully dealt with,
 	// because that is the CSourcePhrase instance on to which they are to be moved...
@@ -17887,10 +17890,13 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// processed in the while loop below  - unused - may use in future. Filtered information is 
 	// stored on a previous source phrase in the incoming pList data.
 	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CSourcePhrase* pNextSrcPhrase = NULL; // whm 18Jun2026 added
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 		pos_pList = pos_pList->GetNext();
+		if (pos_pList != NULL)
+			pNextSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // whm 18Jun2026 added
 
 #ifdef _DEBUG
 		if (pSrcPhrase->m_bUnused == TRUE)
@@ -17987,7 +17993,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #if defined(_DEBUG)
 		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
-		if (pSrcPhrase->m_nSequNumber == 36)
+		if (pSrcPhrase->m_nSequNumber >= 747)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -18006,7 +18012,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// Determine if more code is needed within the refactored FromSingleMakeSstr1() to 
 			// handle the presence of placeholder source phrases. Doing so there would eliminate 
 			// dealing with anything here related to placeholder source phrases.
- 			if (!bMarkersOnPlaceholder)
+ 			
+			// whm 20Jun2026 removed the bMarkerOnPlaceholder blocks and the strCollectedBeginnings
+			/*
+			if (!bMarkersOnPlaceholder)
 			{
 				bool bAddedSomething = FALSE;
 				// markers placement from a preceding placeholder is not pending, so from
@@ -18048,6 +18057,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
+			*/
 
 			// If bMarkersOnPlaceholder was set TRUE on the last iteration, then if a
 			// second placeholder follows the first one, control will jump to here and the
@@ -18076,6 +18086,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// placeholder.
 			// whm 16Feb2026 TODO: TESTING NEEDED
 			// Determine if the following addition of strCollectedBeginnings is still relevant?
+			// 
+			// whm 20Jun2026 removed the bMarkerOnPlaceholder blocks and the strCollectedBeginnings
+			/*
 			if (bMarkersOnPlaceholder)
 			{
 				// pSrcPhrase here is not a placeholder, so filtered material and any
@@ -18095,7 +18108,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// was preceding punctuation for the word, a space inserted here would be
 				// a disaster
 			}
-
+			*/
 			// next, deal with pSrcPhrase itself - if it has filtered information, etc, we need
 			// a function to aggregate such stuff and return it as a string, so use the
 			// helpers.cpp function FromMergerMakeSstr(), but first deal with any stored
@@ -18140,14 +18153,17 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			//{
 			// when m_nSequNum == 0 source will be empty string, so don't put medial white space
 			// at the beginning of the rebuild.
-			source << str;
+			// 
+			//source << str; // whm 20Jun2026 removed
+			// 
 			//}
 
 			// Reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it.
 			str = FromMergerMakeSstr(pSrcPhrase, 
-				pPrevSrcPhrase, // whm 16Feb2026 added pPrevSrcPhrase				
+				pPrevSrcPhrase, // whm 16Feb2026 added pPrevSrcPhrase	
+				pNextSrcPhrase, // whm 18Jun2026 added pNextSrcPhrase
 				pList); // whm 19Nov2025 added pList
 
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
@@ -18186,6 +18202,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// have its m_markers member having content because its former content is now
 			// what we are attempting to replace by relocation from the preceding
 			// placeholder.
+			
+			// whm 20Jun2026 removed the bMarkerOnPlaceholder blocks and the strCollectedBeginnings
+			/*
 			str.Empty();
 			if (!pSrcPhrase->m_bNullSourcePhrase && bMarkersOnPlaceholder)
 			{
@@ -18221,6 +18240,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			source << str;
 			//}
 			str.Empty();
+			*/
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
 			// non-binding markers, endmarkers, outer punct, as needed
@@ -18675,6 +18695,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// relocation until a non-placeholder CSourcePhrase is encountered. So if the
 			// bMarkersOnPlaceholder flag is TRUE, just have this placeholder ignored
 			// without the population of the local wxString variable
+			
  			if (!bMarkersOnPlaceholder)
 			{
 				; // commented out code removed from here
@@ -18793,6 +18814,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// what we are attempting to replace by relocation from the preceding placeholder.
 			str.Empty();
 			tempStr.Empty();
+
 			if (bMarkersOnPlaceholder)
 			{
 				// pSrcPhrase here is not a placeholder, so if any endmarkers on a
@@ -18827,6 +18849,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				glosses.Trim();
 				glosses << PutSrcWordBreak(pSrcPhrase) << tempStr;
 			}
+
 			tempStr.Empty();
 
 			// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe

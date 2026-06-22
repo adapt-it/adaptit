@@ -308,7 +308,9 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	}
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
-	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount, SelOrNoSel); // whm 30Dec2024 added SelOrNoSel paramter
+	
+	bool bSuccess = TRUE; // whm 17Jun2026 InsertNullSourcePhrase returns FALSE only when user clicks "Cancel"
+	bSuccess = InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount, SelOrNoSel); // whm 30Dec2024 added SelOrNoSel paramter
     // whm 15Jun2026 note:
 	// The default bool values are implied here of TRUE, FALSE, TRUE); since the params 
 	// are not here specified.
@@ -320,7 +322,29 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 
 	// jump to it (can't use old pile pointers, the recalcLayout call will have 
 	// clobbered them)
+	// 
+	// whm 17Jun2026 added to prevent crash when calling ScrollIntoView() if the user had clicked
+	// on "Cancel" in InsertNullSourcePhrase()'s "Yes", "No", "Cancel" message box. When "Cancel"
+	// is selected there, the App's m_nActiveSequNum would not have been updated to the location
+	// of an inserted placeholder. We should here test if SelOrNoSel == _T("Selection"), and if
+	// so we'll use the App's m_nActiveSequNum value for the GetPile() call below rather than using
+	// the nSequNum value.
+	if (SelOrNoSel == _T("Selection"))
+	{
+		if (!bSuccess)
+		{
+			// InsertNullSourcePhrase() call above returned FALSE for bSuccess, which indicates the
+			// user clicked "Cancel" in the "Yes", "No", "Cancel" message box.
+			// In this case we set nSequNum back to its original m_pApp->m_nActiveSequNum and
+			// the Jump call below will leave the phrasebox where is was in the main window.
+			nSequNum = m_pApp->m_nActiveSequNum;
+		}
+	}
 	CPile* pPile = m_pView->GetPile(nSequNum);
+
+	// whm 17Jun2026 added. Set the App's m_nActiveSequNum to agree with the nSequNum value
+	m_pApp->m_nActiveSequNum = nSequNum;
+
 	m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 }
 
@@ -480,7 +504,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	}
 	
     m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
-	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,SelOrNoSel, // whm 30Dec2024 added SelOrNoSel parameter
+	bool bSuccess = TRUE; // whm 17Jun2026 InsertNullSourcePhrase returns FALSE only when user clicks "Cancel"
+	bSuccess = InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,SelOrNoSel, // whm 30Dec2024 added SelOrNoSel parameter
 		TRUE,FALSE,FALSE); 
 	// whm 15Jun2026 note:
 	// The default bool values are TRUE, FALSE, TRUE); however, here the last bool 
@@ -529,6 +554,27 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	
 	// jump to it (can't use old pile pointers, the recalcLayout call 
 	// will have clobbered them)
+	// 
+	// whm 17Jun2026 added to prevent crash when calling ScrollIntoView() if the user had clicked
+	// on "Cancel" in InsertNullSourcePhrase()'s "Yes", "No", "Cancel" message box. When "Cancel"
+	// is selected there, the App's m_nActiveSequNum would not have been updated to the location
+	// of an inserted placeholder. We should here test if SelOrNoSel == _T("Selection"), and if
+	// so we'll use the App's m_nActiveSequNum value for the GetPile() call below rather than using
+	// the nSequNum value.
+	if (SelOrNoSel == _T("Selection"))
+	{
+		if (!bSuccess)
+		{
+			// InsertNullSourcePhrase() call above returned FALSE for bSuccess, which indicates the
+			// user clicked "Cancel" in the "Yes", "No", "Cancel" message box.
+			// In this case we set nSequNum back to its original m_pApp->m_nActiveSequNum and
+			// the Jump call below will leave the phrasebox where is was in the main window.
+			nSequNum = m_pApp->m_nActiveSequNum;
+		}
+	}
+	// whm 17Jun2026 added. Set the App's m_nActiveSequNum to agree with the nSequNum value
+	m_pApp->m_nActiveSequNum = nSequNum;
+
 	CPile* pPile = m_pView->GetPile(nSequNum);
 	m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 }
@@ -562,11 +608,13 @@ CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
 //   CPlaceholder::InsertNullSrcPhraseBefore()
 //   CPlaceholder::InsertNullSourcePhraseAfter()
 //   CRetranslation::PadWithNullSourcePhrasesAtEnd() - two places
-void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
-										   CPile* pInsertLocPile,const int nCount,
-										   wxString SelOrNoSel, // whm 30Dec2024 added
-										   bool bRestoreTargetBox,bool bForRetranslation,
-										   bool bInsertBefore)
+// whm 17Jun2026 changed InsertNullSourcePhrase to return a bool value: TRUE for success, or FALSE for user Cancel detection
+// whm 18Jun2026 modified to properly handle m_follWsMkrsAndPuncts data adjustments between source phrase & placeholder
+bool CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc, //void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
+	CPile* pInsertLocPile, const int nCount,
+	wxString SelOrNoSel, // whm 30Dec2024 added
+	bool bRestoreTargetBox, bool bForRetranslation,
+	bool bInsertBefore)
 {
 	bool bAssociatingRightwards = FALSE;
 	CSourcePhrase* pSrcPhrase = NULL; // whm initialized to NULL
@@ -613,7 +661,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			m_pView->RemoveSelection(); // whm 30Dec2024 added
 		}
 		::wxBell();
-		return;
+		return FALSE; // whm 17Jun2026 changed return to return FALSE
 	}
 	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* insertPos	= pList->Item(nStartingSequNum); // the position before
@@ -1047,13 +1095,52 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 				// of either "selection" or "phrasebox" which depends on the incoming paramter value SelOrNoSel.
 				wxString msg;
 				if (SelOrNoSel == _T("Selection"))
-					msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the selection? If you do, press Yes. If you press No, it will be put after the selection.");
+				{
+					//msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the selection? If you do, press Yes. If you press No, it will be put after the selection.");
+					// whm 17Jun2026 revised the message text to hopefully be clearer and more explicit.
+					wxString selectedText;
+					selectedText = GetTextOfSingleSPSelection();
+					if (selectedText.IsEmpty())
+						selectedText = _T("[text]");
+					wxString msgA, msgB;
+					if (bInsertBefore)
+					{
+						msgA = _T("start");
+						msgB = _T("end");
+					}
+					else
+					{
+						// when "insertAfter" toolbar button is selected
+						msgA = _T("end");
+						msgB = _T("start");
+					}
+// (for easier reading)
+//msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\n
+//Do you want it to be at the %s of the text where '%s' was selected ? If you do, press the 'Yes' button.\n
+//If you press the 'No' button, it will be put the placeholder at the %s of the text that precedes '%s', 
+// and will become part of that preceding text.\n\n
+//If you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
+					msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\nDo you want it to be at the %s of the text where '%s' was selected ? If you do, press the 'Yes' button.\nIf you press the 'No' button, it will be put the placeholder at the %s of the text that precedes the '%s' selection, and will become part of that preceding text.\n\nIf you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
+					msg = msg.Format(msg, msgA.c_str(), selectedText.c_str(), msgB.c_str(), selectedText.c_str());
+					// whm 17Jun2026 Observation: Using the "insert after" toolbar button, and clicking "Yes" 
+					// with the selection at "his brother." in the Hezekiah 7 text, results in the placeholder 
+					// going over  past the \v 12 verse marker ahead of the "With" source word. 
+					// This has the same effect of using the "insert before" toolbar tool with the "With" word 
+					// selected, and then choosing the "Yes" button within the dialog.
+					// It seems that "insert after" and selecting "No" should just put the placeholder at the 
+					// end of the endnote text right before the \fe* marker - doing the same that using the 
+					// "insert before" toolbar button with the "No" response does. 
+					// TODO: May need to adjust the message text to reflect this difference.
+				}
 				else // SelOrNoSel is "NoSelection" or empty string
+				{
+					// whm 17Jun2026 TODO: Test placeholder insertions with phrasebox
 					msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the phrasebox? If you do, press Yes. If you press No, it will be put after the phrasebox.");
+				}
 
-                wxMessageDialog dlg(NULL,msg,
-                    _("Adapt It needs more information"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-                if (dlg.ShowModal() == wxID_YES)
+                int response = wxMessageBox(msg,
+                    _("Adapt It needs more information"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL); // whm 17Jun2026 added | wxCANCEL
+                if (response == wxYES)
                 {
                     wxLogDebug(_T("User says bAssociatingRightwards is TRUE..."));
                     bAssociatingRightwards = TRUE;
@@ -1061,6 +1148,11 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 
 /* ** test ** */	
                 }
+				else if (response == wxCANCEL)
+				{
+					// whm 17Jun2026 added this possible "Cancel" response
+					return FALSE;
+				}
                 else
                 {
                     wxLogDebug(_T("User says bAssociatingRightwards is FALSE..."));
@@ -1179,6 +1271,15 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 					pSrcPhraseInsLoc->SetFreeTrans(emptyStr);
 					pSrcPhraseInsLoc->SetCollectedBackTrans(emptyStr);
 				}
+
+				// whm 20Jun2026 added. Need to set placeholder pFirstOne's m_bBoundary 
+				// copying the bPreviousFollPunct->m_bBoundary value
+				if (bPreviousFollPunct)
+				{
+					pFirstOne->m_follPunct = pPrevSrcPhrase->m_follPunct;
+					pFirstOne->m_bBoundary = pPrevSrcPhrase->m_bBoundary;
+				}
+
 				if (bFollowingPrecPunct)
 				{
 					pFirstOne->m_precPunct = pSrcPhraseInsLoc->m_precPunct; // transfer 
@@ -1197,6 +1298,42 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 				// now copy the following one forward as explained above
 				aWordBreak = pPostInsertLocSrcPhrase->GetSrcWordBreak();
 				pSrcPhraseInsLoc->SetSrcWordBreak(aWordBreak);
+
+				// whm 18Jun2026 added the right association for m_follWsMkrsAndPuncts
+				wxString follWsMkrsAndPuncts; follWsMkrsAndPuncts.Empty();
+				if (pPrevSrcPhrase->m_nSrcWords > 1)
+				{
+					// The previous srcPhrase was a merger, so we must get a pointer to the last
+					// word of the merged phrase pLastSPhr, and copy the m_follWsMkrsAndPuncts
+					// from the last merged word pLastSPhr to the new placeholder pFirstOne,
+					// and replace the pLastSPhr->m_follWsMkrsAndPuncts value with the value of
+					// the pPrevSrcPhrase->m_follWsMkrsAndPuncts (which would usually be a space " ").
+					SPList* pOriginals = pPrevSrcPhrase->m_pSavedWords;
+					wxASSERT(!pOriginals->IsEmpty());
+					SPList::Node* pos_pOriginals = pOriginals->GetLast();
+					CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+					wxASSERT(pLastSPhr);
+					follWsMkrsAndPuncts = pLastSPhr->m_follWsMkrsAndPuncts;
+					pFirstOne->m_follWsMkrsAndPuncts = follWsMkrsAndPuncts;
+					// Lastly make the pLastSPhr->m_follWsMkrsAndPuncts have the value of the
+					// merged word pPrevSrcPhrase->m_follWsMkrsAndPuncts.
+					pLastSPhr->m_follWsMkrsAndPuncts = pPrevSrcPhrase->m_follWsMkrsAndPuncts;
+					// Note: Within RemoveNullSourcePhrase() we reverse this process and
+					// do the following (where pLastSPhr is the last original word of a merger):
+					//follWsMkrsAndPuncts = pFirstOne->m_follWsMkrsAndPuncts;
+					//pLastSPhr->m_follWsMkrsAndPuncts = follWsMkrsAndPuncts;
+				}
+				else
+				{
+					// The previous srcPhrase was not a merger, so copy directly from pPrevSrcPhrase
+					// to the pFirstOne placeholder.
+					follWsMkrsAndPuncts = pPrevSrcPhrase->m_follWsMkrsAndPuncts;
+					pFirstOne->m_follWsMkrsAndPuncts = follWsMkrsAndPuncts;
+					// Note: Within RemoveNullSourcePhrase() we must reverse this process and
+					// do the following:
+					//follWsMkrsAndPuncts = pFirstOne->m_follWsMkrsAndPuncts;
+					//pPrevSrcPhrase->m_follWsMkrsAndPuncts = follWsMkrsAndPuncts;
+				}
 			}
 			else // next block for Left-Association effects
 			{
@@ -1661,6 +1798,14 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 	if (SelOrNoSel == _T("Selection"))
 	{
 		m_pView->RemoveSelection();
+		// whm 17Jun2026 added. When a selection was made for inserting a single placeholder
+		// that is a long way from the current active location, we should make the App's
+		// m_nActiveSequNum (phrasebox) move to that location since that is where the user
+		// would want it located - under the newly added placeholder in order to enter target
+		// text there. Also, without setting the new m_nActiveSequNum to the placeholder location
+		// in such cases, the app would crash at the canvas->ScrollIntoView(m_pApp->m_nActiveSequNum)
+		// call below. The placeholder sequ num is at pSrcPhraseInsLoc->m_nSequNumber determined above.
+		m_pApp->m_nActiveSequNum = pSrcPhraseInsLoc->m_nSequNumber;
 	}
 
 	// recalculate the layout
@@ -1695,6 +1840,40 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
     pDoc->Modify(TRUE);
 
 	m_pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+
+	return TRUE; // report bSuccess is TRUE to the caller
+}
+
+// whm 17Jun2026 added in support of info for user prompt in InsertNullSourcePhrase()
+// This function only grabs the first source phrase of any selection and gets that
+// source phrase's m_srcPhrase text (including final punctuation). This is used within
+// the user "Yes", "No", "Cancel" prompt to help the user understand where the placeholder
+// will be inserted for each choice of "Yes" or "No".
+wxString CPlaceholder::GetTextOfSingleSPSelection()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString selectedSPText; selectedSPText.Empty();
+	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
+	{
+		CCellList::Node* pos_pCellList = pApp->m_selection.GetFirst();
+		pos_pCellList = pApp->m_selection.GetFirst();
+#ifdef _DEBUG
+		int nCount = pApp->m_selection.GetCount();
+		if (nCount > 1)
+		{
+			int break_here = 1;
+			break_here = break_here;
+		}
+#endif
+		CPile* pPile = NULL;
+		pPile = ((CCell*)pos_pCellList->GetData())->GetPile();	// get the pile first in selection
+		wxASSERT(pPile != NULL);
+		CSourcePhrase* pSrcPhrase = NULL;
+		pSrcPhrase = pPile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		selectedSPText = pSrcPhrase->m_srcPhrase;
+	}
+	return selectedSPText;
 }
 
 // A private utility function for checking for the presence of any information which has
@@ -2208,6 +2387,41 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pPrevSrcPhrase->SetInlineBindingEndMarkers(pLastOne->GetInlineBindingEndMarkers());
 		pFirstOne->SetInlineBindingEndMarkers(emptyStr);
 	}
+
+	// whm 19Ju2026 added. We need to transfer any m_follWsMkrsAndPuncts from the placeholder
+	// at pFirstOne back to the pPrevSrcPhrase location.
+	if (!pFirstOne->m_follWsMkrsAndPuncts.IsEmpty())
+	{
+		// whm 19Ju2026 If the pPrevSrcPhrase is a merged source phrase, the m_follWsMkrsAndPuncts
+		// data now stored on the placeholder should get transferred back to the last original source 
+		// word. See the InsertNullSourcePhrase() code where the m_follWsMkrsAndPuncts of the last 
+		// original source word of the merger was copied over to the inserted placeholder - the one we 
+		// are now removing. The m_follWsMkrsAndPuncts data should now be transfered back to its original
+		// last source word location.
+		if (pPrevSrcPhrase->m_nSrcWords > 1)
+		{
+			// The pPrevSrcPhrase is a merged source phrase. Now, before removing this placeholder
+			// we need to copy/transfer the m_follWsMkrsAndPuncts data back to the last original
+			// word of the merger.
+			wxString follWsMkrsAndPuncts; follWsMkrsAndPuncts.Empty();
+			SPList* pOriginals = pPrevSrcPhrase->m_pSavedWords;
+			wxASSERT(!pOriginals->IsEmpty());
+			SPList::Node* pos_pOriginals = pOriginals->GetLast();
+			CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+			wxASSERT(pLastSPhr);
+			follWsMkrsAndPuncts = pFirstOne->m_follWsMkrsAndPuncts;
+			pLastSPhr->m_follWsMkrsAndPuncts = follWsMkrsAndPuncts;
+			pFirstOne->m_follWsMkrsAndPuncts.Empty(); // not strictly needed since pFirstOne is getting removed
+		}
+		else
+		{
+			pPrevSrcPhrase->m_follWsMkrsAndPuncts = pFirstOne->m_follWsMkrsAndPuncts;
+			pFirstOne->m_follWsMkrsAndPuncts.Empty(); // not strictly needed since pFirstOne is getting removed
+		}
+	}
+
+	// whm 19Jun2026 Comment: For the removal of a single placeholder the pointers pLastOne
+	// and pFirstOne actually point to the same single placeholder!!
 	if ((!pLastOne->m_follPunct.IsEmpty() || !pLastOne->GetFollowingOuterPunct().IsEmpty())
 		&& nStartingSequNum > 0 && pPrevSrcPhrase != NULL)
 	{
@@ -2225,6 +2439,30 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		// member of pPrevSrcPhrase, so no store needed) the puncts are restored by the
 		// above lines, so give it the m_adaption string and let the stored puncts get
 		// converted and put in the appropriate places
+		// 
+		// whm 19Jun2026 Modification. The MakeTargetStringIncludingPunctuation() call below 
+		// wrongly corrupts the target string at pPrevSrcPhrase, if the phrasebox is not already 
+		// placed at the pPrevSrcPhrase location. The user might have the phrasebox placed 
+		// directly uder the placeholder location when the "Remove Placeholder" toolbar button
+		// is hit (especially if after inserting the placeholder s/he decides to remove it), and 
+		// if the phrasebox is under the placeholder the call of MakeTargetStringIncludingPunctuation()
+		// will wrongly process the target string of the placeholder, and copy it and its
+		// punctuation over to the pPrevSrcPhrase location, which corrupts the target string and 
+		// its punctuation located at pPrevSrcPhrase overwriting it with the target string data
+		// from the placeholder that's being removed.
+		// To make use of the MakeTargetStringIncludingPunctuation() function we would need to
+		// first relocate the phrasebox at the location of the pPrevSrcPhrase, then make the call
+		// there.
+		// Make the calls necessary to relocate the phrasebox to the pPrevSrcPhrase location.
+		// Set the App's m_nActiveSequNum to the pPrevSrcPhrase and place the phrasebox there
+		// before making the MakeTargetStringIncludingPunctuation() call below:
+		m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+		m_pApp->m_nActiveSequNum = pPrevSrcPhrase->m_nSequNumber;
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+		wxASSERT(m_pApp->m_pActivePile);
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+
 		m_pView->MakeTargetStringIncludingPunctuation(pPrevSrcPhrase, pPrevSrcPhrase->m_adaption);
 	}
 	// BEW added 25Jul05, a m_bHasFreeTrans = TRUE value can be ignored provided the
@@ -2247,6 +2485,17 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	{
 		pSrcPhraseFollowing->SetSrcWordBreak(pFirstOne->GetSrcWordBreak());
 	}
+
+	// whm 19Ju2026 Observation: The m_follWsMkrsAndPuncts value on any source phrase
+	// contains the whitespace, markers and puncts that follow that source phrase,
+	// occurring up to the next source word of text. When a placeholder is inserted
+	// into a text only any m_follWsMkrsAndPuncts of a PREVIOUS source word (or merger)
+	// would be transferred to that inserted placeholder, and removal of the placeholder
+	// should only require that any m_follWsMkrsAndPuncts data stored on the placeholder
+	// be transferred back to the previous source phrase (or merger). We never need to
+	// transfer m_follWsMkrsAndPuncts data back to a following source phrase when a
+	// placeholder is removed that contains m_follWsMkrsAndPuncts data.
+	// TODO: Determine if the observation above tests out to be accurate in all cases.
 
 	if ((!pFirstOne->m_markers.IsEmpty() || !pFirstOne->GetInlineNonbindingMarkers().IsEmpty()
 			|| !pFirstOne->GetInlineBindingMarkers().IsEmpty() ) && !bNoneFollows)
@@ -2278,6 +2527,30 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
 			
 		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
+		// 
+		// whm 19Jun2026 Modification. The MakeTargetStringIncludingPunctuation() call below 
+		// wrongly corrupts the target string at pSrcPhraseFollowing, if the phrasebox is not already 
+		// placed at the pSrcPhraseFollowing location. The user might have the phrasebox placed 
+		// directly uder the placeholder location when the "Remove Placeholder" toolbar button
+		// is hit (especially if after inserting the placeholder s/he decides to remove it), and 
+		// if the phrasebox is under the placeholder the call of MakeTargetStringIncludingPunctuation()
+		// will wrongly process the target string of the placeholder, and copy it and its
+		// punctuation over to the pSrcPhraseFollowing location, which corrupts the target string and 
+		// its punctuation located at pSrcPhraseFollowing overwriting it with the target string data
+		// from the placeholder that's being removed.
+		// To make use of the MakeTargetStringIncludingPunctuation() function we would need to
+		// first relocate the phrasebox at the location of the pSrcPhraseFollowing, then make the call
+		// there.
+		// Make the calls necessary to relocate the phrasebox to the pSrcPhraseFollowing location.
+		// Set the App's m_nActiveSequNum to the pSrcPhraseFollowing and place the phrasebox there
+		// before making the MakeTargetStringIncludingPunctuation() call below:
+		m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+		m_pApp->m_nActiveSequNum = pSrcPhraseFollowing->m_nSequNumber;
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+		wxASSERT(m_pApp->m_pActivePile);
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+
 		m_pView->MakeTargetStringIncludingPunctuation(pSrcPhraseFollowing,
 													pSrcPhraseFollowing->m_adaption);
 	}
@@ -2451,7 +2724,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	// now place the box
 	m_pLayout->PlaceBox();
 
-    // whm 21May2020 added - make the doc dirty so it can be samed after insertion of placeholder
+    // whm 21May2020 added - make the doc dirty so it can be saved after insertion of placeholder
     m_pApp->GetDocument()->Modify(TRUE);
 
 }

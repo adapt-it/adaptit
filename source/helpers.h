@@ -462,6 +462,7 @@ wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, 
 			CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
+			CSourcePhrase* pNextSrcPhrase, // whm 18Jun2026 added
 			SPList* pList); // whm 19Nov2025 added pList
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 // whm 19Nov2025 added the IsInlineMarkerSpanEnclosedInParentheses() function below
