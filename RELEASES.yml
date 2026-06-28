@@ -4,8 +4,8 @@ include:
 #  - distro: 'ubuntu'   # Ubuntu 14.04 LTS
 #    release: 'trusty'
 
-  - distro: 'ubuntu'   # Ubuntu 16.04 LTS
-    release: 'xenial'
+#  - distro: 'ubuntu'   # Ubuntu 16.04 LTS
+#    release: 'xenial'
 
   - distro: 'ubuntu'   # Ubuntu 18.04 LTS
     release: 'bionic'
@@ -27,3 +27,6 @@ include:
     release: 'noble'
     args: '--unsigned-source --unsigned-changes'
 
+  - distro: 'ubuntu'   # Ubuntu 26.04
+    release: 'resolute'
+    args: '--unsigned-source --unsigned-changes'
