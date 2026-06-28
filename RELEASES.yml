@@ -3,7 +3,7 @@
 include:
 #  - distro: 'ubuntu'   # Ubuntu 14.04 LTS
 #    release: 'trusty'
-
+#
 #  - distro: 'ubuntu'   # Ubuntu 16.04 LTS
 #    release: 'xenial'
 
@@ -11,10 +11,10 @@ include:
     release: 'bionic'
     args: '--unsigned-source --unsigned-changes'
 
-  - distro: 'ubuntu'   # Ubuntu 19.10
-    release: 'eoan'
-    args: '--unsigned-source --unsigned-changes'
-
+#  - distro: 'ubuntu'   # Ubuntu 19.10
+#    release: 'eoan'
+#    args: '--unsigned-source --unsigned-changes'
+#
   - distro: 'ubuntu'   # Ubuntu 20.04 LTS
     release: 'focal'
     args: '--unsigned-source --unsigned-changes'
