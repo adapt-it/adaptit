@@ -21791,14 +21791,34 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 	}
 	return tempStr;
 }
+
+// whm 27Jun2026. The logic of this IsGenuineFollPunct() function was flawed. It would 
+// return FALSE for an incoming straight quote in chPunct, due to it being found within 
+// the m_strInitialPuncts string value.
+// The straight quotes (' and ") can be either an initial or final punctuation. I think it 
+// would be better if this function (which is only used once within the 
+// CountGoodAndBadEndPuncts() function), would check using straighforward logic, if chPunct 
+// is found within pApp->m_finalSrcPunct, the string of puncts produced by the App's 
+// MakeSourceFinalPuncts() function. The pApp->m_finalSrcPunct normally includes the 
+// straight double quote, if the App's m_bDoubleQuoteAsPunct value is TRUE. The 
+// m_bDoubleQuoteAsPunct value is set TRUE by default in OnInit(), but 
+// can be set FALSE from the reading of the inventory of source language punct values
+// that get stored in the m_punctuation[0] when the basic config file is read in.
+// The m_bSingleQuoteAsPunct value also defaults to TRUE in OnInit(), but can be set FALSE
+// from reading the inventory in m_punctuation[0].
 bool CAdapt_ItDoc::IsGenuineFollPunct(wxChar chPunct)
 {
-	int offset = wxNOT_FOUND;
-	offset = m_strInitialPuncts.Find(chPunct);
-	if (offset == wxNOT_FOUND)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int offset = pApp->m_finalSrcPuncts.Find(chPunct);
+	if (offset != wxNOT_FOUND)
 	{
 		return TRUE;
 	}
+	//offset = m_strInitialPuncts.Find(chPunct);
+	//if (offset == wxNOT_FOUND)
+	//{
+	//	return TRUE;
+	//}
 	return FALSE;
 }
 
@@ -50367,7 +50387,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber >= 8)
+		if (pSrcPhrase->m_nSequNumber >= 40)
 		{
 			int break_here = 0; wxUnusedVar(break_here);
 		}
