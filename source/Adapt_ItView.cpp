@@ -11926,10 +11926,27 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// sufficient to set it to any valid pile near the active one, but we can do better
 	// than this hear, and set it to pFirstSrcPhrase after the merging loop below has
 	// finished, and then all will be well as that will be the new active pile anyway
+
+	// whm 29Jun2026. Added a pLastSrcPhrase here within the View's OnButtonMerge()
+	// to identify the last source phrase of the merged ones. This determination is 
+	// then used to copy any m_inform data - such as "end fn" from the last merged 
+	// word to the top-level merged source phrase. This corrects a long-standing 
+	// deficiency in which the "end fn" doesn't get shown in the display above a 
+	// merger when the last word of the merger has a \f * or \fe * end note and 
+	// its m_inform has "end fn" - but has been lacking in the display of the merger 
+	// until now.
+	CSourcePhrase* pLastSrcPhrase = NULL;
+
 	int i;
 	for (i = 1; i < nCount; i++)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)nodeSPTemp->GetData();
+		// whm 29Jun2026 added. Determine the pLastSrcPhrase.
+		if (i == nCount - 1)
+		{
+			// The nodeSPTemp is now pointing at the last node of the merger
+			pLastSrcPhrase = pSrcPhrase;
+		}
 		nodeSPTemp = nodeSPTemp->GetNext(); // needed for SPList
 		wxASSERT(pSrcPhrase != NULL);
 		wxASSERT(pSrcPhrase->m_nSrcWords == 1 ||
@@ -11947,6 +11964,23 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 #endif
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
+
+	// whm 29Jun2026 added. Now copy any m_inform data - such as "end fn" from the 
+	// last merged word to the top-level merged source phrase pFirstSrcPhrase. This 
+	// corrects a long-standing deficiency in which the "end fn" doesn't get shown 
+	// in the display above a merger when the last word of the merger has a \f*   
+	// or \fe* end note and its m_inform has "end fn" - but has been lacking in the 
+	// display of the merger until now.
+	if (pLastSrcPhrase != NULL && !pLastSrcPhrase->m_inform.IsEmpty())
+	{
+		if (pFirstSrcPhrase->m_inform.IsEmpty())
+			pFirstSrcPhrase->m_inform = pLastSrcPhrase->m_inform;
+		else
+		{
+			pFirstSrcPhrase->m_inform += _T(" ");
+			pFirstSrcPhrase->m_inform += pLastSrcPhrase->m_inform;
+		}
+	}
 
 	// BEW added 22May09 -- see comment above the merge loop just above; here we must
 	// re-establish the m_pActivePile pointer, in case we did a leftwards merge
