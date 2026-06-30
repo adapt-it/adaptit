@@ -1101,7 +1101,7 @@ bool CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc, //void CPlaceholde
 					wxString selectedText;
 					selectedText = GetTextOfSingleSPSelection();
 					if (selectedText.IsEmpty())
-						selectedText = _T("[text]");
+						selectedText = _("[text]");
 					wxString msgA, msgB;
 					if (bInsertBefore)
 					{
@@ -1117,10 +1117,10 @@ bool CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc, //void CPlaceholde
 // (for easier reading)
 //msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\n
 //Do you want it to be at the %s of the text where '%s' was selected ? If you do, press the 'Yes' button.\n
-//If you press the 'No' button, it will be put the placeholder at the %s of the text that precedes '%s', 
+//If you press the 'No' button, it will put the placeholder at the %s of the text that precedes '%s', 
 // and will become part of that preceding text.\n\n
 //If you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
-					msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\nDo you want it to be at the %s of the text where '%s' was selected ? If you do, press the 'Yes' button.\nIf you press the 'No' button, it will be put the placeholder at the %s of the text that precedes the '%s' selection, and will become part of that preceding text.\n\nIf you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
+					msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\nDo you want it to be at the %s of the text where '%s' was selected ? If you do, press the 'Yes' button.\nIf you press the 'No' button, it will put the placeholder at the %s of the text that precedes the '%s' selection, and will become part of that preceding text.\n\nIf you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
 					msg = msg.Format(msg, msgA.c_str(), selectedText.c_str(), msgB.c_str(), selectedText.c_str());
 					// whm 17Jun2026 Observation: Using the "insert after" toolbar button, and clicking "Yes" 
 					// with the selection at "his brother." in the Hezekiah 7 text, results in the placeholder 
@@ -1134,8 +1134,32 @@ bool CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc, //void CPlaceholde
 				}
 				else // SelOrNoSel is "NoSelection" or empty string
 				{
-					// whm 17Jun2026 TODO: Test placeholder insertions with phrasebox
-					msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the phrasebox? If you do, press Yes. If you press No, it will be put after the phrasebox.");
+					// The placeholder is being inserted in relation to the phrasebox.
+// (for easier reading)
+//msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\n
+//Do you want it to be at the %s of the text '%s' at the phrasebox location? If you do, press the 'Yes' button.\n
+//If you press the 'No' button, it will put the placeholder at the %s of the text that precedes '%s', 
+// and will become part of that preceding text.\n\n
+//If you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
+					//msg = _("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be. Do you want it to be at the start of the words which follow the phrasebox? If you do, press Yes. If you press No, it will be put after the phrasebox.");
+					wxString srcTextAtPhraseBox;
+					srcTextAtPhraseBox = pSrcPhraseInsLoc->m_srcPhrase;
+					if (srcTextAtPhraseBox.IsEmpty())
+						srcTextAtPhraseBox = _("[text]");
+					wxString msgA, msgB;
+					if (bInsertBefore)
+					{
+						msgA = _T("start");
+						msgB = _T("end");
+					}
+					else
+					{
+						// when "insertAfter" toolbar button is selected
+						msgA = _T("end");
+						msgB = _T("start");
+					}
+					msg = _T("Adapt It will put the new placeholder in one of two places. You must choose where you want it to be.\nDo you want it to be at the %s of the text '%s' at the phrasebox location? If you do, press the 'Yes' button.\nIf you press the 'No' button, it will put the placeholder at the %s of the text that precedes '%s', and will become part of that preceding text.\n\nIf you decide not to insert any placeholder at your selection, just press the 'Cancel' button.");
+					msg = msg.Format(msg, msgA.c_str(), srcTextAtPhraseBox.c_str(), msgB.c_str(), srcTextAtPhraseBox.c_str());
 				}
 
                 int response = wxMessageBox(msg,
@@ -1276,7 +1300,9 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 				// copying the bPreviousFollPunct->m_bBoundary value
 				if (bPreviousFollPunct)
 				{
-					pFirstOne->m_follPunct = pPrevSrcPhrase->m_follPunct;
+					// whm 30Jun2026 correction. The m_follPunct of pPrevSrcPhrase should NOT
+					// be transferred to the placeholder for bAssociatingRightwards.
+					//pFirstOne->m_follPunct = pPrevSrcPhrase->m_follPunct;
 					pFirstOne->m_bBoundary = pPrevSrcPhrase->m_bBoundary;
 				}
 
