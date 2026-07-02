@@ -5160,16 +5160,44 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	//
 	// whm 9Jan2025 we've restored the inclusion of filtered data in exports including target exports.
 	// therefore, I've un-commented the following block that removes filter brackets from the string
-	// /*
+	int numFilteredItems = 0;
+	numFilteredItems = CountSubstringOccurrences(filteredInfoStr, _T("\\~FILTER*"));
+	wxString filtMkr; filtMkr.Empty();
+
 	if (!filteredInfoStr.IsEmpty())
 	{
+		// The filteredInfoSuffix string may have more than one filtered item
+		// in which case the numFilteredItems value determined above will be > 1.
+		// TODO: Rework to account for the possibility of filteredInfoSuffix having
+		// more than one marker that needs to be prefixed with appropriate whitespace
+		// whether Latin space or EOL. Probably need to utilize the Doc's
+		// Doc's GetFilteredAndSwiptUpMarkersFromString(wxString filterStr, 
+		//wxArrayString& markersPrecedingFilteredOnes,
+		//	wxArrayString& filteredMkrsArrayWithFilterBrackets,
+		//	wxArrayString& filteredMkrsAndAssocTextNoBrackets,
+		//	wxArrayString& filteredMkrsArray)
+		filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfoStr);
+		
+		// whm 1Jul2026 For Target text exports we need to remove the markers and stuff
+		// that follow the end filter bracket marker \~FILTER*, since target text exports
+		// aren't currently set up check for duplication between what follows the end bracket
+		// and what appears in the pNextSrcPhrase->m_markers member. An interim solution
+		// is to here remove the stuff that follows the \FILTER* end bracket. This change
+		// prevented marker duplication associated with the end of filtered material and the
+		// export of the next source phrase's m_markers.
+		filteredInfoStr = MakeReverse(filteredInfoStr);
+		int posEndMkr = filteredInfoStr.Find(_T("*RETLIF~\\"));
+		if (posEndMkr > 0)
+			filteredInfoStr = filteredInfoStr.Mid(posEndMkr);
+		filteredInfoStr = MakeReverse(filteredInfoStr);
+
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
 
 		// separate out any crossReference info (plus marker & endmarker) if within this
 		// filtered information
 		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);
 	}
-	// */
+	
 	// BEW 22Jun15 the legacy comment following no longer applies, we remove code that computes
 	// filtered information. prefix string will, at most, only have unfiltered markers
 	// 
@@ -5841,7 +5869,20 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		Tstr.Trim();
 		if (!filteredInfoSuffix.IsEmpty())
 		{
-			Tstr += aSpace;
+			// The filteredInfoSuffix string may have more than one filtered item
+			// in which case the numFilteredItems value determined above will be > 1.
+			// TODO: Rework to account for the possibility of filteredInfoSuffix having
+			// more than one marker that needs to be prefixed with appropriate whitespace
+			// whether Latin space or EOL. Probably need to utilize the Doc's
+			// Doc's GetFilteredAndSwiptUpMarkersFromString(wxString filterStr, 
+			//wxArrayString& markersPrecedingFilteredOnes,
+			//	wxArrayString& filteredMkrsArrayWithFilterBrackets,
+			//	wxArrayString& filteredMkrsAndAssocTextNoBrackets,
+			//	wxArrayString& filteredMkrsArray)
+			wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+			whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(filtMkr);
+			Tstr += whiteSpToPrefixMkr;
+			//Tstr += aSpace;
 			Tstr += filteredInfoSuffix;
 		}
 	}
@@ -9719,6 +9760,65 @@ int CountSubstringOccurrences(wxString stringToSearch, wxString substring)
 		pos += strLen;
 	}
 	return count;
+}
+
+// whm 1Jul2026 added. This function is mainly used for properly
+// formating USFM markers when rebuilding target text. 
+// It returns the whitespace that should preceed the marker thisMkr. 
+// The whitespace returned will be a Latin space, an EOL (\r\n), or 
+// an empty string (if the incoming marker thisMkr is an empty string).
+// Generally an EOL is returned when thisMkr is a USFM paragraph
+// marker of some type that normally starts on a new line, or
+// an unknown marker (starting a new line to make it standout). 
+// A Latin space is returned to prefix a USFM "character" marker
+// of some type, which is usually an "inline" marker that typically 
+// occurs in text with an end marker.
+wxString GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(wxString thisMkr)
+{
+	wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+	// For consistency sake remove any following whitespace from thisMkr
+	thisMkr.Trim();
+	wxString bareMkr = thisMkr;
+	bareMkr = bareMkr.Mid(1);
+	StyleType styType;
+	// in the next call NULL is returned if bareMkr is an unknown marker
+	USFMAnalysis* pUsfmAnalysis = gpApp->GetDocument()->LookupSFM(bareMkr);
+	if (pUsfmAnalysis != NULL)
+	{
+		styType = pUsfmAnalysis->styleType;
+		// possible styTypes found in actual text (not RTF output) are (with Sp or EOL)
+		//	EOL - paragraph, x for many usfm markers - most don't have end markers
+		//	Sp  - character, x for many usfm markers - all that have end markers
+		//	Sp - footnote_text, only for \x \f \fe
+		//	EOL - horiz_rule, only for \ie and \hr markers and also for \_horiz_rule marker
+		switch (styType)
+		{
+		case footnote_text: // fall through to character
+		case character:
+		{
+			whiteSpToPrefixMkr += _T(" ");
+			break;
+		}
+		case horiz_rule: // fall through to paragraph
+		case paragraph:
+		{
+			whiteSpToPrefixMkr += _T("\r\n");
+			break;
+		}
+		default:
+		{
+			// any other known markers that might appear with different styType
+			whiteSpToPrefixMkr += _T("\r\n");
+			break;
+		}
+		} // end of switch (styType)
+	}
+	else
+	{
+		// it was a filtered unknown marker so put it on a new line in exports
+		whiteSpToPrefixMkr += _T("\r\n");
+	}
+	return whiteSpToPrefixMkr;
 }
 
 // whm 21Jan2026 added this function which provides 5 bool flags that are used within

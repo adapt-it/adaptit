@@ -19547,7 +19547,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 151) 
+		if (pSrcPhrase->m_nSequNumber >= 129) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -19576,7 +19576,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		{
 			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
 			// whm 15Feb2024 added test for bLastTstrOnlyContentWasPunct before adding aBreak.
-			if (bLastTstrOnlyContentWasPunct == FALSE)
+			// whm 1Jul2026 added the pSrcPhrase->m_nSequNumber != 0 condition to following test.
+			if (bLastTstrOnlyContentWasPunct == FALSE && pSrcPhrase->m_nSequNumber != 0)
 			{
 				// Only add aBreak if bLastTstrOnlyContentWasPunct was FALSE, otherwise we
 				// would be adding aBreak between a preceding punctuation/quote mark that
@@ -19607,6 +19608,83 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			if (bLastTstrOnlyContentWasPunct)
 				bLastTstrOnlyContentWasPunct = FALSE;
 		}
+
+		
+		// whm 1Jul2026 addition. The above code may not have determined an appropriate
+		// whitespace between the exported target string of the pPrevSrcPhrase and this
+		// current pSrcPhrase, especially if the current pSrcPhrase has a paragraph type
+		// marker such as \q2 within its m_markers member. In such cases the whitespace
+		// that gets added should be an EOL, otherwise it should be a plain space.
+		if (pPrevSrcPhrase != NULL && !pSrcPhrase->m_markers.IsEmpty())
+		{
+			// Determine what kind of whitespace (space or EOL) the first marker within 
+			// m_markers should have.
+			wxString firstMkr; firstMkr.Empty();
+			// Get an array of markers in m_markers
+			wxArrayString MkrList;
+			gpApp->GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, pSrcPhrase->m_markers);
+			if (!MkrList.IsEmpty())
+			{
+				if (!targetstr.IsEmpty())
+				{
+					wxChar lastCh = targetstr.GetChar(targetstr.Length() - 1);
+					if (IsWhiteSpace(&lastCh))
+					{
+						targetstr.Trim(); // remove any terminating whitespace
+					}
+				}
+				firstMkr = MkrList.Item(0);
+				// whm 1Jul2026 added the following new function
+				wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+				whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(firstMkr);
+				targetstr += whiteSpToPrefixMkr;
+				
+				//// For consistency sake remove any following whitespace from firstMkr
+				//firstMkr.Trim();
+				//wxString bareMkr = firstMkr;
+				//bareMkr = bareMkr.Mid(1);
+				//StyleType styType;
+				//// in the next call NULL is returned if bareMkr is an unknown marker
+				//USFMAnalysis* pUsfmAnalysis = gpApp->GetDocument()->LookupSFM(bareMkr);
+				//if (pUsfmAnalysis != NULL)
+				//{
+				//	styType = pUsfmAnalysis->styleType;
+				//	// possible styTypes found in actual text (not RTF output) are (with Sp or EOL)
+				//	//	EOL - paragraph, x for many usfm markers - most don't have end markers
+				//	//	Sp  - character, x for many usfm markers - all that have end markers
+				//	//	Sp - footnote_text, only for \x \f \fe
+				//	//	EOL - horiz_rule, only for \ie and \hr markers and also for \_horiz_rule marker
+				//	switch (styType)
+				//	{
+				//	case footnote_text: // fall through to character
+				//	case character:
+				//	{
+				//		targetstr += _T(" ");
+				//		break;
+				//	}
+				//	case horiz_rule: // fall through to paragraph
+				//	case paragraph:
+				//	{
+				//		targetstr += _T("\r\n");
+				//		break;
+				//	}
+				//	default:
+				//	{
+				//		// any other known markers that might appear with different styType
+				//		targetstr += _T("\r\n");
+				//		break;
+				//	}
+				//	} // end of switch (styType)
+				//}
+				//else
+				//{
+				//	// it was a filtered unknown marker so put it on a new line in exports
+				//	targetstr += _T("\r\n");
+				//}
+				
+			}
+		}
+		
 
 		if (pSrcPhrase->m_bRetranslation)
 		{
@@ -22178,10 +22256,19 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // the target text (such as a note or backtranslation or free translation) but is
 // not ever to be considered as embeddable within the target text. Refactored to
 // effect this understanding.
+// 
+// whm 1Jul2026 Modifications. Although less common, filtered information can sometimes
+// be stored on the last non-placeholder word of a retranslation. And for some time now
+// filtered data has been included in the export of target text and the export of source 
+// text. When the inclusion of filtered info was reinstated in export of target texts,
+// I had failed to ensure that it got included again here within a retranslation.
+// The exception to the inclusion of filtered info, is that free translations,
+// notes, and collected back translations are processed, but filtered out on the fly 
+// when exports are being transferred to Paratext/Bibledit during Collaboration.
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	SPList* pSrcPhrases, wxString& Tstr)
 {
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList::Node* pos_pList = firstPos;
 	wxASSERT(pos_pList != 0);
 	bool bHasInternalMarkers = FALSE; // assume none for default
@@ -22191,12 +22278,11 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	// BEW 22Jun15, avoid compiler warnings for the following which are no longer used
 	wxUnusedVar(pSrcPhrases);
 
-	// markers now no longer needed
-	//wxString freeMkr(_T("\\free"));
-	//wxString freeEndMkr = freeMkr + _T("*");
-	//wxString noteMkr(_T("\\note"));
-	//wxString noteEndMkr = noteMkr + _T("*");
-	//wxString backTransMkr(_T("\\bt"));
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
 
 	// BEW 22Jun15, we don't want filtered stuff, so prefixStr is only to be used for
 	// restoration of initial USFM markers, provided they are not from filtered data stored
@@ -22226,9 +22312,11 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	wxString noteStr;
 	wxString collBackTransStr;
 	wxString filteredInfoStr;
-	wxString unfilteredStr; // any unfiltered medial stuff which has to be shown in the
-							// Place... dialog can be accumulated in this local string on
-							// a per-pSrcPhrase basis (emptied prior to each iteration)
+	wxString medialStuffStr; // whm 1Jul2026 renamed unfilteredStr to medialStuffStr for clarity
+	//wxString unfilteredStr; 
+	// any unfiltered medial stuff which has to be shown in the
+	// Place... dialog can be accumulated in this local string on
+	// a per-pSrcPhrase basis (emptied prior to each iteration)
 	// loop over each CSourcePhrase instance in the retranslation
 	bool bFirst = TRUE;
 	wxString nBEMkrs; // for non-binding endmarkers
@@ -22258,21 +22346,33 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			{
 				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 				// data should be in the export
-				freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
+				//
+				// whm 1Jul2026 Modifications. Although less common, filtered information can sometimes
+				// be stored on the last non-placeholder word of a retranslation. And for some time now
+				// filtered data has been included in the export of target text and the export of source 
+				// text. When the inclusion of filtered info was reinstated in export of target texts,
+				// I had failed to ensure that it got included again here within a retranslation.
+				// The exception to the inclusion of filtered info, is that free translations,
+				// notes, and collected back translations are processed, but filtered out on the fly 
+				// when exports are being transferred to Paratext/Bibledit during Collaboration.
+				// Therefore the following line that empties all filtered info is now removed.
+				// freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 			}
 			// remove any filter bracketing markers if filteredInfoStr has content
 			// BEW 22Jun15, the following call is no longer needed
-			//if (!filteredInfoStr.IsEmpty())
-			//{
-			//	filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
-			//}
+			// whm 1Jul2026 Reinstated inclusion of filtered into in target exports within retranslation.
+			if (!filteredInfoStr.IsEmpty())
+			{
+				filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+			}
 
 			// BEW added 22Feb11, \x ... \x* material should follow anything in m_markers,
 			// so extract it from filteredInfoStr (if present) and put it in a separate
 			// crossRefs string, for later placement (we append it to markersStr so that
 			// when the latter is placed in location, the crossrefs go with it)
 			// BEW 22Jun15, the following blocks are unneeded
-			/*
+			// whm 1Jul2026 Reinstated inclusion of filtered into in target exports within retranslation.
+			
 			wxString crossRefs; crossRefs.Empty();
 			wxString tempStr1;
 			wxString tempStr2;
@@ -22299,7 +22399,6 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			{
 				markersStr += crossRefs;
 			}
-			*/
 
 			// we compose the pre-user-edit form of the target string, and the source
 			// string
@@ -22318,7 +22417,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// beginmarker & endmarker pairs the same way)
 				// remove LHS whitespace when done
 				// BEW refactored 22Jun15, we don't want filtered info
-				/*
+				// whm 1Jul2026 Reinstated inclusion of filtered into in target exports within retranslation.
 				if (!filteredInfoStr.IsEmpty())
 				{
 					// this data has any markers and endmarkers already 'in place'
@@ -22374,7 +22473,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					markersPrefix += noteEndMkr; // don't need space too
 				}
 				// BEW 23Feb11 moved filtered into from here to be before coll back trans
-				*/
+				// whm 1Jul2026 Reinstated inclusion of filtered into in target exports within retranslation.
+				
 				markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 
 				if (!markersStr.IsEmpty())
@@ -22565,7 +22665,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// first CSourcePhrase instance - they will be "medial" and so will have to
 				// be placed manually using the dialog; this block handles non-first
 				// CSourcePhrase instances, as we collect the Tstr, etc within the loop...
-				unfilteredStr.Empty(); // empty our scratch string
+				medialStuffStr.Empty(); // unfilteredStr.Empty(); // empty our scratch string
 
 				// BEW added revised comment 31MAR10: if there is medial filtered info (and
 				// there might be because it is legal to select over filtered info and
@@ -22584,24 +22684,25 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// and the inline markers from the 4 extra wxString members added to
 				// CSourcePhrase in order to fully support USFM markup standards
 				// BEW 22Jun15, we no longer want filtered information in the export
-				/*
+				// whm 1Jul2026 Reinstated inclusion of filtered into in target exports within retranslation.
+				
 				if (!filteredInfoStr.IsEmpty())
 				{
 					// this data has any markers and endmarkers already 'in place'
-					unfilteredStr.Trim();
-					unfilteredStr += aSpace + filteredInfoStr;
+					medialStuffStr.Trim(); // unfilteredStr.Trim();
+					medialStuffStr += aSpace + filteredInfoStr; // unfilteredStr += aSpace + filteredInfoStr;
 				}
 				if (!collBackTransStr.IsEmpty())
 				{
 					// add the marker too
-					unfilteredStr.Trim();
-					unfilteredStr += backTransMkr;
-					unfilteredStr += aSpace + collBackTransStr;
+					medialStuffStr.Trim(); // unfilteredStr.Trim();
+					medialStuffStr += backTransMkr; // unfilteredStr += backTransMkr;
+					medialStuffStr += aSpace + collBackTransStr; // unfilteredStr += aSpace + collBackTransStr;
 				}
 				if (!freeTransStr.IsEmpty())
 				{
-					unfilteredStr.Trim();
-					unfilteredStr += aSpace + freeMkr;
+					medialStuffStr.Trim(); // unfilteredStr.Trim();
+					medialStuffStr += aSpace + freeMkr; // unfilteredStr += aSpace + freeMkr;
 
 					// see comments in TRUE block above for what is happening here
 					int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
@@ -22610,32 +22711,31 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					entry << nWordCount; // converts int to string automatically
 					entry << _T("@| ");
 					// append it after a delimiting space
-					unfilteredStr += aSpace + entry;
+					medialStuffStr += aSpace + entry; // unfilteredStr += aSpace + entry;
 
 					// now the free translation string itself & endmarker
-					unfilteredStr += aSpace + freeTransStr;
-					unfilteredStr += freeEndMkr; // don't need space too
+					medialStuffStr += aSpace + freeTransStr; // unfilteredStr += aSpace + freeTransStr;
+					medialStuffStr += freeEndMkr; // unfilteredStr += freeEndMkr; // don't need space too
 				}
 				if (!noteStr.IsEmpty())
 				{
-					unfilteredStr.Trim();
-					unfilteredStr += aSpace + noteMkr;
-					unfilteredStr += aSpace + noteStr;
-					unfilteredStr += noteEndMkr; // don't need space too
+					medialStuffStr.Trim(); // unfilteredStr.Trim();
+					medialStuffStr += aSpace + noteMkr; // unfilteredStr += aSpace + noteMkr;
+					medialStuffStr += aSpace + noteStr; // unfilteredStr += aSpace + noteStr;
+					medialStuffStr += noteEndMkr; // unfilteredStr += noteEndMkr; // don't need space too
 				}
 				// BEW 23Feb11 moved filtered info to be first above
- 				unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
+				medialStuffStr.Trim(FALSE); // unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
 
 				// insert any non-empty unfiltered material "in place" in the strings
 				// which the user will see (source & target)
-				if (!unfilteredStr.IsEmpty())
+				if (!medialStuffStr.IsEmpty()) //if (!unfilteredStr.IsEmpty())
 				{
 					Tstr.Trim();
-					Tstr << aSpace << unfilteredStr;
+					Tstr << aSpace << medialStuffStr; // Tstr << aSpace << unfilteredStr;
 					Sstr.Trim();
-					Sstr << aSpace << unfilteredStr;
+					Sstr << aSpace << medialStuffStr; // Sstr << aSpace << unfilteredStr;
 				}
-				*/
 
 				// m_markers material, however, belongs in the list for later placement in
 				// Tstr, but for Sstr we must place it automatically because its position

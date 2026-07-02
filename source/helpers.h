@@ -435,6 +435,19 @@ wxString RemoveCommonNonTextPartsOfStr1FromStr2IgnoringStr2WhiteSpace(wxString s
 // of a substring within a string.
 int CountSubstringOccurrences(wxString stringToSearch, wxString substring);
 
+// whm 1Jul2026 added. This function is mainly used for properly
+// formating USFM markers when rebuilding target text. 
+// It returns the whitespace that should preceed the marker thisMkr. 
+// The whitespace returned will be a Latin space, an EOL (\r\n), or 
+// an empty string (if the incoming marker thisMkr is an empty string).
+// Generally an EOL is returned when thisMkr is a USFM paragraph
+// marker of some type that normally starts on a new line, or
+// an unknown marker (starting a new line to make it standout). 
+// A Latin space is returned to prefix a USFM "character" marker
+// of some type, which is usually an "inline" marker that typically 
+// occurs in text with an end marker.
+wxString GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(wxString thisMkr);
+
 // whm 21Jan2026 added for use in FromSingleMakeSstr2()
 void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
 	CSourcePhrase* pPrevSingleSrcPhrase,

@@ -2830,6 +2830,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
     m_pApp->m_nOldSequNum = nSaveOldSequNum; // restore the value we set earlier
+
+	// whm 1Jul2026 added. When creating a retranslation the doc needs to be set
+	// to a "dirty" state so the user gets prompted to save before exiting the app,
+	// if s/he hasn't manually done a save or if an auto-save hasn't taken place.
+	pDoc->Modify(TRUE);
 }
 
 // BEW added 6Sep22 count will be either nNewCount or nCount, depending on whether padding
@@ -4276,6 +4281,11 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		m_pView->OnToggleRespectBoundary(event); // BEW 19jul21, This call does not make use of the event
 	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
+
+	// whm 1Jul2026 added. When editing a retranslation the doc needs to be set
+	// to a "dirty" state so the user gets prompted to save before exiting the app,
+	// if s/he hasn't manually done a save or if an auto-save hasn't taken place.
+	pDoc->Modify(TRUE);
 }
 
 // RemoveRetranslation() does the core work that the OnRemoveRetranslation() handler does,
@@ -4478,6 +4488,11 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	pList->Clear();
 	if (pList != NULL) // whm 11Jun12 added NULL test
 		delete pList;
+	// whm 1Jul2026 added. When editing a retranslation the doc needs to be set
+	// to a "dirty" state so the user gets prompted to save before exiting the app,
+	// if s/he hasn't manually done a save or if an auto-save hasn't taken place.
+	pDoc->Modify(TRUE);
+
 }
 
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
@@ -4911,6 +4926,11 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		m_pView->OnToggleRespectBoundary(event);
 	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
+	// whm 1Jul2026 added. When editing a retranslation the doc needs to be set
+	// to a "dirty" state so the user gets prompted to save before exiting the app,
+	// if s/he hasn't manually done a save or if an auto-save hasn't taken place.
+	pDoc->Modify(TRUE);
+
 }
 
 // BEW 23Apr15 added support for using / as a whitespace word-breaking character -

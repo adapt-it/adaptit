@@ -52260,7 +52260,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// whm 12Mar2024 refactored and changed the name of the next function call. 
 						// The function previously was named GetPriorityMkr(), but is now named
 						// GetPriorityTextTypeChangingBeginMkr(). It now returns the first marker
-						// found within m_markers that is also found in the App's m_RegBeginMarkers 
+						// found within m_markers that is also found in the App's m_RedBeginMarkers 
 						// set, or if not present there, the last marker in m_markers is returned,
 						// or wxEmptyString if no markers are within m_markers.
 						firstMkr = GetPriorityTextTypeChangingBeginMkr(mkrsContent); // BEW 31Aug23, // Bill wants firstMkr to set the type etc					
