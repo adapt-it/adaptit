@@ -7496,6 +7496,22 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	// remove any filter bracketing markers if filteredInfoStr has content
 	if (!filteredInfoStr.IsEmpty())
 	{
+		// whm 14Jul2026 For Target text exports we need to remove the markers and stuff
+		// that follow the end filter bracket marker \~FILTER*, since target text exports
+		// aren't currently set up check for duplication between what follows the end bracket
+		// and what appears in the pNextSrcPhrase->m_markers member. An interim solution
+		// is to here remove the stuff that follows the \FILTER* end bracket. This change
+		// prevented marker duplication associated with the end of filtered material and the
+		// export of the next source phrase's m_markers.
+		// Note: This adjustment need to be made here when filtered info is stored on "Single" 
+		// source phrases as well as within the FromMergerMakeTstr() for when filtered info is
+		// stored on merged source phrases.
+		filteredInfoStr = MakeReverse(filteredInfoStr);
+		int posEndMkr = filteredInfoStr.Find(_T("*RETLIF~\\"));
+		if (posEndMkr > 0)
+			filteredInfoStr = filteredInfoStr.Mid(posEndMkr);
+		filteredInfoStr = MakeReverse(filteredInfoStr);
+
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
 
 		// separate out any crossReference info (plus marker & endmarker) if within this

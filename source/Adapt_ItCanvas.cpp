@@ -2423,6 +2423,28 @@ x:					CCell* pCell = 0;
 					pApp->m_selection.Append(pCell);
 					pApp->m_selectionLine = pCell->GetCellIndex();
 					pApp->m_pAnchor = pCell;
+					/*
+					// The following code didn't prevent the auto-scroll back.
+					// See comments within CMainFrame::OnActivate() for some ideas
+					// about how to prevent this undesirable scrolling behavior
+
+					// whm 2Jul2026 added below for testing to see if this prevents 
+					// unwanted scrolling back to previous location of phrasebox.
+					int sequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
+					pApp->m_pActivePile = pView->GetPile(sequNum);
+					wxASSERT(pApp->m_pActivePile);
+					// place the phrase box
+					pView->PlacePhraseBox(pCell, 2);
+					if (pApp->m_pTargetBox != NULL)
+					{
+
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					}
+					// scroll into view, just in case (but shouldn't be needed)
+					ScrollIntoView(pApp->m_nActiveSequNum);
+					//pView->Invalidate(); // get window redrawn
+					//pLayout->PlaceBox();
+					*/
 				} //end of block for test: pCell->GetCellIndex() == 0
 
 			} // end of else block for test: event.ShiftDown() == TRUE

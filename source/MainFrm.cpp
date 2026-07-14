@@ -4442,6 +4442,9 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 {
 	// NOTE: Setting a breakpoint in this type of function will be problematic
 	// because the breakpoint will itself trigger the OnActivate() event!
+#ifdef _DEBUG
+	wxLogDebug(_T("CMainFrame::OnActivate() triggered"));
+#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
@@ -4449,6 +4452,12 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	// the SetFocusAndSetSelectionAtLanding() and event.Skip() calls farther below. See Comments there.
 	bool bPhraseBoxVisibleInClientWindow = pApp->m_pTargetBox->IsPhraseBoxVisibleInClientWindow();
 
+#ifdef _DEBUG
+	if (bPhraseBoxVisibleInClientWindow)
+		wxLogDebug(_T("CMainFrame:: OnActivate() Phrasebox is visible."));
+	else
+		wxLogDebug(_T("CMainFrame:: OnActivate() Phrasebox is not visible."));
+#endif
 	// m_pTargetBox is now on the App, and under wxWidgets the main frame's
 	// OnActivate() method may be called after the view has been destroyed
 	if (event.GetActive())
