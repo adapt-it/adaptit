@@ -10669,6 +10669,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// TODO: Check Old var initializations below
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
+			wxUnusedVar(bDidSomeUnfiltering); // avoid gcc warning variable set but not used.
 			bWeUnfilteredSomething = FALSE;
 			wxString bareMarker;
 
@@ -10804,6 +10805,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// 
 						// Setup for unfiltering and do so.
 						bDidSomeUnfiltering = TRUE; // used for updating navText on original pSrcPhrase when done
+						wxUnusedVar(bDidSomeUnfiltering); // avoid gcc warning variable set but not used.
 						bWeUnfilteredSomething = TRUE; // used for reseting initial conditions in inner loop
 						m_bCurrentlyUnfiltering = TRUE; // whm 20Mar2024 added
 

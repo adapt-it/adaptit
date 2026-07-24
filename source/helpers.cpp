@@ -5162,6 +5162,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// therefore, I've un-commented the following block that removes filter brackets from the string
 	int numFilteredItems = 0;
 	numFilteredItems = CountSubstringOccurrences(filteredInfoStr, _T("\\~FILTER*"));
+	wxUnusedVar(numFilteredItems); // to avoid gcc warning variable set but not used
 	wxString filtMkr; filtMkr.Empty();
 
 	if (!filteredInfoStr.IsEmpty())
