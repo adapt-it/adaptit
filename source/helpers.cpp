@@ -8231,7 +8231,18 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		Tstr.Trim();
 		if (!filteredInfoSuffix.IsEmpty())
 		{
-			Tstr += aSpace;
+			int posSpace = filteredInfoSuffix.Find(_T(' '));
+			if (filteredInfoSuffix.GetChar(0) == _T('\\') && posSpace != wxNOT_FOUND)
+			{
+				wxString mkr = filteredInfoSuffix.Mid(0, posSpace);
+				wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+				whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(mkr);
+				Tstr += whiteSpToPrefixMkr;
+			}
+			else
+			{
+				Tstr += aSpace;
+			}
 			Tstr += filteredInfoSuffix;
 		}
 	}
@@ -9155,6 +9166,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 	FilterableMkrsList.Clear();
 	wxArrayString markersPrecedingFilteredOnes;
 	markersPrecedingFilteredOnes.Clear();
+	wxArrayString markersFollowingFilteredOnes;
+	markersFollowingFilteredOnes.Clear();
 	// whm 5Jan2024 addition. AI now holds filtered material on the preceding source 
 	// phrase, which means that filtered material being unfiltered should come suffixed to 
 	// the srcStr (m_srcSinglePattern) as determined above.
@@ -9172,7 +9185,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
 			MkrAndAssocTextList,
 			filteredMkrsAndAssocTextNoBrackets, // this one isn't used here
-			FilterableMkrsList); // this one isn't used here
+			FilterableMkrsList, // this one isn't used here
+			markersFollowingFilteredOnes); // this one isn't used here
 
 		// whm 22Jan2024 added. 
 		// For best whitespace in exports it would be good to know if the initial marker 

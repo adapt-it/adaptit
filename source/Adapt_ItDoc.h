@@ -421,7 +421,8 @@ public:
 						wxArrayString& markersPrecedingFilteredOnes,
 						wxArrayString& filteredMkrsArrayWithFilterBrackets,
 						wxArrayString& filteredMkrsAndAssocTextNoBrackets,
-						wxArrayString& filteredMkrsArray);
+						wxArrayString& filteredMkrsArray,
+						wxArrayString& markersFollowingFilteredOnes);
 	wxString		GetMarkerFromWithinOneFilteredString(wxString filteredMkrString); // whm 8Feb2024 added
 //	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
 //		wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs);
@@ -468,6 +469,9 @@ public:
 
 	bool			IsInitialPunctPlusWhite(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, wxString& strReturn); // BEW 22May23 added
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen, wxString wsMkrsAndPuncts); // whm 13Jan2026 added wsMkrsAndPuncts parameter
+	wxString		GetFilteredInfoStrBracketed(
+						wxString sweptUpPrecedingStuff, wxString strFilteredMkrAndAssocText,
+						wxString wsFollMkrsAndPuncts); // whm 14Jul2026 added.
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs
 	CLayout* GetLayout(); // view class also has its own member function of the same name
@@ -481,6 +485,7 @@ public:
 	wxString		GetBareMarkerForLookup(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxString wholeMkr); // whm 30Nov2023 added
 	void			GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
+	wxString		ReorderStringMarkersForOptimalUnfiltering(wxString strMarkersToBeUnfiltered, bool bReverseFinalOrdering = FALSE);
 	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
 	void			GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str);
 	void			GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 added

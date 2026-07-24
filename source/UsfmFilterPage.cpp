@@ -1424,16 +1424,37 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 			} // end of while (bContinue)
 		} // end of if (IsMarkerBeingFilteredAtDocStart(checkStr) == TRUE)
 
-		// If we get here the marker being filtered is not located at the beginning of the document so normal filtering can
-		// take place for this marker.
-
+		// If we get here the marker being filtered is not located at the beginning of 
+		// the document so normal filtering can take place for this marker.
 		tempMarkersChangedToBeFiltered += augWholeMkr;
+		// whm 23Jul2026 modification. It is possible for the user while within the
+		// Filtering tab to unselect, then reselect the same marker changing it from
+		// unfiltered to filtered then back to an unfiltered state before clicking OK.
+		// If this happens we need to check if augWholeMkr that is being added above
+		// to tempMarkersChangedToBeFiltered, is already present in the 
+		// tempMarkersChangedToBeUnfiltered string (see below). If so, we need to remove
+		// augWholeMkr from the tempMarkersChangedToBeUnfiltered before leaving this block.
+		if (tempMarkersChangedToBeUnfiltered.Find(augWholeMkr) != wxNOT_FOUND)
+		{
+			gpApp->RemoveMarkerFromString(tempMarkersChangedToBeUnfiltered, augWholeMkr);
+		}
 	}
 	else
 	{
 		// The checkbox item was unchecked, store the marker of that item in 
 		// tempMarkersChangedToBeUnfiltered
 		tempMarkersChangedToBeUnfiltered += augWholeMkr;
+		// whm 23Jul2026 modification. It is possible for the user while within the
+		// Filtering tab to select, then unselect the same marker changing it from
+		// filtered to unfiltered, then back to an filtered state before clicking OK.
+		// If this happens we need to check if augWholeMkr that is being added above
+		// to tempMarkersChangedToBeUnfiltered, is already present in the 
+		// tempMarkersChangedToBeFiltered string (see below). If so, we need to remove
+		// augWholeMkr from the tempMarkersChangedToBeFiltered before leaving this block.
+		if (tempMarkersChangedToBeFiltered.Find(augWholeMkr) != wxNOT_FOUND)
+		{
+			gpApp->RemoveMarkerFromString(tempMarkersChangedToBeFiltered, augWholeMkr);
+		}
 
 	}
 	
