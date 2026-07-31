@@ -6980,15 +6980,11 @@ void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
 							// info.
 							wxString filtMkr = pDoc->GetMarkerFromWithinOneFilteredString(filteredInfo);
 
-							// TODO: Figure out what to do with any swept up stuff in the
-							// markersPrecedingFilteredOnes array.
-
 							wxString filteredStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfo);
 							int posMkr = filteredStr.Find(filtMkr);
 							wxASSERT(posMkr != wxNOT_FOUND);
 							// Set up ptr, pBufStart, pEnd
 							const wxChar* pBuffer = filteredStr.GetData();
-							//int itemLen = 0;
 							wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
 							wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
 														 // contextually defined sfms
@@ -7060,7 +7056,6 @@ void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
 						wxASSERT(posMkr != wxNOT_FOUND);
 						// Set up ptr, pBufStart, pEnd
 						const wxChar* pBuffer = filteredStr.GetData();
-						//int itemLen = 0;
 						wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
 						wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
 													 // contextually defined sfms
@@ -7118,7 +7113,6 @@ void DoDocVersion6toCurrentConversion(SPList*& pSrcPhraseList)
 		finalPunctsAndEndMarkers += pFinalSrcPhrase->GetInlineNonbindingEndMarkers();
 		pFinalSrcPhrase->m_follWsMkrsAndPuncts = finalPunctsAndEndMarkers;
 	}
-
 }
 
 // whm 16Mar2026 added. Used in the FromDocVersion10ToDocVersionCurrent() function
@@ -7356,7 +7350,7 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 		// Does tempStr have punctuation?
 		if (bHasPunctuation)
 		{
-			// TODO: Check what is in the ssp m_srcSinglePattern member
+			// TODO: Could check what is in the ssp m_srcSinglePattern member
 			// of pSrcPhrase and/or pPrevSrcPhrase for clues as to the
 			// spacing around punctuation.
 			if (bStrIsAllPuncts)
@@ -7394,7 +7388,6 @@ wxString AdjustWhiteSpaceSurroundingMarkersAndPunctsInString(wxString wsMkrsAndP
 					lastCh = currCh;
 				}
 				tempStr = newTempStr;
-				//return tempStr;
 			}
 			if (bPunctIsInitial)
 			{

@@ -6478,6 +6478,14 @@ bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuf
 // whm 10Nov2023 added and revised 8Feb2024 and 23Jul2026. 
 // Gets a list of markers and marker info contained in 5 parallel arrays parsed from 
 // the input string filterStr.
+// The GetFilteredAndSweptUpMarkersFromString() function creates these 5 arrays:
+//    markersPrecedingFilteredOnes array - swept up markers that order before the bracketed marker items.
+//    filteredMkrsArrayWithFilterBrackets array - filtered items with bracketed markers \~FILTER ... \~FILTER*.
+//    filteredMkrsAndAssocTextNoBrackets array - filtered items with filter brackets removed.
+//    filteredMkrsArray array - the actual filtered whole markers - without ending space
+//    markersFollowingFilteredOnes - the wsMkrsAndPuncts stuff following \~FILTER* brackets
+// These five arrays should always be in parallel, with the same number of items, and the items
+// in the same order, the order they were found in the incoming filterStr.
 // The filterStr input string may contain one or more filtered strings encased with
 // \~FILTER ... \~FILTER* brackets that are concatenated together typically coming
 // from a m_filteredInfo member (via GetFilteredInfo() call).
@@ -6489,14 +6497,13 @@ bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuf
 // filtered string, the markersPrecedingFilteredOnes array always stores an empty 
 // string for that situation. This is done with all 5 arrays treated here in order 
 // to keep all 5 arrays in parallel for use by the caller.
-// This function makes a call to GetMarkersAndEndMarkersFromString() which returns
-// a wxArrayString of markers via the filteredMkrsArray in its fourth 
-// reference parameter. 
+// This function makes a call to GetFilteredInfoSegments() which returns
+// two wxArrayStrings: segmentsArr and wsMkrsAndPunctsArr. 
 // The markersPrecedingFilteredOnes() will contain any swept up markers that
 // preceed the filtered marker or empty string for any filtered marker that does
 // not have preceding swept up markers.
-// The filteredMkrsArray array simply contains augmented whole markers
-// that are taken from inside the filtered brackets \~FILTER ...\~FILTER*.
+// The filteredMkrsArray array simply contains augmented whole markers without ending 
+// space, that are taken from inside the filtered brackets \~FILTER ...\~FILTER*.
 // The filteredMkrsArray array doesn't contain any of the swept up markers 
 // that might preceed the filtered material. They go into the 
 // markersPrecedingFilteredOnes array instead. Following markers are contained
@@ -6508,8 +6515,6 @@ bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuf
 // filtered item's filter marker itself (just inside the opening filter bracket), 
 // and any other wsMkrsAndPuncts following that marker up to the first word of 
 // associated text of that following filtered item.
-// All 5 arrays returned by reference from this function should always contain
-// the same number of elements and are always in parallel.
 // This function is called from the following Doc functions:
 // ReconstituteAfterFilteringChange(), ReorderStringMarkersForOptimalUnfiltering(),
 // and ReorderFilterMaterialUsingUsfmStructData()
@@ -10707,8 +10712,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				wxArrayString filteredMkrsAndAssocTextNoBrackets; filteredMkrsAndAssocTextNoBrackets.Clear();
 				wxArrayString filteredMkrsArray; filteredMkrsArray.Clear();
 				wxArrayString markersFollowingFilteredOnes; markersFollowingFilteredOnes.Clear();
-				//int numFilteredItems = (int)filteredMkrsArray.GetCount(); // whm 23Jul2026 no longer used
-
 				GetFilteredAndSweptUpMarkersFromString(theFilteredInfo,
 					markersPrecedingFilteredOnes,
 					filteredMkrsArrayWithFilterBrackets,
@@ -10716,19 +10719,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					filteredMkrsArray,
 					markersFollowingFilteredOnes);
 
-				// Some bool variables for keeping track of the status of markers being processed from 
+				// A bool variable for keeping track of the status of markers being processed from 
 				// m_filteredInfo:
-				//bool bThisMkrToBeUnfilteredNow = FALSE; // whm 23Jul2026 no longer used
 				bool bNextMkrToBeUnfiltered = FALSE;
-				//bool bThePreviousMkrWasUnfiltered = FALSE; // whm 23Jul2026 no longer used
-				// A pointer to the last word of a previously unfiltered subset of source phrases that was
-				// stored during this round of filtered marker processing. This pLastWordSP source phrase
-				// instance is where filtered material not currently being unfiltered will be re-stored-away.
 				CSourcePhrase* pLastWordSP = pSrcPhrase; // Initialize to current source phrase being examined.
 				// A SPList::Node* pointer to dynamically indicate the storage position for inserting filtered
 				// information - not currently being unfiltered - back into the pList of source phrases. This 
 				// node pointer is determined by the call pList->Find(pLastWordSP);
-				//SPList::Node* savePos = NULL; // whm 23Jul2026 no longer unused
 
 				// An array to keep track of which markers in m_filteredInfo are designated to be unfiltered.
 				// A value of 1 indicates marker is to be unfiltered, 0 indicates it is not to be unfiltered,
@@ -10827,7 +10824,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// whm 23Jul2026 Get the info that was suffixed after the \~FILTER* 
 						// end marker of this filtered item, which is now stored in the
 						// markersFollowingFilteredOnes array.
-						// we restore that information now to extractedStr here before
+						// We restore that information now to extractedStr here before
 						// sending it to the TokenizeTextString().
 						wxString thisFiltItemFollWsMkrsAndPuncts = markersFollowingFilteredOnes.Item(itemCt2);
 						extractedStr = extractedStr + thisFiltItemFollWsMkrsAndPuncts;
@@ -10942,6 +10939,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						}
 						else
 						{
+							// For debugging
 							int break_here = 1;
 							break_here = break_here;
 						}
@@ -11502,12 +11500,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// whm 6Nov2023 provide a pointer to the previous source phrase. We'll use
 			// this to store filtered info from a previously unfiltered char attribute
 			// marker.
-			//CSourcePhrase* pPrevSrcPhrase = NULL;
 			SPList::Node* prevPos = pos_pList->GetPrevious();
-			//if (prevPos != NULL)
-			//{
-			//	pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
-			//}
 
 			pos_pList = pos_pList->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
@@ -12116,8 +12109,6 @@ g:				bIsUnknownMkr = FALSE;
 				// utilize the value of nFound in the else/else if part which determines what
 				// to do when a marker like \fv follows \f within the m_markers member.
 				nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit);
-				//if ((wholeMkrBeingFiltered != _T("\\f")) && (wholeMkrBeingFiltered != _T("\\x")) &&
-				//	(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
 				if ((wholeMkrBeingFiltered != _T("\\f")) && (wholeMkrBeingFiltered != _T("\\x")) &&
 					(nFound != wxNOT_FOUND))
 				{
@@ -12791,7 +12782,7 @@ g:				bIsUnknownMkr = FALSE;
 			// GetFilteredInfoStrBracketed() now assembles the parts together.
 			filteredStr = GetFilteredInfoStrBracketed(sweptUpStr, 
 				assocTextProper, whiteSpAndMkrsAtEndOfRebuiltSrcText);
-
+			// Old code below:
 			//filteredStr = sweptUpStr; // sweptUpStr is empty when no swept up material is present
 			//filteredStr += filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
 			//filteredStr += _T(' '); // add space
@@ -18058,8 +18049,6 @@ void CAdapt_ItDoc::GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wx
 // refactored the if (bUnfilteringRequired) block of the ReconstituteAfterFilteringChange() function.
 wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMarkersToBeUnfiltered, bool bReverseFinalOrdering)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	int numMkrsToBeUnfiltered = 0;
 	numMkrsToBeUnfiltered = strMarkersToBeUnfiltered.Replace(_T("\\"), _T("\\"));
 	//wxArrayString filteredInfoArr; filteredInfoArr.Empty();
@@ -18068,7 +18057,7 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 	wxArrayString MkrListToBeUnfiltered;
 	// Note: marker items stored in MkrListToBeUnfiltered will have following whitespace 
 	// from the incoming strMarkersToBeUnfiltered string.
-	pDoc->GetMarkersAndFollowingWhiteSpaceFromString(MkrListToBeUnfiltered, strMarkersToBeUnfiltered);
+	GetMarkersAndFollowingWhiteSpaceFromString(MkrListToBeUnfiltered, strMarkersToBeUnfiltered);
 	wxArrayString MkrListInFilteredInfo;
 	wxArrayString markersPrecedingFilteredOnes; // unused here
 	wxArrayString filteredMkrsArrayWithFilterBrackets; // unused here
@@ -18089,7 +18078,7 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 		filteredInfo = pSrcPhrase->GetFilteredInfo();
 		if (!filteredInfo.IsEmpty())
 		{
-			pDoc->GetFilteredAndSweptUpMarkersFromString(filteredInfo,
+			GetFilteredAndSweptUpMarkersFromString(filteredInfo,
 				markersPrecedingFilteredOnes,
 				filteredMkrsArrayWithFilterBrackets,
 				filteredMkrsAndAssocTextNoBrackets,
@@ -18392,13 +18381,12 @@ void CAdapt_ItDoc::GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& Mkr
 // contains multiple filtered items, it separates out each filtered material string, removes
 // the filter brackets, and stored each filtered item in the pMkrList array, one per array
 // item.
-// This function is called in the bUnfilteringRequired block of the ReconstituteAfterFilteringChange()
-// function.
+// This function was called in the bUnfilteringRequired block of the ReconstituteAfterFilteringChange()
+// function, but is no longer used in code.
 // Note: Filtered items within the m_filteredInfo member can be prefixed by any of the markers in the
 // set m_markersCanBeSweptUpByFilteredMarker = _T("\\c \\p \\m \\mi \\nb \\b \\ib \\ie \\po ") and
 // these may be intermixed with EOL "\r\n" sequences. Therefore each array item may be prefixed with
 // some swept up markers and EOL characters.
-// 
 void CAdapt_ItDoc::GetMarkersAndAssocTextsFromFilteredString(wxArrayString& pMkrList, wxString str)
 {
 	// Populates a wxArrayString containing sfms parsed from the input str. 
@@ -39220,13 +39208,16 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 		filteredMkrsAndAssocTextNoBrackets.Clear();
 		wxArrayInt IndexPosOfMkrInStructArr;
 		IndexPosOfMkrInStructArr.Clear();
-		// The GetFilteredAndSweptUpMarkersFromString() function creates two arrays, one with the filtered indicating
-		// bracketed markers \~FILTER ... \~FILTER* called filteredMkrsArrayWithFilterBrackets, and the
-		// other parallel array filteredMkrsArray which only contains the whole markers.
-		// Here the two arrays should always be in parallet, with the same number of items, and the items
+		// The GetFilteredAndSweptUpMarkersFromString() function creates five arrays:
+		//    markersPrecedingFilteredOnes array - swept up markers that order before the bracketed marker items.
+		//    filteredMkrsArrayWithFilterBrackets array - filtered items with bracketed markers \~FILTER ... \~FILTER*.
+		//    filteredMkrsAndAssocTextNoBrackets array - filtered items with filter brackets removed.
+		//    filteredMkrsArray array - the actual filtered whole markers - without ending space
+		//    markersFollowingFilteredOnes - the wsMkrsAndPuncts stuff following \~FILTER* brackets
+		// These five arrays should always be in parallel, with the same number of items, and the items
 		// in the same order, the order they were found in the incoming filterStr.
 		GetFilteredAndSweptUpMarkersFromString(filterStr, 
-			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
+			markersPrecedingFilteredOnes, // this array contains swept up markers 
 			filteredMkrsArrayWithFilterBrackets,
 			filteredMkrsAndAssocTextNoBrackets,
 			filteredMkrsArray,
