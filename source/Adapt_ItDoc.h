@@ -442,6 +442,8 @@ public:
 	wxString		GetWsMkrsAndPunctsAtPtr(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 10Jan2026 added
 
 	wxString		GetWsMkrsAndPunctsFromPtrOnward(wxChar* pChar, wxChar* pBufStart, wxChar* pEnd, CSourcePhrase* pSrcPhrase); // whm 20Mar2026 added
+	
+	wxString		GetWsMkrsAndPunctsFrom1stStrCharOnward(wxString str); // whm 29Jul2026 added
 
 					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 					// whitespace(s), and getting to the puncts may require parsing over one or more endEndMarkers

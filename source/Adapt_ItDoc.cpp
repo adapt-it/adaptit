@@ -6501,6 +6501,13 @@ bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuf
 // that might preceed the filtered material. They go into the 
 // markersPrecedingFilteredOnes array instead. Following markers are contained
 // within the markersFollowingFilteredOnes array - whm added 23Jul2026.
+// whm 26Jul2026 addition. The markersFollowingFilteredOnes now also includes the 
+// initial wsMkrsAndPuncts material that is at the beginning of any adjacent 
+// filtered marker within the m_filteredInfo member. This includes any swept up 
+// stuff before that following filtered item's \~FILTER bracket, the following 
+// filtered item's filter marker itself (just inside the opening filter bracket), 
+// and any other wsMkrsAndPuncts following that marker up to the first word of 
+// associated text of that following filtered item.
 // All 5 arrays returned by reference from this function should always contain
 // the same number of elements and are always in parallel.
 // This function is called from the following Doc functions:
@@ -10904,15 +10911,39 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						if (bNextMkrToBeUnfiltered)
 						{
 							// Since the next marker is to be unfiltered, the last item in pSublist should 
-							// be an empty source phrase item, which needs to be removed.
-							// Verify that the last item in pSublist is indeed an empty source phrase.
+							// be an empty source phrase item, which needs to be removed from the pSubList.
+							// Check if the last item in pSublist is indeed an empty source phrase.
 							SPList::Node* posLast = pSublist->GetLast();
 							CSourcePhrase* pLastSP = posLast->GetData();
 							if (pLastSP->m_key.IsEmpty() && pLastSP->m_srcPhrase.IsEmpty())
 							{
 								pSublist->DeleteNode(posLast);
 								count--;
+								posLast = pSublist->GetLast(); // posLast should now point to one before the deleted one
+								pLastSP = posLast->GetData(); // pLastSP is now pointing at the last source phrase before the deleted one
 							}
+							// whm 29Jul2026 modified to tweak the m_follWsMkrsAndPuncts value of the
+							// new pLastSP source phrase.
+							// Since the if (bNextMkrToBeUnfiltered) block we're in is TRUE, we should have access to
+							// the filteredMkrsArrayWithFilterBrackets.Item(itemCt2 + 1) and filteredMkrsArray.Item(itemCt2 + 1)
+							// After deleting the node above GetLast() should now return the new pLastSP whose 
+							// m_follWsMkrsAndPuncts member we need to augment with wsMkrsAndPuncts1 as determined
+							// by a call of GetWsMkrsAndPunctsFrom1stStrCharOnward() called on the 
+							// nextWholeMkrInFilterBrackets.
+							wxString nextWholeMkrInFilterBrackets = filteredMkrsArrayWithFilterBrackets.Item(itemCt2 + 1);
+							wxString nextFltMkr = filteredMkrsArray.Item(itemCt2 + 1);
+							wxString fltMkrBracketPlusSpPlusNextFltMkr = _T("\\~FILTER ") + nextFltMkr;
+							int posWsMkrsAndPunctsAfterFltMkr = nextWholeMkrInFilterBrackets.Find(fltMkrBracketPlusSpPlusNextFltMkr) != wxNOT_FOUND;
+							nextWholeMkrInFilterBrackets = nextWholeMkrInFilterBrackets.Mid(posWsMkrsAndPunctsAfterFltMkr + fltMkrBracketPlusSpPlusNextFltMkr.Length());
+							wxString wsMkrsAndPuncts1;
+							wsMkrsAndPuncts1 = GetWsMkrsAndPunctsFrom1stStrCharOnward(nextWholeMkrInFilterBrackets);
+							// Add the wsMkrsAndPuncts1 to pLastSP->m_follWsMkrsAndPuncts
+							pLastSP->m_follWsMkrsAndPuncts += wsMkrsAndPuncts1;
+						}
+						else
+						{
+							int break_here = 1;
+							break_here = break_here;
 						}
 						// Reset the m_bIsWithin... flags to FALSE
 						if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
@@ -13007,23 +13038,37 @@ g:				bIsUnknownMkr = FALSE;
 				// the ReorderFilterMaterialUsingUsfmStructData() function call below and the
 				// comments preceding it.
 				// 
-				// whm 15Jul2026 Modification. We are prefixing filteredStr material to some
-				// existing filtered material. In our current model, the filteredStr material
-				// we are now adding will have following the end bracket \~FILTER* some possible
-				// whitespace (EOL), the previous filtered marker, a space, and any initial punct
-				// that precedes the first word of associated text of the existingFilteredInfo
-				// string. To avoid duplication within our new filteredStr, we need to remove
-				// from filteredStr that "previous filtered marker" and anything that follows it, 
-				// but retain any whitespace (EOL) that occurs immediately after the \FILTER* 
-				// end marker of filteredStr.
-				wxString filtMkr; filtMkr.Empty();
-				filtMkr = GetMarkerFromWithinOneFilteredString(existingFilteredInfo);
-				wxString filtMkrRev = MakeReverse(filtMkr);
-				wxString filteredStrRev = MakeReverse(filteredStr);
-				int posFiltMkrRev = filteredStrRev.Find(filtMkrRev);
-				filteredStrRev = filteredStrRev.Mid(posFiltMkrRev + filtMkrRev.Length());
-				filteredStr = MakeReverse(filteredStrRev);
+				// whm 25Jul2026 Reverting the change below that was made on the commit after 15Jul2026
+				// Reason: We loose the m_follWsMkrsAndPuncts information stored after the \~FILTER*
+				// marker for a given filtered item when that filtered item is subsequently unfiltered.
+				// Also, it was observed that the info removed below could result in the loss of the
+				// filtered material when exporting the text.
+				// The info stored after that \~FILTER* bracket should be retained in storage there so 
+				// that it can be later stored in the m_follWsMkrsAndPuncts member of the last word 
+				// of that filtered item when it is unfiltered and re-tokenized. If it is removed below
+				// the information for putting into the m_follWsMkrsAndPuncts when it is re-tokenized
+				// is lost.
+				// The issue that prompted me to add the code below was "to avoid duplication within our
+				// new filteredStr", but any such duplication that might occur would be better handled 
+				// elsewhere in our unfiltering routine or our export routines.
+				//// whm 15Jul2026 Modification. We are prefixing filteredStr material to some
+				//// existing filtered material. In our current model, the filteredStr material
+				//// we are now adding will have following the end bracket \~FILTER* some possible
+				//// whitespace (EOL), the previous filtered marker, a space, and any initial punct
+				//// that precedes the first word of associated text of the existingFilteredInfo
+				//// string. To avoid duplication within our new filteredStr, we need to remove
+				//// from filteredStr that "previous filtered marker" and anything that follows it, 
+				//// but retain any whitespace (EOL) that occurs immediately after the \FILTER* 
+				//// end marker of filteredStr.
+				//wxString filtMkr; filtMkr.Empty();
+				//filtMkr = GetMarkerFromWithinOneFilteredString(existingFilteredInfo);
+				//wxString filtMkrRev = MakeReverse(filtMkr);
+				//wxString filteredStrRev = MakeReverse(filteredStr);
+				//int posFiltMkrRev = filteredStrRev.Find(filtMkrRev);
+				//filteredStrRev = filteredStrRev.Mid(posFiltMkrRev + filtMkrRev.Length());
+				//filteredStr = MakeReverse(filteredStrRev);
 
+				// The following line existed in this block before the above revision
 				filteredStr = filteredStr + existingFilteredInfo;
 			}
 
@@ -18034,6 +18079,8 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 	SPList* pList = gpApp->m_pSourcePhrases;
 	SPList::Node* pos_pSPList = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase = NULL;
+	int MkrCt = 0;
+	int HighestMkrCt = 0;
 	while (pos_pSPList != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos_pSPList->GetData();
@@ -18051,7 +18098,9 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 			// Notes: Each MkrListInFilteredInfo could be prefixed with 
 			// sweptup markers and EOL chars.
 			// The markers in filteredMkrsArray are not stored with ending space.
-			int MkrCt = (int)filteredMkrsArray.GetCount();
+			MkrCt = (int)filteredMkrsArray.GetCount();
+			if (MkrCt > HighestMkrCt)
+				HighestMkrCt = MkrCt; // keep track of highest count of filtered items in a m_filteredInfo member
 			wxString mkrStr; mkrStr.Empty();
 			for (int j = 0; j < MkrCt; j++)
 			{
@@ -18079,6 +18128,17 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 		}
 	}
 	wxASSERT(MkrListInFilteredInfo.GetCount() == numFilteredMkrsInStrArr.GetCount());
+	// whm 25Jul2026 added. If the highest number of filtered items within any
+	// m_filteredInfo member (HighestMkrCt) is 1 or less, then we won't be able to 
+	// determine any optimal ordering based on multiple adjacent markers within 
+	// any m_filteredInfo member, and we should just return the incoming 
+	// strMarkersToBeUnfiltered string to the caller.
+	if (HighestMkrCt <= 1)
+	{
+		// The most filtered items found in any given m_filteredInfo member was
+		// one (or less, i.e., zero)
+		return strMarkersToBeUnfiltered;
+	}
 	int spListCount = (int)MkrListInFilteredInfo.GetCount();
 	int indexOfItemWithMostMkrs = -1;
 	for (int k = 0; k < spListCount; k++)
@@ -18106,27 +18166,34 @@ wxString CAdapt_ItDoc::ReorderStringMarkersForOptimalUnfiltering(wxString strMar
 			tempStr.Trim(FALSE); // remove initial space from tempStr for next iteration
 			// tempStr's work is now done
 		}
-		if (bReverseFinalOrdering)
+		if (numInStrToReturn > 1)
 		{
-			// 1. Reverse the order of markers in strToReturn.
-			// Extract the markers from strToReturn, and reverse assemble those
-			// markers in tempStr.
-			// Compose the buildStr in reverse order using markers from filteredMkrsArray
-			for (int n = 0; n < (int)filteredMkrsArray.GetCount(); n++)
+			if (bReverseFinalOrdering)
 			{
-				// Build buildStr in reverse order from content of filteredMkrsArray
-				// Include following space on marker item from filteredMkrsArray.
-				buildStr = filteredMkrsArray.Item(n) + _T(" ") + buildStr;
+				// 1. Reverse the order of markers in strToReturn.
+				// Extract the markers from strToReturn, and reverse assemble those
+				// markers in tempStr.
+				// Compose the buildStr in reverse order using markers from filteredMkrsArray
+				for (int n = 0; n < (int)filteredMkrsArray.GetCount(); n++)
+				{
+					// Build buildStr in reverse order from content of filteredMkrsArray
+					// Include following space on marker item from filteredMkrsArray.
+					buildStr = filteredMkrsArray.Item(n) + _T(" ") + buildStr;
+				}
+			}
+			else
+			{
+				for (int n = 0; n < (int)filteredMkrsArray.GetCount(); n++)
+				{
+					// Build buildStr in prevailing order from content of filteredMkrsArray
+					// Include following space on marker item from filteredMkrsArray.
+					buildStr = buildStr + filteredMkrsArray.Item(n) + _T(" ");
+				}
 			}
 		}
 		else
 		{
-			for (int n = 0; n < (int)filteredMkrsArray.GetCount(); n++)
-			{
-				// Build buildStr in prevailing order from content of filteredMkrsArray
-				// Include following space on marker item from filteredMkrsArray.
-				buildStr = buildStr + filteredMkrsArray.Item(n) + _T(" ");
-			}
+			buildStr = strToReturn;
 		}
 		// Determine which, if any, markers in filteredMkrsArray are
 		// missing from the MkrListToBeUnfiltered array.
@@ -18434,42 +18501,61 @@ void CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr, // whm 8Feb2024 a
 		// 1st pass: currentSegment "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*"
 		remainingStr = remainingStr.Mid(posEndFilterBracket + lenEndFltBracket);
 		// 1st pass: remainingStr "\r\n\\m\r\n\\~FILTER \\f Text of footnote.\\f*\\~FILTER*\r\n\\p\r\n\\v 3 "
+		// whm 26Jul2026 modified to correct an issue in TokenizeText()'s filtering
+		// routine that puts an EOL \r\n before the \~FILTER* bracket - which is
+		// now contained in currentSegment. We'll move it to become the first stuff
+		// in remainingStr.
+		if (currentSegment.GetChar(posEndFilterBracket - 1) == _T('\n') 
+			&& currentSegment.GetChar(posEndFilterBracket - 2) == _T('\r'))
+		{
+			// whm Note: Once TokenizeText() is corrected so that \r\n doesn't
+			// get stored BEFORE the end bracket \~FILTER*, this block should
+			// never get entered. This here is a temporary fix, but can remain
+			// here after TokenizeText() is fixed.
+			currentSegment = MakeReverse(currentSegment);
+			int pos = currentSegment.Find(_T("*RETLIF~\\\n\r"));
+			if (pos != wxNOT_FOUND)
+			{
+				// Remove the embedded \r\n before the \~FILTER* end bracket
+				currentSegment = currentSegment.Mid(11); // removed end bracket and \n\r
+				currentSegment = MakeReverse(currentSegment);
+				currentSegment += _T("\\~FILTER*");
+				remainingStr = _T("\r\n") + remainingStr;
+			}
+			else
+			{
+				// Something failed, restore the ordering of currentSegment.
+				currentSegment = MakeReverse(currentSegment);
+			}
+		}
+		
 		posBeginFilterBracket = remainingStr.Find(beginFilterBracket);
 		//wxASSERT(posBeginFilterBracket != wxNOT_FOUND);
-		//if (i == 0)
-		//{
-			// The first filtered segment includes any prefixed swept up stuff
-			filteredStrItemsWithBrackets.Add(currentSegment);
-			// 1st pass: currentSegment is: "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*"
-			// 2nd pass: currentSegment is: ""
-			//
-			// Include any follWsMkrsAndPuncts that precedes the begin \~FILTER 
-			// bracket in the remainingStr.
-			follWsMkrsAndPuncts = remainingStr.Mid(0, posBeginFilterBracket);
-			// 1st pass: follWsMkrsAndPuncts is: "\r\n\\m\r\n"
-			// 2nd pass: gollWsMkrsAndPuncts is: ""
-			filteredStrItemsWsMkrsAndPuncts.Add(follWsMkrsAndPuncts); // follWsMkrsAndPuncts may be empty string
-		//}
-		//else
-		//{
-		//	follWsMkrsAndPuncts = currentSegment.Mid(0, posBeginFilterBracket);
-		//	// 2nd pass: follWsMkrsAndPuncts ""
-
-		//}
+		// The first filtered segment includes any prefixed swept up stuff
+		filteredStrItemsWithBrackets.Add(currentSegment);
+		// 1st pass: currentSegment is: "\\~FILTER \\f 1st footnote. \\f*\\~FILTER*"
+		// 2nd pass: currentSegment is: ""
+		//
+		// Include any follWsMkrsAndPuncts that precedes the begin \~FILTER 
+		// bracket in the remainingStr.
+		follWsMkrsAndPuncts = remainingStr.Mid(0, posBeginFilterBracket);
+		// 1st pass: follWsMkrsAndPuncts is: "\r\n\\m\r\n"
+		// 2nd pass: gollWsMkrsAndPuncts is: ""
+		filteredStrItemsWsMkrsAndPuncts.Add(follWsMkrsAndPuncts); // follWsMkrsAndPuncts may be empty string
 	}
 
 	/*
 	int nLenEndnFilterBracket = (int)endFilterBracket.Length();
 	posEndFilterBracket = remainingStr.Find(endFilterBracket);
 	while (posEndFilterBracket != wxNOT_FOUND)
-	{
+		{
 		wxString tempStr;
 		tempStr = remainingStr.Mid(0, posEndFilterBracket + nLenEndnFilterBracket);
 		filteredStrItemsWithBrackets.Add(tempStr); // segmentsArr.Add(tempStr);
 		remainingStr = remainingStr.Mid(posEndFilterBracket + nLenEndnFilterBracket);
 		posEndFilterBracket = remainingStr.Find(endFilterBracket);
 		if (!remainingStr.IsEmpty())
-		{
+			{
 			// There is some material after the end of the last filter
 			// bracket \~FILTER*. If there are no more filter segments
 			// we save the remainingStr in the filteredStrItemsWsMkrsAndPuncts
@@ -20732,7 +20818,20 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen, 
 	wxString temp(ptr, itemLen);
 	//temp.Trim(TRUE); // whm 14Jan2026 removed. We now preserve this whitespace at right end
 	temp.Trim(FALSE); // trim left end
-	//wx version handles embedded new lines correctly
+
+	// whm 30Jul2026 added. If filteredStr ends with an EOL,
+	// remove the EOL from filteredStr and prefix it instead 
+	// to the wsMkrsAndPuncts string
+	int lenFilteredStr = (int)temp.Length();
+	if (lenFilteredStr > 2)
+	{
+		wxString eol = temp.Mid(lenFilteredStr - 2);
+		if (eol == _T("\r\n"))
+		{
+			temp = temp.Mid(0, lenFilteredStr - 2);
+			wsMkrsAndPuncts = _T("\r\n") + wsMkrsAndPuncts;
+		}
+	}
 	wxString temp2;
 	//temp2 << filterMkr << _T(' ') << temp << _T(' ') << filterMkrEnd << _T(' ') << wsMkrsAndPuncts;
 	// whm 29Jan2026 removed spaces before and after the filterMkrEnd for better rebuild of 
@@ -26724,99 +26823,99 @@ void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 /// Removes any \~FILTER and \~FILTER* brackets from a string. The information that was
 /// previously bracketed by these markers remains intact within the string.
 /// whm 15Jan2026 refactored to simplify and preserve embedded EOLs within filtered material.
+/// whm 30Jul2026 refactored yet again to do a better job of removing filter brackets where
+/// the input str has multiple filtered items including swept up material and whitespace,
+/// markers and/or punctuation following the ending filter bracket \~FILTER*. This
+/// refactoring makes use of the GetFilteredInfoSegments() function to break up the incoming
+/// filtered string str into its basic components, a segmentsArr array and a wsMkrsAndPunctsArr
+/// array, and it then composes the returned string (minus filtered brackets) from those 
+/// components while avoiding the duplication of material that might otherwise happen between 
+/// the first filtered item and any following adjacent filtered items.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm added 6Apr05
 {
-	// ammended 29Apr05 to remove multiple sets of filter brackets from str. Previously the
-	// function only removed the first set of brackets found in the str.
-	// whm revised 2Oct05 to more properly handle the deletion of spaces upon/after the
-	// removal of the filter brackets
-	// 
-	// whm 15Jan2026 revised. Note: We are now preserving the original whitespace that
-	// existed in the input text before the marker was filtered. We now store all
-	// whitespace including EOLs that occur between the end of a filtered marker string
-	// after the last word of text or to-be-filtered marker's end marker, and before
-	// the filter end bracket \~FILTER*. The presence of possible EOLs means that the
-	// previous method of removing just a space is insufficient since where there used 
-	// to be only a padding space BEFORE a \~FILTER* bracket, there may now be a 
-	// sequence of whitespace: "\r\n " in which the "padding space" is now found after 
-	// the EOL chars "\r\n". This especially happens for the filtering of paragraph type
-	// markers such as \r which doen't have a corresponding end marker, but where the
-	// filtered string ends at the end of a line. In such filtering cases the code now 
-	// preserves the "\r\n" within the filtered string. This is to simplify and make 
-	// more accurate our export source text routines with regard to whitespace in 
-	// relation to markers and punctuation.
-	// So now when removing the \~FILTER and \~FILTER* filtering brackets, we need 
-	// want to preserve any EOL chars that come BEFORE the padding space that occurs
-	// before the filter bracket, and only remove the space that we inserted before 
-	// and after the filtering brackets at the time filtering was done. 
-	// Here within the RemoveAnyFilteringBracketsFromString, I think the removal of 
-	// the padding spaces before and after each filtering bracket might most easily be 
-	// done by actually replacing strings composed of the filter brackets with spaces
-	// padding before and after. That is, we replace " \~FILTER " with nothing (empty
-	// string), and " \~FILTER* " with nothing (empty string). All filtered material
-	// should now have a space padding even on any final filtered element within the
-	// str. But, in case it doesn't we can follow the two wxString::Replace() operations
-	// with another replace operation that simply replaces " \~FILTER*" (no final padding
-	// space) with nothing (empty string).
-	// The reason for doing the above is this: When there are multiple filtered items 
-	// stored within the m_filteredInfo member, this RemoveAnyFilterBracketsFromString() 
-	// function will hopefully remove all of those filter brackets leaving a string that
-	// preserves the original whitespace including EOLs, as well as eny embedded markers
-	// and punctuation in the order they occurred in the original input text.
-	// Rather than trying to use the wxString::Remove() function, I think it would work
-	// better to use the wxString::Replace() function that incorporates the space 
-	// padding. This does not require we keep track of position indexes.
-	// OK, first replace all end filter brackets replacing " \~FILTER* " with ""
-	/*
-	wxString space = _T(" ");
-	str.Replace(_T(" \\~FILTER* "), space, TRUE); // TRUE is "replace all"
-	// Now, replace all begin filter brackets replacing " \~FILTER " with ""
-	str.Replace(_T(" \\~FILTER "), space, TRUE); // TRUE is "replace all"
-	// Finally - in case we have other space padding and/or no padding do these other
-	// 6 possibilities too:
-	// initial space padding but no final space padding
-	if (str.Find(_T(" \\~FILTER*")) != wxNOT_FOUND)
-		str.Replace(_T(" \\~FILTER*"), space, TRUE); // TRUE is "replace all"
-	if (str.Find(_T(" \\~FILTER")) != wxNOT_FOUND)
-		str.Replace(_T(" \\~FILTER"), space, TRUE); // TRUE is "replace all"
-	// no initial space padding but has final space padding
-	if (str.Find(_T("\\~FILTER* ")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER* "), space, TRUE); // TRUE is "replace all"
-	if (str.Find(_T("\\~FILTER ")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER "), space, TRUE); // TRUE is "replace all"
-	// no initial space padding and no final space padding
-	if (str.Find(_T("\\~FILTER*")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER*"), space, TRUE); // TRUE is "replace all"
-	if (str.Find(_T("\\~FILTER")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER"), space, TRUE); // TRUE is "replace all"
-	str.Replace(_T("  "), space);
-	str.Trim();
-	*/
-	/*
-	str.Replace(_T(" \\~FILTER* "), wxEmptyString, TRUE); // TRUE is "replace all"
-	// Now, replace all begin filter brackets replacing " \~FILTER " with ""
-	str.Replace(_T(" \\~FILTER "), wxEmptyString, TRUE); // TRUE is "replace all"
-	// Finally - in case we have other space padding and/or no padding do these other
-	// 6 possibilities too:
-	// initial space padding but no final space padding
-	if (str.Find(_T(" \\~FILTER*")) != wxNOT_FOUND)
-		str.Replace(_T(" \\~FILTER*"), wxEmptyString, TRUE); // TRUE is "replace all"
-	if (str.Find(_T(" \\~FILTER")) != wxNOT_FOUND)
-		str.Replace(_T(" \\~FILTER"), wxEmptyString, TRUE); // TRUE is "replace all"
-	// no initial space padding but has final space padding
-	if (str.Find(_T("\\~FILTER* ")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER* "), wxEmptyString, TRUE); // TRUE is "replace all"
-	if (str.Find(_T("\\~FILTER ")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER "), wxEmptyString, TRUE); // TRUE is "replace all"
-	// no initial space padding and no final space padding
-	if (str.Find(_T("\\~FILTER*")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER*"), wxEmptyString, TRUE); // TRUE is "replace all"
-	if (str.Find(_T("\\~FILTER")) != wxNOT_FOUND)
-		str.Replace(_T("\\~FILTER"), wxEmptyString, TRUE); // TRUE is "replace all"
-	*/
-	//return str;
+	// whm 30Jul2026 refactored yet again to do a better job of removing filter brackets where
+	// the input str has multiple filtered items including swept up material and whitespace,
+	// markers and/or punctuation following the ending filter bracket \~FILTER*. This
+	// refactoring makes use of the GetFilteredInfoSegments() function to break up the incoming
+	// filtered string str into its basic components, a segmentsArr array and a wsMkrsAndPunctsArr
+	// array, and it then composes the returned string (minus filtered brackets) from those 
+	// components while avoiding the duplication of material that might otherwise happen between 
+	// the first filtered item and any following adjacent filtered items.
+
+	// Get the incoming str filtered info (from m_filteredInfo) segmented into arrays.
+	wxArrayString segmentsArr;
+	wxArrayString wsMkrsAndPunctsArr;
+	// whm 7Mar2026 revised the GetFilteredInfoSegments() to be a void
+	// function, returning two arrays as ref parameters, the original
+	// segmentsArr, and a new one for tracking whitespace, markers, and
+	// puncts that follow the end bracket \~FILTER* of the filtered info.
+	// whm 7Mar2026 TODO: Test how or whether this wxMkrsAndPunctsArr 
+	// is needed here like it is in the ReconstituteAfterFilterChange() 
+	// function's bUnfilteringRequired section.
+	// Get the filterStr's filtered "segments". A given segment may now have a swept up
+	// marker like \c 11 prefixing the bracketed filtered material, and other wsMkrsAndPuncts
+	// material following each segment - stored in the wsMkrsAndPunctsArr array.
+	GetFilteredInfoSegments(str, segmentsArr, wsMkrsAndPunctsArr);
+	int totSegments = (int)segmentsArr.GetCount();
 	
+	wxString strToReturn; strToReturn.Empty();
+	wxString lastFiltStr; lastFiltStr.Empty();
+	wxString segment;
+	wxString wsMkrsAndPuncts;
+	for (int i = 0; i < totSegments; i++)
+	{
+		segment = segmentsArr.Item(i);
+		wsMkrsAndPuncts = wsMkrsAndPunctsArr.Item(i);
+		if (i == 0) // the first filtered item
+		{
+			// The first filtered item in full
+			strToReturn = segment + wsMkrsAndPuncts;
+			strToReturn.Replace(_T("\\~FILTER "), wxEmptyString);
+			strToReturn.Replace(_T("\\~FILTER*"), wxEmptyString);
+			lastFiltStr = strToReturn;
+		}
+		else
+		{
+			// For the second and succeeding filtered items, we need to avoid duplication
+			// of whitespace, markers, and punctuation that follows a preceding end bracket
+			// and similar stuff that precedes this following filtered marker.
+			wxString commonStr = FindOverlap(lastFiltStr, segment);
+			wxString initialWhiteSpInCommonStr; initialWhiteSpInCommonStr.Empty();
+			int lenCommonStr = commonStr.Length();
+			if (lenCommonStr > 1)
+			{
+				// Save any initial whitespace prefixing commonStr for prefixing again below
+				for (int j = 0; j < lenCommonStr; j++)
+				{
+					wxChar wsChar = commonStr.GetChar(j);
+					if (IsWhiteSpace(&wsChar))
+					{
+						initialWhiteSpInCommonStr = initialWhiteSpInCommonStr + wsChar;
+					}
+					// Don't collect any whitespace at or beyond a backslash/marker
+					if (wsChar == _T('\\'))
+						break;
+				}
+			}
+			segment = segment.Mid(commonStr.Length());
+			// Now remove the filter brackets from segment
+			segment.Replace(_T("\\~FILTER "), wxEmptyString);
+			segment.Replace(_T("\\~FILTER*"), wxEmptyString);
+			if (!initialWhiteSpInCommonStr.IsEmpty())
+			{
+				segment = initialWhiteSpInCommonStr + segment;
+			}
+			commonStr = FindOverlap(lastFiltStr, segment);
+			segment = segment.Mid(commonStr.Length());
+			lastFiltStr = segment + wsMkrsAndPuncts;
+			// Now add lastFiltStr to the strToReturn
+			strToReturn += lastFiltStr;
+		}
+	}
+
+	/*
+	// What follows is the previous version of RemoveAnyFilterBracketsFromString():
 	wxString space = _T(" ");
 	int mkrPos = str.Find(filterMkr + space);
 	int endMkrPos = str.Find(filterMkrEnd);
@@ -26863,8 +26962,8 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 		str.Remove(eolSpPos + 2, 1);
 		eolSpPos = str.Find(_T("\r\n "));
 	}
-	
-	return str;
+	*/
+	return strToReturn;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38613,6 +38712,70 @@ wxString CAdapt_ItDoc::GetWsMkrsAndPunctsFromPtrOnward(wxChar* pChar, wxChar* pB
 	return wsMkrsAndPuncts;
 }
 
+// whm 29Jul2026 added. This is similar to the GetWsMkrsAndPunctsFromPtrOnward() function above, but
+// starts collecting wsMkrsAndPuncts chars from the incoming str starting from its first char onward 
+// in the str until it encounters a char that is the first char of a text word or pEnd.
+// This function utilizes the Doc's m_strInitialPuncts to avoid any final puncts that might trigger
+// creation of an additional source phrase in the caller.
+wxString CAdapt_ItDoc::GetWsMkrsAndPunctsFrom1stStrCharOnward(wxString str)
+{
+	// Set up ptr, pBufStart, pEnd
+	const wxChar* pBuffer = str.GetData();
+	//int itemLen = 0;
+	wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
+	wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
+								 // contextually defined sfms
+	wxChar* pEnd = pBufStart + str.Length(); // bound past which we must not go
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
+
+	wxString wsMkrsAndPuncts; wsMkrsAndPuncts.Empty();
+	while (ptr <= pEnd && (IsWhiteSpace(ptr)
+		|| m_strInitialPuncts.Find(*ptr) != wxNOT_FOUND
+		|| *ptr == _T('\\')))
+	{
+		if (*ptr == _T('\\'))
+		{
+			bool bIsUnknownMkr = FALSE;
+			if (IsUnknownMarker(ptr))
+			{
+				// We'll parse the marker but not any numbers following it even though the
+				// unknown marker may resemble a verse marker such as \vb in the Kimarangang
+				// data.
+				bIsUnknownMkr = TRUE;
+			}
+			// Hence, we'll test to see if the marker is an unknown marker here to inform
+			// how we should parse it. If 
+			int itemLen = ParseMarker(ptr);
+			wxString wholeMkr = wxString(ptr, itemLen);
+			wsMkrsAndPuncts += wholeMkr;
+			ptr += itemLen;
+			if (!bIsUnknownMkr) // whm 23Jan2026 added this test
+			{
+				if (wholeMkr.Find(_T("\\c")) != wxNOT_FOUND || wholeMkr.Find(_T("\\v")) != wxNOT_FOUND)
+				{
+					// wholeMkr is a chapter or verse marker, so parse the following space and
+					// number too.
+					itemLen = ParseWhiteSpace(ptr);
+					wxString whitesp = wxString(ptr, itemLen);
+					wsMkrsAndPuncts += whitesp;
+					ptr += itemLen;
+					itemLen = ParseNumber(ptr);
+					wxString numbr = wxString(ptr, itemLen);
+					wsMkrsAndPuncts += numbr;
+					ptr += itemLen;
+				}
+			}
+		}
+		else
+		{
+			wsMkrsAndPuncts += *ptr;
+			ptr++;
+		}
+	}
+	
+	return wsMkrsAndPuncts;
+}
+
 // whm 13Nov2023 added the following function to update the filter status fields in the 
 // .usfmstruct file that was created for the newly created document from the input source text
 // made just before the TokenizeText() function is called to tokenize the input text and filter
@@ -42699,7 +42862,11 @@ tryagain:
 				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_targetStr.c_str());
 #endif
 
-			wxASSERT(ptr < pEnd);
+			wxASSERT(ptr <= pEnd);
+			if (ptr == pEnd)
+			{
+				return len;
+			}
 			if (ptr > pEnd)
 			{
 				// whm 8Oct2025 Note.

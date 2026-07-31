@@ -403,7 +403,7 @@ bool	  AnalyseSstr(wxString s,
 			// The goal is to determine readable data which tells me what puncts go with which
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
-wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
+//wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
 
 // whm 20Jan2026 added. This function checks for common characters at the end of str1 which
 // are also present at the beginning of str2.
@@ -469,9 +469,10 @@ wxString  FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
 // whm 4Mar2026 As of this date the following function is no longer
 // used/called anywhere within the application.
-wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-			CSourcePhrase* pPrevSingleSrcPhrase,
-			SPList* pList); // whm 19Nov2025 added pList parameter
+//wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+//			CSourcePhrase* pPrevSingleSrcPhrase,
+//			SPList* pList); // whm 19Nov2025 added pList parameter
+
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, 
 			CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
