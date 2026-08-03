@@ -18413,13 +18413,37 @@ KbServer* CAdapt_ItApp::GetKbServer(int whichType)
 // files in exec folder: lastsync_adaptations, and lastsync_glosses,
 // whether or not the active project is a kbserver sharing one, so
 // if he project becomes a kbserver one, it won't start off with
-// no lastsync files existing - otherwise, ChangedSinceTimed() will
+// no lastsync files existing - otherwise, MakeChangedSinceTimed() will
 // will fail because there is no lastsync value to compare with. Run
 // this function in OnInit(), and make the files only if each is
 // not present in the executable folder.
+//
+// whm 3Aug2026 NOTE. This function should NOT store anything in the app's install 
+// location, that is, in the C:\Program Files (x86)\Adapt It WX Unicode\ folder. The
+// application itself should not attempt to put any files within this install location
+// AFTER the application has been installed. Windows 10 and especially Windows 11 forbids 
+// a normal application from doing this and, on a new install of Adapt It on Windows 11 
+// issues the following error each time Adapt It is started up: 
+// "can't open file 'C\:Program Files (x86)\Adapt It WX Unicode\lastsync_adaptations.txt' 
+// (error 5: Access denied)" and also,
+// "can't open file 'C\:Program Files (x86)\Adapt It WX Unicode\lastsync_glosses.txt' 
+// (error 5: Access denied)". The only way to avoid this error would be for the user to 
+// install and/or run Adapt It at least once "as administrator" - a requirement I don't
+// feel we should require of users/administrators.
+// To avoid this issue I've modified the function call in the caller of this function (in
+// Adapt_It.cpp's OnInit(), to use the normal "...\Adapt It Unicode Work\_DATA_KB_SHARING\" 
+// folder location (stored in the App's m_dataKBsharingPath) for the storage location for 
+// the incoming execFolderPath parameter of this function. 
+// TODO: BEW will need to ensure that all KBServer code that needs to store config or data
+// files does so within this this m_dataKBsharingPath folder location and NOT within the
+// application's install folder (at C:\Program Files (x86)\Adapt It WX Unicode\). BEW should
+// also ensure that KBServer code that references the lastsync_adaptations, and 
+// lastsync_glosses files - such as ChangedSince_Timed() - should locate these initially 
+// created files now in the new location at ...\Adapt It Unicode Work\_DATA_KB_SHARING\.
 bool CAdapt_ItApp::MakeLastSyncFilesIfNone( wxString execFolderPath)
 {
-   wxString execPath = execFolderPath + PathSeparator; //m_appInstallPathOnly was passed in, needs PathSeparator
+   //wxString execPath = execFolderPath + PathSeparator; //m_appInstallPathOnly was passed in, needs PathSeparator
+   wxString execPath = execFolderPath; // whm 3Aug2026 // m_dataKBsharingPath is now passed in which ends with PathSeparator
    wxString lastsyncadaptions = _T("lastsync_adaptations.txt");
    wxString lastsyncglosses =   _T("lastsync_glossses.txt");
    bool execDirExists = wxDirExists(execFolderPath);
@@ -32831,7 +32855,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Also supply a default fullname to associate with 'gates' when needed
     m_strDBfullname = _T("pearly"); // instead of unavailable "KBUser" or similar
 
-    bool bLastSyncExists = MakeLastSyncFilesIfNone(m_appInstallPathOnly);
+    // whm 3Aug2026 NOTE. This function below should NOT store anything in the app's install 
+    // location, that is, in the C:\Program Files (x86)\Adapt It WX Unicode\ folder. The
+    // application itself should not attempt to put any files within this install location
+    // AFTER the application has been installed. Windows 10 and especially Windows 11 forbids 
+    // a normal application from doing this and, on a new install of Adapt It on Windows 11 
+    // issues the following error each time Adapt It is started up: 
+    // "can't open file 'C\:Program Files (x86)\Adapt It WX Unicode\lastsync_adaptations.txt' 
+    // (error 5: Access denied)" and also,
+    // "can't open file 'C\:Program Files (x86)\Adapt It WX Unicode\lastsync_glosses.txt' 
+    // (error 5: Access denied)". The only way to avoid this error would be for the user to 
+    // install and/or run Adapt It at least once "as administrator" - a requirement I don't
+    // feel we should require of users/administrators.
+    // To avoid this issue I've modified the function call below to use the following folder
+    // location: 
+    // "...\Adapt It Unicode Work\_DATA_KB_SHARING\" 
+    // which is now stored in the App's m_dataKBsharingPath for the incoming execFolderPath 
+    // parameter of this function. 
+    // TODO: BEW will need to ensure that all KBServer code that needs to store config or data
+    // files does so within this this m_dataKBsharingPath folder location and NOT within the
+    // application's install folder (at C:\Program Files (x86)\Adapt It WX Unicode\). BEW should
+    // also ensure that KBServer code that references the lastsync_adaptations, and 
+    // lastsync_glosses files - such as ChangedSince_Timed() - should locate these initially 
+    // created files now in the new location at ...\Adapt It Unicode Work\_DATA_KB_SHARING\.
+    //bool bLastSyncExists = MakeLastSyncFilesIfNone(m_appInstallPathOnly);
+    bool bLastSyncExists = MakeLastSyncFilesIfNone(m_dataKBsharingPath);
     wxUnusedVar(bLastSyncExists); // probably don't need a returned bool value
 
     return TRUE;
