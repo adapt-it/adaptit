@@ -2772,11 +2772,11 @@ bool InlineMarkerSpanHasTargetOrGlossContent(wxString inlineMkr, SPList::Node* p
 	if (inlMkr.IsEmpty())
 		return FALSE;
 	wxString inlEndMkr;
-	bool bIsInline = TRUE;
+	//bool bIsInline = TRUE;
 	USFMAnalysis* pUsfmAnalysis = pDoc->LookupSFM(bareMkr);
 	if (pUsfmAnalysis != NULL)
 	{
-		bIsInline = pUsfmAnalysis->inLine;
+		//bIsInline = pUsfmAnalysis->inLine;
 		inlEndMkr = pUsfmAnalysis->endMarker;
 	}
 	if (inlEndMkr.IsEmpty())

@@ -20956,11 +20956,9 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				if (bareMarkerForLookup == _T("f") || bareMarkerForLookup == _T("x")
 					|| bareMarkerForLookup == _T("fe"))
 				{
-					int amountToSpace = 3;
 					int skipAmount = 6;
 					if (bareMarkerForLookup == _T("fe"))
 					{
-						amountToSpace = 4;
 						skipAmount = 8; // \fe \fe*
 					}
 					// whm 11Aug2026 We handle footnote and cross-ref markers and their 
