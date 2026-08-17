@@ -206,7 +206,7 @@ bool	  IsEndOfLine(wxChar* pChar, int& nCount); // BEW created 29Aug23 - maybe u
 int       Parse_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool      Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
-// ehm 14Feb2024 the following declaration is repeated below so I'm commenting this one out.
+// whm 14Feb2024 the following declaration is repeated below so I'm commenting this one out.
 //wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs);
 
 void      ParseChVsFromReference(wxString RefStr, wxString& ChStr, wxString& VsStr); // whm 25Oct2022 added
@@ -239,6 +239,11 @@ wxString  ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 			bool bTokenizingTargetText); // BEW created 28Jan11
 
 bool      IsEmptyOrPunctuationOnly(wxString Tstr, wxString puncts);
+
+// whm 11Aug2026 added
+bool      InlineMarkerSpanHasTargetOrGlossContent(wxString inlineMkr, SPList::Node* pos_pList, 
+			enum ExportType txtExportType, wxString& mkrCheckedForTextContent,
+			wxString& endMkrFoundEndingSpan);
 
 wxString  SpanExcluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser  <<-- deprecated 29Jan11

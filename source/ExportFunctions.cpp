@@ -725,7 +725,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 
 		}
 	}
-	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, exportType);
 
 	// format for text oriented output in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport); // targetTextExport = 1, enum value
@@ -1830,7 +1830,7 @@ void DoExportAsType(enum ExportType exportType)
 #endif
 
 		// Apply output filter to the source text
-		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, sourceTextExport);
 #if defined(_DEBUG)
 		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
 #endif
@@ -1946,7 +1946,7 @@ void DoExportAsType(enum ExportType exportType)
 		*/
 
 		// Apply output filter to the glosses text
-		glosses = ApplyOutputFilterToText(glosses, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		glosses = ApplyOutputFilterToText(glosses, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, glossesTextExport);
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(glosses, glossesTextExport);
@@ -2023,7 +2023,7 @@ void DoExportAsType(enum ExportType exportType)
 		*/
 
 		// Apply output filter to the freeTrans text
-		freeTrans = ApplyOutputFilterToText(freeTrans, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		freeTrans = ApplyOutputFilterToText(freeTrans, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, freeTransTextExport);
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(freeTrans, freeTransTextExport);
@@ -2111,7 +2111,7 @@ void DoExportAsType(enum ExportType exportType)
 #endif
 
 		// Apply output filter to the target text
-		target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, targetTextExport);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
 		wxLogDebug(_T("DoExportAsType() after ApplyOutputFilterToText(): text length = %d"), target.Length());
@@ -14089,7 +14089,7 @@ void AddAnyStylenameColon(wxString& tempStr, USFMAnalysis* pSfm)
 }
 
 // BEW 10Apr10  no changes for doc version 5
-bool MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup)
+bool MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup) 
 {
 	bool bFound = FALSE;
 	int count;
@@ -17305,6 +17305,8 @@ wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, w
 // AppendSrcPhraseBeginningInfo() function since the unfiltering of filtered 
 // information now should come last after my refactoring to store filtered info
 // on a previous pSrcPhrase.
+// whm 11Aug2026 this AppendSrcPhraseEndingInfo() is no longer calle in code
+/*
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 	bool& bAddedSomething, bool& bAddedHiddenMetaData,
 	bool bIncludeNote,
@@ -17455,12 +17457,21 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	}
 	return appendHere;
 }
+*/
 
 // BEW created 11Oct10
 // BEW 22Jun15, refactored so that it returns no filtered information
 // whm 9Jan2025 restored to legacy form that returns filtered information
 // whm 29Mar2026 Revised to restrict export of markers to just \c n and/or \v n
 // when pSrcPhrase->m_adaption is empty AND the app is in collaboration with PT/BE.
+// 
+// whm 11Aug2026 Revised to process the markersStr (m_markers) using the new
+// function: GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType() which should
+// process each marker residing within m_markers in order to get the most
+// proper white space (EOL, Latin space, or emptystring) prefixed to each
+// marker within the markersStr.
+// Note: The bAttach_m_markers bool valiue is always set to TRUE for each call 
+// that is made to this GetUnfilteredCrossRefsAndMMarkers(). 
 wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr,
 				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers,
 				CSourcePhrase* pSrcPhrase, bool bCollabWithEditor) // whm 29Mar2026 added
@@ -17473,12 +17484,33 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 	wxString aSpace = _T(' '); // add a space
 	if (!markersStr.IsEmpty())
 	{
-		if (bAttach_m_markers)
+		if (bAttach_m_markers) // Note: bAttach_m_markers is always TRUE
 		{
 			// any content in m_markers is to be in the returned string
 			if (!markersStr.IsEmpty() || !markersPrefix.IsEmpty())
 			{
 				markersPrefix.Trim();
+
+				wxString str; str.Empty();
+				// Determine what kind of whitespace (space or EOL) each marker within 
+				// m_markers should have prefixed to it.
+				wxString mkrFromList; mkrFromList.Empty();
+				wxArrayString MkrList; MkrList.Clear();
+				pDoc->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, markersStr);
+				if (!MkrList.IsEmpty())
+				{
+					int nListCt = (int)MkrList.GetCount();
+					for (int i = 0; i < nListCt; i++)
+					{
+						mkrFromList = MkrList.Item(i);
+						wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+						whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(mkrFromList);
+						str.Trim();
+						str << whiteSpToPrefixMkr << mkrFromList; //pSrcPhrase->m_markers;
+					}
+					markersStr = str;
+				}
+
 				// whm 29Mar2026 added. When bCollabWithEditor is TRUE, we want to 
 				// limit the markers in markersPrefix to only \v n or \c n when
 				// there is no target text to output from the current pSrcPhrase.
@@ -17539,12 +17571,12 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 				}
 			}
 			//}
-		//}
-		//wxUnusedVar(bAttachFilteredInfo);
-		// BEW 22Jun15, do not return filtered info
-		// whm 9Jan2025 restored the return of filtered info to this function, so
-		// uncommented the blocks below
-		// /*
+			//}
+			//wxUnusedVar(bAttachFilteredInfo);
+			// BEW 22Jun15, do not return filtered info
+			// whm 9Jan2025 restored the return of filtered info to this function, so
+			// uncommented the blocks below
+			// /*
 			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
 				// a xref follows a verse number, so make sure there is an intervening
@@ -17552,9 +17584,10 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 				markersPrefix.Trim();
 				markersPrefix += aSpace + xrefStr;
 			}
-		}
+		} // end of if (bAttach_m_markers) // Note: bAttach_m_markers is always TRUE
 		else
 		{
+			// This else block is never entered since bAttach_m_markers is never FALSE
 			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
 				markersPrefix.Trim();
@@ -18588,6 +18621,9 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 // app's flag bool m_bFwdSlashDelimiter flag, is also supported. (This support is a bit rough
 // and ready, but should give good results for most situations. Check more carefully if users
 // come up with problems - which is unlikely as few if any use this feature.)
+// whm 11Aug2026 Revised for better handling of white space before markers. Also revised so
+// that the export includes any binding and nonbinding begin markers, for example,
+// \qs [Poetry - Selah]; and the export of any binding and nonbinding end markers.
 int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 {
 	wxString str; // local wxString in which to build the 'glosses-as-text' substrings
@@ -18607,6 +18643,11 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 	wxASSERT(pList != NULL);
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
+
+	// whm 11Aug2026 added
+	bool bInlineMkrHasTextContent = TRUE; // initialize assuming it has text content
+	wxString mkrCheckedForTextContent; mkrCheckedForTextContent.Empty();
+	wxString endMkrFoundEndingSpan; endMkrFoundEndingSpan.Empty();
 
 	// Compose the output data & write it out, phrase by phrase,
 	// restoring standard format markers as appropriate....
@@ -18680,11 +18721,21 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
-		pos_pList = pos_pList->GetNext();
+		// whm 11Aug2026 moved the pos_pList = pos_pList->GetNext() call below
+		// to end of while loop.
+		// pos_pList = pos_pList->GetNext(); 
+		// since we want the current pos_pList put into the function call below:
+		// InlineMarkerSpanHasTargetOrGlosContent(iBMkrs, pos_pList,...), etc.
 
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
-
+#ifdef _DEBUG
+		if (pSrcPhrase->m_nSequNumber >= 147)
+		{
+			int break_here = 1;
+			break_here = break_here;
+		}
+#endif
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders
 		//bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
@@ -18700,6 +18751,9 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			{
 				; // commented out code removed from here
 			}
+			// whm 11Aug2026 to avoid infinite loop we need to add pos_pList->GetNext()
+			// here, since we moved the main one down to the bottom of the while loop.
+			pos_pList = pos_pList->GetNext();
 			continue; // ignore the rest of the current placeholder's information
 		}
 		else if (pSrcPhrase->m_nSrcWords > 1)
@@ -18710,34 +18764,40 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// or \x, so we do it by refraining to do any space insertion at the start
 			// of str when it starts with one of these markers
 			wxString wholeMkr;
-			bool bStartsWithMarker = FALSE;
+			bool bStrStartsWithMarker = FALSE;
 			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
 			// Tests show that str can be an empty string in export of glosses.
 			if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 			{
 				wholeMkr = pDoc->GetWholeMarker(str);
-				bStartsWithMarker = TRUE;
+				bStrStartsWithMarker = TRUE;
 			}
 			else
 			{
 				wholeMkr.Empty();
 			}
-			if (bStartsWithMarker)
+			if (bStrStartsWithMarker)
 			{
-				if (pSrcPhrase->m_nSequNumber != 0 &&
-					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
-					wholeMkr != _T("\\x")))
-				{
-					// add an initial space if one is not already there, and it is not
-					// started by a marker for which we want no space insertion
-					if (!str.IsEmpty())
-					{
-						if (str.GetChar(0) != _T(' '))
-						{
-							str = _T(" ") + str;
-						}
-					}
-				}
+				// whm 11Aug2026 modified to use the GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType()
+				// function - which handles appropriate whitespace before all markers.
+				wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+				whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(wholeMkr);
+				str = whiteSpToPrefixMkr + str;
+
+				//if (pSrcPhrase->m_nSequNumber != 0 &&
+				//	(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
+				//	wholeMkr != _T("\\x")))
+				//{
+				//	// add an initial space if one is not already there, and it is not
+				//	// started by a marker for which we want no space insertion
+				//	if (!str.IsEmpty())
+				//	{
+				//		if (str.GetChar(0) != _T(' '))
+				//		{
+				//			str = _T(" ") + str;
+				//		}
+				//	}
+				//}
 			}
 			else
 			{
@@ -18751,7 +18811,6 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				}
 			}
 			glosses += str;
-
 
 			// BEW changed 23Aug09, the earlier code which scans the sublist in order to
 			// get marker placement done automatically is problematic, because the glosses
@@ -18774,31 +18833,189 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				// later below
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
-					str.Trim();
-					str << aSpace << pSrcPhrase->m_markers;
+					// whm 11Aug2026 Note: The code within this m_markers not empty block
+					// in which pSrcPhrase is a merged one should be identical to the code 
+					// within the same m_markers not empty block in which the
+					// pSrcPhrase is a single (not merged) one below when m_markers is not 
+					// empty there.
+					// whm 11Aug2026 modified. When pSrcPhrase->m_nSequNum == 0 and
+					// pSrcPhrase->m_markers.Find(_T("\\id")) == 0 we don't prefix the
+					// \id marker with any whitespace.
+					if (!(pSrcPhrase->m_nSequNumber == 0 && pSrcPhrase->m_markers.Find(_T("\\id")) == 0))
+					{
+						// Determine what kind of whitespace (space or EOL) each marker within 
+						// m_markers should have prefixed to it.
+						wxString mkrFromList; mkrFromList.Empty();
+						// Get an array of markers in m_markers
+						wxArrayString MkrList;
+						gpApp->GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, pSrcPhrase->m_markers);
+						if (!MkrList.IsEmpty())
+						{
+							int nListCt = (int)MkrList.GetCount();
+							for (int i = 0; i < nListCt; i++)
+							{
+								mkrFromList = MkrList.Item(i);
+								wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+								whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(mkrFromList);
+								str.Trim();
+								str << whiteSpToPrefixMkr << mkrFromList; //pSrcPhrase->m_markers;
+							}
+						}
+					}
+					else
+					{
+						// We are at beginning of the doc at pSrcPhrase->m_nSequNumber of 0 and
+						// its m_markers contains \id at the beginning of m_markers, so don't
+						// prefix str with any whitespace.
+						str << pSrcPhrase->m_markers;
+					}
 				}
+
+				// whm 11Aug2026 added. RebuildGlossesText() also needs to export any
+				// binding and nonbinding begin markers. For example \qs [Poetry - Selah].
+				// Here seems like the logical place to place them - between regular m_markers
+				// and the m_gloss. The same addition is made above within the FromMergerMakeTstr()
+				// call.
+				// Note: To avoid cluttering up the export of target and gloss text with inline
+				// markers that have no content between them, we should suppress the export of 
+				// inline begin markers and their end marker counterparts if there are no 
+				// glosses stored between the inline begin and inline end markers. While this
+				// approach works within the InlineMarkerSpanHasTargetOrGlossContent() for inline
+				// type markers such as \em \em*, it doesn't work for footnote markers \f \f*
+				// and \fe \fe* nor cross ref markers \x \x*. These may have content markers such
+				// as \fk \fk* or \xo \xo*, etc, which, if empty of glosses, get removed below,
+				// but the overarching \f ... \f*, \x ...\x* and \fe ...\fe* do not. 
+				// Rather that attempting to do this suppression within the new 
+				// InlineMarkerSpanHasTargetOrGlossContent() function (called below), I opted to
+				// do the suppression within the ApplyOutputFilterToText() function which was
+				// much easier on the fully composed glosses text, than attempting such suppression 
+				// here during the RebuildGlossesText() process.
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+					bool bHasContent = InlineMarkerSpanHasTargetOrGlossContent(iBMkrs, pos_pList,
+						glossesTextExport, mkrCheckedForTextContent,
+						endMkrFoundEndingSpan);
+					// Since we're placing inline marker here, the white space
+					// before this type of marker should normally be a Latin space.
+					// if bHasContent is FALSE, we don't want to place this inline marker into
+					// the build stream, nor do we want to place any corresponding inline end 
+					// marker either, which could well occur on subsequent pSrcPhrase from the
+					// current pSrcPhrase. So, if bHasContent is FALSE, we set the RebuildGlossesText
+					// flag also to FALSE
+					if (bHasContent == FALSE)
+					{
+						bInlineMkrHasTextContent = FALSE; // to inform
+					}
+					else
+					{
+						// There was text content in the span. We only place the marker
+						// into the output when there was text content.
+						str.Trim();
+						str << aSpace << iBMkrs;
+					}
+				}
+
+				// add the gloss, but only if it is non-empty
 				if (!pSrcPhrase->m_gloss.IsEmpty())
 				{
-					str.Trim();
-					str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
+					// whm 11Aug2026 modified. I noticed that the word break is often
+					// an EOL stored in pSrcPhrase when its m_markers ends with a \v n
+					// marker, probably parsed that way due to the multiple markers within
+					// m_markers. For gloss exports, I think it would better to just have
+					// a Latin space preceding the m_gloss that is added below. Also this
+					// should be done above in the merged word equivalent when m_gloss is
+					// added.
+					//str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
+					str << aSpace << pSrcPhrase->m_gloss;
 				}
 			}
 
-			// now add any endmarkers on the merger
+			// whm 11Aug2026 added. We need to also place any inline binding end markers
+			// here after the m_gloss. See TODO comment above where GetInlineBindingMarkers()
+			// is called.
+			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				wxString iBEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+				// Check to see if this iBEMkrs contains the end marker that was
+				// checked for text content.
+				if (iBEMkrs.Find(endMkrFoundEndingSpan) != wxNOT_FOUND
+				&& bInlineMkrHasTextContent == FALSE)
+				{
+					// We've encountered the corresponding end marker at end of span, but
+					// there was no text content so don't place the end marker.
+					bInlineMkrHasTextContent = TRUE; // set back to default value
+				}
+				else
+				{
+					// Since we're placing inline marker here, the white space
+					// before this type of marker should normally be a Latin space.
+					str.Trim();
+					str << aSpace << iBEMkrs;
+				}
+			}
+
+			// whm 11Aug2026 added. We need to also place any inline nonbinding end markers
+			// here before the regular end markers
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				wxString iNBEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+				// Since we're placing inline marker here, the white space
+				// before this type of marker should normally be a Latin space.
+				str.Trim();
+				str << aSpace << iNBEMkrs;
+			}
+
+			// now add any endmarkers on the merger SP
 			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 			{
 				str << pSrcPhrase->GetEndMarkers();
 			}
 
-			// add an initial space if one is not already there
-			if (!str.IsEmpty())
+			// whm 11Aug2026 added sanity check here. Here in the block for processing
+			// merged source phrases, and when the merger resulted in there being medial
+			// markers, it is possible that the str returned from the FromMergerMakeGstr()
+			// function call above placed some markers, that then might have gotten duplicated
+			// in the above code calls. As a hack here, I'm calling the 
+			// RemoveDuplicateMarkersFromMkrString() function to be safe.
+			if (pSrcPhrase->m_bHasInternalMarkers)
 			{
-				if (str.GetChar(0) != _T(' '))
+				str = pDoc->RemoveDuplicateMarkersFromMkrString(str);
+			}
+
+			// add an initial space if one is not already there
+			// whm 11Aug2026 removed. White space may now be EOL or a space and
+			// is determined elsewhere in this RebuildGlossesText().
+			//if (!str.IsEmpty())
+			//{
+			//	if (str.GetChar(0) != _T(' '))
+			//	{
+			//		str = PutSrcWordBreak(pSrcPhrase) + str;
+			//	}
+			//}
+			// append the result to glosses string
+			// whm 11Aug2026 added. If glosses ends with a space and str begins with 
+			// whitespace, remove the white space from glosses before suffixing str 
+			// to glosses. By this point in this merged word block, the str value should
+			// have gotten any needed initial white space prefixed to it by code blocks
+			// above.
+			if (!glosses.IsEmpty())
+			{
+				wxChar lastGlossCh = glosses.GetChar(glosses.Length() - 1);
+				if (IsWhiteSpace(&lastGlossCh))
 				{
-					str = PutSrcWordBreak(pSrcPhrase) + str;
+					if (!str.IsEmpty())
+					{
+						wxChar firstStrCh = str.GetChar(0);
+						if (IsWhiteSpace(&firstStrCh))
+						{
+							// Remove final white space from glosses before adding
+							// the white space initial str to it below
+							glosses.Trim(); 
+						}
+					}
 				}
 			}
-			// append the result to glosses string
 			glosses += str;
 		}
 		else
@@ -18856,33 +19073,39 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// or \x, so we do it by refraining to do any space insertion at the start
 			// of str when it starts with one of these markers
 			wxString wholeMkr;
-			bool bStartsWithMarker = FALSE;
+			bool bStrStartsWithMarker = FALSE;
 			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
 			if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 			{
 				wholeMkr = pDoc->GetWholeMarker(str);
-				bStartsWithMarker = TRUE;
+				bStrStartsWithMarker = TRUE;
 			}
 			else
 			{
 				wholeMkr.Empty();
 			}
-			if (bStartsWithMarker)
+			if (bStrStartsWithMarker)
 			{
-				if (pSrcPhrase->m_nSequNumber != 0 &&
-					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
-					wholeMkr != _T("\\x")))
-				{
-					// add an initial space if one is not already there, and it is not
-					// started by a marker for which we want no space insertion
-					if (!str.IsEmpty())
-					{
-						if (str.GetChar(0) != _T(' '))
-						{
-							str = PutSrcWordBreak(pSrcPhrase) + str;
-						}
-					}
-				}
+				// whm 11Aug2026 modified to use the GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType()
+				// function - which handles appropriate whitespace before all markers.
+				wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+				whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(wholeMkr);
+				str = whiteSpToPrefixMkr + str;
+
+				//if (pSrcPhrase->m_nSequNumber != 0 &&
+				//	(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
+				//	wholeMkr != _T("\\x")))
+				//{
+				//	// add an initial space if one is not already there, and it is not
+				//	// started by a marker for which we want no space insertion
+				//	if (!str.IsEmpty())
+				//	{
+				//		if (str.GetChar(0) != _T(' '))
+				//		{
+				//			str = PutSrcWordBreak(pSrcPhrase) + str;
+				//		}
+				//	}
+				//}
 			}
 			else
 			{
@@ -18901,33 +19124,182 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// add any m_markers content
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
-				str.Trim();
-				str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_markers;
+				// whm 11Aug2026 Note: The code within this m_markers not empty block
+				// in which pSrcPhrase is a single one (not merged) should be identical
+				// to the code within the same m_markers not empty block in which the
+				// pSrcPhrase is a merged one above when m_markers is not empty there.
+				// whm 11Aug2026 modified. When pSrcPhrase->m_nSequNum == 0 and
+				// pSrcPhrase->m_markers.Find(_T("\\id")) == 0 we don't prefix the
+				// \id marker with any whitespace.
+				if (!(pSrcPhrase->m_nSequNumber == 0 && pSrcPhrase->m_markers.Find(_T("\\id")) == 0))
+				{
+					// Determine what kind of whitespace (space or EOL) each marker within 
+					// m_markers should have prefixed to it.
+					wxString mkrFromList; mkrFromList.Empty();
+					// Get an array of markers in m_markers
+					wxArrayString MkrList;
+					gpApp->GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, pSrcPhrase->m_markers);
+					if (!MkrList.IsEmpty())
+					{
+						int nListCt = (int)MkrList.GetCount();
+						for (int i = 0; i < nListCt; i++)
+						{
+							mkrFromList = MkrList.Item(i);
+							wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+							whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(mkrFromList);
+							str.Trim();
+							str << whiteSpToPrefixMkr << mkrFromList; //pSrcPhrase->m_markers;
+						}
+					}
+				}
+				else
+				{
+					// We are at beginning of the doc at pSrcPhrase->m_nSequNumber of 0 and
+					// its m_markers contains \id at the beginning of m_markers, so don't
+					// prefix str with any whitespace.
+					str << pSrcPhrase->m_markers;
+				}
 			}
+
+			// whm 11Aug2026 added. RebuildGlossesText() also needs to export any
+			// binding and nonbinding begin markers. For example \qs [Poetry - Selah].
+			// Here seems like the logical place to place them - between regular m_markers
+			// and the m_gloss. The same addition is made above within the FromMergerMakeTstr()
+			// call.
+			// Note: To avoid cluttering up the export of target and gloss text with inline
+			// markers that have no content between them, we should suppress the export of 
+			// inline begin markers and their end marker counterparts if there are no 
+			// glosses stored between the inline begin and inline end markers. While this
+			// approach works within the InlineMarkerSpanHasTargetOrGlossContent() for inline
+			// type markers such as \em \em*, it doesn't work for footnote markers \f \f*
+			// and \fe \fe* nor cross ref markers \x \x*. These may have content markers such
+			// as \fk \fk* or \xo \xo*, etc, which, if empty of glosses, get removed below,
+			// but the overarching \f ... \f*, \x ...\x* and \fe ...\fe* do not. 
+			// Rather that attempting to do this suppression within the new 
+			// InlineMarkerSpanHasTargetOrGlossContent() function (called below), I opted to
+			// do the suppression within the ApplyOutputFilterToText() function which was
+			// much easier on the fully composed glosses text, than attempting such suppression 
+			// here during the RebuildGlossesText() process.
+			if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			{
+				wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+				bool bHasContent = InlineMarkerSpanHasTargetOrGlossContent(iBMkrs, pos_pList, 
+					glossesTextExport, mkrCheckedForTextContent,
+					endMkrFoundEndingSpan);
+				// Since we're placing inline marker here, the white space
+				// before this type of marker should normally be a Latin space.
+				// if bHasContent is FALSE, we don't want to place this inline marker into
+				// the build stream, nor do we want to place any corresponding inline end 
+				// marker either, which could well occur on subsequent pSrcPhrase from the
+				// current pSrcPhrase. So, if bHasContent is FALSE, we set the RebuildGlossesText
+				// flag also to FALSE
+				if (bHasContent == FALSE)
+				{
+					bInlineMkrHasTextContent = FALSE; // to inform
+				}
+				else
+				{
+					// There was text content in the span. We only place the marker
+					// into the output when there was text content.
+					str.Trim();
+					str << aSpace << iBMkrs;
+				}
+			}
+
 			// add the gloss, but only if it is non-empty
 			if (!pSrcPhrase->m_gloss.IsEmpty())
 			{
 				str.Trim();
-				str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
+				// whm 11Aug2026 modified. I noticed that the word break is often
+				// an EOL stored in pSrcPhrase when its m_markers ends with a \v n
+				// marker, probably parsed that way due to the multiple markers within
+				// m_markers. For gloss exports, I think it would better to just have
+				// a Latin space preceding the m_gloss that is added below. Also this
+				// should be done above in the merged word equivalent when m_gloss is
+				// added.
+				//str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
+				str << aSpace << pSrcPhrase->m_gloss;
 			}
-			// finally add any endmarkers
+			
+			// whm 11Aug2026 added. We need to also place any inline binding end markers
+			// here after the m_gloss. See TODO comment above where GetInlineBindingMarkers()
+			// is called.
+			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				wxString iBEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+				// Check to see if this iBEMkrs contains the end marker that was
+				// checked for text content.
+				if (iBEMkrs.Find(endMkrFoundEndingSpan) != wxNOT_FOUND
+					&& bInlineMkrHasTextContent == FALSE)
+				{
+					// We've encountered the corresponding end marker at end of span, but
+					// there was no text content so don't place the end marker.
+					bInlineMkrHasTextContent = TRUE; // set back to default value
+				}
+				else
+				{
+					// Since we're placing inline marker here, the white space
+					// before this type of marker should normally be a Latin space.
+					str.Trim();
+					str << aSpace << iBEMkrs;
+				}
+			}
+
+			// whm 11Aug2026 added. We need to also place any inline nonbinding end markers
+			// here before the regular end markers
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				wxString iNBEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+				// Since we're placing inline marker here, the white space
+				// before this type of marker should normally be a Latin space.
+				str.Trim();
+				str << aSpace << iNBEMkrs;
+			}
+
+			// finally add any endmarkers on the single SP
 			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 			{
 				str << pSrcPhrase->GetEndMarkers();
 			}
 
 			// insert an initial space if one is not already there
-			if (!str.IsEmpty())
+			// whm 11Aug2026 removed, since str may now have an EOL or space
+			// when str does NOT have an \id initially.
+			//if (!str.IsEmpty())
+			//{
+			//	if (str.GetChar(0) != _T(' '))
+			//	{
+			//		str = PutSrcWordBreak(pSrcPhrase) + str;
+			//	}
+			//}
+			// append the result to glosses string
+			// whm 11Aug2026 added. If glosses ends with a space and str begins with 
+			// whitespace, remove the white space from glosses before suffixing str 
+			// to glosses. By this point in this single word block, the str value should
+			// have gotten any needed initial white space prefixed to it by code blocks
+			// above.
+			if (!glosses.IsEmpty())
 			{
-				if (str.GetChar(0) != _T(' '))
+				wxChar lastGlossCh = glosses.GetChar(glosses.Length() - 1);
+				if (IsWhiteSpace(&lastGlossCh))
 				{
-					str = PutSrcWordBreak(pSrcPhrase) + str;
+					if (!str.IsEmpty())
+					{
+						wxChar firstStrCh = str.GetChar(0);
+						if (IsWhiteSpace(&firstStrCh))
+						{
+							// Remove final white space from glosses before adding
+							// the white space initial str to it below
+							glosses.Trim();
+						}
+					}
 				}
 			}
-			// append the result to glosses string
 			glosses += str;
 			str.Empty();
 		} // end of block for a single CSourcePhrase instance
+		pos_pList = pos_pList->GetNext(); // whm 11Aug2026 moved GetNext() call here from 
+		// within the beginning of the while loop above
 	}// end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
@@ -19537,7 +19909,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 
-	CSourcePhrase* pPrevSrcPhrase = NULL; // whm 28Dec2024 added - unused - may use in future
+	// whm 28Dec2024 added pPrevSrcPhrase below - it is passed into FromSingleMakeTstr() which
+	// makes use of it and also passes it to its call of: FromSingleMakeSstr1().
+	CSourcePhrase* pPrevSrcPhrase = NULL; 
 
 	while (pos_pList != NULL)
 	{
@@ -19609,7 +19983,28 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				bLastTstrOnlyContentWasPunct = FALSE;
 		}
 
-		
+		// whm 11Aug2026 Rethink of the following addition made 1Jul2026.
+		// Since pSrcPhrase->m_markers may have more than one marker stored
+		// therein, the call of GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType()
+		// below can only here use that function to see what white space
+		// EOL or space or nothing, should be placed after a previous marker
+		// was added to the targetstr by one of the auxiliary functions from
+		// helpers.cpp FromMergerMakeTstr() or FromSingleMakeTstr() - both of
+		// these target text building functions call a function named:
+		// GetUnfilteredCrossRefsAndMMarkers() which is the actual function that
+		// processed the contents of m_markers as part of the text it returns
+		// to those helpers.cpp functions FromMergerMakeTstr() and FromSingleMakeTstr().
+		// I now think it better to process all markers together at one time
+		// using a call to the function 
+		// GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType() for each marker
+		// that may be found in pSrcPhrase->m_markers, and such calls should
+		// be made within the FromMergerMakeTstr() and FromSingleMakeTstr()
+		// instead of here within RebuildTargetText().
+		// Therefore, I think I will remove the following block, and look at
+		// adding the processing of the pSrcPhrase->m_markers material more
+		// directly within the helpers.cpp functions that are called farther 
+		// below: FromMergerMakeTstr() and FromSingleMakeTstr().
+		/*
 		// whm 1Jul2026 addition. The above code may not have determined an appropriate
 		// whitespace between the exported target string of the pPrevSrcPhrase and this
 		// current pSrcPhrase, especially if the current pSrcPhrase has a paragraph type
@@ -19684,7 +20079,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				
 			}
 		}
-		
+		*/
 
 		if (pSrcPhrase->m_bRetranslation)
 		{
@@ -19785,6 +20180,21 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			}
 		}
 
+		// whm 11Aug202 added. If the pSrcPhrase->m_markers has the \id marker and str has
+		// whitespace before the \id marker, and targetstr is empty, we remove the whitespace
+		// occurring before the \id marker in the str.
+		if (pSrcPhrase->m_markers.Find(_T("\\id")) != wxNOT_FOUND)
+		{
+			if (!str.IsEmpty() && targetstr.IsEmpty())
+			{
+				wxChar strCh = str.GetChar(0);
+				if (str.Find(_T("\\id")) >= 2
+					&& IsWhiteSpace(&strCh))
+				{
+					str.Trim(FALSE);
+				}
+			}
+		}
  		// handle when str contains only [ or ], we join [ to what follows, and ] to what
 		// precedes, so we don't want space after [ and no space before ]; here, deal with
 		// the case of str containing ]
@@ -20295,8 +20705,19 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 // will add code to improve the logic, and do brute force checks for errant \x* or \f*
 // to remove them robustly. (bHitMkr also removed, because once set it was never returned
 // to FALSE, so was useless as a a test for anything in later iterations)
+// 
+// whm 11Aug2026 added a fifth parameter enum ExportType exportType to this function.
+// This allows ApplyOutputFilterToText() to do special filter processing of footnote
+// \f \f* spans and \x \x* spans and \fe \fe* spanc when those spans do not have any 
+// associated text within the spans - and the exportType is targetTextExport, or
+// glossesTextExport, or freeTransTextExport when this function is called subsequent 
+// to the export function calls of ExportTargetText(), ExportGlossesText() and/or 
+// ExportFreeTransText(). The special filtering code was added as an initial if test
+// immediately before the 'else if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))'
+// test.
 wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
-								 wxArrayInt& filterFlagsArray, bool bRTFOutput)
+								wxArrayInt& filterFlagsArray, bool bRTFOutput,
+								enum ExportType exportType)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
@@ -20453,7 +20874,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 
 					// The tests below don't make sense for an isolated non-marker backslash,
 					// and we shouldn't set bHitMarker to TRUE, so just continue processing at
-						// the top of the while loop
+					// the top of the while loop
 					continue;
 				}
 				bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
@@ -20528,7 +20949,64 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				{
 					bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
 				}
-				if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
+
+				// whm 11Aug2026 added new test block, and existing if test below becomes
+				// an 'else if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))'
+				// block
+				if (bareMarkerForLookup == _T("f") || bareMarkerForLookup == _T("x")
+					|| bareMarkerForLookup == _T("fe"))
+				{
+					int amountToSpace = 3;
+					int skipAmount = 6;
+					if (bareMarkerForLookup == _T("fe"))
+					{
+						amountToSpace = 4;
+						skipAmount = 8; // \fe \fe*
+					}
+					// whm 11Aug2026 We handle footnote and cross-ref markers and their 
+					// associated text separately here, because for certain exportType 
+					// exports (targetTextExport, glossesTextExport, freeTransTextExport) 
+					// we want to filter out the \f \f* and \x \x* spans if they have no 
+					// target/gloss/freetrans associated text within those spans - 
+					// regardless of whether \f and \x are designated as unfiltered 
+					// within the USFM and Filtering tab of preferences. This results
+					// in a cleaner export of these types of export.
+					// Although we might copy appropriate code with modifications 
+					// from the else if block into this block, it may be easier to simply
+					// scan ahead in the pOld buffer (which would now be pointing at either
+					// a \f or a \x marker) to see if a \f marker is followed by a space
+					// and that space is immediately followed by the \f* end marker. This
+					// would indicate that the footnote had no target text, gloss, or free
+					// trans associated text. Same for the \x \x* marker span. We can here
+					// remove those \f \f* and/or \x \x* spans by advancing pOld pointer 
+					// by 6 characters, and not advancing the pNew pointer effectively
+					// removing the unwanted \f \f* and/or \x \x* empty spans.
+					if (exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport)
+					{
+						if (pOld + skipAmount < pEnd)
+						{
+							// Check if the next skipAmount characters make up an empty span:
+							// \f \f*, or \x \x*, or \fe \fe*, and if so, advance pOld to point 
+							// at first character after the end marker making up the empty span.
+							wxString markerSpan = wxString(pOld, skipAmount);
+							if (markerSpan == _T("\\f \\f*") || markerSpan == _T("\\x \\x*")
+								|| markerSpan == _T("\\fe \\fe*)"))
+							{
+								pOld = pOld + skipAmount;
+							}
+							else
+							{
+								// whm 11Aug2026 also added to keep progressing through the buffer.
+								// Must copy the current char and advance both pointers here to 
+								// avoid infinite loop. We could parse and copy the whole marker
+								// here, but we'll just copy and move one char past the backslash
+								// of the marker.
+								*pNew++ = *pOld++;
+							}
+						}
+					}
+				}
+				else if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
 				{
 					// This marker needs to be filtered out/skipped over. We have to parse over
 					// the marker and its associated text and any end marker it may have. In the

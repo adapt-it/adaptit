@@ -154,7 +154,7 @@ CTargetUnit::~CTargetUnit()
 // which wrongly has the flag TRUE, so that the auto-insert process will
 // not jump over it, but halt there for user action to happen
 // BEW created 12Mar18
-// BEW 9Sep22, now that glossing stores m_adaption/gloss entries in the glosssing KB
+// BEW 9Sep22, now that glossing stores gloss entries in the glosssing KB
 // this function works equally well for adapting or glosing modes. The only difference
 // is that in glossing mode, if it returns TRUE, it's because there is a CRefString
 // in which an empty string value was stored because m_gloss was empty  
@@ -624,7 +624,7 @@ bool CTargetUnit::EraseOneDeletion(void)
 
 // counts the number of CRefString instances stored in this CTargetUnit instance,
 // but counting only those for which m_bDeleted is FALSE;
-// BEW 9Sep22 No change needed, this works equally will for adapting mode or glossing mode
+// BEW 9Sep22 No change needed, this works equally well for adapting mode or glossing mode
 int CTargetUnit::CountNonDeletedRefStringInstances()
 {
 	if (m_pTranslations->IsEmpty())

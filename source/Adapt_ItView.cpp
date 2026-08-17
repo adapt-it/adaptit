@@ -2375,67 +2375,55 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 // BEW 9Sep22, the glossing code block needs a heavy refactoring, to make it work like the
 // else block for adapting mode - but the details of some tests will differ. This refactoring
 // was needed because GetNextEmptyPile() was stopping at piles which were not glossing "holes".
+// whm 11Aug2026 reverted some changes made by BEW on 9Sep22. Substitute new function now called
+// GetGlossWordCount() for previous GetTgtWordCount(). Removed the previous do while loop condition
+// '!pPile->GetSrcPhrase()->m_adaption.IsEmpty()', but this refactoring retains the do while 
+// loop condition: ' || !pPile->GetSrcPhrase()->m_gloss.IsEmpty()'.
 CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 {
 	// refactored 23Mar09, BEW 12Mar18
 	CKB* pKB = GetKB(); // added 12Mar18
 	if (gbIsGlossing)
 	{
-		// BEW 9Sep22, in glossing mode, 'src' is m_adaption, and 'tgt' is m_gloss
 		do
 		{
 			pPile = GetNextPile(pPile);
 			if (pPile == NULL)
 				break;
+
 			// BEW 9Sep22 The hack mentioned above to fix a CSourcePhrase which thinks it has an
 			// empty string in the glossing KB as a gloss here when the Glossing KB knows it hasn't
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			int numWords = pSrcPhrase->GetTgtWordCount();
-			bool bIsGlossingKB = pKB->IsThisAGlossingKB();
-			if (bIsGlossingKB)
+			// whm 11Aug2026 refactored to call GetGlossWordCount() instead of GetTgtWordCount().
+			int numWords = pSrcPhrase->GetGlossWordCount(); //pSrcPhrase->GetTgtWordCount();
+			CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_gloss);
+			int refStrCount = 0; // initialise
+			if (pTU != NULL)
 			{
-				CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_gloss);
-				int refStrCount = 0; // initialise
-				if (pTU != NULL)
+				// BEW 9Sep22 modified the determination of bTargetUnitHasEmptyGloss 
+				// below. Set TRUE only when there is just one ref string and it stores an 
+				// empty gloss string; if there are other ref strings besides the empty
+				// one, then set bTargetUnitHasEmptyTranslation FALSE
+				refStrCount = pTU->CountNonDeletedRefStringInstances(); // works for adapting or glossing
+				bool bTargetUnitHasEmptyGloss = pTU->HasEmptyTranslation(); // works for adapting or glossing
+				// HasEmptyTranslation() returns TRUE if at least one ref string is empty 
+				// (there may be multiple ref strings, containing, in this case, gloss strings) 
+				if (bTargetUnitHasEmptyGloss == TRUE && refStrCount > 1)
 				{
-					// BEW 9Sep22 modified the determination of bTargetUnitHasEmptyGloss 
-					// below. Set TRUE only when there is just one ref string and it stores an 
-					// empty gloss string; if there are other ref strings besides the empty
-					// one, then set bTargetUnitHasEmptyTranslation FALSE
-					refStrCount = pTU->CountNonDeletedRefStringInstances(); // works for adapting or glossing
-					bool bTargetUnitHasEmptyGloss = pTU->HasEmptyTranslation(); // works for adapting or glossing
-					// HasEmptyTranslation() returns TRUE if at least one ref string is empty 
-					// (there may be multiple ref strings, containing, in this case, gloss strings) 
-					if (bTargetUnitHasEmptyGloss == TRUE && refStrCount > 1)
-					{
-						// There is are more than one ref strings, one of which is an empty gloss string.
-						// (So the phrasebox will halt in the GUI, and the dropdown combo will open to
-						// display the alternatives)
-						bTargetUnitHasEmptyGloss = FALSE;
-					}
-					if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyGloss && pSrcPhrase->m_gloss.IsEmpty())
-					{
-						// Correction of the flag value is needed
-						pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-					}
+					// There is are more than one ref strings, one of which is an empty gloss string.
+					// (So the phrasebox will halt in the GUI, and the dropdown combo will open to
+					// display the alternatives)
+					bTargetUnitHasEmptyGloss = FALSE;
+				}
+				if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyGloss && pSrcPhrase->m_gloss.IsEmpty())
+				{
+					// Correction of the flag value is needed
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				}
+			} // end of TRUE block for test: if (pTU != NULL)
 
-				} // end of TRUE block for test: if (pTU != NULL)
-
-			} // end of TRUE block for test: if (bIsGlossingKB)
-
-			// BEW 9Sep22 the while test: the halt versus continue iterating conditions will differ for glossing mode
-			// for example, adapting mode may have a retranslation at one or more piles, and we will permit glossing
-			// under those piles which are placeholder ones, since glossing mode wants tgt/gloss entries in the
-			// glossing KB. But for long retranslations, the target text may partly lie at one or more placeholders
-			// to the right. In the retranslation span of piles, because they hold tgt text, we allow glossing to occur.
-			// BUT, there is a caveat. It's risky. Why? If the user changes back to adapting mode, and edits the
-			// Retranslation, or removes it, the glosses within the Retranslation span will be thrown away. However
-			// After the retranslation change is made, the glossing can be redone - but manually, as it's likely
-			// that the adaptation words then differ from before. 
 		} while (pPile->GetSrcPhrase()->m_bHasGlossingKBEntry // if TRUE, it's not a glossing "hole" - keep iterating
-			|| (!pPile->GetSrcPhrase()->m_adaption.IsEmpty() // m_adaption needs to be non-empty, as it's the 
-															 // 'src' for a KB storage, and...
-			&& !pPile->GetSrcPhrase()->m_gloss.IsEmpty() )   // if there is a non-empty gloss at the pile, it's not a "hole"
+			|| !pPile->GetSrcPhrase()->m_gloss.IsEmpty()      // if there is a non-empty gloss at the pile, it's not a "hole"
 			);
 	}
 	else // currently adapting
@@ -2466,7 +2454,7 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
                 // below. It can be TRUE only when there is just one ref string which is an 
                 // empty string (i.e., <no adaptation>).
                 refStrCount = pTU->CountNonDeletedRefStringInstances();
-                bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation(); 
+                bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
 				// HasEmptyTranslation() returns TRUE if at least one ref string is empty (there may be multiple ref strings)
                 if (bTargetUnitHasEmptyTranslation == TRUE && refStrCount > 1)
                 {
@@ -2474,12 +2462,23 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
                     bTargetUnitHasEmptyTranslation = FALSE;
                 }
 
-                if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
-                {
-					// Correction of the flag value is needed
-					pSrcPhrase->m_bHasKBEntry = FALSE;
+				if (gbIsGlossing)
+				{
+					if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+					{
+						// Correction of the flag value is needed
+						pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+					}
 				}
-				
+				else
+				{
+
+					if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+					{
+						// Correction of the flag value is needed
+						pSrcPhrase->m_bHasKBEntry = FALSE;
+					}
+				}
 			}
 		} while (pPile->GetSrcPhrase()->m_bHasKBEntry ||
 					pPile->GetSrcPhrase()->m_bNotInKB ||
@@ -2711,6 +2710,8 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 				// ensure clicks to a location which is a hole don't, on leaving, result in
 				// punctuation being copied from the source text if present there
 				// BEW 10Sep22 add glossing refactored support
+				// whm 11Aug2026 - no change needed for the 10Sep22 refactored if (gbIsGlossing)
+				// block below. 
 				if (gbIsGlossing)
 				{
 					if (pSrcPhrase->m_gloss.IsEmpty())
@@ -2835,6 +2836,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 				// ensure clicks to a location which is a hole don't, on leaving, result in
 				// punctuation being copied from the source text if present there
 				// BEW 10Sep22 add a subtest for 'not glossing' here
+				// whm 11Aug2026 TODO: Test if added condition !gbIsGlossing is OK here.
 				if (!gbIsGlossing && (pSrcPhrase->m_targetStr.IsEmpty() || pSrcPhrase->m_adaption.IsEmpty()) )
 				{
 					// no text or punctuation, or no text and punctuation not yet placed,
@@ -3718,30 +3720,31 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
 	//#endif
 
-		// BEW 5Sep22, honour the click? Yes, but not if it's within a retranslation in glossing mode,
-		// because adding glosses there will get them thrown away if the user edits or removes
-		// the the retranslation. That would consistute possibly serious data loss, if the
-		// glossing KB is storing important info. So disallow adding glosses to a retranslation.
-		// Code additions will be required to support this prohibition... probably in PlacePhraseBox()
-		// and OnChar()
+	// BEW 5Sep22, honour the click? Yes, but not if it's within a retranslation in glossing mode,
+	// because adding glosses there will get them thrown away if the user edits or removes
+	// the the retranslation. That would consistute possibly serious data loss, if the
+	// glossing KB is storing important info. So disallow adding glosses to a retranslation.
+	// Code additions will be required to support this prohibition... probably in PlacePhraseBox()
+	// and OnChar().
+	// whm 11Aug2026. No actual changes were made by BEW below
 	CPile* pActivePile = pClickedPile;	// the clicked pile now has become the
-		// new active location; but this is a problem if the new active pile is
-		// within a retranslation and glossing mode is active. Investigate, and if
-		// so, programmatically move the phasebox to the first safe location after
-		// the pile which ends the retranslation (take care, if two retranslations
-		// are in sequence with no safe piles between). If CSourcePhrase had a bool m_bIsRetranslation
-		// it would be simple to determine if a given pile was within the span of a retranslation. So
-		// because that member is missing from the document model (and I'm not wanting to change the
-		// doc model, I think the approach should be to have a function, returning bool, which
-		// calculates whether or not (in glossing mode) the glossing location lies within the span
-		// of a retranslation - the boolean return value can then be used for an app boolean called
-		// m_bGlossingAndWithinRetrans, which defaults to FALSE at every pile except those where a
-		// pre-existing retranslation span is present. I'll add to the Retranslation class, a new
-		// member, m_pRetransAnchorPile so that every Retranslation has a known anchor (ie. first)
-		// pile. Then I can ensure that finding the retranslation span boundaries will apply to the
-		// correct pile.
-		// whm 3Oct2023 note on above comment. The m_pRetransAnchorPile was never used elsewhere
-		// so it was removed this date.
+	// new active location; but this is a problem if the new active pile is
+	// within a retranslation and glossing mode is active. Investigate, and if
+	// so, programmatically move the phasebox to the first safe location after
+	// the pile which ends the retranslation (take care, if two retranslations
+	// are in sequence with no safe piles between). If CSourcePhrase had a bool m_bIsRetranslation
+	// it would be simple to determine if a given pile was within the span of a retranslation. So
+	// because that member is missing from the document model (and I'm not wanting to change the
+	// doc model, I think the approach should be to have a function, returning bool, which
+	// calculates whether or not (in glossing mode) the glossing location lies within the span
+	// of a retranslation - the boolean return value can then be used for an app boolean called
+	// m_bGlossingAndWithinRetrans, which defaults to FALSE at every pile except those where a
+	// pre-existing retranslation span is present. I'll add to the Retranslation class, a new
+	// member, m_pRetransAnchorPile so that every Retranslation has a known anchor (ie. first)
+	// pile. Then I can ensure that finding the retranslation span boundaries will apply to the
+	// correct pile.
+	// whm 3Oct2023 note on above comment. The m_pRetransAnchorPile was never used elsewhere
+	// so it was removed this date.
 
 	//wxASSERT(pActivePile != NULL);
 
@@ -3771,21 +3774,21 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 #endif
 	pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
 
-// whm note 10Jan2018 to support quick selection of a translation equivalent.
-// See similar code in GetNextEmptyPile().
-// This PlacePhraseBox() ends up by calling the Layout's PlaceBox().
-// Therefore we don't need to mess with calling CloseDropDown() or
-// ClearDropDown() here in PlacePhraseBox().
+	// whm note 10Jan2018 to support quick selection of a translation equivalent.
+	// See similar code in GetNextEmptyPile().
+	// This PlacePhraseBox() ends up by calling the Layout's PlaceBox().
+	// Therefore we don't need to mess with calling CloseDropDown() or
+	// ClearDropDown() here in PlacePhraseBox().
 
-// setup the layout and phrase box at the new location; in the refactored design this
-// boils down to working out what the new active location's sequence number is, and
-// then setting the active pile to be the correct one, getting an appropriate gap
-// calculated for the "hole" the box is to occupy, tweaking the layout to conform to
-// these changes (either by a RecalcLayout() call, or AdjustForUserEdits() call -
-// either of which will make a new pile pointer, appropriately sized, for that
-// location), updating the m_pActivePile pointer on the app class, and then calling the
-// view class's Invalidate() function to get the tweaked layout drawn and the box made
-// visible, appropriately sized, at the new active location
+	// setup the layout and phrase box at the new location; in the refactored design this
+	// boils down to working out what the new active location's sequence number is, and
+	// then setting the active pile to be the correct one, getting an appropriate gap
+	// calculated for the "hole" the box is to occupy, tweaking the layout to conform to
+	// these changes (either by a RecalcLayout() call, or AdjustForUserEdits() call -
+	// either of which will make a new pile pointer, appropriately sized, for that
+	// location), updating the m_pActivePile pointer on the app class, and then calling the
+	// view class's Invalidate() function to get the tweaked layout drawn and the box made
+	// visible, appropriately sized, at the new active location
 
 	pApp->m_pActivePile = pActivePile;
 	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
@@ -3812,6 +3815,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	// in important places like the phrasebox contents and m_targetPhrase, so fix these
 	// now from what's already in this location's pSrcPhrase
 	// BEW 9Sep22, adjust here for support of refactored glossing
+	// whm 11Aug2026. I think the addition of the if (gbIsGlossing) block is OK here.
+	// Previously, pApp->m_targetPhrase was always assigned from pSrcPhrase->m_adaption.
+	// whm 11Aug2026 TODO: Test the gbIsGlossing test block below.
 	if (gbIsGlossing)
 	{
 		pApp->m_targetPhrase = pSrcPhrase->m_gloss;
@@ -15424,6 +15430,9 @@ CKB* CAdapt_ItView::GetKB()
 /// "hole", if there is no gloss available in the glossing KB, then just leave the box
 /// empty, ready for the user to type a gloss. Glossing mode does not support use of
 /// consistent changes, nor SILConverter.
+/// whm 11Aug2026 reverted some of BEW's 9Sep22 refactoring, in particular the str should
+/// not be assigned from pSrcPhrase->m_adaption, but always from pSrcPhrase->m_key as
+/// previously.
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsistentChanges)
 {
@@ -15431,12 +15440,12 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxString str;
-	if (gbIsGlossing)
-	{
-		str = pSrcPhrase->m_adaption;
-	}
-	else
-	{
+	//if (gbIsGlossing)
+	//{
+	//	str = pSrcPhrase->m_adaption;
+	//}
+	//else
+	//{
 		// whm 11Dec2025 modified for testing if we can force CopySourceKey to return final
 		// punctuation only for empty source phrase instances that have only final punctuation
 		// within pSrcPhrase->m_srcPhrase, when pSrcPhrase->m_key is empty. This is to be
@@ -15463,12 +15472,14 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		{
 			str = pSrcPhrase->m_key;
 		}
-	}
+	//}
 	if (str.IsEmpty())
 	{
 		return _T("");
 	}
 	// BEW added 25May13
+	// whm 11Aug2026 The following if (gbIsGlossing) test appears OK, so it should
+	// be retained.
 	if (gbIsGlossing)
 	{
 		if (gbFind && gbFindIsCurrent && pSrcPhrase->m_gloss.IsEmpty())
@@ -15484,6 +15495,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		}
 	}
 	// BEW 9Sep22 this Fumey request should be supported unchanged
+	// whm 11Aug2026 no changes made here for this if (!pApp->m_bLegacySourceTextCopy) block.
 	if (!pApp->m_bLegacySourceTextCopy)
 	{
 		// the user wants smart copying done to the phrase box when the active location
@@ -15520,6 +15532,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	// editing or a click in the phasebox. A CC change should be equivalent to
 	// a user edit, in terms of how the KB works and GUI displays.
 	// BEW 9Sep22 add a subtest !gbIsGlossing
+	// whm 11Aug2026 no change needed. The added !gbIsGlossing condition is OK.
 	if (!gbIsGlossing && bUseConsistentChanges)
 	{
 		wxString saveWord = str;
@@ -15573,6 +15586,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		str2.Trim(TRUE); // trim the right end
 	} // end of TRUE block for test: if (!gbIsGlossing && bUseConsistentChanges)
 
+	// whm 11Aug2026 no change needed. The added !gbIsGlossing condition is OK.
 	else if( !gbIsGlossing && pApp->m_bUseSilConverter )
 	{
 		return DoSilConvert(str);
@@ -15585,6 +15599,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	// The guesser can waste a huge amount of time, so we have chosen to force the user to
 	// explicitly turn it on, as it's not default OFF. Also, it's inappropriate for glossing mode
 	bool bIsGuess = FALSE;
+	// whm 11Aug2026 no change needed. The added !gbIsGlossing condition is OK.
 	if (!gbIsGlossing && pApp->m_bUseAdaptationsGuesser && !pApp->m_bUseSilConverter)
 	{
         // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
@@ -15620,6 +15635,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	pApp->m_pTargetBox->m_bAbandonable = TRUE; // BEW 27Apr18 added this line, a copy, even if programmatically
 			// modified, should be abandonable until the user does something to make it not so
 #endif
+	// whm 11Aug2026 addition of SetFocus() here should be retained.
 	if (gbIsGlossing)
 	{
 		pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // that should make it a bit nicer for the user as
@@ -34982,7 +34998,7 @@ void CAdapt_ItView::ShowGlosses()
 
 	}
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+	//pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 

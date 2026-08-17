@@ -645,6 +645,8 @@ void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
 	m_bRetranslation = sp.m_bRetranslation;
 }
 
+// whm 11Aug2026 The following function is no longer used after
+// reverting code changes made in Sep22.
 int CSourcePhrase::GetTgtWordCount()
 {
 	wxString tgt = this->m_adaption;
@@ -662,6 +664,26 @@ int CSourcePhrase::GetTgtWordCount()
 	int numFields = tkz.CountTokens();
 	return numFields;
 }
+
+// whm 5Aug2026 added, but currently unused.
+int CSourcePhrase::GetGlossWordCount()
+{
+	wxString gls = this->m_gloss;
+	if (gls.IsEmpty()) {
+		return 0;
+	}
+	wxChar zwsp = (wxChar)0x200B;
+	wxString aToken = wxEmptyString;
+	//wxString delims = _T(" \n\r\t~'/'"); 
+	wxString delims = _T(" \n\r\t~"); // remove the '/' and retry
+	delims += zwsp;
+	delims += _T('/');
+	wxStringTokenizer tkz(gls, delims); //my choice of delimiters includes / and zero-width-space
+		// and adding USFM's tilde (fixed space) so that ~ between words is tokenized as 2 words
+	int numFields = tkz.CountTokens();
+	return numFields;
+}
+
 
 bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhrase)
 {

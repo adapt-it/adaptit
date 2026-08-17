@@ -59,10 +59,10 @@ bool HasSameTextAndPunctButPunctDiffersInTextLocation(wxString str1, wxString st
 wxString ExtractSpacelessPunctCharsFromString(wxString str, int SrcOrTgtIndex, wxArrayInt& arrPunctPos); // whm added 21Oct2025
 
 //wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
-wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
-	bool& bAddedSomething, bool& bAddedHiddenMetaData,
-	bool bIncludeNote,
-	bool bDoCountForFreeTrans, bool bCountInTargetTextLine);
+//wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
+//	bool& bAddedSomething, bool& bAddedHiddenMetaData,
+//	bool bIncludeNote,
+//	bool bDoCountForFreeTrans, bool bCountInTargetTextLine);
 void		DoExportAsType(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
@@ -104,8 +104,11 @@ wxString	RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 int			RebuildTargetText(wxString& target, SPList* pList = NULL);
 int			RebuildGlossesText(wxString& glossText, SPList* pList = NULL);
 int			RebuildFreeTransText(wxString& freeTransText, SPList* pList = NULL);
+// whm 11Aug2026 added a fifth parameter enum ExportType exportType to the following
+// ApplyOutputfilterToText() function
 wxString	ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
-									wxArrayInt& filterFlagsArray, bool bRTFOutput);
+									wxArrayInt& filterFlagsArray, bool bRTFOutput,
+									enum ExportType exportType);
 wxString	ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray);
 int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, int nAnchorSequNum);
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases, wxString& Tstr);

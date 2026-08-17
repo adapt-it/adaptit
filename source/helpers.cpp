@@ -2727,6 +2727,158 @@ wxString ReduceStringToStructuredPuncts(wxString& inputStr)
 }
 */
 
+// whm 11Aug2026 added. 
+// To avoid cluttering up the export of target and gloss text with inline
+// markers that have no content between them, we should suppress the 
+// export of inline begin markers and their end marker counterparts i there are 
+// no glosses stored between the inline begin and inline end markers. 
+// Doing so requires adding a new function called:
+// InlineMarkerSpanHasTargetOrGlossContent() which is called when 
+// encountering the inline begin marker, and scans ahead until the span ends, 
+// and return TRUE if the span has target/gloss content, or FALSE if the span 
+// lacks any content; thus we determine whether the inline begin and end
+// markers should be placed or not. A corresponding bool bInlineMkrHasTextContent 
+// member on RebuildGlossesText() would also be set to TRUE at the same time to be
+// able to place or not place the corresponding inline end marker (bInlineMkrHasTextContent
+// would be set back to FALSE upon the encountering of the end marker).
+bool InlineMarkerSpanHasTargetOrGlossContent(wxString inlineMkr, SPList::Node* pos_pList, 
+	ExportType txtExportType, wxString& mkrCheckedForTextContent,
+	wxString& endMkrFoundEndingSpan)
+{
+	// whm 11Aug2026 Note: The incoming inlineMkr could possibly have more than one
+	// inline marker from the call of pSrcPhrase->GetInlineBindingMarkers() or
+	// pSrcPhrase->GetInlineNonbindingMarkers() in the caller in ExportFunctions.cpp.
+	// TODO: Check if there is more than one marker in the incoming inlineMkr parameter,
+	// and if so, we need to treat each one separately below.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	bool bFoundTextContent = FALSE;
+	wxString augInLineMarker = inlineMkr;
+	mkrCheckedForTextContent = augInLineMarker;
+	augInLineMarker.Trim();
+	wxString bareMkr = augInLineMarker.Mid(1);
+	augInLineMarker += _T(" ");
+	CSourcePhrase* pSrcPhrase = NULL;
+	int nStartingSequNum = -1;
+	if (pos_pList != NULL)
+	{
+		pSrcPhrase = pos_pList->GetData();
+		if (pSrcPhrase != NULL)
+			nStartingSequNum = pSrcPhrase->m_nSequNumber;
+	}
+	bool bMkrIsInlineBinding = pApp->m_inlineBindingMarkers.Find(augInLineMarker) != wxNOT_FOUND;
+	bool bMkrIsInlineNonbinding = pApp->m_inlineNonbindingMarkers.Find(augInLineMarker) != wxNOT_FOUND;
+	wxString inlMkr = inlineMkr;
+	if (inlMkr.IsEmpty())
+		return FALSE;
+	wxString inlEndMkr;
+	bool bIsInline = TRUE;
+	USFMAnalysis* pUsfmAnalysis = pDoc->LookupSFM(bareMkr);
+	if (pUsfmAnalysis != NULL)
+	{
+		bIsInline = pUsfmAnalysis->inLine;
+		inlEndMkr = pUsfmAnalysis->endMarker;
+	}
+	if (inlEndMkr.IsEmpty())
+	{
+		// inlMkr doesn't have an endMarker in the AI_USFM.xml file??
+		int break_here = 1;
+		break_here = break_here;
+	}
+	bool bEndMkrFound = FALSE;
+	// Scan forward in the list of source phrases until we either find the end marker
+	// or encounter a pSrcPhrase that has content that halts our scan, in the event that
+	// the text failed to have an end marker within it.
+	while (pos_pList != NULL && pSrcPhrase != NULL && !bEndMkrFound)
+	{
+		pSrcPhrase = pos_pList->GetData();
+		if (pSrcPhrase == NULL)
+			break;
+		pos_pList = pos_pList->GetNext();
+		// Break out of while loop if we have a condition that would indicate a 
+		// missing inline end marker.
+		// A halt condition would exist if we have encountered a non-inline marker
+		// of some sort, including a \c or \v marker.
+		wxArrayString allMkrsArr; allMkrsArr.Clear();
+		wxString allMkrs = pSrcPhrase->m_markers
+			+ pSrcPhrase->GetInlineBindingMarkers()
+			+ pSrcPhrase->GetInlineNonbindingMarkers()
+			+ pSrcPhrase->GetEndMarkers()
+			+ pSrcPhrase->GetInlineBindingEndMarkers()
+			+ pSrcPhrase->GetInlineNonbindingEndMarkers();
+		pDoc->GetMarkersAndFollowingWhiteSpaceFromString(allMkrsArr, allMkrs);
+		int mkrCt = (int)allMkrsArr.GetCount();
+		// For each pSrcPhrase after the first one, check for begin and end markers 
+		// within the pSrcPhrase that would halt the scan. These would include any
+		// non-inline (paragraph) begin markers like \p, \q, \c n, \v n etc, 
+		if (pSrcPhrase->m_nSequNumber > nStartingSequNum
+			&& mkrCt > 0
+			)
+		{
+			bool bHaltScan = FALSE;
+			for (int i = 0; i < mkrCt; i++)
+			{
+				wxString mkr = allMkrsArr.Item(i); // mkr could be a begin or end marker with asterisk
+				// Chapter and Verse markers will be common, so check them
+				if (mkr.Find(_T("\\c")) != wxNOT_FOUND || mkr.Find(_T("\\v")) != wxNOT_FOUND)
+				{
+					bHaltScan = TRUE;
+					break;
+				}
+
+				// Check if mkr is a non-inline marker, and if so, that also
+				// stops the scan.
+				// Note: bareMkr can be an end marker with asterisk on it, and
+				// LookupSFM() still works OK with or without an asterisk on bareMkr.
+				wxString bareMkr = pDoc->GetBareMarkerForLookup(mkr);
+				pUsfmAnalysis = pDoc->LookupSFM(bareMkr);
+				if (!pUsfmAnalysis->inLine)
+				{
+					// The mkr is a non-inline marker, so halt scan and break from for loop
+					bHaltScan = TRUE;
+					break;
+				}
+			}
+			if (bHaltScan)
+			{
+				return bFoundTextContent;
+			}
+		}
+		if (txtExportType == glossesTextExport)
+		{
+			if (!pSrcPhrase->m_gloss.IsEmpty())
+			{
+				bFoundTextContent = TRUE;
+			}
+		}
+		else if (txtExportType == targetTextExport)
+		{
+			if (!pSrcPhrase->m_adaption.IsEmpty())
+			{
+				bFoundTextContent = TRUE;
+			}
+		}
+		wxString inlineEndMkrs;
+		if (bMkrIsInlineBinding)
+		{
+			inlineEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+		}
+		else if (bMkrIsInlineNonbinding)
+		{
+			inlineEndMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+		}
+		if (inlineEndMkrs.Find(inlEndMkr) != wxNOT_FOUND)
+		{
+			// We've encountered the end marker so halt the scan and
+			// return the value of bFoundTextContent
+			endMkrFoundEndingSpan = inlEndMkr;
+			return bFoundTextContent;
+		}
+	}
+
+	return bFoundTextContent;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	all characters preceding the first occurrence of a character from charSet. The character
 ///				from charSet and all characters following it in the inputStr are not returned.
@@ -4204,7 +4356,8 @@ int CountSpaceDelimitedWords(wxString& str)
 }
 //#endif
 
- // BEW 16Sep22 using code from pSrcPhrase->GetTgtWordCount()
+// BEW 16Sep22 using code from pSrcPhrase->GetTgtWordCount()
+// whm 11Aug2026 No reverting changes needed.
 int GetWordCountIncludingZWSP(wxString& str)
 {
 	if (str.IsEmpty())
@@ -6441,7 +6594,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 		}
 	}
 
-	// now add the prefix string material not shown in the Place... dialog,
+	// now add the prefix [now 'suffix'] string material not shown in the Place... dialog,
 	// if it is not empty
 	// whm 9Jan2025 modified. Earlier, the previously named markersPrefix string is actually 
 	// used to store filtered information, so it was renamed appropriately filteredInfoSuffix. 
@@ -8247,7 +8400,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 			Tstr += filteredInfoSuffix;
 		}
 	}
-	Tstr.Trim(FALSE);
+	//Tstr.Trim(FALSE); // whm 11Aug2026 removed trim of initial whitespace (EOL before a marker)
 	Tstr.Trim();
 	// don't have a final space, the caller will add one if it is needed
 #if defined (_DEBUG)
@@ -9584,7 +9737,7 @@ int CountSubstringOccurrences(wxString stringToSearch, wxString substring)
 }
 
 // whm 1Jul2026 added. This function is mainly used for properly
-// formating USFM markers when rebuilding target text. 
+// formating USFM markers when rebuilding target or gloss text. 
 // It returns the whitespace that should preceed the marker thisMkr. 
 // The whitespace returned will be a Latin space, an EOL (\r\n), or 
 // an empty string (if the incoming marker thisMkr is an empty string).
@@ -9838,7 +9991,7 @@ wxString FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,
 		if (bHasMetadata)
 		{
 			str = RestoreUSFM3AttributesMetadata(pSingleSrcPhrase, str, FALSE);
-			// whm 1Mar2026 TODO: Need to remove the end marker, for example,
+			// whm 1Mar2026 added. Need to remove the end marker, for example,
 			// the \w* end marker from the restored str value returned above
 			// before assigning str to keyWord.
 			int posLastMkr = str.find_last_of(_T('\\'));
@@ -11446,6 +11599,7 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 // BEW 11Oct10, for support of doc version 5
 // BEW 7Sep22 refactored to support glossing KB with m_adaption/gloss entries
 // BEW 28Nov23 we now ignore ~ between two words, we treat the pair as a single word
+// whm 11Aug2026. This function now does nothing, so no reverts needed.
 bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 {
 	wxUnusedVar(pSrcPhrase);

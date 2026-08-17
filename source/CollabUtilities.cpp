@@ -7133,7 +7133,7 @@ extern bool gbDoingInitialSetup;
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 		bool bRTFOutput = FALSE; // we are working with USFM marked up text
-		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, targetTextExport);
 
 		// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
 		// to still get transferred to PT or BE, but without any content, so we have to
@@ -7250,7 +7250,7 @@ extern bool gbDoingInitialSetup;
 			}
 		}
 		bool bRTFOutput = FALSE; // we are working with USFM marked up text
-		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, freeTransTextExport);
 
 		FormatMarkerBufferForOutput(text, freeTransTextExport);
 		text = RemoveMultipleSpaces(text);
@@ -7679,8 +7679,11 @@ extern bool gbDoingInitialSetup;
 			// custom markers from the export.
 			//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
 			ExcludeCustomMarkersFromExport();
-			text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-			
+			if (makeTextType == makeFreeTransText)
+				text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, freeTransTextExport);
+			else if (makeTextType == makeTargetText)
+				text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, targetTextExport);
+
 			wxString footnote = _T("\\f ");
 			wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 			bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
@@ -12072,7 +12075,7 @@ extern bool gbDoingInitialSetup;
 		// Apply output filter to the source text
 		// m_exportBareMarkers is a global wxArrayString defined in ExportSOptions.cpp (I think)
 		// and m_exportFilterFlags is a wxArrayInt which works in parallel to indicate filtered or not
-		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, sourceTextExport);
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(source, sourceTextExport);

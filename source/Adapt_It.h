@@ -972,7 +972,8 @@ enum ExportType
 	sourceTextExport,
 	targetTextExport,
 	glossesTextExport,
-	freeTransTextExport
+	freeTransTextExport,
+	interlinearRTFExport
 };
 
 enum RebuildTextType

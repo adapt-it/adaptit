@@ -273,6 +273,8 @@ public:
 	// BEW 7Sep22 need a word count for use in the refactored StoreText() etc for glossing KB, 
 	// which will not use m_key, but m_adaption
 	int			GetTgtWordCount();
+	// whm 5Aug2026 added but currently unused.
+	int			GetGlossWordCount();
 
 // Getters/Setters/Shorthands
 
