@@ -19594,8 +19594,39 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 			bool bHasMarkersHere = FALSE; // initialize
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
-				str.Trim();
-				str << aSpace << pSrcPhrase->m_markers;
+				// whm 20Aug2026 modified. When pSrcPhrase->m_nSequNum == 0 and
+				// pSrcPhrase->m_markers.Find(_T("\\id")) == 0 we don't prefix the
+				// \id marker with any whitespace. This is similar to the RebuildGlossesText() block.
+				if (!(pSrcPhrase->m_nSequNumber == 0 && pSrcPhrase->m_markers.Find(_T("\\id")) == 0))
+				{
+					// Determine what kind of whitespace (space or EOL) each marker within 
+					// m_markers should have prefixed to it.
+					wxString mkrFromList; mkrFromList.Empty();
+					// Get an array of markers in m_markers
+					wxArrayString MkrList;
+					gpApp->GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, pSrcPhrase->m_markers);
+					if (!MkrList.IsEmpty())
+					{
+						int nListCt = (int)MkrList.GetCount();
+						for (int i = 0; i < nListCt; i++)
+						{
+							mkrFromList = MkrList.Item(i);
+							wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
+							whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(mkrFromList);
+							str.Trim();
+							str << whiteSpToPrefixMkr << mkrFromList; //pSrcPhrase->m_markers;
+						}
+					}
+				}
+				else
+				{
+					// We are at beginning of the doc at pSrcPhrase->m_nSequNumber of 0 and
+					// its m_markers contains \id at the beginning of m_markers, so don't
+					// prefix str with any whitespace.
+					str << pSrcPhrase->m_markers;
+				}
+				//str.Trim();
+				//str << aSpace << pSrcPhrase->m_markers;
 				bHasMarkersHere = TRUE; // use this to suppress the Trim() of str in next block, after marker insertion
 			}
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
@@ -19639,20 +19670,22 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 //#if defined(FWD_SLASH_DELIM)
 			// BEW added 23Apr15 -- if ZWSP was inserted initially above, and
 			// gpApp->m_bFwdSlashDelimiter is TRUE, then don't add Latin space
-			if (gpApp->m_bFwdSlashDelimiter)
-			{
-				if (!str.IsEmpty() && str.GetChar(0) == (wxChar)0x200B)
-				{
-					; //do nothing
-				}
-			}
-			else
-			{
-				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
-				{
-					str = _T(" ") + str;
-				}
-			}
+			// 
+			// whm 20Aug2026 Removed the following as no longer relevant.
+			//if (gpApp->m_bFwdSlashDelimiter)
+			//{
+			//	if (!str.IsEmpty() && str.GetChar(0) == (wxChar)0x200B)
+			//	{
+			//		; //do nothing
+			//	}
+			//}
+			//else
+			//{
+			//	if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+			//	{
+			//		str = _T(" ") + str;
+			//	}
+			//}
 //#else
 /*
 			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
@@ -19921,7 +19954,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 129) 
+		if (pSrcPhrase->m_nSequNumber >= 137) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -20988,7 +21021,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							// at first character after the end marker making up the empty span.
 							wxString markerSpan = wxString(pOld, skipAmount);
 							if (markerSpan == _T("\\f \\f*") || markerSpan == _T("\\x \\x*")
-								|| markerSpan == _T("\\fe \\fe*)"))
+								|| markerSpan == _T("\\fe \\fe*"))
 							{
 								pOld = pOld + skipAmount;
 							}
@@ -21002,6 +21035,16 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								*pNew++ = *pOld++;
 							}
 						}
+					}
+					else
+					{
+						// For sourceTextExport just copy pOld to pNew and continue.
+						// whm 11Aug2026 also added to keep progressing through the buffer.
+						// Must copy the current char and advance both pointers here to 
+						// avoid infinite loop. We could parse and copy the whole marker
+						// here, but we'll just copy and move one char past the backslash
+						// of the marker.
+						*pNew++ = *pOld++;
 					}
 				}
 				else if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))

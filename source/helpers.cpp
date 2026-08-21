@@ -9752,6 +9752,9 @@ wxString GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(wxString thisMkr)
 	wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
 	// For consistency sake remove any following whitespace from thisMkr
 	thisMkr.Trim();
+	// whm 20Aug2026 if thisMkr is an empty string we should return an empty string!
+	if (thisMkr.IsEmpty())
+		return wxEmptyString;
 	wxString bareMkr = thisMkr;
 	bareMkr = bareMkr.Mid(1);
 	StyleType styType;
