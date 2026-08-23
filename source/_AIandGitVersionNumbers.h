@@ -49,10 +49,10 @@
 #define AI_VERSION_BUILD_PART 0
 
 // when changing these string values make sure to also change the corresponding int values below
-#define VERSION_DATE_DAY_STR "7"
+#define VERSION_DATE_DAY_STR "27"
 #define VERSION_DATE_MONTH_STR "8"
 #define VERSION_DATE_YEAR_STR "2026"
-#define VERSION_DATE_DAY 7
+#define VERSION_DATE_DAY 27
 #define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2026
 

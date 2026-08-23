@@ -19991,13 +19991,17 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// was present on a previous SP where user indicated <no adaptation> as a
 				// translation for that previous SP, but where that previous SP has some kind
 				// of preceding punctuation.
-				if (aBreak == _T('\n'))
+				// whm 22Aug2026 modified. Also, only add aBreak if the m_adaption has content
+				if (!pSrcPhrase->m_adaption.IsEmpty())
 				{
-					targetstr += _T("\r\n"); // change LF to CRLF
-				}
-				else
-				{
-					targetstr += aBreak;
+					if (aBreak == _T('\n'))
+					{
+						targetstr += _T("\r\n"); // change LF to CRLF
+					}
+					else
+					{
+						targetstr += aBreak;
+					}
 				}
 			}
 			else
@@ -20997,21 +21001,21 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					// whm 11Aug2026 We handle footnote and cross-ref markers and their 
 					// associated text separately here, because for certain exportType 
 					// exports (targetTextExport, glossesTextExport, freeTransTextExport) 
-					// we want to filter out the \f \f* and \x \x* spans if they have no 
-					// target/gloss/freetrans associated text within those spans - 
-					// regardless of whether \f and \x are designated as unfiltered 
+					// we want to filter out the \f \f* \fe \fe* and \x \x* spans if they 
+					// have no arget/gloss/freetrans associated text within those spans - 
+					// regardless of whether \f, \fe or \x are designated as unfiltered 
 					// within the USFM and Filtering tab of preferences. This results
 					// in a cleaner export of these types of export.
 					// Although we might copy appropriate code with modifications 
 					// from the else if block into this block, it may be easier to simply
 					// scan ahead in the pOld buffer (which would now be pointing at either
-					// a \f or a \x marker) to see if a \f marker is followed by a space
-					// and that space is immediately followed by the \f* end marker. This
+					// a \f, \fe or a \x marker) to see if those markers are followed by a 
+					// space and that space is immediately followed by the end marker. This
 					// would indicate that the footnote had no target text, gloss, or free
-					// trans associated text. Same for the \x \x* marker span. We can here
-					// remove those \f \f* and/or \x \x* spans by advancing pOld pointer 
-					// by 6 characters, and not advancing the pNew pointer effectively
-					// removing the unwanted \f \f* and/or \x \x* empty spans.
+					// trans associated text. We can here remove those \f \f*, \fe \fe*, 
+					// and/or \x \x* spans by advancing pOld pointer by 6 characters (8 chars
+					// for \fe \fe*), and not advancing the pNew pointer, effectively
+					// removing the unwanted \f \f*, \fe \fe*, and/or \x \x* empty spans.
 					if (exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport)
 					{
 						if (pOld + skipAmount < pEnd)
@@ -21041,7 +21045,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// For sourceTextExport just copy pOld to pNew and continue.
 						// whm 11Aug2026 also added to keep progressing through the buffer.
 						// Must copy the current char and advance both pointers here to 
-						// avoid infinite loop. We could parse and copy the whole marker
+						// avoid an infinite loop. We could parse and copy the whole marker
 						// here, but we'll just copy and move one char past the backslash
 						// of the marker.
 						*pNew++ = *pOld++;

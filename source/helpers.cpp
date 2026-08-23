@@ -7558,7 +7558,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	{
 		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() START line %d, m_srcPhrase= [%s] , m_targetStr= [%s] , sequNum = %d, Tstr= [%s]"),
 			__LINE__, pSingleSrcPhrase->m_srcPhrase.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), pSingleSrcPhrase->m_nSequNumber, Tstr.c_str() );
-		if (pSingleSrcPhrase->m_nSequNumber >= 152)
+		if (pSingleSrcPhrase->m_nSequNumber >= 114)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -7749,7 +7749,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 	{
 		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
 			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
-		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		if (pSingleSrcPhrase->m_nSequNumber >= 84)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -7805,7 +7805,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPre
 		bool bAddedSomething = FALSE;
 		wxString beforeStr; beforeStr.Empty();
 		beforeStr = GetSrcPhraseBeginningInfo(beforeStr, pSingleSrcPhrase, bAddedSomething, pList);
-		if (Tstr.IsEmpty() && !beforeStr.IsEmpty())
+		if (Tstr.IsEmpty() 
+			&& !beforeStr.IsEmpty()
+			&& !pSingleSrcPhrase->m_adaption.IsEmpty()) // whm 22Aug2026 added to suppress initial punct when no adaption is present
 		{
 			// Restore any m_inlineNonbindingMarkersgets, m_precPunct, and m_inlineBindingEndMarkers, 
 			// in that order, to the Tstr we are rebuilding.

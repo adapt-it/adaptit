@@ -1,5 +1,5 @@
 ﻿----------------------------------------------
-Version 6.12.0  7 August 2026
+Version 6.12.0  27 August 2026
 ----------------------------------------------
 Feature changes and new features in 6.12.0
 --------------------------------------------------------------------------------------
@@ -126,10 +126,19 @@ In most cases Adapt It can now better handle the many possible combinations of s
 markers, spaces and punctuation, so that the above Warning should not appear during
 the loading of a new text for adaptation work.
 * Fixed some bugs within the USFM Filtering and Unfiltering routines.
-* Made the Source Language Export and Target Language Export routines (accessible from
-the Export-Import menu) more accurate and robust.
+* Fixed the Glossing function within Adapt It and the Glossing KB which could crash
+if glosses were entered at locations that did not already have target text 
+adaptations entered at those locations. The crash has been eliminated and the 
+Glossing KB now functions as it did prior to about September 2022.
+* Made all of the text export routines that are accessible from the Export-Import 
+menu, more accurate and robust. This includes the Source, Target, Gloss, and Free
+Translation exports. The export of Glosses in particular had been broken for a 
+long time, but has now been fixed.
 * Fixed some potential bugs in the File > Save As... routines, that could result in
 the truncation of the xml document if the user cancels from that Save As dialog.
+* Fixed the obscure error message (about not being able to open the files lastsync_adaptations.txt and lastsync_glosses.txt) that might appear when Adapt It 
+is installed on a Windows 11 computer that had not previously had any older 
+Adapt It version installed on it.
 ----------------------------------------------
 Version 6.11.6  7 March 2025
 ----------------------------------------------
