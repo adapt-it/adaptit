@@ -147,12 +147,22 @@ int			GetWordCount(wxString& str, wxArrayString* pStrList);
 void		FormatMarkerBufferForOutput(wxString& str, enum ExportType expType);
 void		NormalizeTextEOLsToCRLF(wxString& str, bool bEndWithEOL = FALSE); // whm added 30Aug2023
 void		FormatUnstructuredTextBufferForOutput(wxString& str, bool bRTFOutput);
+// whm 23Aug2026 Added a ref parameter bool bHasAssocTextContent
+// to the following 3 parsing functions: 
 int			ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
 int			ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
 int			ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
+// whm 11Sep2026 added for use within ApplyOutputFilterToText() to parse
+// through an inline binding markers such as \em \em* and return via
+// ref parameter bool& bHasAssocTextContent whether the marker span has
+// content or not. If not the ApplyOutputFilter() will remove the begin
+// and end marker of the empty-content inline binding marker pair.
+int ParseInlineBindingMarkers(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
+	enum ParseError& parseError,
+	bool& bHasAssocTextContent);
 bool		IsACharacterStyle(wxString styleMkr, MapBareMkrToRTFTags& rtfMap);
 bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString& destStr,
 							bool& bIsAtEnd, enum DestinationTextType destTxtType, 

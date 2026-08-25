@@ -8651,7 +8651,33 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 			}
 			else
 			{
-				nLocation = this->GetDropDownList()->Append(str);
+				// whm 24Aug2026 modified. If the phrasebox (this) has a value already
+				// within its initialPhraseBoxContentsOnLanding member, that member will
+				// have any punctuation on it, but the str value that is returned from the
+				// KB's pRefString->m_translation will not have punctuation on it. This
+				// is a test to see if this modification will fix the issue of the 
+				// phrasebox at landing failing to have punctuation on the target string
+				// value it contains at the time of its landing.
+				// The test below tests if both the phrasebox's initialPhraseBoxContentsOnLanding
+				// and the str values are non-empty, and if so, if the str is found 
+				// embedded within the initialPhraseBoxContentsOnLanding string, that 
+				// initialPhraseBoxContentsOnLanding string will be appended into the
+				// dropdown list instead of punctuation-less one coming from the KB's
+				// pRefString->m_translation.
+				//if (!this->initialPhraseBoxContentsOnLanding.IsEmpty() && !str.IsEmpty()
+				//	&& FindIgnoreCase(this->initialPhraseBoxContentsOnLanding, str) != wxNOT_FOUND)
+				// It appears more reliable to use the this->m_SaveTargetPhrase member instead
+				// of the this->initialPhraseBoxContentsOnLanding
+				if (!this->m_SaveTargetPhrase.IsEmpty() && !str.IsEmpty()
+					&& this->GetDropDownList()->GetCount() == 0
+					&& FindIgnoreCase(this->m_SaveTargetPhrase, str) != wxNOT_FOUND)
+				{
+					nLocation = this->GetDropDownList()->Append(this->m_SaveTargetPhrase);
+				}
+				else
+				{
+					nLocation = this->GetDropDownList()->Append(str);
+				}
 			}
 
             // whm 22Aug2018 Note: We handle the situation where <Not In KB> is present

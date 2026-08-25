@@ -291,6 +291,12 @@ public:
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
 	wxString		m_strStrictlyInitialPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
 	wxString		m_strStrictlyFinalPuncts; // whm 16Mar2026 added for use in converting docVersion 10 to 11
+	wxString		m_strInitialSpanningPuncts; // = wxString::FromUTF8("“‘[(<{«");
+	wxString		m_strInitialNonSpanningPuncts; // = wxString::FromUTF8("¿¡");
+	wxString		m_strFinalSpanningPuncts;  // = wxString::FromUTF8("”’])>}»");
+	wxString		m_strFinalNonSpanningPuncts; // = wxString::FromUTF8("?.,;:!");
+	wxString		m_strAmbiguousSpanningPuncts; // = wxString::FromUTF8("\'\"");
+
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
 	wxString		ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW added 16Nov23
@@ -344,6 +350,7 @@ protected:
 	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList,
 		SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
 		CSourcePhrase*& pPrevSrcPhrase, // whm 28Dec2024 added - unused - may use in future
+		CSourcePhrase*& pNextSrcPhrase, // whm 8Sep2026 added
 		wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
 	bool			ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr);
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,

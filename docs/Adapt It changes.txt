@@ -84,11 +84,11 @@ Upgrading from Windows to Linux:
    select the "Setup or Remove Collaboration" dialog and follow the steps
    there to re-establish collaboration with Paratext Lite on the Linux 
    system.
-* The exports of source text and target text should now be more accurate and robust.
-In addition to the user being able to explicitly ask for such exports from Adapt It's
-main Export-Import menu, Adapt It rebuilds the source text for a number of other 
-purposes that require greater accuracy than the rebuilds/exports that Adapt It was
-previously capable of producing.
+* The exports of source text, target text, gloss text, and free translation test
+should now be more accurate and robust. In addition to the user being able to 
+explicitly ask for such exports from Adapt It's main Export-Import menu, Adapt It 
+rebuilds the source text for a number of other purposes that require greater 
+accuracy than the rebuilds/exports that Adapt It was previously capable of producing.
 * The docVersion that is stored within the header settings of Adapt It's xml document
 is now set at docVersion 11. Adapt It should still be able to read and use its adapted 
 documents that were created with docVersion 10 and prior versions. This change of 
@@ -109,7 +109,7 @@ of markers inserted near punctuation including brackets, parentheses, quote mark
 and so on. The markers that were especially problematic were markers such as /add
 ... \add* and any unknown markers not recognized by the USFM 3.x standard. Sometimes
 these would cause program crashes, or Adapt It would present the user with a message
-that reads: 
+that reads, for example: 
    "Warning: Unexpected markers, spaces and/or punctuation in <chapter:verse>..." 
 accompanied by this explanation: 
    "When Adapt It encounters "Unexpected" markers, spaces and/or punctuation, it 
@@ -130,10 +130,10 @@ the loading of a new text for adaptation work.
 if glosses were entered at locations that did not already have target text 
 adaptations entered at those locations. The crash has been eliminated and the 
 Glossing KB now functions as it did prior to about September 2022.
-* Made all of the text export routines that are accessible from the Export-Import 
-menu, more accurate and robust. This includes the Source, Target, Gloss, and Free
-Translation exports. The export of Glosses in particular had been broken for a 
-long time, but has now been fixed.
+* Fixed some issues in the text export routines, making them more accurate and 
+robust. This includes the Source, Target, Gloss, and Free Translation exports. 
+The export of Glosses in particular had been broken for a long time, but has now 
+been fixed.
 * Fixed some potential bugs in the File > Save As... routines, that could result in
 the truncation of the xml document if the user cancels from that Save As dialog.
 * Fixed the obscure error message (about not being able to open the files lastsync_adaptations.txt and lastsync_glosses.txt) that might appear when Adapt It 

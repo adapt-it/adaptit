@@ -10851,7 +10851,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseFootnote overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the outer
 						// loop to point just past the footnote end marker.
-						itemLen = ParseFootnote(ptr,pBufStart,pEnd,parseError); // parse the whole footnote
+						bool bHasAssocTextContent = TRUE;
+						itemLen = ParseFootnote(ptr, pBufStart, pEnd,parseError, bHasAssocTextContent); // parse the whole footnote
+						wxUnusedVar(bHasAssocTextContent); // whm 23Aug2026 added bHasAssocTextContent - unused here
 						wxString fnStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -10925,7 +10927,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseEndnote overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the
 						// loop to point just past the endnote end marker.
-						itemLen = ParseEndnote(ptr,pBufStart,pEnd,parseError);	// parse the whole endnote
+						bool bHasAssocTextContent = TRUE; // whm 23Aug2026 added 5th parameter - unused here
+						itemLen = ParseEndnote(ptr, pBufStart, pEnd, parseError, bHasAssocTextContent);	// parse the whole endnote
+						wxUnusedVar(bHasAssocTextContent);
 						wxString enStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -10996,7 +11000,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseCrossRef overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the
 						// loop to point just past the endnote end marker.
-						itemLen = ParseCrossRef(ptr,pBufStart,pEnd,parseError); // parse the whole crossref
+						bool bHasAssocTextContent = TRUE; // whm 23Aug2026 added 5th parameter - unused here
+						itemLen = ParseCrossRef(ptr, pBufStart, pEnd, parseError, bHasAssocTextContent); // parse the whole crossref
+						wxUnusedVar(bHasAssocTextContent);
 						wxString crStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -12709,8 +12715,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 }	// end of DoExportSrcOrTgt
 
 int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
-									//const std::map<wxString, wxString>& rtfMap)
+			enum ParseError& parseError, 
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
+				//const std::map<wxString, wxString>& rtfMap)
 {
 	// When ParseFootnote() is called pChar should be pointing at a \f footnote
 	// begining marker.
@@ -12769,8 +12776,22 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseFootnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -12821,7 +12842,8 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 }
 
 int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
+			enum ParseError& parseError, 
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
 {
 	// When ParseEndnote() is called pChar should be pointing at a \fe endnote
 	// begining marker.
@@ -12879,8 +12901,22 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseEndnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -12932,8 +12968,9 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 }
 
 int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
-									//const std::map<wxString, wxString>& rtfMap)
+			enum ParseError& parseError,
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
+			//const std::map<wxString, wxString>& rtfMap)
 {
 	// When ParseCrossRef() is called pChar should be pointing at a \x crossref
 	// begining marker.
@@ -12991,8 +13028,22 @@ int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseEndnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -13040,6 +13091,141 @@ int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 		}
 	}
 	return itemLen;
+}
+
+// whm 11Sep2026 added for use within ApplyOutputFilterToText() to parse
+// through an inline binding markers such as \em \em* and return via
+// ref parameter bool& bHasAssocTextContent whether the marker span has
+// content or not. If not the ApplyOutputFilter() will remove the begin
+// and end marker of the empty-content inline binding marker pair.
+int ParseInlineBindingMarkers(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
+	enum ParseError& parseError,
+	bool& bHasAssocTextContent)
+{
+	// When ParseInlineBindingMarkers() is called pChar should be pointing at an
+	// inline binding begin marker - one of the following:
+	// m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn 
+	// \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh 
+	// \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd 
+	// \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+	// This function parses the entire inline binding marker's spanning text 
+	// including the inline binding END marker and returns the length of the whole
+	// binding inline marker span string (including markers).
+	//
+	// We need to decide what to do for malformed binding inline marker spans. 
+	// They may be malformed by having improper markers embedded between the begin
+	// and end markers, or they may be malformed by failing to have an associated
+	// closing marker at the end of the span.
+	// Both problems share the difficulty in determining how long we allow the parse
+	// to continue. We also need to consider the special case where a malformed 
+	// inline binding begin marker occurs near the end of the file and parsing 
+	// would hit the end of the text prematurely. We want to prevent program
+	// crashes and also prevent malformed inline binding markers from corrupting 
+	// too much of the text following the inline binding marker span.
+	//
+	// A rather strict approach would stop parsing as soon as a marker was encountered 
+	// that was not a legal embedded content marker for a inline binding span. If the 
+	// parsing were to stop immediately at the illegal begin marker it would leave a 
+	// "dangling inline binding end marker at the end of the otherwise well-formed 
+	// inline binding marker span.
+	//
+	// A less strict approach might be to allow most character style markerss to
+	// be embedded within inline binding spans, but not allow parses to proceed across 
+	// verse or chapter boundaries or any new paragraph style. Doing this would allow 
+	// some flexibility and would prevent inline binding spans without the proper end 
+	// markers from running on beyond the current verse into new verses, chapters or 
+	// any new paragraph - something the user would not have intended anyway. I've 
+	// taken this less strict approach.
+
+	wxChar* ptr = pChar;
+	wxChar* pEnd = pEndChar;
+	int itemLen = 0;
+	bool bFound = FALSE;
+	wxString wholeIBMarker;
+	wxString wholeMkr;
+	wxString bareMarkerForLookup;
+	wxString wholeMkrUpperCase;
+	USFMAnalysis* pSfm;
+	bool bIsAParagraphStyle = TRUE;
+
+	parseError = no_error;
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	wxASSERT(pDoc != NULL);
+	// we should be pointing at a marker
+	wxASSERT(IsMarkerRTF(ptr, pBuffStart));
+	itemLen = pDoc->ParseMarker(ptr); // point past the inline binding begin marker
+	wholeIBMarker = wxString(ptr, itemLen);
+	ptr += itemLen;
+	while (ptr < pEnd && !bFound)
+	{
+		do
+		{
+			// whm 23Aug2026 added the following test for use when ParseInlineBindingMarkers()
+			// is called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
+		} while (ptr < pEnd && !IsMarkerRTF(ptr, pBuffStart));
+		if (ptr == pEnd)
+		{
+			// we got to the end of the buffer before we found an end marker
+			parseError = premature_buffer_end;
+			break;
+		}
+		// To get to this point we are pointing at some kind of marker
+		wholeMkr = pDoc->GetWholeMarker(ptr);
+		bareMarkerForLookup = pDoc->GetBareMarkerForLookup(ptr);
+		pSfm = pDoc->LookupSFM(bareMarkerForLookup);
+		if (pSfm != NULL && pSfm->styleType != paragraph)
+		{
+			bIsAParagraphStyle = FALSE;
+		}
+		else
+			bIsAParagraphStyle = TRUE;
+		wholeMkrUpperCase = wholeMkr;
+		wholeMkrUpperCase.MakeUpper();
+
+		// whm added 8Nov07. It is possible that wholeMkr (and wholeMkrUpperCase) is an isolated
+		// user entered non-marker backslash. In this case we want to continue parsing.
+		if (wholeMkrUpperCase == _T("\\"))
+		{
+			continue;
+		}
+
+		// If we are pointing at a marker other than an inline binding content marker, or pointing 
+		// at a verse marker or any paragraph marker other than the corresponding inline binding 
+		// end marker, report parseError = no_end_marker and break out.
+		// whm 11Sep2026 TODO: 
+		wxString augWholeMkr = wholeMkr + _T(" ");
+		bool bIsNotAnInlineBindingMkr = gpApp->m_inlineBindingEndMarkers.Find(augWholeMkr) == wxNOT_FOUND;
+		if ((bIsNotAnInlineBindingMkr
+			&& bIsAParagraphStyle) || wholeMkr == _T("\\v"))
+		{
+			// inform the caller that there is no end marker on this inline binding marker.
+			parseError = no_end_marker;
+			break;
+		}
+		if (pDoc->IsCorresEndMarker(wholeIBMarker, ptr, pEnd))
+		{
+			// ptr currently points at the \ of the end marker
+			itemLen = itemLen + wholeMkr.Length();	// get the length of the string including the end marker, but
+													// not any following whitespace or punctuation
+			bFound = TRUE;
+		}
+	}
+	return itemLen;
+
 }
 
 bool IsACharacterStyle(wxString styleMkr, MapBareMkrToRTFTags& rtfMap)
@@ -18289,7 +18475,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			//str = FromSingleMakeSstr2(pSrcPhrase, pPrevSrcPhrase, pList); // whm 28Dec2024 added second parameter
 			// whm 1Mar2026 replaced The above FromSingleMakeSstr2() with a
 			// refactored and greatly simplified FromSingleMakeSstr1() function.
-			str = FromSingleMakeSstr1(pSrcPhrase, pPrevSrcPhrase, pList);
+			bool bSuppressPunctForNonSrcOutput = FALSE; // FALSE for Source text export
+			str = FromSingleMakeSstr1(pSrcPhrase, 
+				pPrevSrcPhrase, 
+				pNextSrcPhrase, // whm 8Sep2026 added
+				pList,
+				bSuppressPunctForNonSrcOutput); // whm 8Sep2026 added
 
 
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
@@ -18868,6 +19059,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 						// its m_markers contains \id at the beginning of m_markers, so don't
 						// prefix str with any whitespace.
 						str << pSrcPhrase->m_markers;
+						// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+						// If there is no gloss for the book id here, we should add the source
+						// text's m_key value, so that the file has a proper \id book code.
+						if (pSrcPhrase->m_gloss.IsEmpty())
+						{
+							str << pSrcPhrase->m_key;
+						}
 					}
 				}
 
@@ -19158,6 +19356,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 					// its m_markers contains \id at the beginning of m_markers, so don't
 					// prefix str with any whitespace.
 					str << pSrcPhrase->m_markers;
+					// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+					// If there is no gloss for the book id here, we should add the source
+					// text's m_key value, so that the file has a proper \id book code.
+					if (pSrcPhrase->m_gloss.IsEmpty())
+					{
+						str << pSrcPhrase->m_key;
+					}
 				}
 			}
 
@@ -19624,6 +19829,13 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 					// its m_markers contains \id at the beginning of m_markers, so don't
 					// prefix str with any whitespace.
 					str << pSrcPhrase->m_markers;
+					// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+					// If there is no free trans for the book id here, we should add the source
+					// text's m_key value, so that the file has a proper \id book code.
+					if (pSrcPhrase->GetFreeTrans().IsEmpty())
+					{
+						str << pSrcPhrase->m_key;
+					}
 				}
 				//str.Trim();
 				//str << aSpace << pSrcPhrase->m_markers;
@@ -19816,7 +20028,7 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 
 					// BEW 11Oct10, additional brute force tests, a little inneficiency here
 					// won't be noticed.
-				wxString mkrPlusSpace = gSFescapechar;
+					wxString mkrPlusSpace = gSFescapechar;
 					mkrPlusSpace += bareMkr + _T(' ');
 					if ((gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
 						(gpApp->m_inlineNonbindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
@@ -19879,13 +20091,6 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 	} // end of special scoping block
 	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // replace old string with new one
-/*
-#if defined (_DEBUG)
-	int break_here = 1;
-	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-		__FILE__, __FUNCTION__, __LINE__, (text2.Left(200)).c_str());
-#endif
-*/
 }
 
 // BEW revised 31Oct05
@@ -19903,6 +20108,11 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 // whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
 // will have the same EOLs across the board, and not have mixed EOLs with some being
 // LF and some being CRLF.
+// 
+// whm 2-9Sep2026 refactored for simplification and to make effecient use of the 
+// CSourcePhrase::m_follWsMkrsAndPunct data. This RebuildTargetText() also makes
+// use of the greatly simplified FromMergerMakeTstr() and FromSingleMakeTstr1()
+// functions.
 int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
 	// BEW 21Jul14, I need the EnableLogging() call, because this function refuses to
@@ -19925,26 +20135,14 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
 	}
 	wxASSERT(pList != NULL);
-
-	wxString aSpace = _T(' ');
-	//wxChar fwdslash = _T('/');	// a placeholder for newline (CString doesn't count newlines)
-	//wxChar newline = _T('\n');	// before returning we replace forward slash placeholders
-								// with newlines
-
 	wxString targetstr; // accumulate the target text here
-
-	// whm 15Feb2024 added following boolean to track when a previous target string was
-	// empty except for some preceding punctuation/markers.
-	// This boolean is now a reference parameter in the FromSingleMakeTstr() function to
-	// inform RebuildTargetText()  whether to suppress the insertion of aBreak below.
-	bool bLastTstrOnlyContentWasPunct = FALSE;
-
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 
 	// whm 28Dec2024 added pPrevSrcPhrase below - it is passed into FromSingleMakeTstr() which
 	// makes use of it and also passes it to its call of: FromSingleMakeSstr1().
-	CSourcePhrase* pPrevSrcPhrase = NULL; 
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CSourcePhrase* pNextSrcPhrase = NULL;
 
 	while (pos_pList != NULL)
 	{
@@ -19953,170 +20151,17 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
+		if (pos_pList != NULL)
+			pNextSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // whm 5Sep2026 added
+
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 137) 
+		if (pSrcPhrase->m_nSequNumber >= 305) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
-		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
-#if defined(_DEBUG)
-		/*
-		if (!aBreak.IsEmpty())
-		{
-			wxChar aChar = aBreak.GetChar(0);
-			if (aChar == (wxChar)0x200B || aChar == _T(' '))
-			{
-				wxString s = aChar == _T(' ') ? _T("<space>") : _T("&#x200B");
-				wxLogDebug(_T("WordBreak before tgt: %s   is  %s"), pSrcPhrase->m_targetStr.c_str(), s.c_str());
-				//if (aChar == (wxChar)0x200B)
-				//{
-					// replace with <ZWSP> string temporarily, and note the output
-				//	aBreak = _T("<ZWSP>");
-				//}
-			}
-		}
-		*/
-#endif
-		if (!aBreak.IsEmpty())
-		{
-			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
-			// whm 15Feb2024 added test for bLastTstrOnlyContentWasPunct before adding aBreak.
-			// whm 1Jul2026 added the pSrcPhrase->m_nSequNumber != 0 condition to following test.
-			if (bLastTstrOnlyContentWasPunct == FALSE && pSrcPhrase->m_nSequNumber != 0)
-			{
-				// Only add aBreak if bLastTstrOnlyContentWasPunct was FALSE, otherwise we
-				// would be adding aBreak between a preceding punctuation/quote mark that
-				// was present on a previous SP where user indicated <no adaptation> as a
-				// translation for that previous SP, but where that previous SP has some kind
-				// of preceding punctuation.
-				// whm 22Aug2026 modified. Also, only add aBreak if the m_adaption has content
-				if (!pSrcPhrase->m_adaption.IsEmpty())
-				{
-					if (aBreak == _T('\n'))
-					{
-						targetstr += _T("\r\n"); // change LF to CRLF
-					}
-					else
-					{
-						targetstr += aBreak;
-					}
-				}
-			}
-			else
-			{
-				// We must reset the bLastTstrOnlyContentWasPunct to FALSE so that normal
-				// insertion of aBreak between target words/phrases will continue.
-				bLastTstrOnlyContentWasPunct = FALSE;
-			}
-		}
-		else
-		{
-			// aBreak was empty so aBreak was not added for this SP.
-			// if bLastTstrOnlyContentWasPunct was set TRUE we need to reset it before
-			// continuing.
-			if (bLastTstrOnlyContentWasPunct)
-				bLastTstrOnlyContentWasPunct = FALSE;
-		}
-
-		// whm 11Aug2026 Rethink of the following addition made 1Jul2026.
-		// Since pSrcPhrase->m_markers may have more than one marker stored
-		// therein, the call of GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType()
-		// below can only here use that function to see what white space
-		// EOL or space or nothing, should be placed after a previous marker
-		// was added to the targetstr by one of the auxiliary functions from
-		// helpers.cpp FromMergerMakeTstr() or FromSingleMakeTstr() - both of
-		// these target text building functions call a function named:
-		// GetUnfilteredCrossRefsAndMMarkers() which is the actual function that
-		// processed the contents of m_markers as part of the text it returns
-		// to those helpers.cpp functions FromMergerMakeTstr() and FromSingleMakeTstr().
-		// I now think it better to process all markers together at one time
-		// using a call to the function 
-		// GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType() for each marker
-		// that may be found in pSrcPhrase->m_markers, and such calls should
-		// be made within the FromMergerMakeTstr() and FromSingleMakeTstr()
-		// instead of here within RebuildTargetText().
-		// Therefore, I think I will remove the following block, and look at
-		// adding the processing of the pSrcPhrase->m_markers material more
-		// directly within the helpers.cpp functions that are called farther 
-		// below: FromMergerMakeTstr() and FromSingleMakeTstr().
-		/*
-		// whm 1Jul2026 addition. The above code may not have determined an appropriate
-		// whitespace between the exported target string of the pPrevSrcPhrase and this
-		// current pSrcPhrase, especially if the current pSrcPhrase has a paragraph type
-		// marker such as \q2 within its m_markers member. In such cases the whitespace
-		// that gets added should be an EOL, otherwise it should be a plain space.
-		if (pPrevSrcPhrase != NULL && !pSrcPhrase->m_markers.IsEmpty())
-		{
-			// Determine what kind of whitespace (space or EOL) the first marker within 
-			// m_markers should have.
-			wxString firstMkr; firstMkr.Empty();
-			// Get an array of markers in m_markers
-			wxArrayString MkrList;
-			gpApp->GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(MkrList, pSrcPhrase->m_markers);
-			if (!MkrList.IsEmpty())
-			{
-				if (!targetstr.IsEmpty())
-				{
-					wxChar lastCh = targetstr.GetChar(targetstr.Length() - 1);
-					if (IsWhiteSpace(&lastCh))
-					{
-						targetstr.Trim(); // remove any terminating whitespace
-					}
-				}
-				firstMkr = MkrList.Item(0);
-				// whm 1Jul2026 added the following new function
-				wxString whiteSpToPrefixMkr; whiteSpToPrefixMkr.Empty();
-				whiteSpToPrefixMkr = GetWhiteSpaceToPrefixThisMarkerBasedOnUSFMTextType(firstMkr);
-				targetstr += whiteSpToPrefixMkr;
-				
-				//// For consistency sake remove any following whitespace from firstMkr
-				//firstMkr.Trim();
-				//wxString bareMkr = firstMkr;
-				//bareMkr = bareMkr.Mid(1);
-				//StyleType styType;
-				//// in the next call NULL is returned if bareMkr is an unknown marker
-				//USFMAnalysis* pUsfmAnalysis = gpApp->GetDocument()->LookupSFM(bareMkr);
-				//if (pUsfmAnalysis != NULL)
-				//{
-				//	styType = pUsfmAnalysis->styleType;
-				//	// possible styTypes found in actual text (not RTF output) are (with Sp or EOL)
-				//	//	EOL - paragraph, x for many usfm markers - most don't have end markers
-				//	//	Sp  - character, x for many usfm markers - all that have end markers
-				//	//	Sp - footnote_text, only for \x \f \fe
-				//	//	EOL - horiz_rule, only for \ie and \hr markers and also for \_horiz_rule marker
-				//	switch (styType)
-				//	{
-				//	case footnote_text: // fall through to character
-				//	case character:
-				//	{
-				//		targetstr += _T(" ");
-				//		break;
-				//	}
-				//	case horiz_rule: // fall through to paragraph
-				//	case paragraph:
-				//	{
-				//		targetstr += _T("\r\n");
-				//		break;
-				//	}
-				//	default:
-				//	{
-				//		// any other known markers that might appear with different styType
-				//		targetstr += _T("\r\n");
-				//		break;
-				//	}
-				//	} // end of switch (styType)
-				//}
-				//else
-				//{
-				//	// it was a filtered unknown marker so put it on a new line in exports
-				//	targetstr += _T("\r\n");
-				//}
-				
-			}
-		}
-		*/
+		// whm 5Sep2026 removed the aBreak code
 
 		if (pSrcPhrase->m_bRetranslation)
 		{
@@ -20137,8 +20182,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		else
 		{
 			// not a retranslation, so get the target text for this srcPhrase
-			str  = pSrcPhrase->m_targetStr; // this could possibly be empty
-
+			//
 			// handle any stnd format markers, including internal ones -- most stnd format
 			// markers can be handled silently. Place the phrase initial ones silently,
 			// then if there are any phrase medial ones we need to internally use a dialog
@@ -20155,7 +20199,12 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// is bCountInTargetText
 				gpApp->GetDocument()->m_bTstrFromMergerCalled = FALSE; // init, next call
 									// can set it TRUE for use at end of FromSingleMakeTstr()
-				str = FromMergerMakeTstr(pSrcPhrase, str, TRUE, TRUE);
+				str = FromMergerMakeTstr(pSrcPhrase,
+					pPrevSrcPhrase, // whm 5Sep2026 added
+					pNextSrcPhrase, // whm 5Sep2026 added
+					pList, // whm 5Sep2026 added							
+					TRUE,
+					TRUE);
 
 				// BEW 30Sep19 Mergers are forbidden to store USFM3 attributes metadata,
 				// on any CSourcePhrase instance of the merger. If there is some, its bogus
@@ -20177,9 +20226,13 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
-				str = FromSingleMakeTstr(pSrcPhrase, pPrevSrcPhrase, // whm 28Dec2024 added pPrevSrcPhrase parameter - unused - may use in future
-					str, TRUE, TRUE, bLastTstrOnlyContentWasPunct,
-					pList); // whm 19Nov2025 added pList parameter
+				//
+				// whm 3Sep2026 Replaced the overly complex FromSingleMakeTstr() function with
+				// the refactored version named FromSingleMakeTstr1().
+				str = FromSingleMakeTstr1(pSrcPhrase, 
+					pPrevSrcPhrase,
+					pNextSrcPhrase, // whm 8Sep2026 added
+					pList);
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
@@ -20217,12 +20270,16 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			}
 		}
 
-		// whm 11Aug202 added. If the pSrcPhrase->m_markers has the \id marker and str has
+		// whm 11Aug2026 added. If the pSrcPhrase->m_markers has the \id marker and str has
 		// whitespace before the \id marker, and targetstr is empty, we remove the whitespace
 		// occurring before the \id marker in the str.
+		// whm 27Aug2026 We also check to see if this \id source phrase has any target text within
+		// it, which should represent the book code. If no target text is present for the book code
+		// we add the source text book code so that the \id line will be a valid one for Paratext, etc.
 		if (pSrcPhrase->m_markers.Find(_T("\\id")) != wxNOT_FOUND)
 		{
-			if (!str.IsEmpty() && targetstr.IsEmpty())
+
+			if (!str.IsEmpty() && pSrcPhrase->m_adaption.IsEmpty())
 			{
 				wxChar strCh = str.GetChar(0);
 				if (str.Find(_T("\\id")) >= 2
@@ -20230,51 +20287,198 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				{
 					str.Trim(FALSE);
 				}
+				// whm 27Aug2026 added. There is no target text present for the book id, so 
+				// insert the source text m_key for book id
+				str.Trim();
+				str = str + _T(" ") + pSrcPhrase->m_key;
 			}
 		}
- 		// handle when str contains only [ or ], we join [ to what follows, and ] to what
-		// precedes, so we don't want space after [ and no space before ]; here, deal with
-		// the case of str containing ]
-		bool bPlacedAlready = FALSE;
-		// whm 9Jun12 modified to add !str.IsEmpty() in the test
-		if (!str.IsEmpty() && str[0] == _T(']'))
+
+		// --Below is for cleanup of potential duplication of whitesp, punct, & markers--
+		// whm 2Sep2026 modified. Check to avoid doubling EOL or space when 
+		// concatenating the targetstr with str, and avoid doubling of any initial 
+		// punctuation.
+		// 
+		// whm 7Sep2026 revised. Testing shows that it may happen that the targetstr
+		// could end with a begin marker like "\\fk " and the str string could begin
+		// with the same "\\fk ..." (with no preceding space) which could cause the
+		// duplication of the \fk marker (here within a footnote). We should normalize
+		// any ending whitespace on targetstr with any initial whitespace on str (to
+		// make whitespace the same on both or removed from both); then use our
+		// FindOverlap() function to detect possible presence (of whitespace, marker(s) 
+		// or punctuation) at the end of targetstr, that would duplicate what is present
+		// initially on str, and remove any potential duplication from the (shorter) 
+		// str, that is about to be concatenated with the potentially much longer 
+		// targetstr.
+		// This FindOverlap() should also detect when there is a possibility duplication
+		// involving whitespace, initial markers, and/or initial punctuation at the 
+		// end of targetstr and beginning of str.
+		// To avoid bogus commonStr matches we restrict the following test to instances
+		// in which str contains a usfm marker, or punctuation present (after any
+		// initial whitespace)
+		bool bCheckForMarkersAndPunct = FALSE;
+		wxString testStr = str;
+		testStr.Trim(FALSE); // remove from testStr any initial whitespace
+		if (!targetstr.IsEmpty() && !testStr.IsEmpty())
 		{
-			targetstr.Trim(); // remove any final space before appending ]
-			targetstr << str;
-			bPlacedAlready = TRUE;
+			wxChar testCh = testStr.GetChar(0);
+			if (testCh == _T('\\') || gpApp->GetDocument()->m_strInitialPuncts.Find(testCh) != wxNOT_FOUND)
+				bCheckForMarkersAndPunct = TRUE;
 		}
-	   // BEW added 30May07, The retranslation text's block can present us with a str with
-		// no initial space, and targetstr may not end with a space, so we have to check
-		// for no space and add one if needed; but the check is only wanted if targetstr
-		// has something in it and str is not empty.
-		/* BEW 21Jul14, we put in the special or ordinary space at top now, now here
-		if (targetstr.Length() > 0 && !str.IsEmpty())
+		if (!targetstr.IsEmpty() && !str.IsEmpty() && bCheckForMarkersAndPunct)
 		{
-			if (targetstr[targetstr.Length() - 1] != _T(' ') && str[0] != _T(' '))
-				targetstr += _T(' ');
-		}
-		// after the above, targetstr will end with space, if it is not empty
-		*/
-		// handle when str contains only [, we don't want space after [
-		// BEW 8Apr14, added second subtest in next line, because if the input file has a
-		// single character as first word, the final subtest will fail because .Len() - 2
-		// will be -1 giving a bounds error crash
-		if (!targetstr.IsEmpty() && (targetstr.Len() > 1) && (targetstr[targetstr.Len() - 2] == _T('[')))
-		{
-			// in this circumstance we don't want the space which follows [
-			targetstr.Trim();
-			str.Trim(FALSE); // remove any initial whitespace
-			targetstr << str;
-		}
-		else
-		{
-			if (!bPlacedAlready)
+			bool bRemovedConjoiningWhiteSpace = FALSE;
+			// To detect any possible duplication we should first make sure that any
+			// whitespace at the end of targetstr has a corresponding temporary 
+			// whitespace at the beginning of the str (if str has no initial whitespace).
+			wxString initialWhiteSpOfTargetstr;
+			wxString endingWhiteSpOfTargetstr;
+			wxString initialWhiteSpOfStr;
+			wxString endingWhiteSpOfStr;
+			// posInitialWsOnTargetStr would always be 0, since we're determining "initial" whitespace
+			int posEndingWsOnTargetStr = -1;
+			// posInitialWsOnStr would always be 0, since we're determining "initial" whitespace
+			int posEndingWsOnStr = -1;
+			// In the GetWhitespaceFromBeginningAndEndingOfString() function calls below
+			// the initialWhiteSp... and endingWhiteSp... strings will return empty if no
+			// whitespace exists at those initial and ending parts of the inputstring, and
+			// the posEndingWs... returns the index position of any ending whitespace, or
+			// -1 if no whitespace is present at the ending of the input string. The index
+			// position of any "initialWhiteSp..." is naturally assumed to be 0 if any
+			// whitespace is present initially.
+			GetWhitespaceFromBeginningAndEndingOfString(targetstr,
+				initialWhiteSpOfTargetstr, 
+				endingWhiteSpOfTargetstr, posEndingWsOnTargetStr); // we examine these ending values here
+			GetWhitespaceFromBeginningAndEndingOfString(str,
+				initialWhiteSpOfStr, // we examine this initial whitespace of str here
+				endingWhiteSpOfStr, posEndingWsOnStr);
+			// If either targetstr ends with whitespace OR str begins with whitespace
+			// ensure they have the same whitespace before calling the FindOverlap()
+			// function, in order to eliminate any duplication of begin markers and/or
+			// initial punctuation.
+			if (!endingWhiteSpOfTargetstr.IsEmpty() || !initialWhiteSpOfStr.IsEmpty())
 			{
-				// BEW 21Jul14, we don't want space added any more, we put them in first now
-				//targetstr << str << aSpace;
-				targetstr << str;
+				// One OR both strings have whitespace to normalize before the FindOverlap()
+				// call.
+				// If targetstr and str both have the same whitespace we can immediately
+				// call FindOverlap(targetstr, str). 
+				// If targetstr and str have different whitespace we need to normalize
+				// the end of targetstr and beginning of str first before the call of
+				// FindOverlap.
+				if (endingWhiteSpOfTargetstr != initialWhiteSpOfStr)
+				{
+					targetstr.Trim(); // Temporarily remove any ending whitespace
+					str.Trim(FALSE); // Temporarily remove any initial whitespace
+					bRemovedConjoiningWhiteSpace = TRUE;
+				}
+#ifdef _DEBUG
+				if (pSrcPhrase->m_nSequNumber >= 304)
+				{
+					int break_here = 1;
+					break_here = break_here;
+				}
+#endif
+				// At this point the whitespace is either identical or completely
+				// removed.
+				wxString commonStr; commonStr.Empty();
+				commonStr = FindOverlap(targetstr, str);
+				bool commonStrHasMkr;
+				commonStrHasMkr = commonStr.Find(_T("\\")) != wxNOT_FOUND;
+				if (!commonStr.IsEmpty())
+				{
+					// Remove the commonStr from beginning of the (shorter) str 
+					// before we concatenate it to the (potentially much longer) 
+					// targetStr.
+					int posCommonStr = str.Find(commonStr);
+					if (posCommonStr != wxNOT_FOUND)
+					{
+						str = str.Mid(posCommonStr + commonStr.Length());
+						if (commonStrHasMkr && !endingWhiteSpOfTargetstr.IsEmpty())
+						{
+							// Remove resulting initial space from str since targetstr
+							// ends with whitespace
+							str.Trim(FALSE);
+						}
+					}
+
+				}
+				if (bRemovedConjoiningWhiteSpace)
+				{
+					// We can return the whitespace that was removed above
+					targetstr += endingWhiteSpOfTargetstr;
+					if (endingWhiteSpOfTargetstr.IsEmpty())
+					{
+						// The targetstr has no ending whitespace. If initialWhiteSpOfStr
+						// is not empty prefix it to str. If initialWhiteSpOfStr is empty
+						// add a Latin space.
+						if (!initialWhiteSpOfStr.IsEmpty())
+							str = initialWhiteSpOfStr + str;
+						else
+							str = _T(" ") + str;
+
+					}
+					if (initialWhiteSpOfStr == _T("\r\n") && str.Find(_T("\\")) != wxNOT_FOUND)
+						str = initialWhiteSpOfStr + str;
+				}
 			}
 		}
+
+		// whm 7Sep2026 added.
+		// If both targetstr and str have content, remove any duplicate EOLs,
+		// and remove duplicate identical initial tgt punctuation from str.
+		if (!targetstr.IsEmpty() && !str.IsEmpty())
+		{
+			wxChar lastTargetStrChar = targetstr.GetChar(targetstr.Length() - 1);
+			wxChar firstStrChar = str.GetChar(0);
+			if (lastTargetStrChar == _T('\n') && (firstStrChar == _T('\r') || firstStrChar == _T('\n')))
+			{
+				// The targetstr ends with an EOL and str begins with an EOL.
+				// To avoid duplicate EOLs, remove the initial EOL from str.
+				str.Trim(FALSE); 
+			}
+			wxString tgtPuncts = gpApp->m_strSpacelessTargetPuncts;
+			// whm 2Sep2026 process any existing multiple identical punctuation 
+			// chars that are duplications into a single one.
+			while (!targetstr.IsEmpty() && !str.IsEmpty()
+				&& lastTargetStrChar == firstStrChar
+				&& tgtPuncts.Find(lastTargetStrChar) != wxNOT_FOUND
+				&& tgtPuncts.Find(firstStrChar) != wxNOT_FOUND)
+			{
+				// Remove identical initial tgt punctuation from str
+				str = str.Mid(1);
+				if (!targetstr.IsEmpty() && !str.IsEmpty())
+				{
+					lastTargetStrChar = targetstr.GetChar(targetstr.Length() - 1);
+					firstStrChar = str.GetChar(0);
+				}
+			}
+		}
+		// Avoid duplication of final and initial space.
+		if (!targetstr.IsEmpty() && !str.IsEmpty()
+			&& targetstr.GetChar(targetstr.Length() - 1) == _T(' ')
+			&& str.GetChar(0) == _T(' '))
+		{
+			// The targetstr ends with space and the str starts with space so remove
+			// initial space from str.
+			str.Trim(FALSE);
+		}
+
+		// Testing shows that the str value should end with a space here.
+		// Add a space to end of str if there is none. 
+		// Exceptions: Don't add a space at end if the last character of str is
+		// strictly initial punctuation such as '(', '[', initial quote(s), etc
+		if (!str.IsEmpty())
+		{
+			wxChar lastCh = str.GetChar(str.Length() - 1);
+			bool lastChIsInitialPunct = gpApp->GetDocument()->m_strStrictlyInitialPuncts.Find(lastCh) != wxNOT_FOUND;
+			if (!IsWhiteSpace(&lastCh) 
+				&& !lastChIsInitialPunct)
+				str += _T(" ");
+		}
+
+		targetstr << str;
+		//	}
+		//}
 #if defined(_DEBUG) && defined(TRUNCATED)
 /* This demonstrated that every CSourcePhrase to end of doc at sn=20300 was correctly dealt with, so error is after RebuildTargetText() call
 		if (pSrcPhrase->m_nSequNumber > 9980)
@@ -20757,7 +20961,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								enum ExportType exportType)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-
+	enum ParseError parseError = no_error; // whm 23Aug2026 added
 	// Setup input buffer from textStr
 	// wx version: we use the textLen passed in as parameter rather than getting length
 	// of the string with embedded new line chars. It is used to set pEnd in the read-only
@@ -20784,6 +20988,12 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	bool bSaw_backslash_x = FALSE; // for cross references \x ... \x*
 	bool bSaw_backslash_f = FALSE; // for footnotes  \f ... \f*
 	bool bSaw_backslash_fe = FALSE; // for endnotes  \fe ... \fe*
+
+	bool bSaw_backslash_inlineB = FALSE; // for inline binding markers that are
+	// members of the following pApp defined sets:
+	// m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+	// m_inlineBindingEndMarkers = _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+
 	bool bIsEndMarker = FALSE;
 
 	// Setup copy-to buffer from textStr2.
@@ -20839,7 +21049,17 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		}
 		*/
 
-		wxString bareMarkerForLookup,bareMarkerInInputArray, wholeMarker;
+		wxString bareMarkerForLookup, bareMarkerInInputArray;
+		wxString wholeMarker;
+		wxString augWholeMarker; // wholeMarker ending with a space
+		wxString wholeInlineBindingMarker; // whm 11Sep2026 added
+		wxString wholeInlineBindingEndMarker; // whm 11Sep2026 added
+		bool bIsAnInlineBindingMkr = FALSE; // whm 11Sep2026 added
+		bool bIsAnInlineBindingEndMkr = FALSE; // whm 11Sep2026 added
+
+		// whm 11Sep2026 Note: The baseMarkerArray, FilterFlagsArray and the
+		// int nMarkersInArray are not currently used here within 
+		// ApplyOutputFilterToText().
 		int nMarkersInArray = bareMarkerArray.GetCount();
 		if (nMarkersInArray != (int)filterFlagsArray.GetCount())
 		{
@@ -20866,6 +21086,15 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				// We're pointing at a marker. Look it up and see if we should skip over it and
 				// its associated text
 				wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+				augWholeMarker = wholeMarker + _T(" ");
+				bIsAnInlineBindingMkr = gpApp->m_inlineBindingMarkers.Find(augWholeMarker) != wxNOT_FOUND;
+				bIsAnInlineBindingEndMkr = gpApp->m_inlineBindingEndMarkers.Find(augWholeMarker) != wxNOT_FOUND;
+				if (bIsAnInlineBindingMkr)
+				{
+					wholeInlineBindingMarker = wholeMarker;
+					wholeInlineBindingEndMarker = wholeMarker + _T("*");
+				}
+
 				if (!bRTFOutput)
 				{
 					bIsEndMarker = pDoc->IsEndMarker(pOld, pEnd);
@@ -20873,6 +21102,12 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				else
 				{
 					bIsEndMarker = IsEndMarkerRTF(pOld, pEnd);
+				}
+				if (!bIsEndMarker && gpApp->m_inlineBindingMarkers.Find(augWholeMarker) != wxNOT_FOUND)
+				{
+					bSaw_backslash_inlineB = TRUE;	// leave it set TRUE until a matching inline binding end 
+													// marker terminates the inline binding span, and we clear
+													// this boolean to FALSE, and bHitMkr to FALSE also
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\x"))
 				{
@@ -20927,6 +21162,14 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				bool bRemoveIt = FALSE;
 				if (bIsEndMarker)
 				{
+					// whm 11Sep2026 added the following for inline binding end markers
+					if (wholeMarker == wholeInlineBindingEndMarker)
+					{
+						if (!bSaw_backslash_inlineB)
+						{
+							bRemoveIt = TRUE;
+						}
+					}
 					if (wholeMarker == _T("\\x*"))
 					{
 						if (!bSaw_backslash_x)
@@ -20991,13 +21234,141 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				// an 'else if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))'
 				// block
 				if (bareMarkerForLookup == _T("f") || bareMarkerForLookup == _T("x")
-					|| bareMarkerForLookup == _T("fe"))
+					|| bareMarkerForLookup == _T("fe")
+					|| bIsAnInlineBindingMkr // whm 11Sep2026 added for inline binding marker
+					)
 				{
-					int skipAmount = 6;
+					// whm 11Sep2026 addition. Parse the \f, \x, \fe, or inlinebinding marker
+					// span, and if the span between the begin marker and the end marker is extended,
+					// that is, it has more than a simple space, for example, if it is more than just 
+					// one of the following: \f \f*, \x \x*, \fe \fe* or \ibMkr \ibMkr*, but instead
+					// is something like: \f \ft \ft* \f*, \x \xo \xo* \x*, \fe \fk \fk* \fe* or 
+					// \ibMkr \+ibMkr \+ibMkr* ibMkr*, where there is punctuation or other 
+					// embedded/nested content markers existing between the marker at the beginning
+					// of the span and the end of the span, then remove the entire span here. 
+					// Minimal \f, \x, \fe and inlinebinding marker spans are treated farther below.
+					if (bIsAnInlineBindingMkr)
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseInlineBindingMarkers(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						wxString entireSpan = wxString(pOld, itemLen);
+						wxString minimalSpanWithOnlySpace = wholeInlineBindingMarker + _T(" ") + wholeInlineBindingEndMarker;
+						if ((entireSpan != minimalSpanWithOnlySpace) 
+							&& exportType != sourceTextExport
+							&& parseError == no_error
+							&& !bHasAssocTextContent)
+						{
+							// The inline binding entire marker span has no associated text content, 
+							// so for exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire footnote span from the output text
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The inline binding entire span has at least some associated text within
+							// the span, so we do nothing more here.
+							;
+						}
+					}
+					// whm 23Aug2026 addition. Parse the footnote/endnote/crossref span and
+					// if the entire span contains no associated text, then remove the entire span.
+					if (bareMarkerForLookup == _T("f"))
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseFootnote(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						wxString entireSpan = wxString(pOld, itemLen);
+						wxString minimalSpanWithOnlySpace = _T("\\f \\f*");
+						if ((entireSpan != minimalSpanWithOnlySpace) 
+							&& exportType != sourceTextExport
+							&& parseError == no_error
+							&& !bHasAssocTextContent)
+						{
+							// The extended footnote span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire footnote span from the output text.
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The footnote span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
+					}
 					if (bareMarkerForLookup == _T("fe"))
 					{
-						skipAmount = 8; // \fe \fe*
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseEndnote(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						wxString entireSpan = wxString(pOld, itemLen);
+						wxString minimalSpanWithOnlySpace = _T("\\fe \\fe*");
+						if ((entireSpan != minimalSpanWithOnlySpace) 
+							&& exportType != sourceTextExport
+							&& parseError == no_error
+							&& !bHasAssocTextContent)
+						{
+							// The extended endnote span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire endtnote span from the output text.
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The endtnote span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
 					}
+					if (bareMarkerForLookup == _T("x"))
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseCrossRef(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						wxString entireSpan = wxString(pOld, itemLen);
+						wxString minimalSpanWithOnlySpace = _T("\\x \\x*");
+						if ((entireSpan != minimalSpanWithOnlySpace) 
+							&& exportType != sourceTextExport
+							&& parseError == no_error
+							&& !bHasAssocTextContent)
+						{
+							// The extended crossref span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire crossref span from the output text.
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The crossref span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
+					}
+
+					// whm 11Sep2026 Below we treat minimal marker spans that have only
+					// a space between the begin marker and the end marker.
+					// Below I've also modified skipAmount to accommodate potentially longer
+					// markers, for example an inline binding marker span can be as short 
+					// as \w \w*, requiring a skipAmount of 6 for a bareMkrLen of 1; or as 
+					// long as \+bdit \+bdit* requiring a skipAmount of 14 for a bareMkrLen 
+					// of 5 (with the + included), or a skipAmount of 12 for a bareMkrLen 
+					// of 4 (if + is excluded).
+					// Note: The nested marker symbol + is removed by the GetBareMarker() 
+					// function call above, but the + should still be present within the
+					// exported text. 
+					// Check if wholeMarker has a + within it, and if so, add 2 to skipAmount
+					// TODO: Test this with nested + markers.
+					int bareMkrLen = bareMarkerForLookup.Length();
+					bool markerHasPlus = wholeMarker.Find(_T("+")) != wxNOT_FOUND;
+					if (markerHasPlus)
+						bareMkrLen += 1;
+					int skipAmount = 6; // for 1-letter bareMarkerForLookup strings: \f \f*, \x \x*, etc
+					if (bareMkrLen > 1)
+					{
+						// \fe \fe* bareMkrLen of 2 and skipAmount of 8
+						// \add \add* bareMkrLen of 3 and skipAmount of 10
+						// \bdit \bdit* bareMkrLen of 4 and skipAmount of 12
+						// \+bdit \+bdit* bareMkrLen of 4+1=5 and skipAmount of 14
+						skipAmount = 6 + 2 * (bareMkrLen - 1); 
+					}
+		
 					// whm 11Aug2026 We handle footnote and cross-ref markers and their 
 					// associated text separately here, because for certain exportType 
 					// exports (targetTextExport, glossesTextExport, freeTransTextExport) 
@@ -21024,10 +21395,19 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							// \f \f*, or \x \x*, or \fe \fe*, and if so, advance pOld to point 
 							// at first character after the end marker making up the empty span.
 							wxString markerSpan = wxString(pOld, skipAmount);
+							wxString minimalInlineBindingSpan = wholeInlineBindingMarker
+								+ _T(" ") + wholeInlineBindingEndMarker;
 							if (markerSpan == _T("\\f \\f*") || markerSpan == _T("\\x \\x*")
-								|| markerSpan == _T("\\fe \\fe*"))
+								|| markerSpan == _T("\\fe \\fe*")
+								|| markerSpan == minimalInlineBindingSpan) // whm 11Sep2026 added
 							{
 								pOld = pOld + skipAmount;
+								if (markerSpan == minimalInlineBindingSpan)
+								{
+									// Reset the inline binding markers back to empty strings.
+									wholeInlineBindingMarker.Empty();
+									wholeInlineBindingEndMarker.Empty();
+								}
 							}
 							else
 							{

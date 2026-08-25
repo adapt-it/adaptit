@@ -3309,8 +3309,21 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 			bNoError = pDoc->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 
 			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase(); // BEW 19May18 added
-			if (gbIsGlossing) { pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_gloss; }
-			else { pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_adaption; }
+			if (gbIsGlossing) 
+			{
+				pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_gloss; 
+			}
+			else 
+			{
+				// whm 24Aug2026 Testing. It would seem to me better to here
+				// assign pSP->m_targetStr to m_SaveTargetPhrase, rather than
+				// assigning pSP->m_adaption, since m_targetStr preserves any
+				// punctuation. This is in effort to correct the loss of initial
+				// punctuation when the phrasebox is placed at the pSP location.
+				// TODO: Test this!!
+				//pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_adaption;
+				pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_targetStr;
+		}
 		}
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -3824,7 +3837,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	}
 	else
 	{
-		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+		pApp->m_targetPhrase = pSrcPhrase->m_targetStr; //pApp->m_targetPhrase = pSrcPhrase->m_adaption; // whm 24Aug2026 testing change
 	}
 	pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 
@@ -4144,7 +4157,29 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	}
 	//} // end of TRUE block for test: if (!m_bWithinEmptyMkrsLoop)
 
-a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on
+	// whm 24Aug2026 modified the code here so that pApp->m_targetPhrase can retain any
+	// punctuation that it contains at this point, and still get any modification for gbAutoCaps. 
+	// Strategy: At this point the pApp->m_targetPhrase value should normally be the same text
+	// that is represented by the str value, except that pApp->m_targetPhrase will have punctuation
+	// still on it. So, we can test if str is wholly found within the pApp->m_targetPhrase, and if
+	// so (as expected), We can collect any initialPuncts and finalPuncts from the pApp->m_targetPhrase
+	// value, then process only the str value through the if (gbAutoCaps) code below, and then finally
+	// we can re-attach the punctuation we collected in initialPuncts and finalPuncts back on the str
+	// value, and assign this new str value back to pApp->m_targetPhrase. The result should be a 
+	// pApp->m_targetPhrase value that retains its initialPuncts and finalPuncts, and has any necessary
+	// gbAutoCaps adjustment made to it.
+	a: // moved this label up from its original position below
+	wxString initialPuncts; initialPuncts.Empty();
+	wxString finalPuncts; finalPuncts.Empty();
+	int posStr = pApp->m_targetPhrase.Find(str);
+	if (posStr != wxNOT_FOUND)
+	{
+		initialPuncts = pApp->m_targetPhrase.Mid(0, posStr);
+		finalPuncts = pApp->m_targetPhrase.Mid(posStr + str.Length());
+	}
+
+//a:	
+	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on
 				// 28April05 to the code now in the DoGetSuitableText_ForPlacePhraseBox()
 	pApp->m_nStartChar = -1;
 	pApp->m_nEndChar = -1; // make sure the text is shown selected
@@ -4161,6 +4196,12 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			}
 		}
 	}
+	// whm 24Aug2026 additions below to restore initialPunct and any finalPuncts to the pApp->m_targetPhrase.
+	if (!initialPuncts.IsEmpty())
+		pApp->m_targetPhrase = initialPuncts + pApp->m_targetPhrase;
+	if (!finalPuncts.IsEmpty())
+		pApp->m_targetPhrase = pApp->m_targetPhrase + finalPuncts;
+
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3693,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
@@ -28468,6 +28509,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 				// function.
 				srcStr = FromSingleMakeSstr1(pSrcPhrase, //srcStr = FromSingleMakeSstr2(pSrcPhrase,
 					pPrevSrcPhrase, // whm 28Dec2024 added 2nd parameter 
+					pNextSrcPhrase, // whm 8Sep2026 added
 					pSrcPhrases); // whm 19Nov2025 added pSrcPhrases
 			}
 			// Prefix the wsMkrsAndPuncts to the rebuild source srcStr before output to strSource.

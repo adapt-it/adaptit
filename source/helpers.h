@@ -50,6 +50,37 @@ enum getNewFileState
 	getNewFile_error_ansi_CRLF_not_in_sequence
 };
 
+// whm 3Sep2026 added for use in 
+// ConvertSrcPunctsInStringToTgt()
+// This enum type doesn't distinguish between punctuation
+// that is of spanning (opening vs closing) or non-spanning
+// single use punctuation
+enum PunctType
+{
+	strictlyInitial, // m_strStrictlyInitialPuncts = wxString::FromUTF8("“‘[(<{«¿¡") 1st 7 are spanning, last 2 are non-spanning initialOnly
+	strictlyFinal, // m_strStrictlyFinalPuncts = wxString::FromUTF8("”’])>}»?.,;:!") 1st 7 are spanning, last 6 are non-spanning finalOnly
+	strictlyInitialOrFinal, // m_strStrictlyInitialPuncts + m_strStrictlyFinalPuncts combined; used mainly in afterSrcWord conversions
+	initialOnly, // m_strInitialNonSpanningPuncts = wxString::FromUTF8("¿¡") // last 2 of m_strStrictlyInitialPuncts above
+	finalOnly // m_strFinalNonSpanningPuncts = wxString::FromUTF8("?.,;:!") // last 6 of m_strStrictlyFinalPuncts above
+	//ambiguousPunct, // m_strAmbiguousSpanningPuncts = wxString::FromUTF8("\'\"") // these two are straight double " and single ' quote marks
+	//nonPunctChar // type for all other non-punctuation characters.
+};
+
+// whm 9Sep2026 added for use in the helpers.cpp functions:
+// IsPunctOrMkrSpanEmptyOfNonSrcText() and FromSingleMakeSstr1()
+// both of which focus on a distinction between spanning and non-spanning
+// punctuation, and searching in pList of source phrases for 
+// corresponding initial (opening) and final (closing) punctuation.
+enum PunctSpanningType
+{
+	initialSpanning, // m_strInitialSpanningPuncts = wxString::FromUTF8("“‘[(<{«")
+	finalSpanning, // m_strFinalSpanningPuncts = wxString::FromUTF8("”’])>}»")
+	initialNonSpanning, // m_strInitialNonSpanningPuncts = wxString::FromUTF8("¿¡")
+	finalNonSpanning, // m_strFinalNonSpanningPuncts = wxString::FromUTF8("?.,;:!")
+	ambiguousPunct, // m_strAmbiguousSpanningPuncts = wxString::FromUTF8("\'\"") // these two are straight double " and single ' quote marks
+	nonPunctChar // type for all other non-punctuation characters.
+};
+
 // ExtensionAction is used in the function RemoveNameDuplicatesFromArray()
 enum ExtensionAction
 {
@@ -257,6 +288,8 @@ int       FindFromPosBackwards(const wxString& inputStr, const wxString& subStr,
 
 int       FindOneOf(wxString inputStr, wxString charSet);
 
+int		  FindIgnoreCase(wxString baseStr, wxString subStr);
+
 wxString  InsertInString(wxString targetStr, int ipos, wxString insertStr);
 
 bool      IsClosingBracketWordBuilding(wxString& strPunctuationCharSet);
@@ -299,6 +332,13 @@ int       CalcLabelWidthDifference(wxString& oldLabel, wxString& newLabel, wxWin
 
 wxString  GetConvertedPunct(const wxString& rStr); // moved from view class to here 11Oct10
 
+// whm 3Sep2026 added the following function that locates any source
+// punctuation within the input str and converts it to to target 
+// punctuation and returns the converted string. Internally it uses 
+// the GetConvertedPunct() function for each instance of source 
+// punctuation that it finds within the str.
+wxString  ConvertSrcPunctsInStringToTgt(wxString str, enum PunctType punctType);
+
 // next three for use in the AdminMoveOrCopy class, the handler for Administrator
 // menu item Move Or Copy Folders Or Files
 bool      GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE,
@@ -319,7 +359,13 @@ long      SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& arra
 // wrongly supplies punctuation to a word when it should not have any puncts before or after. nIndex, 0 for src, 1 for tgt
 long      SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, wxString spacelessPuncts, int nIndex,
 						bool bStoreEmptyStringsToo = TRUE);
-
+// This function is similar to the SmartTokenize() function named SmartTokenize() [the override having 4 parameters]
+// It differs from that function in that this one preserved any final whitespace (including final EOL) that may appear
+// on a token retruned in the array.
+// This version of the tokenizing function was created to be used within the AnalyseSstr() function within the 
+// FromSingleMakeTstr() function, its only use currently in the code.
+long TokenizeInclFollWhiteSpace(wxString& delimiters, wxString& str, wxArrayString& array,
+	bool bStoreEmptyStringsToo = TRUE); // defaults to TRUE
 
 wxString  ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
@@ -349,7 +395,11 @@ void      EmptyMarkersAndFilteredStrings(
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
 wxString  GetLastMarker(wxChar* pChar, wxChar* pBufStart, bool& bIsEndMkr); // whm 12Nov2025 added
 wxString  GetLastMarker(wxString markers);
-wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
+wxString  GetFirstMarkerFoundInString(wxString str, // whm 7Sep2026 added
+	bool& bFoundMarkerIsFirstThingInStr);
+wxString  GetLastMarkerFoundInString(wxString str, // whm 7Sep2026 added
+	bool& bFoundMarkerIsLastThingInStr);
+	wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
 wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
 								// use in CAdapt_ItApp::EnsureProperCapitalization()
 //bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
@@ -372,7 +422,7 @@ bool      IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved fro
 bool      IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 // whm 13Dec2025 added the following to ensure that identification markers like \rem are preceded
 // by an EOL "\r\n" sequence when they are being unfiltered
-void  FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filteredInfo);
+void	  FormatIdentificationMarkersBeingUnfilteredWithInitialEOL(wxString& filteredInfo);
 wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, 
 							bool bDoCount, 
 							bool bCountInTargetText, 
@@ -388,19 +438,83 @@ wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase,
 							bool bIncludeCollBackTransStr,
 							bool bIncludeFreeTransStr);
 wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
-wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
-							bool bCountInTargetText);
+
+// whm 7Sep2026 added the following convenience function which returns via ref parameters
+// the beginning whitespace and ending whitespace contained in the input string str.
+// The function returns a position value posEndingWsOnStr for the position of the whitespace
+// at the end of the string. It assumes the position of any whitespace at the beginning is 0.
+void GetWhitespaceFromBeginningAndEndingOfString(wxString str,
+	wxString& beginningWhiteSp, 
+	wxString& endingWhiteSp, 
+	int& posEndingWsOnStr);
+
 // whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
-wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
-							wxString Tstr, bool bDoCount, 
-							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct,
-							SPList* pList); // whm 19Nov2025 added pList parameter
-bool	  AnalyseSstr(wxString s, 
-	wxArrayString& arrItems, 
-	wxString separator, 
-	wxString& CopiedTstr, 
-	wxString tgtWord,
-	wxString srcWord); // whm 18Feb2026 added srcWord parameter
+// whm 4Mar2026 As of this date the following function is no longer
+// used/called anywhere within the application.
+//wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+//			CSourcePhrase* pPrevSingleSrcPhrase,
+//			SPList* pList); // whm 19Nov2025 added pList parameter
+
+// whm 1Mar2026 refactored for simplification.
+// As of 4Mar2026 this function completely replaces the
+// previous FromSingleMakeSstr2() function above.
+wxString  FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	CSourcePhrase* pNextSingleSrcPhrase, // whm 8Sep2026 added
+	SPList* pList,
+	bool bSupressPunctForNonSrcOutput = FALSE); // whm 8Sep2026 added default param
+
+// whm 16Feb2026-8Sep2026 refactored to simplify by calling the FromSingleMakeSstr1() 
+// function on each of the un-merged source phrases stored in the pMergedSrcPhrase, 
+// in order to support the use of the added CSourcePhrase member m_follWsMkrsAndPuncts 
+// for more robust rebuilding of whitespace, markers and punctuation.
+wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase,
+	CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
+	CSourcePhrase* pNextSrcPhrase, // whm 18Jun2026 added
+	SPList* pList); // whm 19Nov2025 added pList
+
+// whm 3Sep2026 added to replace the overly complex one above
+wxString  FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase, 
+	CSourcePhrase* pPrevSingleSrcPhrase,
+	CSourcePhrase* pNextSingleSrcPhrase, // whm 8Sep2026 added
+	SPList* pList);
+
+// whm 5-8Sep2026 refactored to utilize the new CSourcePhrase::m_follWsMkrsAndPuncts info
+// for simplified and more accurate exports of whitespace, markers and punctuation
+// associated with the target output string. This FromMergerMakeTstr() function also
+// now takes a more simplified approach of building the target text by first building
+// the text from functions that build the source text - namely FromSingleMakeSstr1()
+// which utilizes the m_follWsMkrsAndPuncts information to help keep whitespace, markers
+// and punctuation in their original ordering. Then, from that starting point the code
+// here separates out the source text word(s) from what precedes it/them and what follows 
+// it/them. It substitutes the target word(s) in place of the source word(s), then 
+// converts the specifically source-oriented parts (the beforeSrcWord and afterSrcWord
+// stuff) to corresponding target stuff via use of some new functions including the 
+// ConvertSrcPunctsInStringToTgt(), etc.
+wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
+							CSourcePhrase* pPrevSrcPhrase, // whm 5Sep2026 added second parameter pPrevSrcPhrase
+							CSourcePhrase* pNextSrcPhrase, // whm 5Sep2026 added
+							SPList* pList, // whm 5Sep2026 added							
+							bool bDoCount, 
+							bool bCountInTargetText);
+
+wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
+
+// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
+//wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, CSourcePhrase* pPrevSingleSrcPhrase,
+//	wxString Tstr, bool bDoCount,
+//	bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct,
+//	SPList* pList); // whm 19Nov2025 added pList parameter
+
+// whm 7Sep2026 removed AnalyseSstr() which was only used in
+// the no-longer-used FromSingleMakeTstr() function.
+//bool	  AnalyseSstr(wxString s, 
+//	//wxArrayString& arrItems, // whm 29Aug2026 removed as unused
+//	wxString separator, 
+//	wxString& CopiedTstr, 
+//	wxString tgtWord,
+//	wxString srcWord, // whm 18Feb2026 added srcWord parameter
+//	wxString& lastMarker); // whm 28Aug2026 added lastMarker parameter
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
 			// Each such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm
@@ -413,6 +527,40 @@ bool	  AnalyseSstr(wxString s,
 // whm 20Jan2026 added. This function checks for common characters at the end of str1 which
 // are also present at the beginning of str2.
 wxString FindOverlap(wxString str1, wxString str2);
+
+// whm 8Sep2026 added
+// The punct parameter should be either an initial spanning punct
+// in the following class:
+// pDoc->m_strInitialSpanningPuncts = wxString::FromUTF8("“‘[(<{«");
+// or a final spanning punct in the class: 
+// pDoc->m_strFinalSpanningPuncts = wxString::FromUTF8("”’])>}»");
+// The pSrcPhrase parameter is the source phrase where the 
+// m_follWsMkrsAndPuncts value contains the punct being scanned.
+// The pList parameter allows us to scan forwards or backwards
+// from the pSrcPhrase instance to locate a corresponding spanning
+// punct within the pList of source phrases.
+// This function scans through the pList of source phrases:
+//   Forwards for initial puncts (IsInitialPunct == TRUE)
+//   Backwards for final puncts (IsInitialPunct == FALSE)
+// and locates the source phrase that contains the corresponding
+// punct at the other end of the punctuation span, and in the
+// process of scanning for the corresponding punct it determines
+// if the span of m_targetStr instances is all empty or not.
+// It all instances of m_targetStr are empty within the span, the
+// function returns TRUE. If there is at least one instance of
+// m_targetStr that is non-empty/has content, the function returns
+// FALSE.
+bool IsPunctOrMkrSpanEmptyOfNonSrcText(wxString punct,
+	wxString correspondingSpanningPunct,
+	enum PunctSpanningType punctSpanningType,
+	CSourcePhrase* pSrcPhrase,
+	SPList* pList);
+
+// whm 8Sep2026 added
+// whm 9Sep2026 added enum PunctType punctType ref parameter
+wxString GetCorrespondingSpanningPunct(wxString spanningPunct,
+	enum PunctSpanningType& punctSpanningType);
+
 
 // whm 27Jan2026 added. This function collects the common parts shared between
 // str1 and str2. Then it returns those common parts in the order they occur in
@@ -463,30 +611,13 @@ void GetSrcPhraseStatusFlags(CSourcePhrase* pSingleSrcPhrase,
 	bool& bHasEmbeddedMarkerInKeyWord,
 	bool& bKeyHasOnlyPuncts); // whm 2Mar2026 added
 
-// whm 1Mar2026 refactored for simplification.
-// As of 4Mar2026 this function completely replaces the
-// previous FromSingleMakeSstr2() function below.
-wxString  FromSingleMakeSstr1(CSourcePhrase* pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-	CSourcePhrase* pPrevSingleSrcPhrase,
-	SPList* pList); 
-
-//wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
-// whm 28Dec2024 added second parameter pPrevSingleSrcPhrase - unused - may use in future
-// whm 4Mar2026 As of this date the following function is no longer
-// used/called anywhere within the application.
-//wxString  FromSingleMakeSstr2(CSourcePhrase * pSingleSrcPhrase,  // whm 5Feb2024 - this one is now the only one used in the app
-//			CSourcePhrase* pPrevSingleSrcPhrase,
-//			SPList* pList); // whm 19Nov2025 added pList parameter
-
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
-wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase, 
-			CSourcePhrase* pPrevSrcPhrase, // whm 16Feb2026 added second parameter pPrevSrcPhrase
-			CSourcePhrase* pNextSrcPhrase, // whm 18Jun2026 added
-			SPList* pList); // whm 19Nov2025 added pList
-wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 // whm 19Nov2025 added the IsInlineMarkerSpanEnclosedInParentheses() function below
-bool	  IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList);
-wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
+// whm 28Aug2026 changed function name header and added two ref bool parameters.
+//bool	  IsInlineMarkerSpanEnclosedInParentheses(CSourcePhrase* pSrcPhrase, SPList* pList);
+void	  ScanInlineMarkerSpanForContent(CSourcePhrase* pSrcPhrase, SPList* pList,
+			bool& bHasEnclosingParentheses, bool& bWithinSpanHavingNoContent);
+wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 							bool& bAddedSomething,
 							SPList* pList); // like ExportFunctions.cpp's
 			// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
