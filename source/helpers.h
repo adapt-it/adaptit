@@ -257,6 +257,8 @@ int       FindFromPosBackwards(const wxString& inputStr, const wxString& subStr,
 
 int       FindOneOf(wxString inputStr, wxString charSet);
 
+int		  FindIgnoreCase(wxString baseStr, wxString subStr);
+
 wxString  InsertInString(wxString targetStr, int ipos, wxString insertStr);
 
 bool      IsClosingBracketWordBuilding(wxString& strPunctuationCharSet);

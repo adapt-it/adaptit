@@ -3273,6 +3273,19 @@ int FindOneOf(wxString inputStr, wxString charSet)
 	return -1;
 }
 
+// whm 24Aug2026 added. This function finds the subStr
+// within the baseStr ignoring the case of the two strings.
+// To do this it converts both the baseStr and the subStr to
+// upper case before executing the wxString::Find() command
+// It returns -1 if subStr is not found within the baseStr, 
+// or the int position index of that subStr within the baseStr.
+int FindIgnoreCase(wxString baseStr, wxString subStr)
+{
+	wxString baseStrUp = baseStr.MakeUpper();
+	wxString subStrUp = subStr.MakeUpper();
+	return baseStrUp.Find(subStrUp);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a string in which insertStr has been inserted into targetStr at ipos.
 /// \param	targetStr	-> the string in which the insertStr is to be inserted

@@ -147,12 +147,14 @@ int			GetWordCount(wxString& str, wxArrayString* pStrList);
 void		FormatMarkerBufferForOutput(wxString& str, enum ExportType expType);
 void		NormalizeTextEOLsToCRLF(wxString& str, bool bEndWithEOL = FALSE); // whm added 30Aug2023
 void		FormatUnstructuredTextBufferForOutput(wxString& str, bool bRTFOutput);
+// whm 23Aug2026 Added a ref parameter bool bHasAssocTextContent
+// to the following 3 parsing functions: 
 int			ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
 int			ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
 int			ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
-							enum ParseError& parseError);
+				enum ParseError& parseError, bool& bHasAssocTextContent);
 bool		IsACharacterStyle(wxString styleMkr, MapBareMkrToRTFTags& rtfMap);
 bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString& destStr,
 							bool& bIsAtEnd, enum DestinationTextType destTxtType, 

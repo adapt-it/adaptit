@@ -10851,7 +10851,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseFootnote overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the outer
 						// loop to point just past the footnote end marker.
-						itemLen = ParseFootnote(ptr,pBufStart,pEnd,parseError); // parse the whole footnote
+						bool bHasAssocTextContent = TRUE;
+						itemLen = ParseFootnote(ptr, pBufStart, pEnd,parseError, bHasAssocTextContent); // parse the whole footnote
+						wxUnusedVar(bHasAssocTextContent); // whm 23Aug2026 added bHasAssocTextContent - unused here
 						wxString fnStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -10925,7 +10927,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseEndnote overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the
 						// loop to point just past the endnote end marker.
-						itemLen = ParseEndnote(ptr,pBufStart,pEnd,parseError);	// parse the whole endnote
+						bool bHasAssocTextContent = TRUE; // whm 23Aug2026 added 5th parameter - unused here
+						itemLen = ParseEndnote(ptr, pBufStart, pEnd, parseError, bHasAssocTextContent);	// parse the whole endnote
+						wxUnusedVar(bHasAssocTextContent);
 						wxString enStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -10996,7 +11000,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 						// Note: the following ParseCrossRef overwrites the itemLen that was determined
 						// by ParseMarker() above and will move the ptr at the bottom of the
 						// loop to point just past the endnote end marker.
-						itemLen = ParseCrossRef(ptr,pBufStart,pEnd,parseError); // parse the whole crossref
+						bool bHasAssocTextContent = TRUE; // whm 23Aug2026 added 5th parameter - unused here
+						itemLen = ParseCrossRef(ptr, pBufStart, pEnd, parseError, bHasAssocTextContent); // parse the whole crossref
+						wxUnusedVar(bHasAssocTextContent);
 						wxString crStr;
 						wxString nullStr;
 						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
@@ -12709,8 +12715,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 }	// end of DoExportSrcOrTgt
 
 int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
-									//const std::map<wxString, wxString>& rtfMap)
+			enum ParseError& parseError, 
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
+				//const std::map<wxString, wxString>& rtfMap)
 {
 	// When ParseFootnote() is called pChar should be pointing at a \f footnote
 	// begining marker.
@@ -12769,8 +12776,22 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseFootnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -12821,7 +12842,8 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 }
 
 int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
+			enum ParseError& parseError, 
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
 {
 	// When ParseEndnote() is called pChar should be pointing at a \fe endnote
 	// begining marker.
@@ -12879,8 +12901,22 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseEndnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -12932,8 +12968,9 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 }
 
 int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
-									enum ParseError& parseError)
-									//const std::map<wxString, wxString>& rtfMap)
+			enum ParseError& parseError,
+			bool& bHasAssocTextContent) // whm 23Aug2026 added ref parameter bHasAssocTextContent
+			//const std::map<wxString, wxString>& rtfMap)
 {
 	// When ParseCrossRef() is called pChar should be pointing at a \x crossref
 	// begining marker.
@@ -12991,8 +13028,22 @@ int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 	{
 		do
 		{
-			ptr++;
-			itemLen++;
+			// whm 23Aug2026 added the following test for use when ParseEndnote() is
+			// called within ApplyOutputFilterToText().
+			if (!IsMarkerRTF(ptr, pBuffStart) && !IsWhiteSpace(ptr))
+				bHasAssocTextContent = TRUE;
+			int mkrLen = 0;
+			if (IsMarkerRTF(ptr, pBuffStart))
+			{
+				mkrLen = ParseMarkerRTF(ptr, pEnd);
+				ptr = ptr + mkrLen;
+				itemLen = itemLen + mkrLen;
+			}
+			else
+			{
+				ptr++;
+				itemLen++;
+			}
 		} while (ptr < pEnd && !IsMarkerRTF(ptr,pBuffStart));
 		if (ptr == pEnd)
 		{
@@ -18868,6 +18919,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 						// its m_markers contains \id at the beginning of m_markers, so don't
 						// prefix str with any whitespace.
 						str << pSrcPhrase->m_markers;
+						// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+						// If there is no gloss for the book id here, we should add the source
+						// text's m_key value, so that the file has a proper \id book code.
+						if (pSrcPhrase->m_gloss.IsEmpty())
+						{
+							str << pSrcPhrase->m_key;
+						}
 					}
 				}
 
@@ -19158,6 +19216,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 					// its m_markers contains \id at the beginning of m_markers, so don't
 					// prefix str with any whitespace.
 					str << pSrcPhrase->m_markers;
+					// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+					// If there is no gloss for the book id here, we should add the source
+					// text's m_key value, so that the file has a proper \id book code.
+					if (pSrcPhrase->m_gloss.IsEmpty())
+					{
+						str << pSrcPhrase->m_key;
+					}
 				}
 			}
 
@@ -19624,6 +19689,13 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 					// its m_markers contains \id at the beginning of m_markers, so don't
 					// prefix str with any whitespace.
 					str << pSrcPhrase->m_markers;
+					// whm 23Aug2026 added. At this point m_markers contains the file's \id.
+					// If there is no free trans for the book id here, we should add the source
+					// text's m_key value, so that the file has a proper \id book code.
+					if (pSrcPhrase->GetFreeTrans().IsEmpty())
+					{
+						str << pSrcPhrase->m_key;
+					}
 				}
 				//str.Trim();
 				//str << aSpace << pSrcPhrase->m_markers;
@@ -20757,7 +20829,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								enum ExportType exportType)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-
+	enum ParseError parseError = no_error; // whm 23Aug2026 added
 	// Setup input buffer from textStr
 	// wx version: we use the textLen passed in as parameter rather than getting length
 	// of the string with embedded new line chars. It is used to set pEnd in the read-only
@@ -20993,6 +21065,63 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				if (bareMarkerForLookup == _T("f") || bareMarkerForLookup == _T("x")
 					|| bareMarkerForLookup == _T("fe"))
 				{
+					// whm 23Aug2026 addition. Parse the footnote/endnote/crossref span and
+					// if the span contains no associated text, then remove the entire span.
+					if (bareMarkerForLookup == _T("f"))
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseFootnote(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						if (!bHasAssocTextContent)
+						{
+							// The footnote span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire footnote span from the output text
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The footnote span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
+					}
+					if (bareMarkerForLookup == _T("fe"))
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseEndnote(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						if (!bHasAssocTextContent)
+						{
+							// The endnote span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire endtnote span from the output text.
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The endtnote span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
+					}
+					if (bareMarkerForLookup == _T("x"))
+					{
+						bool bHasAssocTextContent = FALSE;
+						itemLen = ParseCrossRef(pOld, pBufStart, pEnd, parseError, bHasAssocTextContent);
+						if (!bHasAssocTextContent)
+						{
+							// The crossref span has no associated text content, so for 
+							// exportType == targetTextExport || exportType == glossesTextExport || exportType == freeTransTextExport
+							// we should remove the entire crossref span from the output text.
+							pOld = pOld + itemLen;
+						}
+						else
+						{
+							// The crossref span has at least some associated text within the span, so
+							// we do nothing more here.
+							;
+						}
+					}
+
 					int skipAmount = 6;
 					if (bareMarkerForLookup == _T("fe"))
 					{
