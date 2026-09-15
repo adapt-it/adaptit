@@ -10005,38 +10005,38 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 	//
 	// The Final puncts are: ”’])>}»
 	// The corresponding Initial puncts are: “‘[(<{«
-	if (punct == _T("”"))
-		correspondingSpanningPunct = _T("“");
-	else if (punct == _T("’"))
-		correspondingSpanningPunct = _T("‘");
-	else if (punct == _T("]"))
-		correspondingSpanningPunct = _T("[");
-	else if (punct == _T(")"))
-		correspondingSpanningPunct = _T("(");
-	else if (punct == _T(">"))
-		correspondingSpanningPunct = _T("<");
-	else if (punct == _T("}"))
-		correspondingSpanningPunct = _T("{");
-	else if (punct == _T("»"))
-		correspondingSpanningPunct = _T("«");
+	if (punct == wxString::FromUTF8("”"))
+		correspondingSpanningPunct = wxString::FromUTF8("“");
+	else if (punct == wxString::FromUTF8("’"))
+		correspondingSpanningPunct = wxString::FromUTF8("‘");
+	else if (punct == wxString::FromUTF8("]"))
+		correspondingSpanningPunct = wxString::FromUTF8("[");
+	else if (punct == wxString::FromUTF8(")"))
+		correspondingSpanningPunct = wxString::FromUTF8("(");
+	else if (punct == wxString::FromUTF8(">"))
+		correspondingSpanningPunct = wxString::FromUTF8("<");
+	else if (punct == wxString::FromUTF8("}"))
+		correspondingSpanningPunct = wxString::FromUTF8("{");
+	else if (punct == wxString::FromUTF8("»"))
+		correspondingSpanningPunct = wxString::FromUTF8("«");
 
 	// The straight double and straight single quotes are ambiguous - the same form is
 	// used for initial and final quotes composing a span.
-	else if (punct == _T("\"")) // straight double quote (ambiguous as to initial/final)
+	else if (punct == wxString::FromUTF8("\"")) // straight double quote (ambiguous as to initial/final)
 	{
 		if (gpApp->m_bDoubleQuoteAsPunct)
 		{
-			correspondingSpanningPunct = _T("\"");
+			correspondingSpanningPunct = wxString::FromUTF8("\"");
 			punctSpanningType = ambiguousPunct; // could be initialSpanning or finalSpanning
 		}
 		else
 			correspondingSpanningPunct = wxEmptyString;
 	}
-	else if (punct == _T("\'")) // straight single quote (ambiguous as to initial/final)
+	else if (punct == wxString::FromUTF8("\'")) // straight single quote (ambiguous as to initial/final)
 	{
 		if (gpApp->m_bSingleQuoteAsPunct)
 		{
-			correspondingSpanningPunct = _T("\'");
+			correspondingSpanningPunct = wxString::FromUTF8("\'");
 			punctSpanningType = ambiguousPunct; // could be initialSpanning or finalSpanning
 		}
 		else
@@ -10045,45 +10045,45 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 
 	// The Initial puncts are: “‘[(<{«
 	// The corresponding Final puncts are: ”’])>}»
-	else if (punct == _T("“"))
-		correspondingSpanningPunct = _T("”");
-	else if (punct == _T("‘"))
-		correspondingSpanningPunct = _T("’");
-	else if (punct == _T("["))
-		correspondingSpanningPunct = _T("]");
-	else if (punct == _T("("))
-		correspondingSpanningPunct = _T(")");
-	else if (punct == _T("<"))
-		correspondingSpanningPunct = _T(">");
-	else if (punct == _T("{"))
-		correspondingSpanningPunct = _T("}");
-	else if (punct == _T("«"))
-		correspondingSpanningPunct = _T("»");
+	else if (punct == wxString::FromUTF8("“"))
+		correspondingSpanningPunct = wxString::FromUTF8("”");
+	else if (punct == wxString::FromUTF8("‘"))
+		correspondingSpanningPunct = wxString::FromUTF8("’");
+	else if (punct == wxString::FromUTF8("["))
+		correspondingSpanningPunct = wxString::FromUTF8("]");
+	else if (punct == wxString::FromUTF8("("))
+		correspondingSpanningPunct = wxString::FromUTF8(")");
+	else if (punct == wxString::FromUTF8("<"))
+		correspondingSpanningPunct = wxString::FromUTF8(">");
+	else if (punct == wxString::FromUTF8("{"))
+		correspondingSpanningPunct = wxString::FromUTF8("}");
+	else if (punct == wxString::FromUTF8("«"))
+		correspondingSpanningPunct = wxString::FromUTF8("»");
 	
 	// All of the following are non-spanning singles and have NO
 	// corresponding punct, but all return wxEmptyString.
 	// Next are the finalOnly group
-	else if (punct == _T("?"))
+	else if (punct == wxString::FromUTF8("?"))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T("."))
+	else if (punct == wxString::FromUTF8("."))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T(","))
+	else if (punct == wxString::FromUTF8(","))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T(";"))
+	else if (punct == wxString::FromUTF8(";"))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T(":"))
+	else if (punct == wxString::FromUTF8(":"))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T("!"))
+	else if (punct == wxString::FromUTF8("!"))
 		correspondingSpanningPunct = wxEmptyString;
 	// Next are the initialOnly group 
-	else if (punct == _T("¿"))
+	else if (punct == wxString::FromUTF8("¿"))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == _T("¡"))
+	else if (punct == wxString::FromUTF8("¡"))
 		correspondingSpanningPunct = wxEmptyString;
 
 	// An incoming punct value that is empty is assumed to not have a corresponding
 	// spanning char, but is a punctType nonPunctChar.
-	else if (punct == _T(""))
+	else if (punct == wxEmptyString)
 	{
 		correspondingSpanningPunct = wxEmptyString;
 		punctSpanningType = nonPunctChar;
@@ -10096,50 +10096,50 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 		punctSpanningType = nonPunctChar;
 	}
 
-	if (punct == _T("”")
-		|| punct == _T("’")
-		|| punct == _T("]")
-		|| punct == _T(")")
-		|| punct == _T(">")
-		|| punct == _T("}")
-		|| punct == _T("»")
+	if (punct == wxString::FromUTF8("”")
+		|| punct == wxString::FromUTF8("’")
+		|| punct == wxString::FromUTF8("]")
+		|| punct == wxString::FromUTF8(")")
+		|| punct == wxString::FromUTF8(">")
+		|| punct == wxString::FromUTF8("}")
+		|| punct == wxString::FromUTF8("»")
 		)
 	{
 		punctSpanningType = finalSpanning;
 	}
 
-	if (punct == _T("“")
-		|| punct == _T("‘")
-		|| punct == _T("[")
-		|| punct == _T("(")
-		|| punct == _T("<")
-		|| punct == _T("{")
-		|| punct == _T("«")
+	if (punct == wxString::FromUTF8("“")
+		|| punct == wxString::FromUTF8("‘")
+		|| punct == wxString::FromUTF8("[")
+		|| punct == wxString::FromUTF8("(")
+		|| punct == wxString::FromUTF8("<")
+		|| punct == wxString::FromUTF8("{")
+		|| punct == wxString::FromUTF8("«")
 		)
 	{
 		punctSpanningType = initialSpanning;
 	}
 
-	if (punct == _T("?")
-		|| punct == _T(".")
-		|| punct == _T(",")
-		|| punct == _T(";")
-		|| punct == _T(":")
-		|| punct == _T("!")
+	if (punct == wxString::FromUTF8("?")
+		|| punct == wxString::FromUTF8(".")
+		|| punct == wxString::FromUTF8(",")
+		|| punct == wxString::FromUTF8(";")
+		|| punct == wxString::FromUTF8(":")
+		|| punct == wxString::FromUTF8("!")
 		)
 	{
 		punctSpanningType = finalNonSpanning;
 	}
 
-	if (punct == _T("¿")
-		|| punct == _T("¡")
+	if (punct == wxString::FromUTF8("¿")
+		|| punct == wxString::FromUTF8("¡")
 		)
 	{
 		punctSpanningType = initialNonSpanning;
 	}
 
 	// The straight double and straight single quotes are ambiguous as to initial/final
-	if (punct == _T("\"") || punct == _T("\'"))
+	if (punct == wxString::FromUTF8("\"") || punct == wxString::FromUTF8("\'"))
 		punctSpanningType = ambiguousPunct;
 
 	// If spanningPunct is none of the above return an empty 

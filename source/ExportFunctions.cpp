@@ -21056,7 +21056,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		wxString wholeInlineBindingEndMarker; // whm 11Sep2026 added
 		bool bIsAnInlineBindingMkr = FALSE; // whm 11Sep2026 added
 		bool bIsAnInlineBindingEndMkr = FALSE; // whm 11Sep2026 added
-
+		wxUnusedVar(bIsAnInlineBindingEndMkr);
 		// whm 11Sep2026 Note: The baseMarkerArray, FilterFlagsArray and the
 		// int nMarkersInArray are not currently used here within 
 		// ApplyOutputFilterToText().
