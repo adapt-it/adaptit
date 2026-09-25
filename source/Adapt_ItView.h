@@ -210,8 +210,12 @@ public:
 	wxString	GetManuallyAddedPrecPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 23Dec22 added
 	wxString	GetManuallyAddedPrecPuncts(wxString targetStr); // BEW added 23Dec22, calls the above
 
-	bool		FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart, wxChar*& pEnd, size_t len,
-						int& matchedAt, wxChar matchThis);
+	bool		FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart,
+		wxChar*& pEnd,
+		size_t len,
+		int& matchedAt,
+		wxString matchThis, //wxChar matchThis);
+		int indexOfMatchThis); // whm 19Sep2026 added
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
@@ -223,6 +227,8 @@ public:
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	wxString    RemovePunctuationOnOneWord(wxString oneWord, wxString spacelessPunctsStr, int nIndex); // nIndex = 0 for src, 1 for tgt
+	bool		StringHasMedialPunctSpan(wxString str, bool& bHasNonSpanningPunctToRemove); // whm 23Sep2026 added
+	wxString	RemoveNonSpanningPunctuation(wxString str); // whm 24Sep2026 added
 	wxString	ProvideMatchingEndBracketOrParenthesis(wxString keyTgtText);
 	void		RemoveSelection();
 

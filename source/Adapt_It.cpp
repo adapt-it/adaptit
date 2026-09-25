@@ -66632,11 +66632,11 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 // for setting m_targetStr
 // BEW 23Dec22 removed endingStr as this function is only called for endingStr empty
 // and instead, I will make a new function GetManuallyAddedPrecPuncts(pApp->m_targetPhrase)
-// to handle user-typed preceding puncts in the m_pPhraseBox, for use in MakeTargetString_IncludingPunctuation()
+// to handle user-typed preceding puncts in the m_pPhraseBox, for use in MakeTargetStringIncludingPunctuation()
 //wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr)
 //
 // BEW 25May23 added 2nd param, defaulting to FALSE, set it TRUE internally if m_precPunct contents 
-// are handled; and send its value back to caller ( pView->MakeTargetStringIncludingPunctuation() ) 
+// are handled; and send its value back to caller pView->MakeTargetStringIncludingPunctuation()
 // so that the bool TRUE value can be used in the caller to suppress existing code from doubling 
 // the preceding punctuation. BEW added 3rd param 11Oct23
 wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts, bool& bHandledFollPuncts)

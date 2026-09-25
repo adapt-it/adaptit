@@ -399,7 +399,11 @@ wxString  GetFirstMarkerFoundInString(wxString str, // whm 7Sep2026 added
 	bool& bFoundMarkerIsFirstThingInStr);
 wxString  GetLastMarkerFoundInString(wxString str, // whm 7Sep2026 added
 	bool& bFoundMarkerIsLastThingInStr);
-	wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
+wxString  GetLastPunctFoundInString(wxString str, // whm 19Sep2026 added
+	int& indexOfLastPunctInStr, enum WhichLang whichLang);
+wxString  GetFirstPunctFoundInString(wxString str, // whm 19Sep2026 added
+	int& indexOfFirstPunctInStr, enum WhichLang whichLang);
+wxString  GetLastWholeMarker(wxString markers, int& posOffset); // whm 19Jan2026 added
 wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
 								// use in CAdapt_ItApp::EnsureProperCapitalization()
 //bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14

@@ -131,7 +131,16 @@ public:
 	wxString		m_gloss;		// 56: save a 'gloss' - which can be anything, eg gloss, or an adaptation
 									// from a different project to a different target text, etc
 	// for docVersion 6, added the next 4 strings
-	wxString		m_lastAdaptionsPattern; // the value within m_adaptions at the time of the last placement dlg
+	// whm 17Sep2026 comment. The following m_lastAdaptionsPattern member previousl has this [BEW] comment:
+	// [BEW] "the value within m_adaptions at the time of the last placement dlg"
+	// Now, however, with the demise of the PlacePunctuation dialog, this m_lastAdaptionsPatten functions
+	// to store the current phrasebox contents (as edited) for subsequent use as the "last" adaptions 
+	// pattern for comparing with subsequent pSrcPhrase->m_targetStr instances.
+	// The m_lastAdaptionsPattern also now retains the punctuation "pattern" that exists within the 
+	// m_targetStr, as entered either by the automated target string insertion or by the 
+	// user edits of the phrasebox contents.
+
+	wxString		m_lastAdaptionsPattern; 
 	wxString		m_tgtMkrPattern; // remember where PlaceInternalMarkers placed any markers, for tgt text export
 	wxString		m_glossMkrPattern; // remember where Place Medial Markers placed any markers, for glossing export
 	wxString		m_punctsPattern; // repurposed for later versions 6.x.y to hold cached bar-initial hidden text data from USFM3 markup

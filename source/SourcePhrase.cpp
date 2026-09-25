@@ -1001,10 +1001,16 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// user will get the chance to make the relevant placements once only (3rd is unused
 	// at present) for docVersion6
 
-	// BEW 30Sep19 we now use m_punctsPattern for storing end-of-word attribute-metadata
-	m_lastAdaptionsPattern = _T("");
+	// whm 17Sep2026 modification of m_lastAdaptionsPattern. Previously, this member was
+	// used primarily to trigger the PunctuationPlacement dialog. Now, however, we make
+	// use of it to store the target text (as auto-entered or edited) for use in subsequent
+	// comparisons to identify changes. Therefore, here I'm now going to store the resulting
+	// m_targetStr (as detemined above in the merging of target strings) in the 
+	// m_lastAdaptionsPattern.
+	m_lastAdaptionsPattern = m_targetStr;  // m_lastAdaptionsPattern = _T("");
 	m_tgtMkrPattern = _T("");
 	m_glossMkrPattern = _T("");
+	// BEW 30Sep19 we now use m_punctsPattern for storing end-of-word attribute-metadata
 	// BEW 30Sep19, non-initial pSrcPhrase instances must be empty in a merger, 
 	// but initial one can store metadata legally
 	m_punctsPattern = _T("");
@@ -1099,7 +1105,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		{
 			bstr += tabUnit; // tab the start of the line
 		}
-		btemp = MakeFlags(this);
+		btemp = MakeFlags(this); // MakeFlags() is in XML.cpp where the 22 boolean digits are composed
 		bstr += "f=\"";
 		bstr += btemp; // add flags string
 		bstr += "\" sn=\"";

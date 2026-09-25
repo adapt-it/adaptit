@@ -3234,6 +3234,72 @@ wxString GetLastMarkerFoundInString(wxString str, bool& bFoundMarkerIsLastThingI
 	}
 }
 
+// whm 19Sep2026 added for use in MakeTargetStringIncludingPunctuation()
+// This function gets the last instance of a punctuation character, if present,
+// found within the input string str.
+// The indexOfLastPunctInStr returns the index of the last punct in str.
+// The whichLang parameter is an enum of either sourceLang, or targetLang.
+wxString GetLastPunctFoundInString(wxString str, int& indexOfLastPunctInStr, WhichLang whichLang)
+{
+	if (str.IsEmpty())
+	{
+		indexOfLastPunctInStr = wxNOT_FOUND;
+		return wxEmptyString;
+	}
+	wxString lastPunct; lastPunct.Empty();
+	wxString spacelessPuncts;
+	if (whichLang == targetLang)
+		spacelessPuncts = gpApp->m_strSpacelessTargetPuncts;
+	else if (whichLang == sourceLang)
+		spacelessPuncts = gpApp->m_strSpacelessSourcePuncts;
+	int strLen = str.Length();
+	wxChar ch;
+	for (int i = strLen - 1; i >= 0; i--) // check chars in str in reverse order for a punct
+	{
+		ch = str.GetChar(i);
+		if (spacelessPuncts.Find(ch) != wxNOT_FOUND)
+		{
+			lastPunct << ch;
+			indexOfLastPunctInStr = i;
+			return lastPunct;
+		}
+	}
+	return lastPunct;
+}
+
+// whm 19Sep2026 added for use in MakeTargetStringIncludingPunctuation()
+// This function gets the first instance of a punctuation character, if present,
+// found within the input string str. 
+// The indexOfFirstPunctInStr returns the index of the first punct in str.
+// The whichLang parameter is an enum of either sourceLang, or targetLang.
+wxString  GetFirstPunctFoundInString(wxString str, int& indexOfFirstPunctInStr, WhichLang whichLang)
+{
+	if (str.IsEmpty())
+	{
+		indexOfFirstPunctInStr = wxNOT_FOUND;
+		return wxEmptyString;
+	}
+	wxString firstPunct; firstPunct.Empty();
+	wxString spacelessPuncts;
+	if (whichLang == targetLang)
+		spacelessPuncts = gpApp->m_strSpacelessTargetPuncts;
+	else if (whichLang == sourceLang)
+		spacelessPuncts = gpApp->m_strSpacelessSourcePuncts;
+	int strLen = str.Length();
+	wxChar ch;
+	for (int i = 0; i < strLen; i++)
+	{
+		ch = str.GetChar(i);
+		if (spacelessPuncts.Find(ch) != wxNOT_FOUND)
+		{
+			firstPunct << ch;
+			indexOfFirstPunctInStr = i;
+			return firstPunct;
+		}
+	}
+	return firstPunct;
+}
+
 // whm 19Jan2026 added. This function returns a whole marker including the following number for
 // chapter and verse markers, and also returns by reference the offset value of the last marker 
 // in the markers input string. It returns an empty string if there are no SF markers in markers 
@@ -3300,7 +3366,7 @@ wxString GetLastWholeMarker(wxString markers, int& posOffset)
 int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos)
 {
 	// whm 11Jun12 added.
-	wxCHECK_MSG(!subStr.IsEmpty(),-1, _T("Programming error. FindFromPos() function's incoming subStr is empty!"));
+	wxCHECK_MSG(!subStr.IsEmpty(), -1, _T("Programming error. FindFromPos() function's incoming subStr is empty!"));
 	// returns the zero based index position of the subStr if it exists in inputStr
 	// with a search starting from startAtPos; or -1 if the subStr is not found
 	// in inputStr from startAtPos to the end of the string
@@ -3314,7 +3380,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 	wxChar* pStartChar = pBufStart + startAtPos;
 	int offset = 0;
 	int ct;
-	while(pStartChar < pEnd)
+	while (pStartChar < pEnd)
 	{
 		if (!subStr.IsEmpty() && *pStartChar == subStr.GetChar(0)) // BEW 29Oct22 added protection for Get Char(0)
 		{
@@ -3323,7 +3389,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 			ct = 0;
 			while (ct < (int)subStr.Length() && pStartChar < pEnd)
 			{
-				if (*(pStartChar+ct) != subStr.GetChar(ct))
+				if (*(pStartChar + ct) != subStr.GetChar(ct))
 				{
 					break;
 				}
@@ -3338,6 +3404,71 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 		// if we get to here we've not found a potential match of subStr yet, so continue checking
 		offset++;
 		pStartChar++;
+	}
+	// if we get here there are no matches, so return -1
+	return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return	the zero-based index position of the subStr if it exists in inputStr with a search starting
+///			at startAtPos and looking backwards from startPos toward the beginning of inputStr; or -1 
+///			if the subStr is not found in inputStr from startAtPos to the beginning of the string.
+/// \param	inputStr	-> the string in which the find operation is to be done
+/// \param	subStr		-> the sub-string which is being searched for
+/// \param	startAtPos	-> the index in inputStr at which the search operation begins
+/// \remarks
+/// The wxWidgets wxString class has no second parameter in its Find() method, so
+/// this function can be used to Find starting at a certain position in the string
+/// and looking backwards toward the beginning of the inputStr.
+/// whm 25Sep2026 this function definition was missing from helpers.cpp, causing an "unresolved external 
+/// symbol" error. Therefore, I implemented this definition for the FindFromPosBackwards() here in 
+/// helpers.cpp
+///////////////////////////////////////////////////////////////////////////////////////////////////
+int FindFromPosBackwards(const wxString& inputStr, const wxString& subStr, int startAtPos)
+{
+	// Returns the zero based index position of the subStr if it exists in inputStr
+	// with a search starting from startAtPos and searching backwards toward the 
+	// beginning of the inputStr; or it returns -1 if the subStr is not found in
+	// the inputStr searching from startAtPos to the beginning of the string.
+	int len = inputStr.Length();
+	if (len == 0 || (int)subStr.Len() > len || startAtPos >= len)
+		return -1;
+	const wxChar* pBuf = inputStr.GetData();
+	wxChar* pBufStart = (wxChar*)pBuf;
+	wxChar* pEnd = pBufStart + len;
+	wxASSERT(*pEnd == (wxChar)0);
+	wxChar* pStartChar = pBufStart + startAtPos;
+	int offset = 0;
+	int ct;
+	while (pStartChar >= pBufStart)
+	{
+		// whm 25Sep2026 Note: We could search from the last char of subStr backwards towards
+		// the beginning of the inputStr, searching for the remainder of subStr in reverse order.
+		// but, the following code that waits until pStartChar moving backwards until it matches 
+		// the first char of subStr and looks forward for the remainder of subStr also works.
+		if (!subStr.IsEmpty() && *pStartChar == subStr.GetChar(0)) // protection for Get Char(0)
+		{
+			// We're at a char which matches first char of subStr, so look ahead in the buffer and
+			// see if remainder of subStr also matches.
+			ct = 0;
+			while (ct < (int)subStr.Length() && pStartChar < pEnd)
+			{
+				if (*(pStartChar + ct) != subStr.GetChar(ct))
+				{
+					break;
+				}
+				ct++;
+			}
+			if (ct == (int)subStr.Length())
+			{
+				// we scanned all of subStr successfully without a mismatch, so return the result
+				return startAtPos + offset;
+			}
+		}
+		// if we get to here we've not found a potential match of subStr yet, so continue 
+		// checking at previous offsets.
+		offset--;
+		pStartChar--;
 	}
 	// if we get here there are no matches, so return -1
 	return -1;
@@ -9987,7 +10118,7 @@ bool IsPunctOrMkrSpanEmptyOfNonSrcText(wxString punct,
 // here for the convenience of the calling function 
 // IsPunctOrMkrSpanEmptyOfNonSrcText().
 // 
-// TODO: We should probably incorporate the pApp bool values:
+// NOTE: We incorporate the pApp bool values:
 // pApp->m_bSingleQuoteAsPunct and pApp->m_bDoubleQuoteAsPunct here
 // and elsewhere in dealing with punct spans, since " and ' are also
 // considered delimiters of punctuation spans (as long as 
@@ -10005,10 +10136,12 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 	//
 	// The Final puncts are: ”’])>}»
 	// The corresponding Initial puncts are: “‘[(<{«
-	if (punct == wxString::FromUTF8("”"))
-		correspondingSpanningPunct = wxString::FromUTF8("“");
-	else if (punct == wxString::FromUTF8("’"))
-		correspondingSpanningPunct = wxString::FromUTF8("‘");
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "”", "“", "’", "‘", "»" and "«"
+	if (punct == _T("\u201D")) // wxString::FromUTF8("”"))
+		correspondingSpanningPunct = _T("\u201C"); // wxString::FromUTF8("“");
+	else if (punct == _T("\u2019")) // wxString::FromUTF8("’"))
+		correspondingSpanningPunct = _T("\u2018"); // wxString::FromUTF8("‘");
 	else if (punct == wxString::FromUTF8("]"))
 		correspondingSpanningPunct = wxString::FromUTF8("[");
 	else if (punct == wxString::FromUTF8(")"))
@@ -10017,8 +10150,8 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 		correspondingSpanningPunct = wxString::FromUTF8("<");
 	else if (punct == wxString::FromUTF8("}"))
 		correspondingSpanningPunct = wxString::FromUTF8("{");
-	else if (punct == wxString::FromUTF8("»"))
-		correspondingSpanningPunct = wxString::FromUTF8("«");
+	else if (punct == _T("\u00BB")) //wxString::FromUTF8("»"))
+		correspondingSpanningPunct = _T("\u00AB"); // wxString::FromUTF8("«");
 
 	// The straight double and straight single quotes are ambiguous - the same form is
 	// used for initial and final quotes composing a span.
@@ -10045,10 +10178,12 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 
 	// The Initial puncts are: “‘[(<{«
 	// The corresponding Final puncts are: ”’])>}»
-	else if (punct == wxString::FromUTF8("“"))
-		correspondingSpanningPunct = wxString::FromUTF8("”");
-	else if (punct == wxString::FromUTF8("‘"))
-		correspondingSpanningPunct = wxString::FromUTF8("’");
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "“", "”", "‘", "’", "«", and "»"
+	else if (punct == _T("\u201C")) // wxString::FromUTF8("“"))
+		correspondingSpanningPunct = _T("\u201D"); // wxString::FromUTF8("”");
+	else if (punct == _T("\u2018")) // wxString::FromUTF8("‘"))
+		correspondingSpanningPunct = _T("\u2019"); // wxString::FromUTF8("’");
 	else if (punct == wxString::FromUTF8("["))
 		correspondingSpanningPunct = wxString::FromUTF8("]");
 	else if (punct == wxString::FromUTF8("("))
@@ -10057,8 +10192,8 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 		correspondingSpanningPunct = wxString::FromUTF8(">");
 	else if (punct == wxString::FromUTF8("{"))
 		correspondingSpanningPunct = wxString::FromUTF8("}");
-	else if (punct == wxString::FromUTF8("«"))
-		correspondingSpanningPunct = wxString::FromUTF8("»");
+	else if (punct == _T("\u00AB")) // wxString::FromUTF8("«"))
+		correspondingSpanningPunct = _T("\u00BB"); // wxString::FromUTF8("»");
 	
 	// All of the following are non-spanning singles and have NO
 	// corresponding punct, but all return wxEmptyString.
@@ -10076,9 +10211,11 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 	else if (punct == wxString::FromUTF8("!"))
 		correspondingSpanningPunct = wxEmptyString;
 	// Next are the initialOnly group 
-	else if (punct == wxString::FromUTF8("¿"))
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "¿" and "¡"
+	else if (punct == _T("\u00BF")) // wxString::FromUTF8("¿"))
 		correspondingSpanningPunct = wxEmptyString;
-	else if (punct == wxString::FromUTF8("¡"))
+	else if (punct == _T("\u00A1")) // wxString::FromUTF8("¡"))
 		correspondingSpanningPunct = wxEmptyString;
 
 	// An incoming punct value that is empty is assumed to not have a corresponding
@@ -10096,25 +10233,29 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 		punctSpanningType = nonPunctChar;
 	}
 
-	if (punct == wxString::FromUTF8("”")
-		|| punct == wxString::FromUTF8("’")
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "”", "’", and "»"
+	if (punct == _T("\u201D") // wxString::FromUTF8("”")
+		|| punct == _T("\u2019") // wxString::FromUTF8("’")
 		|| punct == wxString::FromUTF8("]")
 		|| punct == wxString::FromUTF8(")")
 		|| punct == wxString::FromUTF8(">")
 		|| punct == wxString::FromUTF8("}")
-		|| punct == wxString::FromUTF8("»")
+		|| punct == _T("\u00BB") // wxString::FromUTF8("»")
 		)
 	{
 		punctSpanningType = finalSpanning;
 	}
 
-	if (punct == wxString::FromUTF8("“")
-		|| punct == wxString::FromUTF8("‘")
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "“", "‘", and "«"
+	if (punct == _T("\u201C") // wxString::FromUTF8("“")
+		|| punct == _T("\u2018") // wxString::FromUTF8("‘")
 		|| punct == wxString::FromUTF8("[")
 		|| punct == wxString::FromUTF8("(")
 		|| punct == wxString::FromUTF8("<")
 		|| punct == wxString::FromUTF8("{")
-		|| punct == wxString::FromUTF8("«")
+		|| punct == _T("\u00AB") // wxString::FromUTF8("«")
 		)
 	{
 		punctSpanningType = initialSpanning;
@@ -10131,8 +10272,10 @@ wxString GetCorrespondingSpanningPunct(wxString punct,
 		punctSpanningType = finalNonSpanning;
 	}
 
-	if (punct == wxString::FromUTF8("¿")
-		|| punct == wxString::FromUTF8("¡")
+	// whm 25Sep2026 to avoid GCC compile issues, use the universal Unicode escape
+	// sequences inside the _T() macro for "¿" and "¡"
+	if (punct == _T("\u00BF") // wxString::FromUTF8("¿")
+		|| punct == _T("\u00A1") // wxString::FromUTF8("¡")
 		)
 	{
 		punctSpanningType = initialNonSpanning;
@@ -16008,6 +16151,9 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 		return FALSE; // the safest value for such a situation
 	}
 	wxString delimiters = _T(' '); // just use space to separate them
+	// whm 17Sep2026 Note: The pSrcPhrase->m_lastAdaptionsPattern member now stores both
+	// target text and punctuation (as auto-inserted or as edited by the user in the
+	// phrasebox). 
 	wxString testStr = pSrcPhrase->m_lastAdaptionsPattern;
 	wxString aSpace = _T(' ');
 	int howmany;

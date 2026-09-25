@@ -30388,7 +30388,7 @@ void CAdapt_ItDoc::OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event
 		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 		wxASSERT(pSrcPhrase != NULL);
 		if (
-			!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty() ||
+			//!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty() || // whm 17Sep2026 removed
 			!pSrcPhrase->m_tgtMkrPattern.IsEmpty() ||
 			!pSrcPhrase->m_glossMkrPattern.IsEmpty()
 			// BEW 30Sep19  remove, since m_punctsPattern is now repurposed
@@ -30431,7 +30431,7 @@ void CAdapt_ItDoc::OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(eve
 {
 	CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
 	wxASSERT(pSrcPhrase != NULL);
-	pSrcPhrase->m_lastAdaptionsPattern.Empty();
+	// pSrcPhrase->m_lastAdaptionsPattern.Empty(); // whm 17Sep2026 removed
 	pSrcPhrase->m_tgtMkrPattern.Empty();
 	pSrcPhrase->m_glossMkrPattern.Empty();
 	// BEW 30Sep19 commented out

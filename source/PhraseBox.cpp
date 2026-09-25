@@ -1203,10 +1203,61 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		if (!pApp->m_targetPhrase.IsEmpty())
 		{
 			tgtPhrLen = pApp->m_targetPhrase.Length();
-			wxChar firstChar = pApp->m_targetPhrase.GetChar(0); // first
-			if (!((tgtPhrLen == 1) && (firstChar == _T(']'))))
+			wxChar firstChar = pApp->m_targetPhrase.GetChar(0);
+			// whm 23Sep2026 added a third condition '&& bHasMedialPunctSpan' based on the
+			// return value of pView->StringHasMedialPunctSpan(pApp->m_targetPhrase). 
+			// I added two new View functions:
+			//    bool StringHasMedialPunctSpan(wxString str, bool& bHasNonSpanningPunctToRemove);
+			//    wxString RemoveNonSpanningPunctuation(wxString str);
+			// The StringHasMedialPunctSpan() function is called below to determine if pApp->m_targetPhrase
+			// contains any medial spanning punctuation, and if so, it also returns by reference parameter the 
+			// bHasNonSpanningPunctToRemove set TRUE, which indicates the need to call the View's 
+			// RemoveNonSanningPunctuation() function which removes any non-spanning initial punctuation 
+			// and non-spanning final punctuation which should not be stored within the KB.
+			// I also adjusted the logic and parentheses for better clarity.
+//#ifdef _DEBUG
+			//wxString result00, result01, result02, result03, result04, result05, result06, result07, result08, result09, result10, result11;
+			//wxString test00 = _T("1:2, 2-3, 4–5, 6―7");
+			////result00 = pView->RemoveNonSpanningPunctuation(test00);
+			//wxString test01 = _T("\"¿fifty (50) days?\"");
+			//result01 = pView->RemoveNonSpanningPunctuation(test01);
+			//wxString test02 = _T("\"(50) fifty days\"");
+			//result02 = pView->RemoveNonSpanningPunctuation(test02);
+			//wxString test03 = _T("\"¡fifty days (50)!\"");
+			//result03 = pView->RemoveNonSpanningPunctuation(test03);
+			//wxString test04 = _T("¿fifty (50) days?");
+			//result04 = pView->RemoveNonSpanningPunctuation(test04);
+			//wxString test05 = _T("(50) fifty days");
+			//result05 = pView->RemoveNonSpanningPunctuation(test05);
+			//wxString test06 = _T("¡fifty days (50)!");
+			//result06 = pView->RemoveNonSpanningPunctuation(test06);
+			//wxString test07 = _T("2:1"); // colon
+			//result07 = pView->RemoveNonSpanningPunctuation(test07);
+			//wxString test08 = _T("3:5-7"); // colon with normal hyphen = '-'
+			//result08 = pView->RemoveNonSpanningPunctuation(test08);
+			//wxString test09 = _T("4:7–9"); // colon with longHyphen / endash = '–' (wxChar)0x2013
+			//result09 = pView->RemoveNonSpanningPunctuation(test09);
+			//wxString test10 = _T("5:1―3"); // colon with horiz_bar = '―' (wxChar)0x2015
+			//result10 = pView->RemoveNonSpanningPunctuation(test10);
+			//wxString test11 = _T("6:2, 6, 9"); // colon with comma delimited verse numbers
+			//result11 = pView->RemoveNonSpanningPunctuation(test11);
+//#endif
+			bool bHasNonSpanningPunctToRemove = FALSE;
+			bool bHasMedialPunctSpan = pView->StringHasMedialPunctSpan(pApp->m_targetPhrase, bHasNonSpanningPunctToRemove);
+			if (bHasMedialPunctSpan)
 			{
-				// suppress punctuation stripping when ] is the word passed in; but allow all else
+				// We preserve any medial punctuation span, but we remove any 
+				// non spanning initial or final punct.
+				if (bHasNonSpanningPunctToRemove)
+				{
+					pApp->m_targetPhrase = pView->RemoveNonSpanningPunctuation(pApp->m_targetPhrase);
+				}
+			}
+			else if (tgtPhrLen > 1 && firstChar != _T(']'))
+			{
+				// Suppress punctuation stripping when tgtPhrLen is only 1, or ] is the word 
+				// passed in, or m_targetPhrase doesn't have a medial punctuation span; but 
+				// allow all else.
 				pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 			}
 		}
@@ -8668,11 +8719,26 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				//	&& FindIgnoreCase(this->initialPhraseBoxContentsOnLanding, str) != wxNOT_FOUND)
 				// It appears more reliable to use the this->m_SaveTargetPhrase member instead
 				// of the this->initialPhraseBoxContentsOnLanding
-				if (!this->m_SaveTargetPhrase.IsEmpty() && !str.IsEmpty()
-					&& this->GetDropDownList()->GetCount() == 0
-					&& FindIgnoreCase(this->m_SaveTargetPhrase, str) != wxNOT_FOUND)
+				// 
+				// whm 19Sep2026 modification. When PopulateDropDownList() is called in the calling
+				// scenario: OnIdle() > OnePass() > PlaceBox() > SetupDropDownPhraseBoxForThisLocation()
+				// > PopulateDropDownList, the this->m_SaveTargetPhrase value will represent what the
+				// target phrase value was at the last location, whereas the str value available here
+				// represents the pRefString of the incoming target unit pTU which in the caller is
+				// based on fetching a pRefString based on the m_key of the source phrase at the 
+				// gpApp->m_pActivePile. 
+				CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+
+				//if (!this->m_SaveTargetPhrase.IsEmpty() && !str.IsEmpty()
+				//	&& this->GetDropDownList()->GetCount() == 0
+				//	&& FindIgnoreCase(this->m_SaveTargetPhrase, str) != wxNOT_FOUND)
+				if (!pSrcPhrase->m_targetStr.IsEmpty() && !str.IsEmpty()
+						&& this->GetDropDownList()->GetCount() == 0
+						&& FindIgnoreCase(pSrcPhrase->m_targetStr, str) != wxNOT_FOUND)
 				{
-					nLocation = this->GetDropDownList()->Append(this->m_SaveTargetPhrase);
+					// whm 19Sep2026 modification - see comment above.
+					//nLocation = this->GetDropDownList()->Append(this->m_SaveTargetPhrase);
+					nLocation = this->GetDropDownList()->Append(pSrcPhrase->m_targetStr);
 				}
 				else
 				{

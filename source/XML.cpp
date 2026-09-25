@@ -5250,6 +5250,9 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// FromDocVersion4ToDocVersionCurrent(). The doc version throughout this function
 			// is docVersion 4 only, so the following if (docVersion >= 6 will never test
 			// TRUE and so its TRUE block will never execute and is meaningless!
+			// whm 17Sep2026 The comment above indicates that the if test below will never
+			// test TRUE so, we need not adjust the emptying of the m_lastAdaptionsPattern
+			// member - as done in other code locations.
 			if (docVersion >= 6)
 			{
 				// these aren't in docV5 or earlier, so just clear them, and then the
@@ -8505,7 +8508,7 @@ CBString MakeFlags(CSourcePhrase* pSP)
 	UInt32 n = 0;
 	//char bin[34];
 	if (pSP->m_bHasKBEntry)
-		n |= hasKBEntryMask; // digit 1
+		n |= hasKBEntryMask; // digit 1 (right-most digit in the f="..." string of 22 bool digits)
 	if (pSP->m_bNotInKB)
 		n |= notInKBMask; // digit 2
 	if (pSP->m_bHasGlossingKBEntry)
@@ -8550,7 +8553,7 @@ CBString MakeFlags(CSourcePhrase* pSP)
 	//if (pSP->m_bParagraph)
 	//	n |= paragraphMask; // digit 22
 	if (pSP->m_bUnused)
-		n |= unusedMask; // digit 22
+		n |= unusedMask; // digit 22  (left-most digit in the f="..." string of bool digits)
 
 	// convert it to an ascii string
     // the atoi() conversion function is not standard and the conversion to binary (with
