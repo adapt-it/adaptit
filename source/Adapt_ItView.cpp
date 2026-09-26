@@ -14945,8 +14945,8 @@ wxString CAdapt_ItView::RemoveNonSpanningPunctuation(wxString str)
 	wxString strNonMedialPunctsRemoved; strNonMedialPunctsRemoved.Empty();
 	int lenStr = str.Length();
 	PunctSpanningType punctSpanningType;
-	bool initialSpanningPunctIsMedial = FALSE;
-	bool finalSpanningPunctIsMedial = FALSE;
+	//bool initialSpanningPunctIsMedial = FALSE;
+	//bool finalSpanningPunctIsMedial = FALSE;
 	wxString bridgeChars = _T("-–―");
 	bridgeChars = wxString::FromUTF8(bridgeChars);// to convert puncts such as – and ― to single char
 	wxChar colon = _T(':');
@@ -14983,13 +14983,13 @@ wxString CAdapt_ItView::RemoveNonSpanningPunctuation(wxString str)
 			{
 				if (prevChar != _T('\0'))
 				{
-					initialSpanningPunctIsMedial = TRUE;
+					//initialSpanningPunctIsMedial = TRUE;
 					// The initial spanning punct is medial so output it to strNonMedialPunctsRemoved
 					strNonMedialPunctsRemoved << punctCh;
 				}
 				else
 				{
-					initialSpanningPunctIsMedial = FALSE;
+					//initialSpanningPunctIsMedial = FALSE;
 					// The initial spanning punc is first char in str.
 					// We output it only if its corresponding final spanning
 					// punct is NOT final in str, but in medial position
@@ -15010,13 +15010,13 @@ wxString CAdapt_ItView::RemoveNonSpanningPunctuation(wxString str)
 			{
 				if (follChar != _T('\0'))
 				{
-					finalSpanningPunctIsMedial = TRUE;
+					//finalSpanningPunctIsMedial = TRUE;
 					// The final spanning punct is medial so output it to strNonMedialPunctsRemoved
 					strNonMedialPunctsRemoved << punctCh;
 				}
 				else
 				{
-					finalSpanningPunctIsMedial = FALSE;
+					//finalSpanningPunctIsMedial = FALSE;
 					// The final spanning punct is the last char in str
 					// We output it only if its corresponding initial spanning
 					// punct was NOT initial in str, but in medial position.
