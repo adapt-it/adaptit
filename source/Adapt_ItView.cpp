@@ -17341,7 +17341,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bHandledPrecPuncts = FALSE; // init
-	bool bHandledFollPuncts = FALSE; // init BEW added 11Oct23
+	//bool bHandledFollPuncts = FALSE; // init BEW added 11Oct23 // whm 25Sep2026 removed
 
 	if (pSrcPhrase->m_nSequNumber >= 15)
 	{
@@ -17679,7 +17679,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		// a value such as "fifty (50) days". It only accounts for initial and ending punctuation and it ends
 		// up removing any/all medial punctuation including the parentheses surrounding the word "50" in the example
 		// mentioned above. This function is called twice within this function and nowhere else.
-		// TODO: 
+		// This SimplePunctuationRestoration() also has the side effect that is internally calls
+		// RemovePunctuation() and assigns the completely free-of-punctuation to pSrcPhrase->m_adaption
+		// which is not what we want for medial spanning punctuation such as for "fifty (50) days"
+		// Therefore, I'm commenting out this SimplePunctuationRestoration() call along with the
+		// following blocks
+		/*
 		bHandledPrecPuncts = FALSE; // init
 		bHandledFollPuncts = FALSE; // init  BEW added 11Oct23 -- note these bools are at function top, 16764-5
 		// but the earlier call at 16921 uses longer ones, bHandledPrecedingPunctuation and bHandledFollowingPunctuation
@@ -17722,6 +17727,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				return;
 			}
 		}
+		*/
 	}
 	// BEW 6Apr23 test for SimplePunctuationRestoration() having added pSrcPhrase->m_follPunct, use .Find(). and if
 	// offset is >0, then the punct(s) are already added. Have a bool here that we can then text below where
@@ -18800,7 +18806,27 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					bAlreadyHasFollPunct = TRUE;
 				}
 				// BEW 24Dec22, added 3rd subtest BEW 29Nov23 added first subtest to skip this block when final manual puncts were typed
-				if (strGrabbedFinalPuncts.IsEmpty() && (!str.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty() && !bAlreadyHasFollPunct) )
+				// whm 25Sep2026 addition. It is quite possible that the user may have removed a final
+				// punct that was originally there. But final punct would still be stored within the 
+				// pSrcPhrase->m_follPunct member and still be contained in the strFollPuncts variable,
+				// both of which would not represent what should be at the end of the current str nor on
+				// the pSrcPhrase->m_targetStr. If the user did remove the final puncts, then the
+				// strGrabbedFinalPuncts would be empty and bAlreadyHasFollPunct would be FALSE 
+				// and hence, the following test would be entered, and within this test block a
+				// little farther day is the assignment: str << strFollPunctsConverted
+				// which wrongly adds back the following punct(s) that the user removed.
+				// I'm going to update the value of strFollPuncts to reflect any manually
+				// removed final puncts. This should avoid wrongly adding a m_follPunct
+				// value to str that has been removed by the user.
+				// Update the strFollPuncts value with the current state of any final puncts
+				// now at the end of the str value.
+				strFollPuncts = GetManuallyAddedFinalPuncts(str);
+
+				if (strGrabbedFinalPuncts.IsEmpty()
+					&& (!str.IsEmpty()
+						&& !pSrcPhrase->m_follPunct.IsEmpty()
+						&& !strFollPuncts.IsEmpty()
+						&& !bAlreadyHasFollPunct) )
 				{
 					// What puncts set? If first char of follPuncts belongs in the pApp->m_strSpacelessSourcePuncts,
 					// the we should do punctuation conversion of the whole of follPuncts to target puncts; otherwise
@@ -19344,12 +19370,20 @@ bool CAdapt_ItView::FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart,
 	// from the pBuffStart + indexOfMatchThis position and iterate towards the 
 	// beginning of the string buffer.
 	int indexForSearch;
+	wxChar charAtIndex;
 	if (indexOfMatchThis != wxNOT_FOUND)
+	{
+		charAtIndex = *(pBuffStart + indexOfMatchThis); 
 		indexForSearch = indexOfMatchThis;
+	}
 	else
-		indexForSearch = int(pEnd - 1);
+	{
+		charAtIndex = *(pEnd - 1); 
+		indexForSearch = (size_t)(pEnd - 1);
+	}
 	//if (*(pEnd - 1) == matchThis && bOneOfTheThreeWasPassedIn)
-	if (*(pBuffStart + indexForSearch) == matchThis && bOneOfTheThreeWasPassedIn)
+	//if (*(pBuffStart + indexForSearch) == matchThis && bOneOfTheThreeWasPassedIn)
+	if (charAtIndex == matchThis && bOneOfTheThreeWasPassedIn)
 	{
 		// Okay, go deeper - we potentially have an end of string wrapped substring
 		// using parentheses, brackets or braces; because what was passed in occurs
