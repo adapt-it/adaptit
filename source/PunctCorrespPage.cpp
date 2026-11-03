@@ -1432,6 +1432,8 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_finalSrcPuncts = gpApp->MakeSourceFinalPuncts(gpApp->m_strSpacelessSourcePuncts);
 	// BEW 6Feb23 I forgot to add a line for 'Preceding' target puncts, add it now
 	gpApp->m_precTgtPuncts = gpApp->MakeTargetPrecPuncts(gpApp->m_strSpacelessTargetPuncts);
+	// whm 4Oct2026 added the following line for updating App storage of prec source puncts.
+	gpApp->m_precSrcPuncts = gpApp->MakeSourcePrecPuncts(gpApp->m_strSpacelessSourcePuncts);
 }
 
 #ifdef _UNICODE

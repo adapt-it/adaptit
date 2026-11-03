@@ -20155,7 +20155,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			pNextSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // whm 5Sep2026 added
 
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 305) 
+		if (pSrcPhrase->m_nSequNumber >= 24) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -20466,11 +20466,12 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		// Testing shows that the str value should end with a space here.
 		// Add a space to end of str if there is none. 
 		// Exceptions: Don't add a space at end if the last character of str is
-		// strictly initial punctuation such as '(', '[', initial quote(s), etc
+		// initial punctuation in the set: m_strInitialPuncts, such as '(', '[', 
+		// initial quote(s), regular straight quotes, etc
 		if (!str.IsEmpty())
 		{
 			wxChar lastCh = str.GetChar(str.Length() - 1);
-			bool lastChIsInitialPunct = gpApp->GetDocument()->m_strStrictlyInitialPuncts.Find(lastCh) != wxNOT_FOUND;
+			bool lastChIsInitialPunct = gpApp->GetDocument()->m_strInitialPuncts.Find(lastCh) != wxNOT_FOUND;
 			if (!IsWhiteSpace(&lastCh) 
 				&& !lastChIsInitialPunct)
 				str += _T(" ");

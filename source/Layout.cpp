@@ -1191,6 +1191,14 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// string at this location
 		if (gbAutoCaps)
 		{
+			// whm 1Oct2026 modified to call RemoveInitialAndFinalPunctsPreservingMedial(),
+			// so that auto caps will work when there is initial punctuation on 
+			// the m_pApp->m_targetPhrase.
+			wxString initialPunctsRemoved;
+			wxString finalPunctsRemoved;
+			m_pApp->m_targetPhrase = m_pApp->GetView()->RemoveInitialAndFinalPunctuationPreservingMedial(m_pApp->m_targetPhrase,
+				initialPunctsRemoved,
+				finalPunctsRemoved);
 			bool bNoError = TRUE;
 			bNoError = m_pApp->GetDocument()->SetCaseParameters(m_pApp->m_pActivePile->GetSrcPhrase()->m_key);
 			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
@@ -1203,6 +1211,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 					m_pApp->m_pTargetBox->m_bAbandonable = FALSE; // If tgt text changed, it must become non-Abandonable (BEW added line 7May18)
 				}
 			}
+			m_pApp->m_targetPhrase = initialPunctsRemoved + m_pApp->m_targetPhrase + finalPunctsRemoved;
 			// keep m_pTargetBox contents in sync with m_targetPhrase
 			// whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block.
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); 

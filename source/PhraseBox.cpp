@@ -1052,12 +1052,18 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 // (this function calls DealWithUnsuccessfulStore() if there was a problem with the store)
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 21Jun10, no changes needed for support of kbVersion 2
+// This function is called from MoveToNextPile() and MoveToNextPile_InTransliterationMode()
 bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc,
 		 CAdapt_ItView* pView, CPile* pCurPile, bool bIsTransliterateMode)
 {
 	bool bOK = TRUE;
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
 	pApp->m_bInNormalStore = TRUE; // MakeTargetStringIncludingPunctuation() uses this
+	
+	// whm 1Oct2026 added to be able to restore puncts to pApp->m_targetPhrase after they
+	// are removed for use in StoreText().
+	wxString initPunctsRemoved; initPunctsRemoved.Empty();
+	wxString finalPunctsRemoved; finalPunctsRemoved.Empty();
 
 	// m_bSuppressStoreForAltBackspaceKeypress is FALSE, so either we are in normal adapting
 	// or glossing mode; or we could be in transliteration mode but the global boolean
@@ -1193,72 +1199,125 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
 #endif	
 		// BEW 14Oct22 If I want detached ] to be treated like a word, so that it goes into the
-		// adapting KB, then I don't what punctuation removed, as it's normally punctuation, as
+		// adapting KB, then I don't want punctuation removed, as it's normally punctuation, as
 		// that would generate m_targetPhrase being an empty string - and if that were the case
 		// trying to compensate in the StoreText() call below would be impossible. So for ], 
 		// skip the punctuation removal
 
-		// BEW 28Oct22 protect against m_targetPhrase being empty, at the GetChar(0) call
 		int tgtPhrLen = 0; // initialize
 		if (!pApp->m_targetPhrase.IsEmpty())
 		{
 			tgtPhrLen = pApp->m_targetPhrase.Length();
 			wxChar firstChar = pApp->m_targetPhrase.GetChar(0);
-			// whm 23Sep2026 added a third condition '&& bHasMedialPunctSpan' based on the
-			// return value of pView->StringHasMedialPunctSpan(pApp->m_targetPhrase). 
-			// I added two new View functions:
-			//    bool StringHasMedialPunctSpan(wxString str, bool& bHasNonSpanningPunctToRemove);
-			//    wxString RemoveNonSpanningPunctuation(wxString str);
+			// whm 23Sep2026 Notes. 
+			// I added the new View functions:
+			//    bool StringHasMedialPunctSpan(wxString str, wxString& punctMask,
+			//		wxString& initialPuncts,
+			//		wxString& finalPuncts);
+			//    wxString RemoveNonMedialPunctuation(wxString str);
+			//    wxString RemoveInitialAndFinalPunctuationPreservingMedial(wxString str, 
+			//		wxString& initialPunctsRemoved,
+			//		wxString& finalPunctsRemoved);
 			// The StringHasMedialPunctSpan() function is called below to determine if pApp->m_targetPhrase
-			// contains any medial spanning punctuation, and if so, it also returns by reference parameter the 
-			// bHasNonSpanningPunctToRemove set TRUE, which indicates the need to call the View's 
-			// RemoveNonSanningPunctuation() function which removes any non-spanning initial punctuation 
-			// and non-spanning final punctuation which should not be stored within the KB.
+			// contains any medial spanning punctuation, and if so, it also returns by reference parameter a 
+			// a punctMask, initialPuncts, and finalPuncts, which indicates the punctuation pattern and actual
+			// content in the str and the need to call the View's RemoveNonSpanningPunctuation() function 
+			// which removes any non-spanning initial punctuation and non-spanning final punctuation which 
+			// should not be stored within the KB.
+			// The RemoveInitialAndFinalPunctuationPreservingMedial() function does the same job that
+			// the RemoveNonMedialPunctuation() does, but also returns the non-spanning inital and
+			// final punct strings that are removed, if any, for easier restoration later if needed
+			// (this is especially needed when dealing with pApp->m_targetPhrase that should generally
+			// always keep any punctuation on it).
 			// I also adjusted the logic and parentheses for better clarity.
 //#ifdef _DEBUG
-			//wxString result00, result01, result02, result03, result04, result05, result06, result07, result08, result09, result10, result11;
+			// result... strings gets as of 9Oct2026 after tweaks to helpers.cpp 
+			// MakeSpacelessPunctsString() to include "¿" and "¡", and also tweaks
+			// to GetAllPrecPuncts() and GetAllFinalPuncts() to
+			// add space to the precPuncts and finalPuncts working sets of puncts.
 			//wxString test00 = _T("1:2, 2-3, 4–5, 6―7");
-			////result00 = pView->RemoveNonSpanningPunctuation(test00);
+			//wxString result00PrecPuncts = pView->GetAllPrecPuncts(test00); // gets ""
+			//wxString result00FollPuncts = pView->GetAllFinalPuncts(test00); // gets ""
+			//result00 = pView->RemoveNonMedialPunctuation(test00); // gets "1:2 2-3 4–5 6―7"
 			//wxString test01 = _T("\"¿fifty (50) days?\"");
-			//result01 = pView->RemoveNonSpanningPunctuation(test01);
+			//wxString result01PrecPuncts = pView->GetAllPrecPuncts(test01); // gets "\"¿"
+			//wxString result01FollPuncts = pView->GetAllFinalPuncts(test01); // gets "?\""
+			//wxString result01 = pView->RemoveNonMedialPunctuation(test01); // gets "fifty (50) days"
 			//wxString test02 = _T("\"(50) fifty days\"");
-			//result02 = pView->RemoveNonSpanningPunctuation(test02);
+			//wxString result02PrecPuncts = pView->GetAllPrecPuncts(test02); // gets "\"("
+			//wxString result02FollPuncts = pView->GetAllFinalPuncts(test02); // gets "\""
+			//wxString result02 = pView->RemoveNonMedialPunctuation(test02); // gets "(50) fifty days"
 			//wxString test03 = _T("\"¡fifty days (50)!\"");
-			//result03 = pView->RemoveNonSpanningPunctuation(test03);
+			//wxString result03PrecPuncts = pView->GetAllPrecPuncts(test03); // gets ""
+			//wxString result03FollPuncts = pView->GetAllFinalPuncts(test03); // gets ""
+			//wxString result03 = pView->RemoveNonMedialPunctuation(test03);
 			//wxString test04 = _T("¿fifty (50) days?");
-			//result04 = pView->RemoveNonSpanningPunctuation(test04);
+			//wxString result04PrecPuncts = pView->GetAllPrecPuncts(test04); // gets "¿"
+			//wxString result04FollPuncts = pView->GetAllFinalPuncts(test04); // gets "?"
+			//wxString result04 = pView->RemoveNonMedialPunctuation(test04); // gets "fifty (50) days"
 			//wxString test05 = _T("(50) fifty days");
-			//result05 = pView->RemoveNonSpanningPunctuation(test05);
+			//wxString result05PrecPuncts = pView->GetAllPrecPuncts(test05); // gets "("
+			//wxString result05FollPuncts = pView->GetAllFinalPuncts(test05); // gets ""
+			//wxString result05 = pView->RemoveNonMedialPunctuation(test05); // gets "(50) fifty days"
 			//wxString test06 = _T("¡fifty days (50)!");
-			//result06 = pView->RemoveNonSpanningPunctuation(test06);
+			//wxString result06PrecPuncts = pView->GetAllPrecPuncts(test06); // gets "¡"
+			//wxString result06FollPuncts = pView->GetAllFinalPuncts(test06); // gets ")!"
+			//wxString result06 = pView->RemoveNonMedialPunctuation(test06); // gets "fifty days (50)"
 			//wxString test07 = _T("2:1"); // colon
-			//result07 = pView->RemoveNonSpanningPunctuation(test07);
+			//wxString result07PrecPuncts = pView->GetAllPrecPuncts(test07); // gets ""
+			//wxString result07FollPuncts = pView->GetAllFinalPuncts(test07); // gets ""
+			//wxString result07 = pView->RemoveNonMedialPunctuation(test07); // gets "2:1"
 			//wxString test08 = _T("3:5-7"); // colon with normal hyphen = '-'
-			//result08 = pView->RemoveNonSpanningPunctuation(test08);
+			//wxString result08PrecPuncts = pView->GetAllPrecPuncts(test08); // gets ""
+			//wxString result08FollPuncts = pView->GetAllFinalPuncts(test08); // gets ""
+			//wxString result08 = pView->RemoveNonMedialPunctuation(test08); // gets "3:5-7"
 			//wxString test09 = _T("4:7–9"); // colon with longHyphen / endash = '–' (wxChar)0x2013
-			//result09 = pView->RemoveNonSpanningPunctuation(test09);
+			//wxString result09PrecPuncts = pView->GetAllPrecPuncts(test09); // gets ""
+			//wxString result09FollPuncts = pView->GetAllFinalPuncts(test09); // gets ""
+			//wxString result09 = pView->RemoveNonMedialPunctuation(test09); // gets "4:7–9"
 			//wxString test10 = _T("5:1―3"); // colon with horiz_bar = '―' (wxChar)0x2015
-			//result10 = pView->RemoveNonSpanningPunctuation(test10);
+			//wxString result10PrecPuncts = pView->GetAllPrecPuncts(test10); // gets ""
+			//wxString result10FollPuncts = pView->GetAllFinalPuncts(test10); // gets ""
+			//wxString result10 = pView->RemoveNonMedialPunctuation(test10); // gets "5:1―3"
 			//wxString test11 = _T("6:2, 6, 9"); // colon with comma delimited verse numbers
-			//result11 = pView->RemoveNonSpanningPunctuation(test11);
+			//wxString result11PrecPuncts = pView->GetAllPrecPuncts(test11); // gets ""
+			//wxString result11FollPuncts = pView->GetAllFinalPuncts(test11); // gets ""
+			//wxString result11 = pView->RemoveNonMedialPunctuation(test11); // gets "6:2 6 9"
+			//wxString test12 = _T("<<Aso");
+			//wxString result12PrecPuncts = pView->GetAllPrecPuncts(test12); // gets "<<"
+			//wxString result12FollPuncts = pView->GetAllFinalPuncts(test12); // gets ""
+			//wxString result12 = pView->RemoveNonMedialPunctuation(test12); // returns "Aso"
+			//wxString test13 = _T("<< <Aso> >>");
+			//wxString result13PrecPuncts = pView->GetAllPrecPuncts(test13); // gets "<< <"
+			//wxString result13FollPuncts = pView->GetAllFinalPuncts(test13); // gets "> >>"
+			//wxString result13 = pView->RemoveNonMedialPunctuation(test13); // gets "Aso"
+			//wxString test14 = _T("Aso> >>");
+			//wxString result14PrecPuncts = pView->GetAllPrecPuncts(test14); // gets "
+			//wxString result14FollPuncts = pView->GetAllFinalPuncts(test14); // gets "> >>"
+			//wxString result14 = pView->RemoveNonMedialPunctuation(test14); // gets "Aso"
+			//wxString test15 = _T("]"); 
+			//wxString result15PrecPuncts = pView->GetAllPrecPuncts(test15); // gets "]"
+			//wxString result15FollPuncts = pView->GetAllFinalPuncts(test15); // gets "]"
+			//wxString result15 = pView->RemoveNonMedialPunctuation(test15); // gets ""
+			// Note: BEW's code for cases like test15 "]" check for presence of
+			// "]" as the sole content in the target string and if so they avoid
+			// calling a function like RemoveNonMedialPunctuation() that removes all
+			// non-medial punctuation.
 //#endif
-			bool bHasNonSpanningPunctToRemove = FALSE;
-			bool bHasMedialPunctSpan = pView->StringHasMedialPunctSpan(pApp->m_targetPhrase, bHasNonSpanningPunctToRemove);
-			if (bHasMedialPunctSpan)
-			{
-				// We preserve any medial punctuation span, but we remove any 
-				// non spanning initial or final punct.
-				if (bHasNonSpanningPunctToRemove)
-				{
-					pApp->m_targetPhrase = pView->RemoveNonSpanningPunctuation(pApp->m_targetPhrase);
-				}
-			}
-			else if (tgtPhrLen > 1 && firstChar != _T(']'))
+			// whm 7Oct2026 TODO: After testing is done comment out the
+			// test section above. 
+
+			// BEW 28Oct22 protect against m_targetPhrase being empty, at the GetChar(0) call
+			if (!(tgtPhrLen == 1 && firstChar == _T(']')))
 			{
 				// Suppress punctuation stripping when tgtPhrLen is only 1, or ] is the word 
 				// passed in, or m_targetPhrase doesn't have a medial punctuation span; but 
 				// allow all else.
-				pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+				// whm 1Oct2026. The RemoveInitialAndFinalPunctuationPreservingMedial() function
+				// calls the new RemoveNonMedialPunctuation() function internally to preserve 
+				// medial spanning punctuation for the StoreText() calls below.
+				pApp->m_targetPhrase = pView->RemoveInitialAndFinalPunctuationPreservingMedial(
+					pApp->m_targetPhrase, initPunctsRemoved, finalPunctsRemoved);
 			}
 		}
 	}
@@ -1270,6 +1329,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 #endif	
 		// BEW added next line 27Jan09
 		bOK = pApp->m_pGlossingKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		// Restore any non-spanning non-medial punct to the App's m_targetPhrase;
+		pApp->m_targetPhrase = initPunctsRemoved + pApp->m_targetPhrase + finalPunctsRemoved;
 	}
 	else
 	{
@@ -1298,6 +1359,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		pApp->m_bInhibitMakeTargetStringCall = TRUE; // whm 9Oct2023 restoring this line
 
 		bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		// Restore any non-spanning non-medial punct to the App's m_targetPhrase;
+		pApp->m_targetPhrase = initPunctsRemoved + pApp->m_targetPhrase + finalPunctsRemoved;
 
 		pApp->m_bInhibitMakeTargetStringCall = FALSE; // restore default
 	}
@@ -1330,8 +1393,23 @@ void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 	{
 		if (!pNewPile->GetSrcPhrase()->m_bNullSourcePhrase)
 		{
-			pApp->m_targetPhrase = pView->CopySourceKey(pNewPile->GetSrcPhrase(),
+			CSourcePhrase* pNewSrcPhrase = pNewPile->GetSrcPhrase();
+			pApp->m_targetPhrase = pView->CopySourceKey(pNewSrcPhrase,
 									pApp->m_bUseConsistentChanges);
+			// whm 1Oct2026 added. If pApp->m_targetPhrase is not empty and 
+			// pApp->m_bCopySourcePunctuation is TRUE, do so here.
+			if (pApp->m_bCopySourcePunctuation && !pApp->m_targetPhrase.IsEmpty())
+			{
+				// whm 30Sep2026 added. The str from CopySourceKey() will not copy any
+				// initial or final punctuation from the pSrcPhrase. I think it would be
+				// good to show the punctuation converted to target punctuation in the
+				// phrasebox along with the source's m_key.
+				wxString initPunct = pNewSrcPhrase->m_precPunct;
+				initPunct = ConvertSrcPunctsInStringToTgt(initPunct, strictlyInitial);
+				wxString finalPunct = pNewSrcPhrase->m_follPunct;
+				finalPunct = ConvertSrcPunctsInStringToTgt(finalPunct, strictlyFinal);
+				pApp->m_targetPhrase = initPunct + pApp->m_targetPhrase + finalPunct;
+			}
 		}
 		else
 		{
@@ -6676,7 +6754,14 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 			pApp->m_pActivePile = pView->GetPile(0);
 		}
 	}
-	wxString transln = pTheSrcPhrase->m_adaption;
+	// whm 26Oct2026 modified. The pApp->m_targetPhrase should be assigned to 
+	// the value of pTheSrcPhrase->m_targetStr here rather than m_adaption, because
+	// we want the pApp->m_targetPhrase to have a target form containing punctuation, 
+	// so that any such punctuation appears within the phrasebox. The 
+	// SetupDropDownList() now knows how to properly handle values with initial 
+	// and/or final punctuation.
+	//wxString transln = pTheSrcPhrase->m_adaption;
+	wxString transln = pTheSrcPhrase->m_targetStr;
 	pApp->m_targetPhrase = transln;
     this->GetTextCtrl()->ChangeValue(transln);
 	pApp->m_bAutoInsert = FALSE; // ensure we halt for user to type translation
@@ -8041,16 +8126,23 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 						if (tempStr == _("<no adaptation>"))
 						{
 							// Use any existing m_targetPhrase, which may be empty string.
-							this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+							// whm 27Oct2026 modification. When "<no adaptation>" is the dropdown
+							// list item selected, the phrasebox should actually be empty.
+							//this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+							this->GetTextCtrl()->ChangeValue(wxEmptyString);
 						}
 						else
 						{
+							// whm 27Oct2026 modified. This block is entered when the dropdown list
+							// index is pointing at something other than "<no adaptation>", so here
+							// we just assign the dropdown string item to pApp->m_targetPhrase, and
+							// set the phrasebox to show pApp->m_targetPhrase.
 							pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-							// Convert a <no adaptation> to empty string, if present
-							if (pApp->m_targetPhrase == _T("<no adaptation>"))
-							{
-								pApp->m_targetPhrase = wxEmptyString;
-							}
+							//// Convert a <no adaptation> to empty string, if present
+							//if (pApp->m_targetPhrase == _T("<no adaptation>"))
+							//{
+							//	pApp->m_targetPhrase = wxEmptyString;
+							//}
 							this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 						}
 						pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
@@ -8324,6 +8416,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 	// when not in glossing mode, and only when m_bLandingBox is TRUE, and various other 
 	// constraints are satisfied as well. m_bLandingBox is a new app member bool as of 10May18
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
 	if (!gbIsGlossing && pApp->m_bLandingBox)
 	{
 		// Initializations
@@ -8354,6 +8447,23 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 		// or it could be empty (but its src text above it would not be empty)
 		theBoxAdaptation = pApp->m_pTargetBox->GetValue(); // as is, but it may need 
 														   // changing to lower case so as to match KB entries
+		// whm 30Sep2026 modification. With current modifications the phrasebox contents 
+		// may now contain initial and/or final punctuation. This needs to be removed 
+		// from theBoxAdaptation value in order for the following gbAutoCaps code to 
+		// work properly, as well as for other function calls further below to function 
+		// properly - the GetMatchingRefString() call, and the BuildTempDropDownComboList() 
+		// call.
+		// whm 1Oct2026 Use the new function:
+		// RemoveInitialAndFinalPunctuationPreservingMedial(wxString str, 
+		//   wxString& initialPunctsRemoved, wxString& finalPunctsRemoved)
+		wxString initPuncts; initPuncts.Empty();
+		wxString finalPuncts; finalPuncts.Empty();
+		theBoxAdaptation = pView->RemoveInitialAndFinalPunctuationPreservingMedial(theBoxAdaptation,
+			initPuncts, finalPuncts);
+
+		wxUnusedVar(initPuncts);
+		wxUnusedVar(finalPuncts);
+
 		if (!theBoxAdaptation.IsEmpty())
 		{
 			if (gbAutoCaps)
@@ -8598,7 +8708,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 #endif
-
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
 
 	// BEW 30Mar19 added, so that the reinsertion of the deleted item, when the item
 	// had a refCount of 1, can happen into the dropdown list at its former location
@@ -8640,10 +8751,17 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 #endif
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->GetDropDownList()->Clear();
-    wxString initialBoxContent;
+	// whm 1Oct2026 Use the new function:
+	// RemoveInitialAndFinalPunctuationPreservingMedial(wxString str, 
+	//   wxString& initialPunctsRemoved, wxString& finalPunctsRemoved)
+	wxString initialBoxContentMinusInitAndFinalPuncts;
     // Get the initial phrasebox content so we can match it in dropdown list if it is there
-    initialBoxContent = gpApp->m_targetPhrase;
-    
+	initialBoxContentMinusInitAndFinalPuncts = gpApp->m_targetPhrase;
+	wxString initPuncts; initPuncts.Empty();
+	wxString finalPuncts; finalPuncts.Empty();
+	initialBoxContentMinusInitAndFinalPuncts = pView->RemoveInitialAndFinalPunctuationPreservingMedial(initialBoxContentMinusInitAndFinalPuncts,
+		initPuncts, finalPuncts);
+
     if (pTU == NULL)
     {
         return; // If the incoming pTU is null then just return with empty list
@@ -8661,7 +8779,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	// BEW added 9May18 - there can only be one <no adaptation> in the list
 	bool bExcludeAnother_NoAdaptation = FALSE; // initialize
 	int count = 0;
-
+	wxString str; // whm 1Oct2026 moved str declaration up outside the while loop
+	
 	// Our approach will be to create the visible list items, accumulating
 	// a count. If there is a deleted one, we'll insert it in its proper
 	// location after the loop has exited, if it it was the last item in
@@ -8691,7 +8810,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         if (!pRefString->GetDeletedFlag())
         {
             // this one is not deleted, so show it to the user
-            wxString str = pRefString->m_translation;
+			str = pRefString->m_translation;
 
 			if (str.IsEmpty() && !bExcludeAnother_NoAdaptation)
 			{
@@ -8727,23 +8846,29 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				// represents the pRefString of the incoming target unit pTU which in the caller is
 				// based on fetching a pRefString based on the m_key of the source phrase at the 
 				// gpApp->m_pActivePile. 
-				CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+				//CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
 
 				//if (!this->m_SaveTargetPhrase.IsEmpty() && !str.IsEmpty()
 				//	&& this->GetDropDownList()->GetCount() == 0
 				//	&& FindIgnoreCase(this->m_SaveTargetPhrase, str) != wxNOT_FOUND)
-				if (!pSrcPhrase->m_targetStr.IsEmpty() && !str.IsEmpty()
-						&& this->GetDropDownList()->GetCount() == 0
-						&& FindIgnoreCase(pSrcPhrase->m_targetStr, str) != wxNOT_FOUND)
-				{
-					// whm 19Sep2026 modification - see comment above.
-					//nLocation = this->GetDropDownList()->Append(this->m_SaveTargetPhrase);
-					nLocation = this->GetDropDownList()->Append(pSrcPhrase->m_targetStr);
-				}
-				else
+				//if (!pSrcPhrase->m_targetStr.IsEmpty() && !str.IsEmpty()
+				//		&& this->GetDropDownList()->GetCount() == 0
+				//		&& FindIgnoreCase(pSrcPhrase->m_targetStr, str) != wxNOT_FOUND)
+				//{
+				//	// whm 19Sep2026 modification - see comment above.
+				//	//nLocation = this->GetDropDownList()->Append(this->m_SaveTargetPhrase);
+				//	nLocation = this->GetDropDownList()->Append(pSrcPhrase->m_targetStr);
+				//}
+				//else
+				//{
+				//	nLocation = this->GetDropDownList()->Append(str);
+				//}
+				if (!str.IsEmpty())
+					//&& this->GetDropDownList()->GetCount() == 0)
 				{
 					nLocation = this->GetDropDownList()->Append(str);
 				}
+
 			}
 
             // whm 22Aug2018 Note: We handle the situation where <Not In KB> is present
@@ -8851,11 +8976,12 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 #endif
     if (count > 0)
     {
-        if (!initialBoxContent.IsEmpty())
+		// whm 30Sep2026 modified to use the initialBoxContentMinusInitAndFinalPuncts
+        if (!initialBoxContentMinusInitAndFinalPuncts.IsEmpty())
         {
             // The phrasebox had an entry when we landed there (which could have been a copy of the source text)
             int indx = -1;
-            indx = (int)this->GetDropDownList()->FindString(initialBoxContent, FALSE);  // FALSE - not case sensitive
+            indx = (int)this->GetDropDownList()->FindString(initialBoxContentMinusInitAndFinalPuncts, FALSE);  // FALSE - not case sensitive
             if (indx != wxNOT_FOUND)
             {
                 // Select the list item - if it exists in the list - that matches what was in the 
@@ -8901,21 +9027,99 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
     // the KB until the phrasebox moves on with Enter or Tab.
     if (!m_Translation.IsEmpty())
     {
+		// whm 1Oct2026 for testing. Check whether m_Translation is equal to
+		// gpApp->m_targetPhrase.
+		if (m_Translation != gpApp->m_targetPhrase)
+		{
+			int break_here = 1;
+			break_here = break_here;
+		}
+		// whm 1Oct2026 addition. The GetDropDownList()->FindString(m_Translation) call 
+		// below differs from the FindString(initialBoxContentMinusInitAndFinalPuncts)
+		// call earlier; this one below calls this->GetDropDownList()->Append(m_Translation)
+		// if the m_Translation is not found in the dropdown list; then (like the
+		// FindString() above, sets the selectionIndex to the item.
+		// Here too we need to remove initial/final punctuation from m_Translation
+		// before the FindString() call for the call to work properly.
+		// Note: The m_Translation is emptied at the m_Translation.Empty() call below
+		// so we need not restore punctuation to it later.
+		// whm 1Oct2026 Use the new function:
+		// RemoveInitialAndFinalPunctuationPreservingMedial(wxString str, 
+		//   wxString& initialPunctsRemoved, wxString& finalPunctsRemoved)
+		wxString m_TranslationMinusInitAndFinalPuncts = m_Translation;
+		
+		initPuncts.Empty();
+		finalPuncts.Empty();
+		m_TranslationMinusInitAndFinalPuncts = pView->RemoveInitialAndFinalPunctuationPreservingMedial(m_TranslationMinusInitAndFinalPuncts,
+			initPuncts, finalPuncts);
+
         // whm updated 5Mar2018 check for if the string already exists. If not, append it and set its
         // selectionIndex. If it already exists in the list don't append it again, but update its 
         // selectionIndex to its current index in the list.
         int foundItem = -1;
-        foundItem = this->GetDropDownList()->FindString(m_Translation);
-        if (foundItem == wxNOT_FOUND)
+		foundItem = this->GetDropDownList()->FindString(m_TranslationMinusInitAndFinalPuncts);
+		if (foundItem == wxNOT_FOUND)
         {
-            selectionIndex = this->GetDropDownList()->Append(m_Translation);
+			// The m_TranslationMinusInitAndFinalPuncts was NOT found in the dropdown list,
+			// so append the m_Translation value to the dropdown list.
+			selectionIndex = this->GetDropDownList()->Append(m_Translation);
         }
         else
         {
-            selectionIndex = foundItem;
+			// whm 1Oct2026 modified. The m_TranslationMinusInitAndFinalPuncts was 
+			// found in the dropdown list.
+			// Call Delete(foundItem) and then call Insert(m_Translation, foundItem) 
+			// to replace the punct-less m_TranslationMinusInitAndFinalPuncts item 
+			// with the m_Translation item having punctuation on it.
+			this->GetDropDownList()->Delete(foundItem);
+			selectionIndex = this->GetDropDownList()->Insert(m_Translation, foundItem);
+            wxASSERT(selectionIndex == foundItem);
         }
         m_Translation.Empty(); // We've used it so clear it
     }
+	else
+	{
+		// whm 1Oct2026 addded. whm 27Oct2026 added a second condition 
+		// && !(str == _T("<no adaptation>")) to the test below.
+		// Replace the punctuation-less item found in the dropdown
+		// list with the pApp->m_targetPhrase having punctuation.
+		// The m_Translation is empty, so we'll use the pApp->m_targetPhrase, but
+		// only if the pApp->m_targetPhrase is not an empty string, and only if
+		// the str value is not "<no adaptation>".
+		if (!pApp->m_targetPhrase.IsEmpty() && !(str == _T("<no adaptation>")))
+		{
+			wxString m_targetPhraseMinusInitAndFinalPuncts = pApp->m_targetPhrase;
+			initPuncts.Empty();
+			finalPuncts.Empty();
+			m_targetPhraseMinusInitAndFinalPuncts = pView->RemoveInitialAndFinalPunctuationPreservingMedial(m_targetPhraseMinusInitAndFinalPuncts,
+				initPuncts, finalPuncts);
+			int foundItem = -1;
+			foundItem = this->GetDropDownList()->FindString(m_targetPhraseMinusInitAndFinalPuncts);
+			if (foundItem == wxNOT_FOUND && !m_targetPhraseMinusInitAndFinalPuncts.IsEmpty())
+			{
+				selectionIndex = this->GetDropDownList()->Append(pApp->m_targetPhrase);
+			}
+			else
+			{
+				// whm 1Oct2026 modified. Call Delete(foundItem) and then 
+				// Insert(pApp->m_targetPhrase, foundItem) to replace the punct-less
+				// m_targetPhraseMinusInitAndFinalPuncts item with the 
+				// pApp->m_targetPhrase item having punctuation on it.
+				this->GetDropDownList()->Delete(foundItem);
+				selectionIndex = this->GetDropDownList()->Insert(pApp->m_targetPhrase, foundItem);
+				wxASSERT(selectionIndex == foundItem);
+			}
+		}
+		else if (str == _T("<no adaptation>") && indexOfNoAdaptation != -1)
+		{
+			int foundItem = -1;
+			foundItem = this->GetDropDownList()->FindString(str);
+			if (foundItem != -1)
+			{
+				selectionIndex = indexOfNoAdaptation;
+			}
+		}
+	}
 #if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);

@@ -2780,13 +2780,14 @@ class CAdapt_ItApp : public wxApp
 	wxString		mariadb_path; // set to C:\Program Files (x86)\MariaDB 10.5\  at end of OnInit()
 
 //#endif // _KBSERVER
-	bool		m_bInNormalStore; // BEW 21Nov22 added. TRUE while control is within DoStore_NormalOrTransliterateModes()
-					// We make use of this when we need to force MakeTargetStringIncludingPunctuation() to restore
-					// stripped of ')' for data like word(plural) so that the final ') gets carried forward to the
-					// temporary new pSrcPhrase with sequNum = 0 working on target text, so that the subsequent
-					// ParseWord() call on the same pSrcPhrase has the final ')' present. If not there, ParseWord()
-					// misparses, and the GUI will not have a ') to show when the non-tempory pSrcPhrase displays
-					// m_targetStr
+	bool		m_bInNormalStore; // BEW 21Nov22 added. TRUE while control is within 
+		// DoStore_NormalOrTransliterateModes() or DoStore_ForPlacePhraseBox(), otherwise FALSE.
+		// We make use of this when we need to force MakeTargetStringIncludingPunctuation() to restore
+		// stripped of ')' for data like word(plural) so that the final ') gets carried forward to the
+		// temporary new pSrcPhrase with sequNum = 0 working on target text, so that the subsequent
+		// ParseWord() call on the same pSrcPhrase has the final ')' present. If not there, ParseWord()
+		// misparses, and the GUI will not have a ') to show when the non-tempory pSrcPhrase displays
+		// m_targetStr
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
 							// sub-class the wxProgressDialog which currently has no
 							// way to get its maximum value held as a private member.
@@ -3893,6 +3894,7 @@ public:
 	
 	wxString MakeSourceFinalPuncts(wxString srcPuncts); // does not include a space
 	wxString m_finalSrcPuncts; // stores what MakeSourceFinalPuncts() returns
+	wxString MakeSourcePrecPuncts(wxString srcPuncts); // whm 3Oct2026 added.
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;
@@ -3902,11 +3904,12 @@ public:
 	// BEW 23Dec22 make a "preceding" tgt puncts supporting pair - excludes closing quote of course
 	wxString MakeTargetPrecPuncts(wxString tgtPuncts); // may include a space, excludes opening quote - new
 	wxString m_precTgtPuncts; // stores what MakeTargetPrecPuncts() returns - new
-
+	wxString m_precSrcPuncts; // whm 3Oct2026 added // stores what MakeSourcePrecPuncts() returns
 
     bool	 m_bMakeDocCreationLogfile;
-	bool	 m_bFinalTypedPunctsGrabbedAlready;
-	bool     m_bPrecTypedPunctsGrabbedAlready; // BEW 23Dec22 added, to simplify SimplePunctuationRestoration()
+	// whm 4Oct2026 Removed the following booleans - not needed
+	//bool	 m_bFinalTypedPunctsGrabbedAlready;
+	//bool     m_bPrecTypedPunctsGrabbedAlready; // BEW 23Dec22 added, to simplify SimplePunctuationRestoration()
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 

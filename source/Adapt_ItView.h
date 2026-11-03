@@ -30,6 +30,7 @@
 //#include "consistentChanger.h"
 //#include "FindReplace.h"
 #include "SourcePhrase.h"
+#include "helpers.h"
 
 // forward declarations
 //class MyTextCtrl; // temp
@@ -204,11 +205,19 @@ public:
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
 
-	wxString	GetManuallyAddedFinalPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 26Feb20 added
-	wxString	GetManuallyAddedFinalPuncts(wxString targetStr); // BEW added 27Feb20, calls the above
+	// whm 4Oct2026 Gave the next 4 Get...Puncts() functions more generic names
+	// and added a default parameter: enum WhichLang whichLang = targetLang
+	wxString	GetAllFinalPuncts(wxChar* pBeginBuff, 
+				wxChar* pEnd,
+				enum WhichLang whichLang = targetLang); // BEW 26Feb20 added
+	wxString	GetAllFinalPuncts(wxString inputStr,
+				enum WhichLang whichLang = targetLang); // BEW added 27Feb20, calls the above
 
-	wxString	GetManuallyAddedPrecPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 23Dec22 added
-	wxString	GetManuallyAddedPrecPuncts(wxString targetStr); // BEW added 23Dec22, calls the above
+	wxString	GetAllPrecPuncts(wxChar* pBeginBuff, 
+				wxChar* pEnd,
+				enum WhichLang whichLang = targetLang); // BEW 23Dec22 added
+	wxString	GetAllPrecPuncts(wxString inputStr,
+				enum WhichLang whichLang = targetLang); // BEW added 23Dec22, calls the above
 
 	bool		FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart,
 		wxChar*& pEnd,
@@ -227,8 +236,16 @@ public:
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	wxString    RemovePunctuationOnOneWord(wxString oneWord, wxString spacelessPunctsStr, int nIndex); // nIndex = 0 for src, 1 for tgt
-	bool		StringHasMedialPunctSpan(wxString str, bool& bHasNonSpanningPunctToRemove); // whm 23Sep2026 added
-	wxString	RemoveNonSpanningPunctuation(wxString str); // whm 24Sep2026 added
+	bool		StringHasMedialPunctSpan(wxString str,
+		wxString& punctMask); // whm 23Sep2026 added
+	bool		StringHasNonSpanningPunctuation(wxString str); // whm 3Oct2026 added
+	wxString	RemoveNonMedialPunctuation(wxString str); // whm 24Sep2026 added
+	
+	// whm 1Oct2026 added the following:
+	wxString RemoveInitialAndFinalPunctuationPreservingMedial(wxString str,
+		wxString& initialPunctsRemoved,
+		wxString& finalPunctsRemoved);
+
 	wxString	ProvideMatchingEndBracketOrParenthesis(wxString keyTgtText);
 	void		RemoveSelection();
 

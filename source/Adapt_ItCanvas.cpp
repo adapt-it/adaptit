@@ -678,6 +678,24 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 
 		wxString selItemStr;
 		selItemStr = pApp->m_pTargetBox->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
+		// whm 27Oct2026 addition. The GetListItemAdjustedforPhraseBox() call above
+		// sets selItemStr to empty string for "<no adaptation>", but for other
+		// text values we should adjust any punctuation if copy punctuation is TRUE,
+		// and also adjust the value for gbAutocaps if it is TRUE.
+		if (pApp->m_bCopySourcePunctuation && !selItemStr.IsEmpty())
+		{
+			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
+			if (pSP != NULL)
+			{
+				wxString initPunct = pSP->m_precPunct;
+				initPunct = ConvertSrcPunctsInStringToTgt(initPunct, strictlyInitial);
+				wxString finalPunct = pSP->m_follPunct;
+				finalPunct = ConvertSrcPunctsInStringToTgt(finalPunct, strictlyFinal);
+				selItemStr = initPunct + selItemStr + finalPunct;
+				pApp->m_targetPhrase = selItemStr;
+			}
+		}
+
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
 		wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),

@@ -2525,6 +2525,21 @@ wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 	{
 		pApp->m_punctuation[0] += ch;
 	}
+	// whm 4Oct2026 added inverted question mark
+	ch.SetChar(0, L'\x00BF'); // hex for inverted question mark
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+	// whm 4Oct2026 added inverted exclamation point
+	ch.SetChar(0, L'\x00A1'); // hex for inverted exclamation point
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+
 	// Now do same for m_punctuation[1] the target puncts set
 	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
 	offset = (pApp->m_punctuation[1]).Find(ch);
@@ -2533,6 +2548,20 @@ wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 		pApp->m_punctuation[1] += ch;
 	}
 	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	// whm 4Oct2026 added inverted question mark
+	ch.SetChar(0, L'\x00BF'); // hex for inverted question mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	// whm 4Oct2026 added inverted exclamation point
+	ch.SetChar(0, L'\x00A1'); // hex for inverted exclamation point
 	offset = (pApp->m_punctuation[1]).Find(ch);
 	if (offset == wxNOT_FOUND)
 	{
@@ -3442,14 +3471,14 @@ int FindFromPosBackwards(const wxString& inputStr, const wxString& subStr, int s
 	int ct;
 	while (pStartChar >= pBufStart)
 	{
-		// whm 25Sep2026 Note: We could search from the last char of subStr backwards towards
+		// whm 25Sep2026 Note: We search from the startAtPos char of inputStr backwards towards
 		// the beginning of the inputStr, searching for the remainder of subStr in reverse order.
-		// but, the following code that waits until pStartChar moving backwards until it matches 
+		// The following code that waits until pStartChar moving backwards until it matches 
 		// the first char of subStr and looks forward for the remainder of subStr also works.
 		if (!subStr.IsEmpty() && *pStartChar == subStr.GetChar(0)) // protection for Get Char(0)
 		{
-			// We're at a char which matches first char of subStr, so look ahead in the buffer and
-			// see if remainder of subStr also matches.
+			// We're at a char which matches first char of subStr, so now look ahead in the 
+			// buffer and see if remainder of subStr also matches.
 			ct = 0;
 			while (ct < (int)subStr.Length() && pStartChar < pEnd)
 			{
@@ -5879,7 +5908,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 							// for an appropriate wordbreak to insert before the last word
 	
 #ifdef _DEBUG
-	if (pMergedSrcPhrase->m_nSequNumber >= 173)
+	if (pMergedSrcPhrase->m_nSequNumber >= 89)
 	{
 		int break_here = 1;
 		break_here = break_here;
@@ -5887,8 +5916,16 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 #endif
 	wxString str;  // accumulate the target text here
 	str.Empty();
-	wxString tgtWords;
-	tgtWords = pMergedSrcPhrase->m_adaption; // For tgtWords use m_adaption (may be empty)
+	//wxString tgtWords;
+	wxString tgtWordsNoPuncts;
+	// whm 10Oct2026 modification. For the tgtWordsNoPuncts value we should use a form 
+	// that contains no punctuation on it, that is the pMergedSrcPhrase->m_adaption value.
+	// We use a no punctuation form because the code below will combine the following:
+	//    str = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord;
+	// where the beforeSrcWord has the punctuation preceding tgtWordsNoPuncts and afterSrcWord
+	// has the punctuation following the tgtWordsNoPuncts.
+	//tgtWords = pMergedSrcPhrase->m_targetStr;
+	tgtWordsNoPuncts = pMergedSrcPhrase->m_adaption; // For tgtWordsNoPuncts use m_adaption (may be empty)
 
 	while (pos_pSPsubList != NULL)
 	{
@@ -5954,9 +5991,70 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 				pNextSrcPhrase, // whm 8Sep2026 added
 				pList,
 				bSuppressPunctForNonSrcOutput);
+
 			int srcWordPos = tempStr.Find(srcWord);
 			beforeSrcWord = tempStr.Mid(0, srcWordPos);
 			afterSrcWord = tempStr.Mid(srcWordPos + srcWord.Length());
+			// whm 28Sep2026 addition. Here we need to do a sanity check to
+			// avoid any duplication of final punctuation if the user had 
+			// removed the final punctuation or moved it to a medial position
+			// in the edit of the target text. For example, if the original
+			// merged source phrase was "len lomonoh (50)" and the user edited
+			// the target text to be "fifty (50) days", the afterSrcWord would
+			// be ")" which should not be suffixed to the tgtWordsNoPuncts at the line:
+			// str = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord below. Therefore,
+			// if afterSrcWord begins with ")" and pMergedSrcPhrase->m_targetStr 
+			// doesn't end with ")" then we should remove the ")" from the
+			// afterSrcWord value. 
+			wxString finalTgtStrPunct = GetTargetPunctuation(pMergedSrcPhrase->m_targetStr, TRUE);
+			//int finalTgtStrLen = (int)finalTgtStrPunct.Length();
+			wxString initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
+			//int initAfterSrcWordLen = (int)initialAfterSrcWordPunct.Length();
+			wxString tempAfterSrcWord = afterSrcWord;
+			if (!pMergedSrcPhrase->m_targetStr.IsEmpty() && !initialAfterSrcWordPunct.IsEmpty()
+				&& afterSrcWord != _T(" "))
+			{
+				// whm 9Oct2026 modification remove the blocks below and just assign
+				// to afterSrcWord the value of finalTgtStrPunct of the pMergedSrcPhrase->m_targetStr
+				// which should have the desired puncts.
+				/*
+				if (finalTgtStrLen == 0 && initAfterSrcWordLen > 0)
+				{
+					// The m_targetStr has no final puncts but the afterSrcWord does have punct(s)
+					// So remove the initial puncts from afterSrcWord; it may become empty.
+					tempAfterSrcWord = tempAfterSrcWord.Mid(initAfterSrcWordLen - 1);
+				}
+				else if (finalTgtStrLen > 0 && initAfterSrcWordLen > 0)
+				{
+					// The m_targetStr has final punct(s) and the afterSrcWord has initial punct(s)
+					// Remove initial puncts from afterSrcWord that match any final puncts on m_targetStr.
+					
+					// whm 9Oct2026 modified.
+					// The for loop below can only work OK if the length of the punct strings
+					// are the same, i.e., initAfterSrcWordLen == finalTgtStrLen.
+					// Program crash issue: 
+					// if the initialAfterSrcWordPunct == ", " with initAfterSrcWordLen == 2
+					// and the finalTgtStrPunct == "," with finalTgtStrLen == 1
+					// on the second pass through the for loop the line within the for loop 
+					// below:
+					//   wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
+					// will crash because index value in the GetChar() is 1 - 1 - 1 or -1
+					// and GetChar(-1) call attempt is on a negative number index causing a 
+					// program crash/assert.
+					for (int i = 0; i < initAfterSrcWordLen; i++)
+					{
+						wxChar chInit = initialAfterSrcWordPunct.GetChar(i);
+						wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
+						if (chInit == chFinal)
+						{
+							tempAfterSrcWord.Remove(initAfterSrcWordLen - 1 - i, 1);
+						}
+					}
+				}
+				afterSrcWord = tempAfterSrcWord;
+				*/
+				afterSrcWord = finalTgtStrPunct; // whm 9Oct2026 modification
+			}
 			// Convert any punctuation in beforeSrcWord and afterSrcWord from 
 			// source punct to target punct.
 			// Previous testing indicates: GetConvertedPuncts() only removes a final space in its 
@@ -6005,7 +6103,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 			// whm 5Sep2026 Note: Previous version above had Tstr = strInitialSruff + Tstr,
 			// but that is removed by this refactoring, hence here we use = in the 
 			// assignment.
-			str = beforeSrcWord + tgtWords + afterSrcWord;
+			str = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord;
 			str = str; // for inspection only
 			// whm 5Sep2026 code above for testing
 
@@ -18847,15 +18945,15 @@ wxString FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase,
 	wxString remainder; remainder.Empty();
 	wxString wholeMkr; wholeMkr.Empty();
 	wxString srcWord;
-	wxString tgtWord;
+	wxString tgtWordNoPuncts;
 	srcWord = pSingleSrcPhrase->m_key;
-	tgtWord = pSingleSrcPhrase->m_adaption;
+	tgtWordNoPuncts = pSingleSrcPhrase->m_adaption;
 	wxString beforeSrcWord; beforeSrcWord.Empty();
 	wxString afterSrcWord; afterSrcWord.Empty();
 	int srcWordPos = -1;
 	//int lenSrcWord = srcWord.Length();
 #ifdef _DEBUG
-	if (pSingleSrcPhrase->m_nSequNumber >= 167)
+	if (pSingleSrcPhrase->m_nSequNumber >= 90)
 	{
 		int break_here = 1;
 		break_here = break_here;
@@ -18951,7 +19049,7 @@ wxString FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase,
 		afterSrcWord += whiteSpFollowing;
 	}
 	// Now assemble the parts together into Tstr.
-	Tstr = beforeSrcWord + tgtWord + afterSrcWord;
+	Tstr = beforeSrcWord + tgtWordNoPuncts + afterSrcWord;
 
 	return Tstr;
 }

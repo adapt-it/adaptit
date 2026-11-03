@@ -8437,6 +8437,29 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 // list selection to what it should be.
                 m_nDropDownClickedItemIndex = index;
                 wxLogDebug("In App's FilterEvent(): Hit test detected dropdown list item index %d was clicked on.",index);
+                
+                // whm 27Oct2026 added for testing to see if we can call the Canvas' OnListBoxItemSelected()
+                // method as the result of a mouse left-button click on a dropdown list item. This is copied
+                // and slightly modified from code within the CPhraseBox::OnKeyUp() event handler.
+                // 
+                // For safety sake we only do the selection if the dropdown list is shown and there are
+                // > 1 items in the list.
+                int itemSel = m_nDropDownClickedItemIndex;
+                this->m_pTargetBox->GetDropDownList()->SetSelection(m_nDropDownClickedItemIndex);
+                int numItemsInList = this->m_pTargetBox->GetDropDownList()->GetCount();
+                if (this->m_pTargetBox->GetDropDownList()->IsShown())
+                {
+                    if (numItemsInList > 1)
+                    {
+                        if (itemSel != -1)
+                        {
+                            wxCommandEvent dummyevent;
+                            GetMainFrame()->canvas->OnListBoxItemSelected(dummyevent);
+                        }
+                    }
+                }
+                // don't call event.Skip() - prevent further processing downstream - just return
+                return -1;
             }
         }
     }
@@ -32754,7 +32777,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
 	m_finalTgtPuncts = MakeTargetFinalPuncts(m_strSpacelessTargetPuncts); // BEW added 26Feb20
-	m_finalSrcPuncts = MakeSourceFinalPuncts(m_strSpacelessSourcePuncts); // BEW added 11Mar20 for ParseInlineEndMarkers()
+    m_precTgtPuncts = MakeTargetPrecPuncts(m_strSpacelessTargetPuncts); // whm 4Oct2026 added (already existed)
+    m_precSrcPuncts = MakeSourcePrecPuncts(m_strSpacelessSourcePuncts); // whm 4Oct2026 added (newly created)
+    m_finalSrcPuncts = MakeSourceFinalPuncts(m_strSpacelessSourcePuncts); // BEW added 11Mar20 for ParseInlineEndMarkers()
 
     /*
     // whm 6Mar2024 testing below
@@ -33051,8 +33076,8 @@ wxString CAdapt_ItApp::MakeTargetPrecPuncts(wxString tgtPuncts)
     wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
     wxChar* pEnd = ptr + (size_t)length; // points to null
     wxChar aChar = _T(' '); // include space, in case the user
-            // wants to type it as a delimiter between final quotes
-    //tgtFinalPuncts += aChar;
+            // wants to type it as a delimiter between prec quotes
+    //tgtPrecPuncts += aChar;
     bool bIsClosingQuote = FALSE; // initialise
     bool bIsClosingDoubleChevron = FALSE; // init
     while (ptr < pEnd)
@@ -33077,6 +33102,45 @@ wxString CAdapt_ItApp::MakeTargetPrecPuncts(wxString tgtPuncts)
     }
     return tgtPrecPuncts;
 }
+
+// whm 3Oct2026 added.
+wxString CAdapt_ItApp::MakeSourcePrecPuncts(wxString srcPuncts)
+{
+    CAdapt_ItDoc* pDoc = GetDocument();
+    wxString srcPrecPuncts = wxEmptyString; // initialise
+    int length = (int)srcPuncts.Len();
+    // Set up the pointers we need for scanning srcPuncts's data buffer
+    const wxChar* pBuffStart = srcPuncts.GetData();
+    wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
+    wxChar* pEnd = ptr + (size_t)length; // points to null
+    wxChar aChar = _T(' '); // include space, in case the user
+            // wants to type it as a delimiter between prec quotes
+    //srcPrecPuncts += aChar;
+    bool bIsClosingQuote = FALSE; // initialise
+    bool bIsClosingDoubleChevron = FALSE; // init
+    while (ptr < pEnd)
+    {
+        bIsClosingQuote = pDoc->IsClosingQuote(ptr); // exclude
+        bIsClosingDoubleChevron = pDoc->IsClosingDoubleChevron(ptr); // exclude
+        if (!(bIsClosingQuote || bIsClosingDoubleChevron))
+        {
+            aChar = *ptr;
+            srcPrecPuncts += aChar;
+        }
+        ptr++; // iterate to next
+    }
+    // check straight quote and doublequote
+    if (m_bDoubleQuoteAsPunct)
+    {
+        srcPrecPuncts += _T('\"'); // append ordinary double quote
+    }
+    if (m_bSingleQuoteAsPunct)
+    {
+        srcPrecPuncts += _T('\''); // append ordinary single quote
+    }
+    return srcPrecPuncts;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return   nothing
@@ -66631,7 +66695,7 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 // BEW added 17May18 returns the adaptation string with saved punctuation restored,
 // for setting m_targetStr
 // BEW 23Dec22 removed endingStr as this function is only called for endingStr empty
-// and instead, I will make a new function GetManuallyAddedPrecPuncts(pApp->m_targetPhrase)
+// and instead, I will make a new function GetAllPrecPuncts(pApp->m_targetPhrase)
 // to handle user-typed preceding puncts in the m_pPhraseBox, for use in MakeTargetStringIncludingPunctuation()
 //wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr)
 //
