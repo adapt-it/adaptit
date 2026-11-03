@@ -18819,7 +18819,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// the target text I do it here and not for the internal punctuation case above
 				// because it would make no sense to do the block of code above when the target
 				// is empty
-				bool bWantPrecCopy;
+				//bool bWantPrecCopy; // whm 3Nov2026 removed
 				int punctLen;
 				// BEW added 20 April 2005 to support the use of the new No Punctuation Copy
 				// button. Don't restore the TRUE value for this flag at the end of this
@@ -18943,7 +18943,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// can still be used safely, because there will be nonpunctuation and
 					// nonspace characters prior to any spaces in the phrase; and similarly
 					// when reversed
-					bWantPrecCopy = FALSE;
+					//bWantPrecCopy = FALSE; // whm 3Nov2026 removed
 					punctLen = 0; // for auto caps support
 					if (!bEmptyTarget)
 					{
