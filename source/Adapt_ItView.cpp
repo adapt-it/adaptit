@@ -14998,6 +14998,7 @@ bool CAdapt_ItView::StringHasMedialPunctSpan(wxString str,
 			if (!correspondingSpanningPunct.IsEmpty() && punctSpanningType == initialSpanning)
 			{
 				initialSpanningPunct = punctCh;
+				wxUnusedVar(initialSpanningPunct);
 			}
 
 			if (punctSpanningType == initialSpanning)
