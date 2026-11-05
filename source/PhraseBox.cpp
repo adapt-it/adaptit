@@ -1299,6 +1299,11 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 			//wxString result15PrecPuncts = pView->GetAllPrecPuncts(test15); // gets "]"
 			//wxString result15FollPuncts = pView->GetAllFinalPuncts(test15); // gets "]"
 			//wxString result15 = pView->RemoveNonMedialPunctuation(test15); // gets ""
+			//wxString test16 = _T("yupela.’");
+			//test16 = wxString::FromUTF8(test16);
+			//wxString result16PrecPuncts = pView->GetAllPrecPuncts(test16);
+			//wxString result16FollPuncts = pView->GetAllFinalPuncts(test16);
+			//wxString result16 = pView->RemoveNonMedialPunctuation(test16);
 			// Note: BEW's code for cases like test15 "]" check for presence of
 			// "]" as the sole content in the target string and if so they avoid
 			// calling a function like RemoveNonMedialPunctuation() that removes all
@@ -2161,6 +2166,28 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			}
 			else
 			{
+				// whm 5Nov2026 modification. If pApp->m_bCopySourcePunctuation is TRUE, copy 
+				// that source punctuation and convert it to target text for m_Translation.
+				// The m_Translation value won't have any punctuation; we add and convert it here
+				// for use in MoveToNextPile().
+				if (!m_Translation.IsEmpty() 
+					&& m_Translation != _T("<Not In KB>")
+					&& pApp->m_bCopySourcePunctuation)
+				{
+					wxString initPunct;
+					wxString finalPunct;
+					if (!pNewPile->GetSrcPhrase()->m_precPunct.IsEmpty())
+					{
+						initPunct = pNewPile->GetSrcPhrase()->m_precPunct;
+						initPunct = ConvertSrcPunctsInStringToTgt(initPunct, strictlyInitial);
+					}
+					if (!pNewPile->GetSrcPhrase()->m_follPunct.IsEmpty())
+					{
+						finalPunct = pNewPile->GetSrcPhrase()->m_follPunct;
+						finalPunct = ConvertSrcPunctsInStringToTgt(finalPunct, strictlyFinal);
+					}
+					m_Translation = initPunct + m_Translation + finalPunct;
+				}
 				pApp->m_targetPhrase = m_Translation;
 				// BEW 8Aug23, if m_targetPhrase gets set, then the m_pTargetBox contents
 				// should get the same value - to maintain matching contents with m_targetPhrase value
@@ -8995,19 +9022,41 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         }
         else
         {
-            // If the phrasebox had no content, then we just select first item in the list -
-            // unless the phrasebox was empty because user clicked <no adaptation>, in which case 
-            // we don't make a selection, but leave selectionIndex as -1 (as initialized at 
-            // the beginning of this function -- BEW note 2Apr19: this convention is okay, but it
+            // The phrasebox has no content, but there is at least one KB item to show in the
+			// dropdown list. If the indexOfNoAdaptation is not -1 then one of those items to
+			// display in the dropdown list is a "<no adaptation>". If the indexOfNoAdaptation is
+			// greater than zero there is another list entry at index zero from the KB that should
+			// be listed as first item in that list, and should be selected. If the indexOfNoAdaptation
+			// value is zero (0), then <no adaptation> will be listed first in the dropdown list and
+			// it will be selected. If the user hits the <no adaptation> button on the control bar
+			// the bUserHitNoAdaptation will be TRUE, and the selectionIndex should be set to the
+			// indexOfNoAdaptation.
+			// -- BEW note 2Apr19: this convention is okay, but it
 			// must not be misunderstood. It is perfectly acceptable for a <no adaptation>
 			// click by the user to occur in a pTU with other non-empty adaptations, a
 			// <no adaptation> can legally occur first, last, or anywhere inbetween.). 
             if (indexOfNoAdaptation != -1)
             {
-                // User clicked <no adaptation>, leave selectionIndex with value of -1 
-                // the indexOfNoAdaptation will have the index of the <no adaptation> item
-                // to inform the caller.
-                ; 
+				if (gpApp->m_bUserHitNoAdaptation)
+				{
+					// User just clicked <no adaptation>, set selectionIndex with value of  
+					// the indexOfNoAdaptation which will have the index of the <no adaptation> 
+					// item.
+					selectionIndex = indexOfNoAdaptation;
+				}
+				else if (indexOfNoAdaptation == 0)
+				{
+					// The "<no adaptation>" is the first listed KB item, and should be
+					// selected according to KB ordering priority. The selectionIndex
+					// should also point at this first item at index 0.
+					selectionIndex = indexOfNoAdaptation;
+				}
+				else if (indexOfNoAdaptation > 0)
+				{
+					// The "<no adaptation>" is in the listed KB items, but not first
+					// in the list. Set selectionIndex to the first in the list (index 0).
+					selectionIndex = 0; 
+				}
             }
             else
             {
@@ -9099,7 +9148,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 			{
 				selectionIndex = this->GetDropDownList()->Append(pApp->m_targetPhrase);
 			}
-			else
+			else if (foundItem != wxNOT_FOUND) // whm 4Nov2026 added
 			{
 				// whm 1Oct2026 modified. Call Delete(foundItem) and then 
 				// Insert(pApp->m_targetPhrase, foundItem) to replace the punct-less
@@ -9110,16 +9159,20 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				wxASSERT(selectionIndex == foundItem);
 			}
 		}
-		else if (str == _T("<no adaptation>") && indexOfNoAdaptation != -1)
-		{
-			int foundItem = -1;
-			foundItem = this->GetDropDownList()->FindString(str);
-			if (foundItem != -1)
-			{
-				selectionIndex = indexOfNoAdaptation;
-			}
-		}
+		//else if (str == _T("<no adaptation>") && indexOfNoAdaptation != -1)
+		//{
+		//	int foundItem = -1;
+		//	foundItem = this->GetDropDownList()->FindString(str);
+		//	if (foundItem != -1)
+		//	{
+		//		selectionIndex = indexOfNoAdaptation;
+		//	}
+		//}
 	}
+
+	// whm 4Nov2026 added.
+	pApp->m_bUserHitNoAdaptation = FALSE;
+
 #if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);

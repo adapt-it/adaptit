@@ -738,9 +738,11 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
                                       // whm 15Jul2018 added following flag settings to get selected string to stick
         pApp->m_bUserTypedSomething = TRUE;
 
-        // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
+        // whm 13Jul2018 added. The new phrasebox's list doesn't automatically close upon
         // making a selection, so we do it here, and ensure focus is in the edit box.
-        pApp->m_pTargetBox->CloseDropDown();
+		// whm 4Nov2026 modified to only close the dropdown when there are less than 2 items.
+		if (pApp->m_pTargetBox->GetDropDownList()->GetCount() < 2)
+	        pApp->m_pTargetBox->CloseDropDown();
 
         // BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
         // in the phrasebox

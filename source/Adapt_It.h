@@ -5130,6 +5130,12 @@ public:
 			// which causes the phrasebox to move ahead before user can do anything
 			// at the old location
 
+	// whm 4Nov2026 added.
+	bool m_bUserHitNoAdaptation; // default it FALSE, but set TRUE
+			// within the View handler OnButtonNoAdapt(). When TRUE
+			// the CPhraseBox::PopulateDropDownList() handler responds
+			// and leaves the dropdown list's selectionIndex at -1
+
 	// **********************************
 	// BEW added 21Jun05 for support of free translation mode
 	bool	m_bFreeTranslationMode; // TRUE when free translation mode is in effect,

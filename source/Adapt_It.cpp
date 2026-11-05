@@ -24715,6 +24715,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// having been inserted
 	m_bUserHitEnterOrTab = FALSE; // default, set TRUE if Enter or Tab keypress detected
 				// within CPhraseBox::OnKeyUp()
+
+    m_bUserHitNoAdaptation = FALSE; // whm 4Nov2026 added.
+
 	// Initialise the next 4 to FALSE - meaning "legacy filtering & unfiltering applies)
     // 
     // whm 26Feb2024 the following 4 boolean are no longer used in code.

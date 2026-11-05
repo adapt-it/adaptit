@@ -15547,7 +15547,9 @@ bool CAdapt_ItView::StringHasNonSpanningPunctuation(wxString str)
 //    often only in formal writing, but rarely in texts, chats, and social media posts.
 wxString CAdapt_ItView::RemoveNonMedialPunctuation(wxString str)
 {
-	str = wxString::FromUTF8(str); // to convert puncts such as ¿ and ¡ to single char
+	// whm 4Nov2026 Note: The use of wxString::FromUTF8() is only needed when 
+	// converting string literals having chars such as ¿ ¡ “ ‘ ” ’ within a _T("") macro, i.e., _T("literal")
+	//str = wxString::FromUTF8(str); // to convert puncts such as ¿ and ¡ to single char
 	int lenStr = str.Length();
 	// whm 24Sep2026 - 8Oct2026 Refactored so that all "non-medial" punctuation is 
 	// removed, but any medial punctuation instance is preserved.
@@ -15577,16 +15579,39 @@ wxString CAdapt_ItView::RemoveNonMedialPunctuation(wxString str)
 	// Below we scan through both the input str and the punctMask, and we
 	// remove from the str all characters which are at the same relative
 	// location in the punctMask.
+	// whm 4Nov2026 exception. When the punctMask has a 'p' in medial position,
+	// such as for the text "Freddy's" where the puncMask is "xxxxxxpx" we do
+	// want to preserve the apostrophe ' since it is actually a medial punct.
+	// We can check for a prevMaskChar of 'x' and a follMaskChar of 'x', and
+	// if so, we copy the strch to the tempStr in such cases.
 	wxString tempStr; tempStr.Empty(); // build the string to return here
+	wxChar prevMaskChar = _T('\0'); // whm 4Nov2026 added
+	wxChar follMaskChar = _T('\0'); // whm 4Nov2026 added
 	wxASSERT(lenStr == (int)punctMask.Length());
 	for (int i = 0; i < lenStr; i++)
 	{
+		if (i < (lenStr - 1))
+			follMaskChar = punctMask.GetChar(i + 1);
+		else
+			follMaskChar = _T('\0');
 		wxChar maskch = punctMask.GetChar(i);
 		wxChar strch = str.GetChar(i);
 		if (maskch != _T('p'))
 		{
 			tempStr << strch;
 		}
+		// whm 4Nov2026 added the following else if block
+		else if (maskch == _T('p'))
+		{
+			// whm 4Nov2026 added. If the mask char is 'p' but it is in medial
+			// position, that is if prevMaskChar is 'x' and follMaskChar is also 'x'
+			// then we do want to preserve the punct and copy it into the tempStr
+			if (prevMaskChar == _T('x') && follMaskChar == _T('x'))
+			{
+				tempStr << strch;
+			}
+		}
+		prevMaskChar = maskch; // whm 4Nov2026 added
 	}
 	str = tempStr;
 	return str;
@@ -19718,7 +19743,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 wxString CAdapt_ItView::GetAllFinalPuncts(wxString inputStr,
 		enum WhichLang whichLang) // whichLang defaults to targetLang
 {
-	//targetStr = wxString::FromUTF8(targetStr); // to convert puncts such as ¿ and ¡ to single char
+	// whm 4Nov2026 Note: The use of wxString::FromUTF8() is only needed when 
+	// converting string literals having chars such as ¿ ¡ “ ‘ ” ’ within a _T("") macro, i.e., _T("literal")
+	//inputStr = wxString::FromUTF8(inputStr); // to convert puncts such as ¿ and ¡ to single char
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	wxString typedPuncts = wxEmptyString;
 	// whm 4Oct2026 Removed the App's m_bFinalTypedPunctsGrabbedAlready flag
@@ -19850,7 +19877,9 @@ wxString CAdapt_ItView::GetAllPrecPuncts(wxChar* pBeginBuff, wxChar* pEnd,
 wxString CAdapt_ItView::GetAllPrecPuncts(wxString inputStr,
 		enum WhichLang whichLang) // whichLang defaults to targetLang
 {
-	inputStr = wxString::FromUTF8(inputStr); // to convert puncts such as ¿ and ¡ to single char
+	// whm 4Nov2026 Note: The use of wxString::FromUTF8() is only needed when 
+	// converting string literals having chars such as ¿ ¡ “ ‘ ” ’ within a _T("") macro, i.e., _T("literal")
+	//inputStr = wxString::FromUTF8(inputStr); // to convert puncts such as ¿ and ¡ to single char
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	wxString typedPuncts = wxEmptyString;
 	// whm 4Oct2026 removed the App's m_bPrecTypedPunctsGrabbedAlready flag
@@ -20487,8 +20516,10 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
         // enum internally and calls the SetupDropDownPhraseBoxForThisLocation() to initialize the dropdown
         // list - to include any changes made in the editor.
 		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
-		pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
-		pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from free trans mode
+		// whm 4Nov2026 commented out the following as I think it better to allow the 
+		// dropdown to remain open after closing of the KB Editor.
+		//pApp->m_pTargetBox->CloseDropDown(); // whm 16July2024 added to suppress the opening of the dropdown list on exit from KB Editor
+		//pApp->m_bChooseTransInitializePopup = FALSE; // whm 16July2024 added to suppress the opening of the dropdown list on exit from KB Editor
 
 //#if defined (_DEBUG)
 //        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  -  AFTER PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
@@ -27776,7 +27807,8 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	pApp->m_pAnchor = NULL;
 	if (pApp->m_selection.GetCount() > 0)
 		pApp->m_selection.Clear();
-
+	// whm 4Nov2026 added. The following App flag is only set TRUE here in this handler.
+	pApp->m_bUserHitNoAdaptation = TRUE;
 	GetLayout()->m_docEditOperationType = on_button_no_adaptation_op;
 	Invalidate();
 	// whm 2Oct2023 Note:
