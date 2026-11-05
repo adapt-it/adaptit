@@ -66706,6 +66706,8 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 // are handled; and send its value back to caller pView->MakeTargetStringIncludingPunctuation()
 // so that the bool TRUE value can be used in the caller to suppress existing code from doubling 
 // the preceding punctuation. BEW added 3rd param 11Oct23
+// whm 5Nov2026 Removed, as it is no longer used anywhere in the code.
+/*
 wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts, bool& bHandledFollPuncts)
 {
 #if defined (_DEBUG) //&& !defined (NOLOGS)
@@ -66838,6 +66840,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
 #endif
 	return str;
 }
+*/
 
 // BEW 7Apr20, A better test than m_bUnused == TRUE
 // because m_bUnused TRUE supports two unrelated functionalities;
