@@ -24547,6 +24547,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // on my Linux machine name = "Adapt_ItApp-wmartin"
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
+#ifndef __WXMAC__
     m_pChecker = new wxSingleInstanceChecker(name);
     { // special scope for wxLogNull
         wxLogNull logNull;
@@ -24565,6 +24566,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             return false;
         }
     } // end of special scope for wxLogNull
+#endif
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
 
