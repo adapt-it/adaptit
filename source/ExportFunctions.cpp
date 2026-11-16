@@ -125,7 +125,7 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-#define TRUNCATED
+//#define TRUNCATED
 
 // Moved here for Version 3.
 // We could use a CMap used as a dictionary associating the style "keys" with their "values."
@@ -2107,21 +2107,21 @@ void DoExportAsType(enum ExportType exportType)
 		*/
 
 #if defined(_DEBUG) && defined(TRUNCATED)
-		wxLogDebug(_T("DoExportAsType() before ApplyOutputFilterToText(): text length = %d"), target.Length());
+		wxLogDebug(_T("DoExportAsType() before ApplyOutputFilterToText(): text length = %d"), (int)target.Length());
 #endif
 
 		// Apply output filter to the target text
 		target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput, targetTextExport);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
-		wxLogDebug(_T("DoExportAsType() after ApplyOutputFilterToText(): text length = %d"), target.Length());
+		wxLogDebug(_T("DoExportAsType() after ApplyOutputFilterToText(): text length = %d"), (int)target.Length());
 #endif
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
-		wxLogDebug(_T("DoExportAsType() after FormatMarkerBufferForOutput(): text length = %d"), target.Length());
+		wxLogDebug(_T("DoExportAsType() after FormatMarkerBufferForOutput(): text length = %d"), (int)target.Length());
 #endif
 
 		target = RemoveMultipleSpaces(target);
@@ -2131,14 +2131,14 @@ void DoExportAsType(enum ExportType exportType)
 		NormalizeTextEOLsToCRLF(target); // no second parameter defaults bEndWithEOL to FALSE 
 
 #if defined(_DEBUG) && defined(TRUNCATED)
-		wxLogDebug(_T("DoExportAsType() after RemoveMultipleSpaces(): text length = %d"), target.Length());
+		wxLogDebug(_T("DoExportAsType() after RemoveMultipleSpaces(): text length = %d"), (int)target.Length());
 #endif
 		if (gbIsUnstructuredData)
 		{
 			FormatUnstructuredTextBufferForOutput(target, bRTFOutput);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
-			wxLogDebug(_T("DoExportAsType() after FormatUnstructuredTextBufferForOutput(): text length = %d"), target.Length());
+			wxLogDebug(_T("DoExportAsType() after FormatUnstructuredTextBufferForOutput(): text length = %d"), (int)target.Length());
 #endif
 		}
 		// do the check for a document with only paragraph markers (not needed, I fixed
@@ -2161,7 +2161,7 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(target); // change our custom markers to
 														   // \z... markers for Paratext
 #if defined(_DEBUG) && defined(TRUNCATED)
-			wxLogDebug(_T("DoExportAsType() after ChangeCustomMarkersToParatextPrivates(): text length = %d"), target.Length());
+			wxLogDebug(_T("DoExportAsType() after ChangeCustomMarkersToParatextPrivates(): text length = %d"), (int)target.Length());
 #endif
 		}
 	} // end of case targetTextExport:
