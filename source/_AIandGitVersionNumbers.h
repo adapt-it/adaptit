@@ -50,10 +50,10 @@
 
 // when changing these string values make sure to also change the corresponding int values below
 #define VERSION_DATE_DAY_STR "18"
-#define VERSION_DATE_MONTH_STR "9"
+#define VERSION_DATE_MONTH_STR "11"
 #define VERSION_DATE_YEAR_STR "2026"
 #define VERSION_DATE_DAY 18
-#define VERSION_DATE_MONTH 9
+#define VERSION_DATE_MONTH 11
 #define VERSION_DATE_YEAR 2026
 
 // set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
