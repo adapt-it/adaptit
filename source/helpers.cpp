@@ -6006,55 +6006,90 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 			// if afterSrcWord begins with ")" and pMergedSrcPhrase->m_targetStr 
 			// doesn't end with ")" then we should remove the ")" from the
 			// afterSrcWord value. 
-			wxString finalTgtStrPunct = GetTargetPunctuation(pMergedSrcPhrase->m_targetStr, TRUE);
+			// 
+			// whm 16Nov2026 modified. The mods made 28Sep2026 and 9Oct2026 were insufficient to generate a robust target text export string
+			// from the FromMergerMakeTstr() function. The code here needs to account for two scenarios:
+			// 1. The possibility that the user might remove, modify or relocate to medial position some final punctuation when making 
+			//     the merger. We must ensure that when we get the target punctuation correct in the export from what the 
+			//     pMergedSrcPhrase->m_targetStr has by way of final target punctuation as set by the user. The user's desired final
+			//     target punctuation for the merger should already be at the end of the top level pMergedSrcPhrase->m_targetStr value.
+			// 2. We need to preserve any whitespace and/or markers that follow the pMergedSrcPhrase->m_targetStr. Such whitespace and/or
+			//     markers will be contained within the pLast pSrcPhrase's m_follWsMkrsAndPuncts value, but it will also follow any final
+			//     source punctuation that also is present. 
+			// The challenge is: We need to make sure that we don't duplicate any final source puncts the user may have removed, modified or 
+			// relocated; and we need to preserve post-punctuation whitespace and/or markers for the target export.
+			// Strategy: Remove any initial source puncts that are present at the beginning of the pLast pSrcPhrase->m_follWsMkrsAndPuncts value
+			// and save what remains of whitespace and/or markers following that initial punctuation in a value named
+			// wsAndMkrsRemainingInAfterSrcWord. if wsAndMkrsRemainingInAfterSrcWord is NOT empty we 
+			// assign it to the afterSrcWord value. 
+			// Then we compose the str with:
+			// str = beforeSrcWord + pMergedSrcPhrase->m_targetStr + afterSrcWord;
+			wxString wsAndMkrsRemainingInAfterSrcWord; wsAndMkrsRemainingInAfterSrcWord.Empty();
+
+			//wxString finalTgtStrPunct = GetTargetPunctuation(pMergedSrcPhrase->m_targetStr, TRUE);
 			//int finalTgtStrLen = (int)finalTgtStrPunct.Length();
 			wxString initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
-			//int initAfterSrcWordLen = (int)initialAfterSrcWordPunct.Length();
-			wxString tempAfterSrcWord = afterSrcWord;
-			if (!pMergedSrcPhrase->m_targetStr.IsEmpty() && !initialAfterSrcWordPunct.IsEmpty()
-				&& afterSrcWord != _T(" "))
+			if (!initialAfterSrcWordPunct.IsEmpty() && !afterSrcWord.IsEmpty())
 			{
-				// whm 9Oct2026 modification remove the blocks below and just assign
-				// to afterSrcWord the value of finalTgtStrPunct of the pMergedSrcPhrase->m_targetStr
-				// which should have the desired puncts.
-				/*
-				if (finalTgtStrLen == 0 && initAfterSrcWordLen > 0)
+				int posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
+				if (posStuffAfterInitialSrcWordPunct != wxNOT_FOUND
+					&& posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length() < ((int)afterSrcWord.Length() - 1))
 				{
-					// The m_targetStr has no final puncts but the afterSrcWord does have punct(s)
-					// So remove the initial puncts from afterSrcWord; it may become empty.
-					tempAfterSrcWord = tempAfterSrcWord.Mid(initAfterSrcWordLen - 1);
+					// There is whitespace and/or markers following the initialAfterSrcWordPunct, so retrieve it into the
+					// wsAndMkrsRemainingInAfterSrcWord variable
+					wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
+					afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
 				}
-				else if (finalTgtStrLen > 0 && initAfterSrcWordLen > 0)
-				{
-					// The m_targetStr has final punct(s) and the afterSrcWord has initial punct(s)
-					// Remove initial puncts from afterSrcWord that match any final puncts on m_targetStr.
-					
-					// whm 9Oct2026 modified.
-					// The for loop below can only work OK if the length of the punct strings
-					// are the same, i.e., initAfterSrcWordLen == finalTgtStrLen.
-					// Program crash issue: 
-					// if the initialAfterSrcWordPunct == ", " with initAfterSrcWordLen == 2
-					// and the finalTgtStrPunct == "," with finalTgtStrLen == 1
-					// on the second pass through the for loop the line within the for loop 
-					// below:
-					//   wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
-					// will crash because index value in the GetChar() is 1 - 1 - 1 or -1
-					// and GetChar(-1) call attempt is on a negative number index causing a 
-					// program crash/assert.
-					for (int i = 0; i < initAfterSrcWordLen; i++)
-					{
-						wxChar chInit = initialAfterSrcWordPunct.GetChar(i);
-						wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
-						if (chInit == chFinal)
-						{
-							tempAfterSrcWord.Remove(initAfterSrcWordLen - 1 - i, 1);
-						}
-					}
-				}
-				afterSrcWord = tempAfterSrcWord;
-				*/
-				afterSrcWord = finalTgtStrPunct; // whm 9Oct2026 modification
 			}
+
+			// Prior to 16Nov2026 coding below:
+			////int initAfterSrcWordLen = (int)initialAfterSrcWordPunct.Length();
+			//wxString tempAfterSrcWord = afterSrcWord;
+			//if (!pMergedSrcPhrase->m_targetStr.IsEmpty() && !initialAfterSrcWordPunct.IsEmpty()
+			//	&& afterSrcWord != _T(" "))
+			//{
+			//	// whm 9Oct2026 modification remove the blocks below and just assign
+			//	// to afterSrcWord the value of finalTgtStrPunct of the pMergedSrcPhrase->m_targetStr
+			//	// which should have the desired puncts.
+			//	/*
+			//	if (finalTgtStrLen == 0 && initAfterSrcWordLen > 0)
+			//	{
+			//		// The m_targetStr has no final puncts but the afterSrcWord does have punct(s)
+			//		// So remove the initial puncts from afterSrcWord; it may become empty.
+			//		tempAfterSrcWord = tempAfterSrcWord.Mid(initAfterSrcWordLen - 1);
+			//	}
+			//	else if (finalTgtStrLen > 0 && initAfterSrcWordLen > 0)
+			//	{
+			//		// The m_targetStr has final punct(s) and the afterSrcWord has initial punct(s)
+			//		// Remove initial puncts from afterSrcWord that match any final puncts on m_targetStr.
+			//		
+			//		// whm 9Oct2026 modified.
+			//		// The for loop below can only work OK if the length of the punct strings
+			//		// are the same, i.e., initAfterSrcWordLen == finalTgtStrLen.
+			//		// Program crash issue: 
+			//		// if the initialAfterSrcWordPunct == ", " with initAfterSrcWordLen == 2
+			//		// and the finalTgtStrPunct == "," with finalTgtStrLen == 1
+			//		// on the second pass through the for loop the line within the for loop 
+			//		// below:
+			//		//   wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
+			//		// will crash because index value in the GetChar() is 1 - 1 - 1 or -1
+			//		// and GetChar(-1) call attempt is on a negative number index causing a 
+			//		// program crash/assert.
+			//		for (int i = 0; i < initAfterSrcWordLen; i++)
+			//		{
+			//			wxChar chInit = initialAfterSrcWordPunct.GetChar(i);
+			//			wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
+			//			if (chInit == chFinal)
+			//			{
+			//				tempAfterSrcWord.Remove(initAfterSrcWordLen - 1 - i, 1);
+			//			}
+			//		}
+			//	}
+			//	afterSrcWord = tempAfterSrcWord;
+			//	*/
+			//	afterSrcWord = finalTgtStrPunct; // whm 9Oct2026 modification
+			//}
+
 			// Convert any punctuation in beforeSrcWord and afterSrcWord from 
 			// source punct to target punct.
 			// Previous testing indicates: GetConvertedPuncts() only removes a final space in its 
@@ -6079,6 +6114,10 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 				beforeSrcWord = ConvertSrcPunctsInStringToTgt(beforeSrcWord, strictlyInitial); // converted to target text punctuation glyphs
 				beforeSrcWord += whiteSpFollowing;
 			}
+			// whm 16Nov2026 Note: It is possible that the afterSrcWord value originally taken from the pLast
+			// pSrcPhrase->m_follWsMkrsAndPuncts value could end with some initial punctuation
+			// present before the next source phrase. Therefore we ensure that any such punctuation it
+			// contains is also converted to target punctuation.
 			if (!afterSrcWord.IsEmpty())
 			{
 				whiteSpFollowing.Empty();
@@ -6103,7 +6142,13 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 			// whm 5Sep2026 Note: Previous version above had Tstr = strInitialSruff + Tstr,
 			// but that is removed by this refactoring, hence here we use = in the 
 			// assignment.
-			str = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord;
+
+			// whm 16Nov2026 modified str composition below to use pMergedSrcPhrase->m_targetStr
+			// instead of the tgtWordsNoPuncts value, and afterSrcWord that has had its initial
+			// source punctuation removed. The pMergedSrcPhrase->m_targetStr should end in the
+			// user's preferred target punctuation.
+			//str = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord;
+			str = beforeSrcWord + pMergedSrcPhrase->m_targetStr + afterSrcWord;
 			str = str; // for inspection only
 			// whm 5Sep2026 code above for testing
 
