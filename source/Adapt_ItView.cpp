@@ -2843,7 +2843,6 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// have punctuation copied and converted already on the str value that
 					// is returned via ref parameter of DoGetSuitableText_ForPlacePhraseBox(). 
 					// 
-					// TODO: Test out the code additions in the remainder of this block below!
 					// whm 30Sep2026 added 2nd and 3rd conditions to test below.
 					if (pApp->m_bCopySourcePunctuation && (!pApp->m_targetPhrase.IsEmpty()
 						|| !pApp->m_pTargetBox->m_Translation.IsEmpty()))

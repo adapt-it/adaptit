@@ -5908,7 +5908,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 							// for an appropriate wordbreak to insert before the last word
 	
 #ifdef _DEBUG
-	if (pMergedSrcPhrase->m_nSequNumber >= 89)
+	if (pMergedSrcPhrase->m_nSequNumber >= 349)
 	{
 		int break_here = 1;
 		break_here = break_here;
@@ -6007,88 +6007,93 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase,
 			// doesn't end with ")" then we should remove the ")" from the
 			// afterSrcWord value. 
 			// 
-			// whm 16Nov2026 modified. The mods made 28Sep2026 and 9Oct2026 were insufficient to generate a robust target text export string
-			// from the FromMergerMakeTstr() function. The code here needs to account for two scenarios:
-			// 1. The possibility that the user might remove, modify or relocate to medial position some final punctuation when making 
-			//     the merger. We must ensure that when we get the target punctuation correct in the export from what the 
-			//     pMergedSrcPhrase->m_targetStr has by way of final target punctuation as set by the user. The user's desired final
-			//     target punctuation for the merger should already be at the end of the top level pMergedSrcPhrase->m_targetStr value.
-			// 2. We need to preserve any whitespace and/or markers that follow the pMergedSrcPhrase->m_targetStr. Such whitespace and/or
-			//     markers will be contained within the pLast pSrcPhrase's m_follWsMkrsAndPuncts value, but it will also follow any final
-			//     source punctuation that also is present. 
-			// The challenge is: We need to make sure that we don't duplicate any final source puncts the user may have removed, modified or 
-			// relocated; and we need to preserve post-punctuation whitespace and/or markers for the target export.
-			// Strategy: Remove any initial source puncts that are present at the beginning of the pLast pSrcPhrase->m_follWsMkrsAndPuncts value
-			// and save what remains of whitespace and/or markers following that initial punctuation in a value named
-			// wsAndMkrsRemainingInAfterSrcWord. if wsAndMkrsRemainingInAfterSrcWord is NOT empty we 
-			// assign it to the afterSrcWord value. 
+			// whm 18Nov2026 modified. These mods should be also implemented in the FromSingleMakeTstr1() function.
+			// The mods made Sep2026 and Oct2026 were insufficient to generate a robust target text export string
+			// from the FromMergerMakeTstr1() function. The code here needs to account for other scenarios:
+			// 1. The possibility that the user might remove, modify or relocate to medial position some final 
+			//     punctuation when entering/editing the target translation. We must ensure that we get the target 
+			//     punctuation correct in the export from what the top level pMergedSrcPhrase->m_targetStr has by 
+			//     way of final target punctuation as set by the user. The user's desired final target punctuation 
+			//     for the merger should already be at the end of the top level pMergedSrcPhrase->m_targetStr value.
+			// 2. We generally need to preserve any whitespace and/or markers that follow the 
+			//     pLast pSrcPhrase->m_targetStr. Such whitespace and/or markers will be contained within the 
+			//     pLast pSrcPhrase's m_follWsMkrsAndPuncts value, but it will also follow any final source 
+			//     punctuation that also is present. See scenario 3 below for exception to this.
+			// 3. If the current pLast pSrcPhrase item is followed immediately by a placeholder
+			//     source phrase (pNextSrcPhrase->m_bNullSrcPhrase is TRUE), we want to export 
+			//     the final punctuation of the current pLast pSrcPhrase (using pSrcPhrase->m_targetStr) 
+			//     but not export any whitespce and/or markers that are contained in the current 
+			//     pLast pSrcPhrase->m_follWsMkrsAndPunts value, instead we wait to export those 
+			//     whitespace and/or markers until AFTER we have exported the next pNextSrcPhrase's 
+			//     (a placeholder source phrase's) m_targetStr.
+			//     For example, the current pSrcPhrase->m_follWsMkrsAndPuncts could have data
+			//     such as ".\r\n\\v 8 " but if the next source phrase is a placeholder, the user
+			//     inserted it to provide additional target text and/or punctuation BEFORE the 
+			//     "\r\n\\v 8 " part of the pSrcPhrase->m_follWsMkrsAndPuncts value, and this
+			//     "\r\n\\v 8 " part should be output AFTER the target text has been output from the
+			//     pNextSrcPhrase->m_targetStr.
+			//     So, in this scenario, we check to see if pNextSrcPhrase->m_bNullSrcPhrase 
+			//     is TRUE, and if so, we just output pSrcPhrase->m_targetStr, and don't output 
+			//     any whitespace and/or markers stuff from m_follWsMkrsAndPuncts at the current 
+			//     iteration while we're processing the non-placeholder item. Then, when processing the
+			//     next item and pSrcPhrase->m_bNullSrcPhrase is TRUE, we process the whitespace,
+			//     markers and punct from the pPrevSrcPhrase->m_follWsMkrsAndPuncts instead of the current
+			//     placeholder item's pSrcPhrase->m_follWxMkrsAndPuncts.
+			// The challenge is: We need to make sure that we don't duplicate any final source puncts the 
+			// user may have removed, modified or relocated; and we need to preserve post-punctuation 
+			// whitespace and/or markers for the target export.
+			// Strategy: Remove any initial source puncts that are present at the beginning of the pLast 
+			// pSrcPhrase->m_follWsMkrsAndPuncts value and save what remains of whitespace and/or markers 
+			// following that initial punctuation in a value named wsAndMkrsRemainingInAfterSrcWord. 
+			// If wsAndMkrsRemainingInAfterSrcWord is NOT empty we assign it to the afterSrcWord value. 
 			// Then we compose the str with:
-			// str = beforeSrcWord + pMergedSrcPhrase->m_targetStr + afterSrcWord;
+			// str = beforeSrcWord + pSingleSrcPhrase->m_targetStr + afterSrcWord;
 			wxString wsAndMkrsRemainingInAfterSrcWord; wsAndMkrsRemainingInAfterSrcWord.Empty();
-
-			//wxString finalTgtStrPunct = GetTargetPunctuation(pMergedSrcPhrase->m_targetStr, TRUE);
-			//int finalTgtStrLen = (int)finalTgtStrPunct.Length();
+			int posStuffAfterInitialSrcWordPunct = -1;
 			wxString initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
-			if (!initialAfterSrcWordPunct.IsEmpty() && !afterSrcWord.IsEmpty())
+			posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
+			if (posStuffAfterInitialSrcWordPunct != wxNOT_FOUND
+				&& posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length() < ((int)afterSrcWord.Length() - 1)
+				// whm 18Nov2026 added the following conditions for scenario 3 described above.
+				&& ((pSrcPhrase->m_bNullSourcePhrase == FALSE && pNextSrcPhrase->m_bNullSourcePhrase == FALSE)
+					|| (pSrcPhrase->m_bNullSourcePhrase == TRUE && pPrevSrcPhrase != NULL
+						&& pPrevSrcPhrase->m_bNullSourcePhrase == FALSE))
+				)
 			{
-				int posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
-				if (posStuffAfterInitialSrcWordPunct != wxNOT_FOUND
-					&& posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length() < ((int)afterSrcWord.Length() - 1))
-				{
-					// There is whitespace and/or markers following the initialAfterSrcWordPunct, so retrieve it into the
-					// wsAndMkrsRemainingInAfterSrcWord variable
-					wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
-					afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
-				}
+				// There is whitespace and/or markers following the initialAfterSrcWordPunct, so retrieve it into the
+				// wsAndMkrsRemainingInAfterSrcWord variable
+				wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
+				afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
 			}
-
-			// Prior to 16Nov2026 coding below:
-			////int initAfterSrcWordLen = (int)initialAfterSrcWordPunct.Length();
-			//wxString tempAfterSrcWord = afterSrcWord;
-			//if (!pMergedSrcPhrase->m_targetStr.IsEmpty() && !initialAfterSrcWordPunct.IsEmpty()
-			//	&& afterSrcWord != _T(" "))
-			//{
-			//	// whm 9Oct2026 modification remove the blocks below and just assign
-			//	// to afterSrcWord the value of finalTgtStrPunct of the pMergedSrcPhrase->m_targetStr
-			//	// which should have the desired puncts.
-			//	/*
-			//	if (finalTgtStrLen == 0 && initAfterSrcWordLen > 0)
-			//	{
-			//		// The m_targetStr has no final puncts but the afterSrcWord does have punct(s)
-			//		// So remove the initial puncts from afterSrcWord; it may become empty.
-			//		tempAfterSrcWord = tempAfterSrcWord.Mid(initAfterSrcWordLen - 1);
-			//	}
-			//	else if (finalTgtStrLen > 0 && initAfterSrcWordLen > 0)
-			//	{
-			//		// The m_targetStr has final punct(s) and the afterSrcWord has initial punct(s)
-			//		// Remove initial puncts from afterSrcWord that match any final puncts on m_targetStr.
-			//		
-			//		// whm 9Oct2026 modified.
-			//		// The for loop below can only work OK if the length of the punct strings
-			//		// are the same, i.e., initAfterSrcWordLen == finalTgtStrLen.
-			//		// Program crash issue: 
-			//		// if the initialAfterSrcWordPunct == ", " with initAfterSrcWordLen == 2
-			//		// and the finalTgtStrPunct == "," with finalTgtStrLen == 1
-			//		// on the second pass through the for loop the line within the for loop 
-			//		// below:
-			//		//   wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
-			//		// will crash because index value in the GetChar() is 1 - 1 - 1 or -1
-			//		// and GetChar(-1) call attempt is on a negative number index causing a 
-			//		// program crash/assert.
-			//		for (int i = 0; i < initAfterSrcWordLen; i++)
-			//		{
-			//			wxChar chInit = initialAfterSrcWordPunct.GetChar(i);
-			//			wxChar chFinal = finalTgtStrPunct.GetChar(finalTgtStrLen - 1 - i);
-			//			if (chInit == chFinal)
-			//			{
-			//				tempAfterSrcWord.Remove(initAfterSrcWordLen - 1 - i, 1);
-			//			}
-			//		}
-			//	}
-			//	afterSrcWord = tempAfterSrcWord;
-			//	*/
-			//	afterSrcWord = finalTgtStrPunct; // whm 9Oct2026 modification
-			//}
+			else if (pSrcPhrase->m_bNullSourcePhrase == TRUE && pPrevSrcPhrase != NULL
+				&& pPrevSrcPhrase->m_bNullSourcePhrase == FALSE)
+			{
+				if (pPrevSrcPhrase->m_nSrcWords > 1)
+				{
+					// The previous source phrase is a merged one. We need to get the last original
+					// word's m_follWsMkrsAndPuncts value and assign it to afterSrcWord here.
+					SPList* pOriginals = pPrevSrcPhrase->m_pSavedWords;
+					wxASSERT(!pOriginals->IsEmpty());
+					SPList::Node* pos_pOriginals = pOriginals->GetLast();
+					CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+					wxASSERT(pLastSPhr);
+					afterSrcWord = pLastSPhr->m_follWsMkrsAndPuncts;
+				}
+				else
+					afterSrcWord = pPrevSrcPhrase->m_follWsMkrsAndPuncts;
+				initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
+				posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
+				wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
+				afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
+			}
+			else
+			{
+				// There is no whitespace and/or markers in afterSrcWord so it only
+				// contains initial src punctuation, or, pNextSrcPhrase is a placeholder, 
+				// so empty afterSrcWord as we only want user's target punctuation as the user 
+				// entered it under these conditions.
+				afterSrcWord.Empty();
+			}
 
 			// Convert any punctuation in beforeSrcWord and afterSrcWord from 
 			// source punct to target punct.
@@ -18998,12 +19003,13 @@ wxString FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase,
 	int srcWordPos = -1;
 	//int lenSrcWord = srcWord.Length();
 #ifdef _DEBUG
-	if (pSingleSrcPhrase->m_nSequNumber >= 90)
+	if (pSingleSrcPhrase->m_nSequNumber >= 350)
 	{
 		int break_here = 1;
 		break_here = break_here;
 	}
 #endif
+
 	bool bSuppressPunctForNonSrcOutput; // TRUE for Target text export
 	// We should determine whether we suppressPunctForNonSrcOutput should be
 	// TRUE or FALSE. If the pSingleSrcPhrase->m_targetStr has content we
@@ -19029,6 +19035,94 @@ wxString FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase,
 	srcWordPos = Sstr.Find(srcWord);
 	beforeSrcWord = Sstr.Mid(0, srcWordPos);
 	afterSrcWord = Sstr.Mid(srcWordPos + srcWord.Length());
+
+	// whm 18Nov2026 modified. These mods should be also implemented in the FromMergerMakeTstr() function.
+	// The mods made Sep2026 and Oct2026 were insufficient to generate a robust target text export string
+	// from the FromSingleMakeTstr1() function. The code here needs to account for other scenarios:
+	// 1. The possibility that the user might remove, modify or relocate to medial position some final 
+	//     punctuation when entering/editing the target translation. We must ensure that we get the target 
+	//     punctuation correct in the export from what the pSingleSrcPhrase->m_targetStr has by way of final 
+	//     target punctuation as set by the user. The user's desired final target punctuation for the merger 
+	//     should already be at the end of the pSingleSrcPhrase->m_targetStr value.
+	// 2. We generally need to preserve any whitespace and/or markers that follow the pSingleSrcPhrase->m_targetStr. 
+	//     Such whitespace and/or markers will be contained within the pSingleSrcPhrase's m_follWsMkrsAndPuncts 
+	//     value, but it will also follow any final source punctuation that also is present. See scenario 3 below
+	//     for exception to this.
+	// 3. If the current pSingleSrcPhrase item is followed immediately by a placeholder
+	//     source phrase (pNextSingleSrcPhrase->m_bNullSrcPhrase is TRUE), we want to export 
+	//     the final punctuation of the current pSingleSrcPhrase (using pSingleSrcPhrase->m_targetStr) 
+	//     but not export any whitespce and/or markers that are contained in the current 
+	//     pSingleSrcPhrase->m_follWsMkrsAndPunts value, instead we wait to export those 
+	//     whitespace and/or markers until AFTER we have exported the next pNextSingleSrcPhrase's 
+	//     (a placeholder source phrase's) m_targetStr.
+	//     For example, the current pSingleSrcPhrase->m_follWsMkrsAndPuncts could have data
+	//     such as ".\r\n\\v 8 " but if the next source phrase is a placeholder, the user
+	//     inserted it to provide additional target text and/or punctuation BEFORE the 
+	//     "\r\n\\v 8 " part of the pSingleSrcPhrase->m_follWsMkrsAndPuncts value, and this
+	//     "\r\n\\v 8 " part should be output AFTER the target text has been output from the
+	//     pNextSingleSrcPhrase->m_targetStr.
+	//     So, in this scenario, we check to see if pNextSingleSrcPhrase->m_bNullSrcPhrase 
+	//     is TRUE, and if so, we just output pSingleSrcPhrase->m_targetStr, and don't output 
+	//     any whitespace and/or markers stuff from m_follWsMkrsAndPuncts at the current 
+	//     iteration while we're processing the non-placeholder item. Then, when processing the
+	//     next item and pSingleSrcPhrase->m_bNullSrcPhrase is TRUE, we process the whitespace,
+	//     markers and punct from the pPrevSrcPhrase->m_follWsMkrsAndPuncts instead of the current
+	//     placeholder item's pSingleSrcPhrase->m_follWxMkrsAndPuncts.
+	// The challenge is: We need to make sure that we don't duplicate any final source puncts the 
+	// user may have removed, modified or relocated; and we need to preserve post-punctuation 
+	// whitespace and/or markers for the target export.
+	// Strategy: Remove any initial source puncts that are present at the beginning of the pLast 
+	// pSingleSrcPhrase->m_follWsMkrsAndPuncts value and save what remains of whitespace and/or markers 
+	// following that initial punctuation in a value named wsAndMkrsRemainingInAfterSrcWord. 
+	// If wsAndMkrsRemainingInAfterSrcWord is NOT empty we assign it to the afterSrcWord value. 
+	// Then we compose the str with:
+	// str = beforeSrcWord + pSingleSrcPhrase->m_targetStr + afterSrcWord;
+	wxString wsAndMkrsRemainingInAfterSrcWord; wsAndMkrsRemainingInAfterSrcWord.Empty();
+	int posStuffAfterInitialSrcWordPunct = -1;
+	wxString initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
+	posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
+	if (posStuffAfterInitialSrcWordPunct != wxNOT_FOUND
+		&& posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length() < ((int)afterSrcWord.Length() - 1)
+		// whm 18Nov2026 added the following conditions for scenario 3 described above.
+		&& ((pSingleSrcPhrase->m_bNullSourcePhrase == FALSE && pNextSingleSrcPhrase->m_bNullSourcePhrase == FALSE)
+			|| (pSingleSrcPhrase->m_bNullSourcePhrase == TRUE && pPrevSingleSrcPhrase != NULL 
+				&& pPrevSingleSrcPhrase->m_bNullSourcePhrase == FALSE))
+		)
+	{
+		// There is whitespace and/or markers following the initialAfterSrcWordPunct, so retrieve it into the
+		// wsAndMkrsRemainingInAfterSrcWord variable
+		wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
+		afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
+	}
+	else if (pSingleSrcPhrase->m_bNullSourcePhrase == TRUE && pPrevSingleSrcPhrase != NULL 
+		&& pPrevSingleSrcPhrase->m_bNullSourcePhrase == FALSE)
+	{
+		if (pPrevSingleSrcPhrase->m_nSrcWords > 1)
+		{
+			// The previous source phrase is a merged one. We need to get the last original
+			// word's m_follWsMkrsAndPuncts value and assign it to afterSrcWord here.
+			SPList* pOriginals = pPrevSingleSrcPhrase->m_pSavedWords;
+			wxASSERT(!pOriginals->IsEmpty());
+			SPList::Node* pos_pOriginals = pOriginals->GetLast();
+			CSourcePhrase* pLastSPhr = pos_pOriginals->GetData();
+			wxASSERT(pLastSPhr);
+			afterSrcWord = pLastSPhr->m_follWsMkrsAndPuncts;
+		}
+		else
+			afterSrcWord = pPrevSingleSrcPhrase->m_follWsMkrsAndPuncts;
+		initialAfterSrcWordPunct = GetTargetPunctuation(afterSrcWord, FALSE);
+		posStuffAfterInitialSrcWordPunct = afterSrcWord.Find(initialAfterSrcWordPunct);
+		wsAndMkrsRemainingInAfterSrcWord = afterSrcWord.Mid(posStuffAfterInitialSrcWordPunct + (int)initialAfterSrcWordPunct.Length());
+		afterSrcWord = wsAndMkrsRemainingInAfterSrcWord;
+	}
+	else
+	{
+		// There is no whitespace and/or markers in afterSrcWord so it only
+		// contains initial src punctuation, or, pNextSingleSrcPhrase is a placeholder, 
+		// so empty afterSrcWord as we only want user's target punctuation as the user 
+		// entered it under these conditions.
+		afterSrcWord.Empty();
+	}
 
 	// Convert any punctuation in beforeSrcWord and afterSrcWord from 
 	// source punct to target punct.
@@ -19094,7 +19188,12 @@ wxString FromSingleMakeTstr1(CSourcePhrase* pSingleSrcPhrase,
 		afterSrcWord += whiteSpFollowing;
 	}
 	// Now assemble the parts together into Tstr.
-	Tstr = beforeSrcWord + tgtWordNoPuncts + afterSrcWord;
+	// whm 16Nov2026 modified str composition below to use pMergedSrcPhrase->m_targetStr
+	// instead of the tgtWordsNoPuncts value, and afterSrcWord that has had its initial
+	// source punctuation removed. The pMergedSrcPhrase->m_targetStr should end in the
+	// user's preferred target punctuation.
+	//Tstr = beforeSrcWord + tgtWordsNoPuncts + afterSrcWord;
+	Tstr = beforeSrcWord + pSingleSrcPhrase->m_targetStr + afterSrcWord;
 
 	return Tstr;
 }
